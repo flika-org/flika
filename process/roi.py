@@ -13,7 +13,7 @@ import global_vars as g
 from process.BaseProcess import BaseProcess
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
-import cv2 
+import skimage
 
 __all__ = ['set_value']
 
@@ -59,25 +59,29 @@ class Set_value(BaseProcess):
         if restrictToROI:
             roi=g.m.currentWindow.currentROI
             roi.pts=roi.getPoints()
-            cnt=np.array([np.array([np.array([p[1],p[0]])]) for p in roi.pts ])
-            mask=np.zeros((mx,my),np.uint8)
-            cv2.drawContours(mask,[cnt],0,255,-1)
+            x=np.array([p[0] for p in roi.pts])
+            y=np.array([p[1] for p in roi.pts])
+            xx,yy=skimage.draw.polygon(x,y)
+            #mask=np.zeros((mx,my),np.bool)
+            #mask[xx,yy]=True
             if nDim==2:
-                self.newtif[mask.astype(np.bool)]=value
+                self.newtif[xx,yy]=value
             elif nDim==3:
                 for i in np.arange(firstFrame,lastFrame+1):
-                    self.newtif[i][mask.astype(np.bool)]=value
+                    self.newtif[i][xx,yy]=value
         elif restrictToOutside:
             roi=g.m.currentWindow.currentROI
             roi.pts=roi.getPoints()
-            cnt=np.array([np.array([np.array([p[1],p[0]])]) for p in roi.pts ])
-            mask=255*np.ones((mx,my),np.uint8)
-            cv2.drawContours(mask,[cnt],0,0,-1)
+            x=np.array([p[0] for p in roi.pts])
+            y=np.array([p[1] for p in roi.pts])
+            xx,yy=skimage.draw.polygon(x,y)
+            mask=np.ones((mx,my),np.bool)
+            mask[xx,yy]=False
             if nDim==2:
-                self.newtif[mask.astype(np.bool)]=value
+                self.newtif[mask]=value
             elif nDim==3:
                 for i in np.arange(firstFrame,lastFrame+1):
-                    self.newtif[i][mask.astype(np.bool)]=value
+                    self.newtif[i][mask]=value
         
         else:
             if nDim==2:

@@ -8,7 +8,7 @@ from __future__ import (absolute_import, division,print_function, unicode_litera
 from future.builtins import (bytes, dict, int, list, object, range, str, ascii, chr, hex, input, next, oct, open, pow, round, super, filter, map, zip)
 
 import numpy as np
-import cv2
+import skimage
 import global_vars as g
 from process.BaseProcess import BaseProcess, SliderLabel
 from PyQt4.QtGui import *
@@ -44,12 +44,11 @@ class Gaussian_blur(BaseProcess):
         self.start(keepSourceWindow)
         if sigma>0:
             self.newtif=np.zeros(self.tif.shape)
-            gaussianKernalSize=int(np.ceil((4*sigma+1)/2)*2+1)
             if len(self.tif.shape)==3:
                 for i in np.arange(len(self.newtif)):
-                    self.newtif[i]=cv2.GaussianBlur(self.tif[i],(gaussianKernalSize,gaussianKernalSize),sigma)
+                    self.newtif[i]=skimage.filters.gaussian_filter(self.tif[i],sigma)
             elif len(self.tif.shape)==2:
-                self.newtif=cv2.GaussianBlur(self.tif,(gaussianKernalSize,gaussianKernalSize),sigma)
+                self.newtif=skimage.filters.gaussian_filter(self.tif,sigma)
         else:
             self.newtif=self.tif
         self.newname=self.oldname+' - Gaussian Blur sigma='+str(sigma)
@@ -63,8 +62,7 @@ class Gaussian_blur(BaseProcess):
             elif len(g.m.currentWindow.image.shape)==2:
                 testimage=np.copy(g.m.currentWindow.image)
             if sigma>0:
-                gaussianKernalSize=int(np.ceil((4*sigma+1)/2)*2+1)
-                testimage=cv2.GaussianBlur(testimage,(gaussianKernalSize,gaussianKernalSize),sigma) 
+                testimage=skimage.filters.gaussian_filter(testimage,sigma)
             g.m.currentWindow.imageview.setImage(testimage,autoLevels=False)            
         else:
             g.m.currentWindow.reset()

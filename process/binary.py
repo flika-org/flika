@@ -11,8 +11,8 @@ import numpy as np
 import scipy
 import global_vars as g
 import scipy.ndimage    
-import cv2
-import inspect
+from skimage import feature
+from skimage.filters import threshold_adaptive
 from process.BaseProcess import BaseProcess, SliderLabel, WindowSelector,  MissingWindowError
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *    
@@ -105,7 +105,7 @@ class BlocksizeSlider(SliderLabel):
     
 class Adaptive_threshold(BaseProcess):
     """adaptive_threshold(value, block_size, darkBackground=False, keepSourceWindow=False)
-    Creates a boolean matrix by applying an adaptive threshold using the opencv (cv2) library function cv2.adaptiveThreshold
+    Creates a boolean matrix by applying an adaptive threshold using the scikit-image threshold_adaptive function
     
     Parameters:
         | value (int) -- The threshold to be applied
@@ -118,8 +118,8 @@ class Adaptive_threshold(BaseProcess):
         super().__init__()
     def gui(self):
         self.gui_reset()
-        valueSlider=SliderLabel(0)
-        valueSlider.setRange(-255,255)
+        valueSlider=SliderLabel(2)
+        valueSlider.setRange(-20,20)
         valueSlider.setValue(0)
         block_size=BlocksizeSlider(0)
         if g.m.currentWindow is not None:
@@ -136,12 +136,13 @@ class Adaptive_threshold(BaseProcess):
         self.start(keepSourceWindow)
         nDim=len(self.tif.shape)
         newtif=np.copy(self.tif)
-        newtif=convert2uint8(newtif) #adaptiveThreshold requires an 8 bit image, so we scale everything to fit in 8 bits before performing operation
         if nDim==2:
-            newtif = cv2.adaptiveThreshold(newtif,1,cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY,block_size,value)
+            newtif = threshold_adaptive(newtif,block_size,offset=value)
         else:
             for i in np.arange(len(newtif)):
-                newtif[i] = cv2.adaptiveThreshold(newtif[i],1,cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY,block_size,value)
+                newtif[i] = threshold_adaptive(newtif[i],block_size,offset=value)
+        if darkBackground:
+                newtif=np.logical_not(newtif)
         self.newtif=newtif.astype(g.m.settings['internal_data_type'])
         self.newname=self.oldname+' - Thresholded '+str(value)
         return self.end()
@@ -156,8 +157,7 @@ class Adaptive_threshold(BaseProcess):
                 testimage=np.copy(g.m.currentWindow.image[g.m.currentWindow.currentIndex])
             elif nDim==2:
                 testimage=np.copy(g.m.currentWindow.image)
-            testimage=convert2uint8(testimage) #adaptiveThreshold requires an 8 bit image, so we scale everything to fit in 8 bits before performing operation
-            testimage = cv2.adaptiveThreshold(testimage,1,cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY,block_size,value)
+            testimage = threshold_adaptive(testimage,block_size,offset=value)
             if darkBackground:
                 testimage=np.logical_not(testimage)
             testimage=testimage.astype(g.m.settings['internal_data_type'])
@@ -174,12 +174,11 @@ adaptive_threshold=Adaptive_threshold()
 
 
 class Canny_edge_detector(BaseProcess):
-    """canny_edge_detector(threshold1, threshold2, keepSourceWindow=False)
+    """canny_edge_detector(sigma, keepSourceWindow=False)
     
     
     Parameters:
-        | threshold1 (float) -- 
-        | threshold2 (float) -- 
+        | sigma (float) -- 
     Returns:
         newWindow
     """
@@ -187,36 +186,29 @@ class Canny_edge_detector(BaseProcess):
         super().__init__()
     def gui(self):
         self.gui_reset()
-        threshold1=SliderLabel(2)
-        threshold2=SliderLabel(2)
+        sigma=SliderLabel(2)
         if g.m.currentWindow is not None:
-            image=g.m.currentWindow.image
-            threshold1.setRange(-1000,1000)
-            threshold1.setValue(0)
-            threshold2.setRange(-1000,1000)
-            threshold2.setValue(0)
+            sigma.setRange(0,1000)
+            sigma.setValue(1)
         preview=QCheckBox(); preview.setChecked(True)
-        self.items.append({'name':'threshold1','string':'Threshold 1','object':threshold1})
-        self.items.append({'name':'threshold2','string':'Threshold 2','object':threshold2})
+        self.items.append({'name':'sigma','string':'Sigma','object':sigma})
         self.items.append({'name':'preview','string':'Preview','object':preview})
         super().gui()
         self.preview()
-    def __call__(self,threshold1,threshold2, keepSourceWindow=False):
+    def __call__(self,sigma, keepSourceWindow=False):
         self.start(keepSourceWindow)
         nDim=len(self.tif.shape) 
         newtif=np.copy(self.tif)
-        newtif=convert2uint8(newtif) #Canny requires an 8 bit image, so we scale everything to fit in 8 bits before performing operation
         if nDim==2:
-            newtif = cv2.Canny(newtif,threshold1,threshold2)
+            newtif=feature.canny(self.tif,sigma)
         else:
             for i in np.arange(len(newtif)):
-                newtif[i] = cv2.Canny(newtif[i],threshold1,threshold2)
+                newtif[i] = feature.canny(self.tif[i],sigma)
         self.newtif=newtif.astype(g.m.settings['internal_data_type'])
         self.newname=self.oldname+' - Canny '
         return self.end()
     def preview(self):
-        threshold1=self.getValue('threshold1')
-        threshold2=self.getValue('threshold2')
+        sigma=self.getValue('sigma')
         preview=self.getValue('preview')
         nDim=len(g.m.currentWindow.image.shape)
         if preview:
@@ -224,8 +216,7 @@ class Canny_edge_detector(BaseProcess):
                 testimage=np.copy(g.m.currentWindow.image[g.m.currentWindow.currentIndex])
             elif nDim==2:
                 testimage=np.copy(g.m.currentWindow.image)
-            testimage=convert2uint8(testimage) #Canny requires an 8 bit image, so we scale everything to fit in 8 bits before performing operation
-            testimage=cv2.Canny(testimage,threshold1,threshold2)
+            testimage=feature.canny(testimage,sigma)
             g.m.currentWindow.imageview.setImage(testimage,autoLevels=False)
             g.m.currentWindow.imageview.setLevels(-.1,1.1)
         else:

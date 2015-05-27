@@ -8,7 +8,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 import global_vars as g
 import pyqtgraph as pg
-import cv2
+import skimage
 import numpy as np
 from trace import roiPlot
 import os
@@ -70,9 +70,11 @@ class ROI(QWidget):
         self.minn=np.min(np.array( [np.array([p[0],p[1]]) for p in self.pts]),0)
         return self.pts
     def getArea(self):
-        cnt=np.array([np.array([np.array([p[1],p[0]])]) for p in self.pts ])
-        area = cv2.contourArea(cnt)
-        return area
+        self.getMask()
+        return len(self.mask)
+        #cnt=np.array([np.array([np.array([p[1],p[0]])]) for p in self.pts ])
+        #area = cv2.contourArea(cnt)
+        #return area
     def drawFinished(self):
         self.path.closeSubpath()
         self.draw_from_points(self.getPoints()) #this rounds all the numbers down
@@ -177,17 +179,20 @@ class ROI(QWidget):
         
     def getMask(self):
         pts=self.pts
-        cnt=np.array([np.array([np.array([pt[1],pt[0]])]) for pt in pts ])
         tif=self.window.image
+        x=np.array([p[0] for p in pts])
+        y=np.array([p[1] for p in pts])
         nDims=len(tif.shape)
         if nDims==4: #if this is an RGB image stack
             tif=np.mean(tif,3)
-            mask=np.zeros(tif[0,:,:].shape,np.uint8)
+            mask=np.zeros(tif[0,:,:].shape,np.bool)
         elif nDims==3:
-            mask=np.zeros(tif[0,:,:].shape,np.uint8)
+            mask=np.zeros(tif[0,:,:].shape,np.bool)
         if nDims==2: #if this is a static image
-            mask=np.zeros(tif.shape,np.uint8)
-        cv2.drawContours(mask,[cnt],0,255,-1)
+            mask=np.zeros(tif.shape,np.bool)
+            
+        xx,yy=skimage.draw.polygon(x,y,shape=mask.shape)
+        mask[xx,yy]=True
         pts_plus=np.array(np.where(mask)).T
         for pt in pts_plus:
             if not self.path.contains(QPointF(pt[0],pt[1])):
@@ -196,14 +201,14 @@ class ROI(QWidget):
         self.mask=np.array(np.where(mask)).T-self.minn
         
     def getTrace(self,bounds=None,pts=None):
+        ''' bounds are two points in time.  If bounds is not None, we only calculate values between the bounds '''
         tif=self.window.image
         if len(tif.shape)==4: #if this is an RGB image stack
             tif=np.mean(tif,3)
-        mask=np.zeros(tif[0,:,:].shape,np.uint8)
-        mx,my=mask.shape
+        mx,my=tif[0,:,:].shape
         pts=self.mask+self.minn
         pts=pts[(pts[:,0]>=0)*(pts[:,0]<mx)*(pts[:,1]>=0)*(pts[:,1]<my)]
-        mask[(pts[:,0],pts[:,1])]=255
+        xx=pts[:,0]; yy=pts[:,1]
         if bounds is None:
             bounds=[0,len(tif)]
         else:
@@ -214,7 +219,7 @@ class ROI(QWidget):
                 return np.array([])
         mn=np.zeros(bounds[1]-bounds[0])
         for t in np.arange(bounds[0],bounds[1]):
-            mn[t-bounds[0]]=cv2.mean(tif[t,:,:].astype(np.float),mask)[0]       
+            mn[t-bounds[0]]=np.mean(tif[t,xx,yy])       
         return mn
         
     def link(self,roi):
@@ -248,14 +253,14 @@ class ROI_line(ROI):
             self.kymograph.close()
     def update_kymograph(self):
         self.pts=self.getPoints()
-        cnt=np.array([np.array([np.array([p[1],p[0]])]) for p in self.pts ])
         tif=self.window.image
         mt=tif.shape[0]
-        mask=np.zeros(tif[0,:,:].shape,np.uint8)
-        cv2.drawContours(mask,[cnt],0,255,-1)
-        mn=np.zeros((mt,len(np.nonzero(mask)[0])))
+        x=np.array([p[0] for p in self.pts])
+        y=np.array([p[1] for p in self.pts])
+        xx,yy=skimage.draw.line(x[0],y[0],x[1],y[1])
+        mn=np.zeros((mt,len(xx)))
         for t in np.arange(mt):
-            mn[t]=tif[t][np.nonzero(mask)]
+            mn[t]=tif[t,xx,yy]
         mn=mn.T
         if self.kymograph is None:
             self.createKymograph(mn)

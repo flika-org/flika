@@ -15,7 +15,6 @@ pg.setConfigOptions(useWeave=False)
 import os, time
 import numpy as np
 from trace import TraceFig
-import cv2 
 import global_vars as g
 from roi import *
 
