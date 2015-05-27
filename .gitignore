@@ -1,3 +1,6 @@
+**/config.p
+*.pyc
+
 # Windows image file caches
 Thumbs.db
 ehthumbs.db
@@ -41,3 +44,24 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
+
+#############
+## Python
+#############
+
+*.py[co]
+
+# Packages
+*.egg
+*.egg-info
+dist/
+build/
+eggs/
+parts/
+var/
+sdist/
+develop-eggs/
+.installed.cfg
+
+# Installer logs
+pip-log.txt

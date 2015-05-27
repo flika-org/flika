@@ -1,0 +1,281 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Introduction to Flika &mdash; Flika 2.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Flika 2.0 documentation" href="index.html" />
+    <link rel="prev" title="Welcome to Flika’s documentation!" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to Flika’s documentation!"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Flika 2.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="introduction-to-flika">
+<h1>Introduction to Flika<a class="headerlink" href="#introduction-to-flika" title="Permalink to this headline">¶</a></h1>
+<p>Flika was created in the <a class="reference external" href="http://parkerlab.bio.uci.edu/index.htm">Parker Lab</a> in order to detect and measure Ca<sup>2+</sup> puffs caused by IP<sub>3</sub> channel openings.  It is growing into a general analysis tool for biological movies.</p>
+<div class="section" id="getting-started">
+<h2>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h2>
+<p>Flika currently supports .tif files and .stk files.  To create a script, save a python file in the &#8216;scripts&#8217; directory.  To run it, select &#8216;Scripts&#8217;, then click on the name of your script.</p>
+</div>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-file">
+<span id="file"></span><h3>File<a class="headerlink" href="#module-file" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="edit">
+<h3>Edit<a class="headerlink" href="#edit" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="image">
+<h3>Image<a class="headerlink" href="#image" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="module-stacks">
+<span id="stacks"></span><h4>Stacks<a class="headerlink" href="#module-stacks" title="Permalink to this headline">¶</a></h4>
+<dl class="function">
+<dt id="stacks.deinterleave">
+<tt class="descclassname">stacks.</tt><tt class="descname">deinterleave</tt><big>(</big><em>nChannels</em>, <em>keepSourceWindow=False</em><big>)</big><a class="headerlink" href="#stacks.deinterleave" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="stacks.slicekeeper">
+<tt class="descclassname">stacks.</tt><tt class="descname">slicekeeper</tt><big>(</big><em>firstFrame</em>, <em>lastFrame</em>, <em>increment</em>, <em>keepSourceWindow=False</em><big>)</big><a class="headerlink" href="#stacks.slicekeeper" title="Permalink to this definition">¶</a></dt>
+<dd><p>This creates a new stack from the frames between the firstFrame and the lastFrame</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><div class="first last line-block">
+<div class="line">firstFrame (int) &#8211; The index of the first frame in the stack to be kept.</div>
+<div class="line">lastFrame (int) &#8211; The index of the last frame in the stack to be kept.</div>
+<div class="line">increment (int) &#8211; if increment equals, then every ith frame is kept.</div>
+</div>
+</dd>
+<dt>Returns:</dt>
+<dd>newWindow</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="process">
+<h3>Process<a class="headerlink" href="#process" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="module-binary">
+<span id="binary"></span><h4>Binary<a class="headerlink" href="#module-binary" title="Permalink to this headline">¶</a></h4>
+<dl class="function">
+<dt id="binary.threshold">
+<tt class="descclassname">binary.</tt><tt class="descname">threshold</tt><big>(</big><em>value</em>, <em>darkBackground=False</em>, <em>keepSourceWindow=False</em><big>)</big><a class="headerlink" href="#binary.threshold" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a boolean matrix by applying a threshold</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><div class="first last line-block">
+<div class="line">value (float) &#8211; The threshold to be applied</div>
+<div class="line">darkBackground (bool) &#8211; If this is True, pixels below the threshold will be True</div>
+</div>
+</dd>
+<dt>Returns:</dt>
+<dd>newWindow</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="binary.remove_small_blobs">
+<tt class="descclassname">binary.</tt><tt class="descname">remove_small_blobs</tt><big>(</big><em>value</em>, <em>keepSourceWindow=False</em><big>)</big><a class="headerlink" href="#binary.remove_small_blobs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds all contiguous &#8216;True&#8217; pixels in all 3 dimensions.  Removes regions which have fewer than the specified pixels.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><div class="first last line-block">
+<div class="line">value (int) &#8211; The size (in pixels) below which each contiguous region must be in order to be discarded.</div>
+</div>
+</dd>
+<dt>Returns:</dt>
+<dd>newWindow</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-filters">
+<span id="filters"></span><h4>Filters<a class="headerlink" href="#module-filters" title="Permalink to this headline">¶</a></h4>
+<dl class="function">
+<dt id="filters.gaussian_blur">
+<tt class="descclassname">filters.</tt><tt class="descname">gaussian_blur</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#filters.gaussian_blur" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="filters.butterworth_filter">
+<tt class="descclassname">filters.</tt><tt class="descname">butterworth_filter</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#filters.butterworth_filter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="filters.boxcar_differential_filter">
+<tt class="descclassname">filters.</tt><tt class="descname">boxcar_differential_filter</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#filters.boxcar_differential_filter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-math_">
+<span id="math"></span><h4>Math<a class="headerlink" href="#module-math_" title="Permalink to this headline">¶</a></h4>
+<dl class="function">
+<dt id="math_.subtract">
+<tt class="descclassname">math_.</tt><tt class="descname">subtract</tt><big>(</big><em>value</em>, <em>keepSourceWindow=False</em><big>)</big><a class="headerlink" href="#math_.subtract" title="Permalink to this definition">¶</a></dt>
+<dd><p>This takes a value and subtracts it from the current window&#8217;s image.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><div class="first last line-block">
+<div class="line">value (int) &#8211; The number you are subtracting.</div>
+</div>
+</dd>
+<dt>Returns:</dt>
+<dd>newWindow</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="math_.ratio">
+<tt class="descclassname">math_.</tt><tt class="descname">ratio</tt><big>(</big><em>first_frame</em>, <em>nFrames</em>, <em>ratio_type</em>, <em>keepSourceWindow=False</em><big>)</big><a class="headerlink" href="#math_.ratio" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes a set of frames, combines them into a 2D array according to ratio_type, and divides the entire 3D array frame-by-frame by this array.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><div class="first last line-block">
+<div class="line">first_frame (int) &#8211; The first frame in the set of frames to be combined</div>
+<div class="line">nFrames (int) &#8211; The number of frames to be combined.</div>
+<div class="line">ratio_type (str) &#8211; The method used to combine the frames.  Either &#8216;standard deviation&#8217; or &#8216;average&#8217;.</div>
+</div>
+</dd>
+<dt>Returns:</dt>
+<dd>newWindow</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="math_.multiply">
+<tt class="descclassname">math_.</tt><tt class="descname">multiply</tt><big>(</big><em>value</em>, <em>keepSourceWindow=False</em><big>)</big><a class="headerlink" href="#math_.multiply" title="Permalink to this definition">¶</a></dt>
+<dd><p>This takes a value and multiplies it to the current window&#8217;s image.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><div class="first last line-block">
+<div class="line">value (int) &#8211; The number you are multiplying by.</div>
+</div>
+</dd>
+<dt>Returns:</dt>
+<dd>newWindow</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="analyze">
+<h3>Analyze<a class="headerlink" href="#analyze" title="Permalink to this headline">¶</a></h3>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Introduction to Flika</a><ul>
+<li><a class="reference internal" href="#getting-started">Getting Started</a></li>
+<li><a class="reference internal" href="#functions">Functions</a><ul>
+<li><a class="reference internal" href="#module-file">File</a></li>
+<li><a class="reference internal" href="#edit">Edit</a></li>
+<li><a class="reference internal" href="#image">Image</a><ul>
+<li><a class="reference internal" href="#module-stacks">Stacks</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#process">Process</a><ul>
+<li><a class="reference internal" href="#module-binary">Binary</a></li>
+<li><a class="reference internal" href="#module-filters">Filters</a></li>
+<li><a class="reference internal" href="#module-math_">Math</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#analyze">Analyze</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Welcome to Flika&#8217;s documentation!</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/intro.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to Flika’s documentation!"
+             >previous</a> |</li>
+        <li><a href="index.html">Flika 2.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Kyle Ellefsen.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>
