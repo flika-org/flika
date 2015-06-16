@@ -86,6 +86,31 @@
      <bool>false</bool>
     </property>
    </widget>
+   <widget class="QPushButton" name="point">
+    <property name="geometry">
+     <rect>
+      <x>180</x>
+      <y>0</y>
+      <width>61</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Point</string>
+    </property>
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+    <property name="checked">
+     <bool>false</bool>
+    </property>
+    <property name="autoExclusive">
+     <bool>true</bool>
+    </property>
+    <property name="flat">
+     <bool>false</bool>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -102,6 +127,7 @@
     </property>
     <addaction name="actionOpen"/>
     <addaction name="actionSaveAs"/>
+    <addaction name="actionSave_Points"/>
     <addaction name="actionLoad_ROI_File"/>
     <addaction name="actionSave_Movie"/>
     <addaction name="actionChange_Internal_Data_type"/>
@@ -430,6 +456,11 @@
   <action name="actionSubtract_Trace">
    <property name="text">
     <string>Subtract Trace</string>
+   </property>
+  </action>
+  <action name="actionSave_Points">
+   <property name="text">
+    <string>Save Points</string>
    </property>
   </action>
  </widget>

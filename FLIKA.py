@@ -21,7 +21,7 @@ from roi import load_roi_gui, load_roi
 import global_vars as g
 from window import Window
 import cPickle as pickle # pickle serializes python objects so they can be saved persistantly.  It converts a python object into a savable data structure
-from process.file_ import open_gui, save_as_gui, open_file, load_metadata, close, save_file, save_movie_gui, save_movie, change_internal_data_type, change_internal_data_type_gui
+from process.file_ import open_gui, save_as_gui, open_file, load_metadata, close, save_file, save_movie_gui, save_movie, change_internal_data_type, change_internal_data_type_gui, save_points_gui
 from process.stacks import deinterleave, slicekeeper, zproject, image_calculator, pixel_binning, frame_binning
 from process.math_ import multiply, subtract, power, ratio, absolute_value, subtract_trace
 from process.filters import gaussian_blur, butterworth_filter,boxcar_differential_filter, wavelet_filter, difference_filter, fourier_filter
@@ -89,6 +89,7 @@ def initializeMainGui():
     g.m.setGeometry(QRect(15, 33, 326, 80))
     g.m.actionOpen.triggered.connect(open_gui)    
     g.m.actionSaveAs.triggered.connect(save_as_gui)
+    g.m.actionSave_Points.triggered.connect(save_points_gui)
     g.m.actionSave_Movie.triggered.connect(save_movie_gui)
     g.m.actionChange_Internal_Data_type.triggered.connect(change_internal_data_type_gui)
     g.m.actionDeinterleave.triggered.connect(deinterleave.gui)
@@ -128,6 +129,7 @@ def initializeMainGui():
     g.m.freehand.clicked.connect(lambda: g.m.settings.setmousemode('freehand'))
     g.m.line.clicked.connect(lambda: g.m.settings.setmousemode('line'))
     g.m.rectangle.clicked.connect(lambda: g.m.settings.setmousemode('rectangle'))
+    g.m.point.clicked.connect(lambda: g.m.settings.setmousemode('point'))
     g.m.menuScripts.aboutToShow.connect(getScriptList)
     url='file:///'+os.path.join(os.getcwd(),'docs','_build','html','index.html')
     g.m.actionDocs.triggered.connect(lambda: QDesktopServices.openUrl(QUrl(url)))

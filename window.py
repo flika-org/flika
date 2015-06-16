@@ -53,6 +53,7 @@ class Window(QWidget):
         """ Here we set the initial range of the look up table.  """
         nDims=len(np.shape(self.image))
         if nDims==3:
+            mt,mx,my=tif.shape
             if np.min(self.image)==0 and (np.max(self.image)==0 or np.max(self.image)==1): #if the image is binary (either all 0s or 0s and 1s)
                 self.imageview.setLevels(-.01,1.01) #set levels from slightly below 0 to 1
             elif np.all(self.image[0]==0): #if the first frame is all zeros
@@ -64,8 +65,12 @@ class Window(QWidget):
                 r=(r[0]-(r[1]-r[0])/100,r[1]+(r[1]-r[0])/100)
                 self.imageview.setLevels(r[0],r[1])
         elif nDims==4:
+            mt,mx,my,mc=tif.shape
             if np.min(self.image)==0 and (np.max(self.image)==0 or np.max(self.image)==1): #if the image is binary (either all 0s or 0s and 1s)
                 self.imageview.setLevels(-.01,1.01) #set levels from slightly below 0 to 1
+        elif nDims==2:
+            mt=1
+            mx,my=tif.shape
                 
         self.imageview.timeLine.sigPositionChanged.connect(self.updateindex)
         self.currentIndex=self.imageview.currentIndex
@@ -80,6 +85,10 @@ class Window(QWidget):
         self.currentROI=None
         self.currentROIs={}
         self.creatingROI=False
+        self.scatterPlot=pg.ScatterPlotItem(size=5, pen=pg.mkPen(None), brush=pg.mkBrush(255, 0, 0, 255))  #this is the plot that all the red points will be drawn on
+        self.scatterPoints=[[] for _ in np.arange(mt)]
+        self.scatterPlot.sigClicked.connect(self.clickedScatter)
+        self.imageview.addItem(self.scatterPlot)
         self.pasteAct = QAction("&Paste", self, triggered=self.paste)
         if g.m.settings['show_windows']:
             self.show()
@@ -93,6 +102,7 @@ class Window(QWidget):
         (idx, t) = self.imageview.timeIndex(self.imageview.timeLine)
         t=int(np.ceil(t))
         self.currentIndex = t
+        self.scatterPlot.setPoints(pos=self.scatterPoints[t])
         self.sigTimeChanged.emit(t)
     def setIndex(self,index):
         if index>=0 and index<len(self.image):
@@ -150,6 +160,15 @@ class Window(QWidget):
         g.m.setWindowTitle("FLIKA - {}".format(os.path.basename(self.name)))
         self.setStyleSheet("border:1px solid rgb(0, 255, 0); ")
         g.m.setCurrentWindowSignal.sig.emit()
+    
+    def clickedScatter(self, plot, points):
+        p=points[0]
+        t=self.currentIndex
+        x,y=p.pos()
+        self.scatterPoints[t]=[p for p in self.scatterPoints[t] if x!=p[0] and y!=p[1]]
+        self.scatterPlot.setPoints(pos=self.scatterPoints[t])
+        print('clicked')
+        
         
     def mouseClickEvent(self,ev):
         self.EEEE=ev
@@ -160,10 +179,17 @@ class Window(QWidget):
                     self.x=None
                     self.y=None
                 else:
-                    if g.m.clipboard is not None:
+                    mm=g.m.settings['mousemode']
+                    if mm=='point':
+                        t=self.currentIndex
+                        position=[self.x,self.y]
+                        self.scatterPoints[t].append(position)
+                        self.scatterPlot.addPoints(pos=[[self.x,self.y]], brush=pg.mkBrush('r'))
+                    elif g.m.clipboard is not None:
                         self.menu = QMenu(self)
                         self.menu.addAction(self.pasteAct)
                         self.menu.exec_(ev.screenPos().toQPoint())
+                        
 
     
     def keyPressEvent(self,ev):

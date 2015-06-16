@@ -124,7 +124,32 @@ def save_file(filename):
     tifffile.imsave(filename, tif, description=metadata) #http://stackoverflow.com/questions/20529187/what-is-the-best-way-to-save-image-metadata-alongside-a-tif-with-python
     g.m.statusBar().showMessage('Successfully saved {}'.format(os.path.basename(filename)))
     
-
+def save_points_gui():
+    if g.m.currentWindow is None:
+        return False
+    filename=g.m.settings['filename']
+    directory=os.path.dirname(filename)
+    if filename is not None and directory != '':
+        filename= QFileDialog.getSaveFileName(g.m, 'Save Points', directory, '*.txt')
+    else:
+        filename= QFileDialog.getSaveFileName(g.m, 'Save Points', '*.txt')
+    filename=str(filename)
+    if filename=='':
+        return False
+    else:
+        save_points(filename)
+        
+def save_points(filename):
+    g.m.statusBar().showMessage('Saving Points in {}'.format(os.path.basename(filename)))
+    p_out=[]
+    p_in=g.m.currentWindow.scatterPoints
+    for t in np.arange(len(p_in)):
+        for p in p_in[t]:
+            p_out.append(np.array([t,p[0],p[1]]))
+    p_out=np.array(p_out)
+    np.savetxt(filename,p_out)
+    g.m.statusBar().showMessage('Successfully saved {}'.format(os.path.basename(filename)))
+    
 def save_movie_gui():
     if g.m.currentWindow is None:
         return False
