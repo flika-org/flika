@@ -139,10 +139,10 @@ class Slicekeeper(BaseProcess):
         if g.m.currentWindow is not None:
             nFrames=g.m.currentWindow.image.shape[0]
         firstFrame=QSpinBox()
-        firstFrame.setMaximum(nFrames)
+        firstFrame.setMaximum(nFrames-1)
         self.items.append({'name':'firstFrame','string':'First Frame','object':firstFrame})
         lastFrame=QSpinBox()
-        lastFrame.setRange(1,nFrames-1)
+        lastFrame.setRange(0,nFrames-1)
         lastFrame.setValue(nFrames-1)
         self.items.append({'name':'lastFrame','string':'Last Frame','object':lastFrame})
         increment=QSpinBox()

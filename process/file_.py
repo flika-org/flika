@@ -25,7 +25,7 @@ import json
 import re
 
 
-__all__ = ['open_gui','open_file','save_as_gui','save_as_gui','save_file','save_movie_gui','save_movie','load_metadata','save_metadata','close','change_internal_data_type']
+__all__ = ['open_gui','open_file','save_as_gui','save_as_gui','save_file','save_movie_gui','save_movie','load_metadata','save_metadata','close','change_internal_data_type', 'load_points_gui','load_points', 'save_points_gui','save_points']
     
         
 def open_gui():
@@ -64,7 +64,7 @@ def open_file(filename=None):
         else:
             tif=np.transpose(tif,(0,2,1)) # This keeps the x and y the same as in FIJI. 
     elif len(tif.shape)==2: # I haven't tested whether this preserved the x y and keeps it the same as in FIJI.  TEST THIS!!
-        tif=np.transpose(tif,(0,1))
+        tif=np.transpose(tif,(1,0))
     g.m.statusBar().showMessage('{} successfully loaded ({} s)'.format(os.path.basename(filename), time.time()-t))
     commands=["open_file('{}')".format(filename)]
     newWindow=Window(tif,filename,filename,commands,metadata)
@@ -121,6 +121,8 @@ def save_file(filename):
     metadata=json.dumps(g.m.currentWindow.metadata)
     if len(tif.shape)==3:
         tif=np.transpose(tif,(0,2,1)) # This keeps the x and the y the same as in FIJI
+    elif len(tif.shape)==2:
+        tif=np.transpose(tif,(1,0))
     tifffile.imsave(filename, tif, description=metadata) #http://stackoverflow.com/questions/20529187/what-is-the-best-way-to-save-image-metadata-alongside-a-tif-with-python
     g.m.statusBar().showMessage('Successfully saved {}'.format(os.path.basename(filename)))
     
@@ -149,6 +151,28 @@ def save_points(filename):
     p_out=np.array(p_out)
     np.savetxt(filename,p_out)
     g.m.statusBar().showMessage('Successfully saved {}'.format(os.path.basename(filename)))
+    
+def load_points_gui():
+    filename=g.m.settings['filename']
+    if filename is not None and os.path.isfile(filename):
+        filename= QFileDialog.getOpenFileName(g.m, 'Open File', filename, '*.txt')
+    else:
+        filename= QFileDialog.getOpenFileName(g.m, 'Open File', '','*.tif *.tiff *.stk')
+    filename=str(filename)
+    if filename=='':
+        return False
+    else:
+        load_points(filename)
+        
+def load_points(filename):
+    g.m.statusBar().showMessage('Loading points from {}'.format(os.path.basename(filename)))
+    pts=np.loadtxt(filename)
+    for pt in pts:
+        t=int(pt[0])
+        g.m.currentWindow.scatterPoints[t].append([pt[1],pt[2]])
+    t=g.m.currentWindow.currentIndex
+    g.m.currentWindow.scatterPlot.setPoints(pos=g.m.currentWindow.scatterPoints[t])
+    g.m.statusBar().showMessage('Successfully loaded {}'.format(os.path.basename(filename)))
     
 def save_movie_gui():
     if g.m.currentWindow is None:

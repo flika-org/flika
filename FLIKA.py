@@ -5,6 +5,7 @@ updated 2015.01.27
 @author: Kyle Ellefsen
 """
 from __future__ import (absolute_import, division,print_function, unicode_literals)
+import dependency_check
 from future.builtins import (bytes, dict, int, list, object, range, str, ascii, chr, hex, input, next, oct, open, pow, round, super, filter, map, zip)
 import time
 tic=time.time()
@@ -21,7 +22,7 @@ from roi import load_roi_gui, load_roi
 import global_vars as g
 from window import Window
 import cPickle as pickle # pickle serializes python objects so they can be saved persistantly.  It converts a python object into a savable data structure
-from process.file_ import open_gui, save_as_gui, open_file, load_metadata, close, save_file, save_movie_gui, save_movie, change_internal_data_type, change_internal_data_type_gui, save_points_gui
+from process.file_ import open_gui, save_as_gui, open_file, load_metadata, close, save_file, save_movie_gui, save_movie, change_internal_data_type, change_internal_data_type_gui, save_points_gui, load_points_gui
 from process.stacks import deinterleave, slicekeeper, zproject, image_calculator, pixel_binning, frame_binning
 from process.math_ import multiply, subtract, power, ratio, absolute_value, subtract_trace
 from process.filters import gaussian_blur, butterworth_filter,boxcar_differential_filter, wavelet_filter, difference_filter, fourier_filter
@@ -90,6 +91,7 @@ def initializeMainGui():
     g.m.actionOpen.triggered.connect(open_gui)    
     g.m.actionSaveAs.triggered.connect(save_as_gui)
     g.m.actionSave_Points.triggered.connect(save_points_gui)
+    g.m.actionLoad_Points.triggered.connect(load_points_gui)
     g.m.actionSave_Movie.triggered.connect(save_movie_gui)
     g.m.actionChange_Internal_Data_type.triggered.connect(change_internal_data_type_gui)
     g.m.actionDeinterleave.triggered.connect(deinterleave.gui)

@@ -18,7 +18,7 @@ import skimage
 __all__ = ['set_value']
 
 class Set_value(BaseProcess):
-    """ set_value(value, firstFrame, lastFrame, restrictToROI=False, keepSourceWindow=False)
+    """ set_value(value, firstFrame, lastFrame, restrictToROI=False, restrictToOutside=False, keepSourceWindow=False)
     This sets the value from firstFrame to lastFrame to value.
     
     Parameters:
@@ -62,6 +62,9 @@ class Set_value(BaseProcess):
             x=np.array([p[0] for p in roi.pts])
             y=np.array([p[1] for p in roi.pts])
             xx,yy=skimage.draw.polygon(x,y)
+            inside_bounds=(xx>=0) & (yy>=0) & (xx<mx) & (yy<my)
+            xx=xx[inside_bounds]
+            yy=yy[inside_bounds]
             #mask=np.zeros((mx,my),np.bool)
             #mask[xx,yy]=True
             if nDim==2:
@@ -75,6 +78,9 @@ class Set_value(BaseProcess):
             x=np.array([p[0] for p in roi.pts])
             y=np.array([p[1] for p in roi.pts])
             xx,yy=skimage.draw.polygon(x,y)
+            inside_bounds=(xx>=0) & (yy>=0) & (xx<mx) & (yy<my)
+            xx=xx[inside_bounds]
+            yy=yy[inside_bounds]
             mask=np.ones((mx,my),np.bool)
             mask[xx,yy]=False
             if nDim==2:
