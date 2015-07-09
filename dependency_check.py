@@ -9,7 +9,7 @@ if sys.version_info.major==2:
     from urllib2 import Request, urlopen
 elif sys.version_info.major==3:
     from urllib.request import Request, urlopen
-dependencies_pypi=['future','leastsqbound','pyqtgraph']
+dependencies_pypi=['future','leastsqbound','pyqtgraph','openpyxl']
 dependencies_gohlke=['PyQt4','numpy','scipy','skimage','OpenGL','shapely']
 
 pyversion=str(sys.version_info.major)+str(sys.version_info.minor)
