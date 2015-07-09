@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
-import urllib2
 import os
 from os.path import basename, expanduser
 import pip
 from sys import platform as _platform
 import sys
 from importlib import import_module
-
+if sys.version_info.major==2:
+    from urllib2 import Request, urlopen
+elif sys.version_info.major==3:
+    from urllib.request import Request, urlopen
 dependencies_pypi=['future','leastsqbound','pyqtgraph']
 dependencies_gohlke=['PyQt4','numpy','scipy','skimage','OpenGL','shapely']
 
@@ -33,8 +35,8 @@ if not os.path.exists(flika_dir):
 os.chdir(flika_dir)
             
 def download_file(download_url):
-    req = urllib2.Request(download_url,headers={'User-Agent':"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.132 Safari/537.36"})
-    response = urllib2.urlopen(req)
+    req = Request(download_url,headers={'User-Agent':"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.132 Safari/537.36"})
+    response = urlopen(req)
     file = open(basename(download_url), 'wb')
     the_page=response.read()
     file.write(the_page)
@@ -52,13 +54,7 @@ def install(dep):
             print('\n\n\n')
             print('This should install all the dependencies.  You only need to do this once.')
     
-for dep in dependencies_pypi:
-    try:
-        import_module(dep)
-    except ImportError as e:
-        if e.message=='No module named {}'.format(dep):
-            install(dep)
-        
+
         
 if _platform == 'win32':
     for dep in dependencies_gohlke:
@@ -79,8 +75,19 @@ if _platform == 'win32':
                 pass #if it wasn't successful, keep the .whl file.
 else:
     print("I haven't yet coded how to install binaries for non-Windows systems")
+
+for dep in dependencies_pypi:
+    try:
+        import_module(dep)
+    except ImportError as e:
+        if sys.version_info.major==2:
+            if e.message=='No module named {}'.format(dep):
+                install(dep)
+        elif sys.version_info.major==3:
+            if e.msg=="No module named '{}'".format(dep):
+                install(dep)
+        
         
 os.chdir(old_cwd)
-
 
 

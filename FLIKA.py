@@ -21,7 +21,10 @@ from scripts import getScriptList
 from roi import load_roi_gui, load_roi
 import global_vars as g
 from window import Window
-import cPickle as pickle # pickle serializes python objects so they can be saved persistantly.  It converts a python object into a savable data structure
+if sys.version_info.major==2:
+    import cPickle as pickle # pickle serializes python objects so they can be saved persistantly.  It converts a python object into a savable data structure
+else:
+    import pickle
 from process.file_ import open_gui, save_as_gui, open_file, load_metadata, close, save_file, save_movie_gui, save_movie, change_internal_data_type, change_internal_data_type_gui, save_points_gui, load_points_gui
 from process.stacks import deinterleave, slicekeeper, zproject, image_calculator, pixel_binning, frame_binning
 from process.math_ import multiply, subtract, power, ratio, absolute_value, subtract_trace

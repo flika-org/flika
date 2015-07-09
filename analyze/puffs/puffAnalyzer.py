@@ -17,11 +17,11 @@ from PyQt4.QtCore import pyqtSlot as Slot
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 import pyqtgraph as pg
-from gaussianFitting import fitGaussian
+from .gaussianFitting import fitGaussian
 from leastsqbound import leastsqbound
 from pyqtgraph import plot, show
 from scipy.ndimage.measurements import label
-from gaussianFittingReproducibility import ReproducibilityPlot
+from .gaussianFittingReproducibility import ReproducibilityPlot
 
 
 class Puff:

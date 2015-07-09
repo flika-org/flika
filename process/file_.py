@@ -231,7 +231,7 @@ def txt2dict(metadata):
     except ValueError: #if the metadata isn't in JSON
         pass
     for line in metadata.splitlines():
-        line=re.split('[:=]',line)
+        line=re.split('[:=]',line.decode())
         if len(line)==1:
             meta[line[0]]=''
         else:

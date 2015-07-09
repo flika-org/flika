@@ -21,12 +21,16 @@ from scipy.signal import filtfilt
 import pyqtgraph.opengl as gl
 from roi import ROI_rectangle, makeROI
 import itertools
-import os, inspect
+import os, inspect,sys
 import scipy.stats as st
 from scipy import spatial
 import matplotlib
 from pyqtgraph.dockarea import *
-import cPickle as pickle 
+from window import Window
+if sys.version_info.major==2:
+    import cPickle as pickle # pickle serializes python objects so they can be saved persistantly.  It converts a python object into a savable data structure
+else:
+    import pickle
 import bz2
 
 
