@@ -379,7 +379,7 @@ class ROI_rectangle(ROI):
             if y2>=my: y2=my-1
             mx,my=tif.shape
             newtif=tif[x1:x2+1,y1:y2+1]
-        Window(newtif,self.window.name+' Cropped',metadata=self.window.metadata)
+        return Window(newtif,self.window.name+' Cropped',metadata=self.window.metadata)
         
     def translate(self,difference,startpt):
         ''' For an ROI_line object, this function must translate either one point, the other point, or the entire line, depending on where on the line we start.'''

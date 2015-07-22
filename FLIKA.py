@@ -39,15 +39,17 @@ from analyze.puffs.threshold_cluster import threshold_cluster
 from process.overlay import time_stamp,background
 
 from analyze.behavior.rodentTracker import launchRodentTracker
-
-os.chdir(os.path.split(os.path.realpath(__file__))[0])
+try:
+    os.chdir(os.path.split(os.path.realpath(__file__))[0])
+except NameError:
+    pass
 
 class Settings:
     def __init__(self):
         self.config_file=os.path.join(expanduser("~"),'.FLIKA','config.p')
         try:
             self.d=pickle.load(open(self.config_file, "rb" ))
-        except IOError:
+        except (IOError, ValueError):
             self.d=dict()
             self.d['filename']=None #this is the name of the most recently opened file
             self.d['data_type']=np.float64 #this is the data type used to save an image.  All image data are handled internally as np.float64 irrespective of this setting
@@ -94,6 +96,7 @@ def initializeMainGui():
     g.m.actionOpen.triggered.connect(open_gui)    
     g.m.actionSaveAs.triggered.connect(save_as_gui)
     g.m.actionSave_Points.triggered.connect(save_points_gui)
+    
     g.m.actionLoad_Points.triggered.connect(load_points_gui)
     g.m.actionSave_Movie.triggered.connect(save_movie_gui)
     g.m.actionChange_Internal_Data_type.triggered.connect(change_internal_data_type_gui)
@@ -184,7 +187,7 @@ def mainguiClose(event):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     initializeMainGui()
-    print("Time to load Flika: {} s".format(time.time()-tic))
+    #print("Time to load Flika: {} s".format(time.time()-tic))
     #open_file()
     #data_window=open_file('D:/Desktop/test_data_long.tif')
     #density_window=open_file('D:/Desktop/density_long.tif')

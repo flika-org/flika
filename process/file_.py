@@ -55,6 +55,8 @@ def open_file(filename=None):
     Tiff.close()
     #tif=imread(filename,plugin='tifffile').astype(g.m.settings['internal_data_type'])
     if len(tif.shape)>3: # WARNING THIS TURNS COLOR movies TO BLACK AND WHITE BY AVERAGING ACROSS THE THREE CHANNELS
+        if 'channels' in metadata.keys() and 'ImageJ' in metadata.keys():
+            tif=np.transpose(tif,(0,3,2,1))
         tif=np.mean(tif,3)
     tif=np.squeeze(tif) #this gets rid of the meaningless 4th dimention in .stk files
     if len(tif.shape)==3: #this could either be a movie or a colored still frame
