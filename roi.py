@@ -20,6 +20,7 @@ class ROI(QWidget):
     translated=Signal()
     translate_done=Signal()
     deleteSignal=Signal()
+    plotSignal=Signal()
     kind='freehand'
     def __init__(self,window,x,y):
         QWidget.__init__(self)
@@ -105,6 +106,7 @@ class ROI(QWidget):
     def plot(self):
         roiPlot(self)
         g.m.tracefig.indexChanged.connect(self.window.setIndex)
+        self.plotSignal.emit()
     def unplot(self):
         g.m.tracefig.indexChanged.disconnect(self.window.setIndex)
         g.m.tracefig.removeROI(self)

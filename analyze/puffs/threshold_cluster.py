@@ -408,8 +408,6 @@ class PuffAnalyzer(QWidget):
             self.d1.addWidget(self.threeD_plot)
             
     def linkTif(self):
-        tif=self.data_window           
-        
         self.clusterItem=pg.ImageItem(self.puffs.cluster_im[0])
         self.data_window.imageview.view.addItem(self.clusterItem)
         self.clusterItem.setOpacity(.5)
@@ -421,15 +419,18 @@ class PuffAnalyzer(QWidget):
         x0=x-r; x1=x+r+1; y0=y-r; y1=y+r+1;
         pts=[(x0,y0),(x0,y1),(x1,y1),(x1,y0),(x0,y0)]
         self.roi=makeROI('rectangle',pts,self.data_window)
-        #tif.setIndex(np.mean([t0,t1]))
-        self.roi.plot()
-        tif.deleteButtonSignal.disconnect(self.roi.deleteCurrentROI)
+        self.data_window.deleteButtonSignal.disconnect(self.roi.deleteCurrentROI)
         self.redTraces=[]
-        g.m.tracefig.finishedDrawingSignal.connect(self.drawRedOverlay)
+        self.data_window.keyPressSignal.connect(self.keyPressEvent)
+        self.roi.plotSignal.connect(self.linkTracefig)
+        self.roi.plot()
+        
+    def linkTracefig(self):
+        g.m.tracefig.finishedDrawingSignal.connect(self.drawRedOverlay) #hopefully this is not already connected
         g.m.tracefig.p1.scene().sigMouseClicked.connect(self.clickedTrace)
         g.m.tracefig.keyPressSignal.connect(self.keyPressEvent)
-        self.data_window.keyPressSignal.connect(self.keyPressEvent)
         self.drawRedOverlay()
+        
     def updateTime(self,t):
         self.clusterItem.setImage(self.puffs.cluster_im[t])
             
