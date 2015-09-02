@@ -32,7 +32,7 @@ class Gaussian_blur(BaseProcess):
     def gui(self):
         self.gui_reset()
         sigma=SliderLabel(2)
-        sigma.setRange(0,10)
+        sigma.setRange(0,100)
         sigma.setValue(1)
         preview=QCheckBox()
         preview.setChecked(True)
