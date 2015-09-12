@@ -267,6 +267,8 @@ class PuffAnalyzer(QWidget):
         self.toggle3DButton.pressed.connect(self.toggle3D)
         self.filterButton=QPushButton('Filter')
         self.filterButton.pressed.connect(self.openFilterGUI)
+        self.widenButton=QPushButton('Widen all puff durations')
+        self.widenButton.pressed.connect(self.widenPuffDurations)
         self.exportButton=QPushButton('Export')
         self.exportButton.pressed.connect(self.export_gui)
         self.saveButton=QPushButton('Save')
@@ -536,9 +538,23 @@ class PuffAnalyzer(QWidget):
         puff_pt=np.array([puff.kinetics['x'],puff.kinetics['y']])
         difference=puff_pt-roi_pt
         
-        self.roi.path.translate(QPointF(*difference))
+        self.roi.path.translate(QPointF(*difference)) #translates the path
+        self.roi.pathitem.setPath(self.roi.path) #sets the roi path; moves the yellow box
+        self.roi.getPoints()
+        trace=self.roi.getTrace()
+        roi_index=g.m.tracefig.get_roi_index(self.roi)
+        g.m.tracefig.update_trace_full(roi_index,trace)
+        for roi in self.roi.linkedROIs:
+            roi.draw_from_points(self.roi.getPoints())
+            roi.getMask()
+            trace=roi.getTrace()
+            roi_index=g.m.tracefig.get_roi_index(roi)
+            g.m.tracefig.update_trace_full(roi_index,trace)
+        
+        
+        
         #self.roi.pathitem.setPath(self.roi.path)
-        self.roi.finish_translate()
+        #self.roi.finish_translate()
         #self.roi.draw_from_points(self.roi.getPoints())
         #self.roi.translate_done.emit()
         self.lastClicked = point
@@ -551,6 +567,7 @@ class PuffAnalyzer(QWidget):
         if p is not None:
             p.setPen('y', width=2)
             self.lastClickedScatterPt= [p]
+
 
     def clicked(self, plot, points):
         point=points[0]
@@ -676,9 +693,26 @@ class PuffAnalyzer(QWidget):
         puff=puffs[index]
         if ev.button()==1:
             self.setCurrPuff(self.puffs.puffs.index(puff))
+    
     def openFilterGUI(self):
         print("This will eventually allow you to filter puffs by things like amplitude and duration, but I haven't implemented it yet")
-            
+    
+    def widenPuffDurations(self):
+        puffs=self.puffs.puffs
+        mt=len(self.data_window.image)
+        for puff in puffs:
+            puff.kinetics['t_start']-=1
+            if puff.kinetics['t_start']<0:
+                puff.kinetics['t_start']=0
+            puff.kinetics['t_end']+=1
+            if puff.kinetics['t_end']>=mt:
+                puff.kinetics['t_end']=mt-1
+        puff=self.puffs.getPuff()
+        self.trace_plot.clear()
+        puff.plot(self.trace_plot)
+                
+                
+        
     def export_gui(self):
         filename=g.m.settings['filename']
         directory=os.path.dirname(filename)

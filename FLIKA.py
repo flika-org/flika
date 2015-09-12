@@ -11,6 +11,7 @@ import time
 tic=time.time()
 import os, sys
 sys.path.insert(0, "C:/Users/Kyle Ellefsen/Documents/GitHub/pyqtgraph")
+sys.path.insert(0, "C:/Users/Medha/Documents/GitHub/pyqtgraph")
 from os.path import expanduser
 import numpy as np
 from PyQt4.QtCore import * # Qt is Nokias GUI rendering code written in C++.  PyQt4 is a library in python which binds to Qt
@@ -18,7 +19,7 @@ from PyQt4.QtGui import *
 from PyQt4.QtCore import pyqtSignal as Signal
 from pyqtgraph import plot, show
 from scripts import getScriptList
-from roi import load_roi_gui, load_roi
+from roi import load_roi_gui, load_roi, makeROI
 import global_vars as g
 from window import Window
 if sys.version_info.major==2:
