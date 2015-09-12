@@ -36,7 +36,7 @@ from analyze.puffs.frame_by_frame_origin import frame_by_frame_origin
 from analyze.puffs.average_origin import average_origin
 from analyze.puffs.threshold_cluster import threshold_cluster
 
-from process.overlay import time_stamp,background
+from process.overlay import time_stamp,background, scale_bar
 
 from analyze.behavior.rodentTracker import launchRodentTracker
 try:
@@ -127,6 +127,7 @@ def initializeMainGui():
     g.m.actionSet_value.triggered.connect(set_value.gui)
     g.m.actionImage_Calculator.triggered.connect(image_calculator.gui)    
     g.m.actionTime_Stamp.triggered.connect(time_stamp.gui)
+    g.m.actionScale_Bar.triggered.connect(scale_bar.gui)
     g.m.actionBackground.triggered.connect(background.gui)
     
     g.m.actionMeasure.triggered.connect(measure.gui)    

@@ -71,7 +71,7 @@ class Window(QWidget):
         elif nDims==2:
             mt=1
             mx,my=tif.shape
-                
+        self.mx=mx; self.my=my;
         self.imageview.timeLine.sigPositionChanged.connect(self.updateindex)
         self.currentIndex=self.imageview.currentIndex
         self.layout = QVBoxLayout(self)

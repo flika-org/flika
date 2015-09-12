@@ -416,7 +416,7 @@
   </action>
   <action name="actionScale_Bar">
    <property name="text">
-    <string>Scale Bar (not implemented)</string>
+    <string>Scale Bar</string>
    </property>
   </action>
   <action name="actionSave_Movie">

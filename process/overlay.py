@@ -126,6 +126,58 @@ background=Background()
 class Scale_Bar(BaseProcess):
     def __init__(self):
         super().__init__()
+    def gui(self):
+        print('running')
+        self.gui_reset()
+        win=g.m.currentWindow
+        width_microns=QDoubleSpinBox()
+        width_pixels=QSpinBox()
+        width_pixels.setRange(.001,1000000)
+        width_pixels.setRange(1,win.mx*2)
+        width_pixels.setValue(win.mx)
+        font_size=QSpinBox()
+        font_size.setValue(12)
+        color=QComboBox()
+        color.addItem("White")
+        background=QComboBox()
+        background.addItem('None')
+        location=QComboBox()
+        location.addItem('Lower Right')
+        location.addItem('Lower Left')
+        location.addItem('Top Right')
+        location.addItem('Top Left')
+
+        show=QCheckBox(); show.setChecked(True)
+        self.items.append({'name':'width_microns','string':'Width in microns','object':width_microns})
+        self.items.append({'name':'width_pixels','string':'Width in pixels','object':width_pixels})
+        self.items.append({'name':'font_size','string':'Font size','object':font_size})
+        self.items.append({'name':'color','string':'Color','object':color})
+        self.items.append({'name':'background','string':'Background','object':background})
+        self.items.append({'name':'location','string':'Location','object':location})
+        self.items.append({'name':'show','string':'Show','object':show})
+        super().gui()
+    def __call__(self,width_microns, width_pixels, font_size, color, background,location,show=True,keepSourceWindow=None):
+        w=g.m.currentWindow
+        if show:
+            if hasattr(w,'scaleBarLabel') and w.scaleBarLabel is not None:
+                return
+            w.scaleBarLabel= pg.TextItem(html="<span style='font-size: {}pt;color:{};background-color:{};'>hihihi</span>".format(font_size, color, background))
+            
+            w.imageview.view.addItem(w.scaleBarLabel)
+        else:
+            if hasattr(w,'scaleBarLabel') and w.scaleBarLabel is not None:
+                w.imageview.view.removeItem(w.scaleBarLabel)
+                w.scaleBarLabel=None
+        return None
+    def preview(self):
+        width_microns=self.getValue('width_microns')
+        width_pixels=self.getValue('width_pixels')
+        font_size=self.getValue('font_size')
+        color=self.getValue('color')
+        background=self.getValue('background')
+        location=self.getValue('location')
+        show=self.getValue('show')
+        self.__call__(width_microns, width_pixels, font_size, color, background, location, show)
 scale_bar=Scale_Bar()
 
 
