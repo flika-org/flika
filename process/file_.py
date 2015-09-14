@@ -171,6 +171,8 @@ def load_points(filename):
     pts=np.loadtxt(filename)
     for pt in pts:
         t=int(pt[0])
+        if g.m.currentWindow.mt==1:
+            t=0
         g.m.currentWindow.scatterPoints[t].append([pt[1],pt[2]])
     t=g.m.currentWindow.currentIndex
     g.m.currentWindow.scatterPlot.setPoints(pos=g.m.currentWindow.scatterPoints[t])

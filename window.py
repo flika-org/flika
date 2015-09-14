@@ -71,7 +71,7 @@ class Window(QWidget):
         elif nDims==2:
             mt=1
             mx,my=tif.shape
-        self.mx=mx; self.my=my;
+        self.mx=mx; self.my=my; self.mt=mt
         self.imageview.timeLine.sigPositionChanged.connect(self.updateindex)
         self.currentIndex=self.imageview.currentIndex
         self.layout = QVBoxLayout(self)
@@ -85,7 +85,7 @@ class Window(QWidget):
         self.currentROI=None
         self.currentROIs={}
         self.creatingROI=False
-        self.scatterPlot=pg.ScatterPlotItem(size=5, pen=pg.mkPen(None), brush=pg.mkBrush(255, 0, 0, 255))  #this is the plot that all the red points will be drawn on
+        self.scatterPlot=pg.ScatterPlotItem(size=5, pen=pg.mkPen([0,0,0,255]), brush=pg.mkBrush(255, 0, 0, 255))  #this is the plot that all the red points will be drawn on
         self.scatterPoints=[[] for _ in np.arange(mt)]
         self.scatterPlot.sigClicked.connect(self.clickedScatter)
         self.imageview.addItem(self.scatterPlot)

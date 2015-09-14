@@ -188,6 +188,7 @@ class PuffAnalyzer(QWidget):
         self.data_window=data_window
         self.binary_window=binary_window
         self.highpass_window=highpass_window
+        self.mt, self.mx,self.my = self.data_window.image.shape
         self.l=None
         if persistentInfo is not None:
             if 'roi_width' not in persistentInfo.udc.keys():
@@ -271,17 +272,21 @@ class PuffAnalyzer(QWidget):
         self.widenButton.pressed.connect(self.widenPuffDurations)
         self.exportButton=QPushButton('Export')
         self.exportButton.pressed.connect(self.export_gui)
-        self.saveButton=QPushButton('Save')
+        self.savePointsButton=QPushButton('Save points')
+        self.savePointsButton.pressed.connect(self.savePoints)
+        self.saveButton=QPushButton('Save (.flika)')
         self.saveButton.pressed.connect(self.save)
         self.control_panel.addWidget(self.currentPuff_spinbox,0,0)
         self.control_panel.addWidget(self.discardButton,1,0)
         self.control_panel.addWidget(self.togglePuffsButton,2,0)
         self.control_panel.addWidget(self.toggleSitesButton,3,0)
         self.control_panel.addWidget(self.toggleTrashButton,4,0)
-        self.control_panel.addWidget(self.filterButton,5,0)
-        self.control_panel.addWidget(self.exportButton,6,0)
-        self.control_panel.addWidget(self.toggle3DButton,7,0)
-        self.control_panel.addWidget(self.saveButton,8,0)
+        self.control_panel.addWidget(self.widenButton,5,0)
+        self.control_panel.addWidget(self.filterButton,6,0)
+        self.control_panel.addWidget(self.exportButton,7,0)
+        self.control_panel.addWidget(self.toggle3DButton,8,0)
+        self.control_panel.addWidget(self.savePointsButton,9,0)
+        self.control_panel.addWidget(self.saveButton,10,0)
         self.control_panelWidget=QWidget()
         self.control_panelWidget.setLayout(self.control_panel)
         self.d3.addWidget(self.control_panelWidget)
@@ -333,7 +338,20 @@ class PuffAnalyzer(QWidget):
         filename=os.path.splitext(filename)[0]+'.flika'
         with bz2.BZ2File(filename, 'w') as f:
             pickle.dump(persistentInfo, f)
-        g.m.statusBar().showMessage('Saved'); print('Saved')
+        g.m.statusBar().showMessage('Saved Flika file'); print('Saved Flika file')
+        
+    def savePoints(self):
+        g.m.statusBar().showMessage('Saving puff points'); print('Saving puff points')
+        puffs=self.puffs.puffs
+        pts=[]
+        for puff in puffs:
+            k=puff.kinetics
+            pts.append(np.array([k['t_peak'], k['x'], k['y']]))
+        pts=np.array(pts)
+        filename=self.data_window.filename
+        filename=os.path.splitext(filename)[0]+'_flika_pts.txt'
+        np.savetxt(filename,pts)
+        g.m.statusBar().showMessage('Saved puff points'); print('Saved puff points')
         
     def clickedScatter(self, plot, points):
         p=points[0]
@@ -648,7 +666,6 @@ class PuffAnalyzer(QWidget):
         self.setCurrPuff(self.puffs.index,force=True)
         self.currentPuff_spinbox.setMaximum(len(self.puffs.puffs)-1)
         # remove points from scatter plot  
-        
 
     def togglePuffs(self):
         if self.puffsVisible:
@@ -656,9 +673,6 @@ class PuffAnalyzer(QWidget):
         else:
             self.data_window.imageview.addItem(self.s1)
         self.puffsVisible=not self.puffsVisible
-        
-
-
         
     def drawRedOverlay(self):
         puffs=[pt.data() for pt in self.s1.points() if self.roi.contains(pt.pos().x(),pt.pos().y())]
@@ -710,8 +724,6 @@ class PuffAnalyzer(QWidget):
         puff=self.puffs.getPuff()
         self.trace_plot.clear()
         puff.plot(self.trace_plot)
-                
-                
         
     def export_gui(self):
         filename=g.m.settings['filename']
@@ -1156,7 +1168,10 @@ class Clusters():
         self.origins=np.array(origins)
     
         mt,mx,my=self.movieShape
-        cluster_im=np.zeros((mt,mx,my,4))
+        try:
+            cluster_im=np.zeros((mt,mx,my,4))
+        except MemoryError:
+            print('There is not enough memory to create the image of clusters.')
         cmap=matplotlib.cm.gist_rainbow
         for i in np.arange(len(self.clusters)):
             color=cmap(int(((i%5)*255./6)+np.random.randint(255./12)))
@@ -1234,8 +1249,7 @@ class Puffs:
         self.puffs=[]
         self.index=0
         self.clusters=clusters
-        self.highpass_im=puffAnalyzer.highpass_window.image
-        self.data_im=puffAnalyzer.data_window.image
+        self.highpass_window=puffAnalyzer.highpass_window
         self.cluster_im=cluster_im
         self.puffs=[Puff(i,self.clusters,self,persistentInfo) for i in np.arange(len(self.clusters.clusters))]
 
@@ -1270,7 +1284,6 @@ class Puffs:
             idxs.append([point['data'] for point in self.puffAnalyzer.s1.data].index(puff))
             self.puffs.remove(puff)
         scatterRemovePoints(self.puffAnalyzer.s1,idxs)
-        
         if self.index>=len(self.puffs):
             self.index=len(self.puffs)-1
             
@@ -1297,7 +1310,7 @@ class Puff:
         x1=self.originalbounds[1][1]+self.udc['paddingXY']
         y0=self.originalbounds[0][2]-self.udc['paddingXY']
         y1=self.originalbounds[1][2]+self.udc['paddingXY']
-        mt,mx,my=self.puffs.highpass_im.shape
+        mt,mx,my=self.puffs.highpass_window.image.shape
         if t0<0: t0=0
         if y0<0: y0=0
         if x0<0: x0=0
@@ -1346,7 +1359,7 @@ class Puff:
                     if np.any(np.intersect1d(np.arange(cluster[0,2],cluster[1,2]),np.arange(y0,y1))):
                         if idx != self.starting_idx:
                             self.sisterPuffs.append(idx)
-        I=self.puffs.highpass_im[bb[0][0]:bb[0][1]+1,bb[1][0]:bb[1][1]+1,bb[2][0]:bb[2][1]+1]
+        I=self.puffs.highpass_window.image[bb[0][0]:bb[0][1]+1,bb[1][0]:bb[1][1]+1,bb[2][0]:bb[2][1]+1]
         I=np.mean(I,0)
         
         def getFitParams(idx):
@@ -1407,7 +1420,7 @@ class Puff:
             
 
         #I=self.puffs.highpass_im[before:after+1,bb[1][0]:bb[1][1]+1,bb[2][0]:bb[2][1]+1]
-        I=self.puffs.data_im[before:after+1,bb[1][0]:bb[1][1]+1,bb[2][0]:bb[2][1]+1]
+        I=self.puffs.data_window.image[before:after+1,bb[1][0]:bb[1][1]+1,bb[2][0]:bb[2][1]+1]
         #baseline=np.mean(I[:,I_norm2<.01])     
         trace=np.zeros((len(I)))
         x=int(np.floor(xorigin))-self.bounds[1][0]
@@ -1612,7 +1625,7 @@ class SiteAnalyzer(QWidget):
         self.bounds[0,1]=puff.kinetics['after']
         
         bb=self.bounds
-        self.I=self.site.puffs[0].puffs.highpass_im[bb[0][0]:bb[0][1]+1,bb[1][0]:bb[1][1]+1,bb[2][0]:bb[2][1]+1]
+        self.I=self.site.puffs[0].puffs.highpass_window.image[bb[0][0]:bb[0][1]+1,bb[1][0]:bb[1][1]+1,bb[2][0]:bb[2][1]+1]
         
         self.imageview.setImage(self.I)
         self.addedItems=[]
@@ -1709,7 +1722,7 @@ class SiteAnalyzer(QWidget):
             return p0, fit_bounds
         [(t0,t1),(x0,x1),(y0,y1)]=puff.bounds
         params=[]
-        I=puff.puffs.highpass_im[puff.kinetics['before']:puff.kinetics['after']+1,bb[1][0]:bb[1][1]+1,bb[2][0]:bb[2][1]+1]
+        I=puff.puffs.highpass_window.image[puff.kinetics['before']:puff.kinetics['after']+1,bb[1][0]:bb[1][1]+1,bb[2][0]:bb[2][1]+1]
         p0,fit_bounds=getFitParams(puff.starting_idx)
         
         puff.sisterPuffs=[] # the length of this list will show how many gaussians to fit 
@@ -1750,7 +1763,7 @@ class SiteAnalyzer(QWidget):
         self.bounds[0,0]=puff.kinetics['before']
         self.bounds[0,1]=puff.kinetics['after']
         bb=self.bounds
-        self.I=self.site.puffs[idx].puffs.highpass_im[bb[0][0]:bb[0][1]+1,bb[1][0]:bb[1][1]+1,bb[2][0]:bb[2][1]+1]
+        self.I=self.site.puffs[idx].puffs.highpass_window.image[bb[0][0]:bb[0][1]+1,bb[1][0]:bb[1][1]+1,bb[2][0]:bb[2][1]+1]
         self.imageview.setImage(self.I)
         self.updatePuffTable()
         #self.params=[self.getParamsOverTime(puff) for puff in self.site.puffs]

@@ -59,7 +59,7 @@ class Threshold(BaseProcess):
             newtif=self.tif<value
         else:
             newtif=self.tif>value
-        self.newtif=newtif.astype(g.m.settings['internal_data_type'])
+        self.newtif=newtif.astype(np.uint8)
         self.newname=self.oldname+' - Thresholded '+str(value)
         return self.end()
     def preview(self):
