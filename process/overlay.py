@@ -124,51 +124,134 @@ class Background(BaseProcess):
 background=Background()
 
 class Scale_Bar(BaseProcess):
+    ''' There is currently a bug with updating that I'm unable to solve.  To update after making a change, check and uncheck the 'show' checkbox'''
     def __init__(self):
         super().__init__()
     def gui(self):
-        print('running')
         self.gui_reset()
-        win=g.m.currentWindow
+        w=g.m.currentWindow
         width_microns=QDoubleSpinBox()
+        
         width_pixels=QSpinBox()
         width_pixels.setRange(.001,1000000)
-        width_pixels.setRange(1,win.mx*2)
-        width_pixels.setValue(win.mx)
+        width_pixels.setRange(1,w.mx)
+        
         font_size=QSpinBox()
-        font_size.setValue(12)
+        
         color=QComboBox()
         color.addItem("White")
+        color.addItem("Black")
         background=QComboBox()
         background.addItem('None')
+        background.addItem('Black')
+        background.addItem('White')
         location=QComboBox()
         location.addItem('Lower Right')
         location.addItem('Lower Left')
         location.addItem('Top Right')
         location.addItem('Top Left')
-
-        show=QCheckBox(); show.setChecked(True)
-        self.items.append({'name':'width_microns','string':'Width in microns','object':width_microns})
-        self.items.append({'name':'width_pixels','string':'Width in pixels','object':width_pixels})
+        show=QCheckBox();
+        if hasattr(w,'scaleBarLabel') and w.scaleBarLabel is not None: #if the scaleBarLabel already exists
+            props=w.scaleBarLabel.flika_properties
+            width_microns.setValue(props['width_microns'])
+            width_pixels.setValue(props['width_pixels'])
+            font_size.setValue(props['font_size'])
+            color.setCurrentIndex(color.findText(props['color']))
+            background.setCurrentIndex(background.findText(props['background']))
+            location.setCurrentIndex(location.findText(props['location']))
+        else:
+            font_size.setValue(12)
+            width_pixels.setValue(int(w.mx/8))
+            width_microns.setValue(1)
+            
+        show.setChecked(True) 
+        self.items.append({'name':'width_microns','string':'Width of bar in microns','object':width_microns})
+        self.items.append({'name':'width_pixels','string':'Width of bar in pixels','object':width_pixels})
         self.items.append({'name':'font_size','string':'Font size','object':font_size})
         self.items.append({'name':'color','string':'Color','object':color})
         self.items.append({'name':'background','string':'Background','object':background})
         self.items.append({'name':'location','string':'Location','object':location})
         self.items.append({'name':'show','string':'Show','object':show})
+        
         super().gui()
+        self.preview()
     def __call__(self,width_microns, width_pixels, font_size, color, background,location,show=True,keepSourceWindow=None):
         w=g.m.currentWindow
         if show:
             if hasattr(w,'scaleBarLabel') and w.scaleBarLabel is not None:
-                return
-            w.scaleBarLabel= pg.TextItem(html="<span style='font-size: {}pt;color:{};background-color:{};'>hihihi</span>".format(font_size, color, background))
-            
+                w.imageview.view.removeItem(w.scaleBarLabel.bar)
+                w.imageview.view.removeItem(w.scaleBarLabel)
+                w.imageview.view.sigResized.disconnect(self.updateBar)
+            if location=='Top Left':
+                anchor=(0,0)
+                pos=[0,0]
+            elif location=='Top Right':
+                anchor=(0,0)
+                pos=[w.mx,0]
+            elif location=='Lower Right':
+                anchor=(0,0)
+                pos=[w.mx,w.my]
+            elif location=='Lower Left':
+                anchor=(0,0)
+                pos=[0,w.my]
+            w.scaleBarLabel= pg.TextItem(anchor=anchor, html="<span style='font-size: {}pt;color:{};background-color:{};'>{} μm</span>".format(font_size, color, background,width_microns))
+            w.scaleBarLabel.setPos(pos[0],pos[1])
+            w.scaleBarLabel.flika_properties={item['name']:item['value'] for item in self.items}
             w.imageview.view.addItem(w.scaleBarLabel)
+            if color=='White':
+                color255=[255,255,255,255]
+            elif color=='Black':
+                color255=[0,0,0,255]
+            textRect=w.scaleBarLabel.boundingRect()
+            
+            if location=='Top Left':
+                barPoint=QPoint(0, textRect.height())
+            elif location=='Top Right':
+                barPoint=QPoint(-width_pixels, textRect.height())
+            elif location=='Lower Right':
+                barPoint=QPoint(-width_pixels, -textRect.height())
+            elif location=='Lower Left':
+                barPoint=QPoint(0, -textRect.height())
+                
+            bar = QGraphicsRectItem(QRectF(barPoint,QSizeF(width_pixels,int(font_size/3))))
+            bar.setPen(pg.mkPen(color255)); bar.setBrush(pg.mkBrush(color255))
+            w.imageview.view.addItem(bar)
+            #bar.setParentItem(w.scaleBarLabel)
+            w.scaleBarLabel.bar=bar
+            w.imageview.view.sigResized.connect(self.updateBar)
+            self.updateBar()
+            
         else:
             if hasattr(w,'scaleBarLabel') and w.scaleBarLabel is not None:
+                w.imageview.view.removeItem(w.scaleBarLabel.bar)
                 w.imageview.view.removeItem(w.scaleBarLabel)
                 w.scaleBarLabel=None
+                w.imageview.view.sigResized.disconnect(self.updateBar)
         return None
+        
+    def updateBar(self):
+        w=g.m.currentWindow
+        width_pixels=self.getValue('width_pixels')
+        location=self.getValue('location')
+        view = w.imageview.view
+        textRect=w.scaleBarLabel.boundingRect()
+        textWidth=textRect.width()*view.viewPixelSize()[0]
+        textHeight=textRect.height()*view.viewPixelSize()[1]
+        
+        if location=='Top Left':
+            barPoint=QPoint(0, 1.3*textHeight)
+            w.scaleBarLabel.setPos(QPointF(width_pixels/2-textWidth/2,0))
+        elif location=='Top Right':
+            barPoint=QPoint(w.mx-width_pixels, 1.3*textHeight)
+            w.scaleBarLabel.setPos(QPointF(w.mx-width_pixels/2-textWidth/2,0))
+        elif location=='Lower Right':
+            barPoint=QPoint(w.mx-width_pixels, w.my-1.3*textHeight)
+            w.scaleBarLabel.setPos(QPointF(w.mx-width_pixels/2-textWidth/2,w.my-textHeight))
+        elif location=='Lower Left':
+            barPoint=QPoint(0, w.my-1.3*textHeight)
+            w.scaleBarLabel.setPos(QPointF(QPointF(width_pixels/2-textWidth/2,w.my-textHeight)))
+        w.scaleBarLabel.bar.setRect(QRectF(barPoint,QSizeF(width_pixels,textHeight/4)))
+        
     def preview(self):
         width_microns=self.getValue('width_microns')
         width_pixels=self.getValue('width_pixels')

@@ -18,6 +18,7 @@ from PyQt4.QtCore import * # Qt is Nokias GUI rendering code written in C++.  Py
 from PyQt4.QtGui import *
 from PyQt4.QtCore import pyqtSignal as Signal
 from pyqtgraph import plot, show
+import pyqtgraph as pg
 from scripts import getScriptList
 from roi import load_roi_gui, load_roi, makeROI
 import global_vars as g

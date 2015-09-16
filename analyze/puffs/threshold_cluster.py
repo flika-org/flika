@@ -408,7 +408,7 @@ class PuffAnalyzer(QWidget):
     def reset_scatter_colors(self):
         self.s1.clear()
         for puff in self.puffs.puffs:
-            puff.color=(0,0,255,255)
+            puff.color=(255,0,0,255)
             x=puff.kinetics['x']
             y=puff.kinetics['y']
             self.s1.addPoints(pos=[[x,y]],data=puff, brush=pg.mkBrush(puff.color))
@@ -721,6 +721,7 @@ class PuffAnalyzer(QWidget):
             puff.kinetics['t_end']+=1
             if puff.kinetics['t_end']>=mt:
                 puff.kinetics['t_end']=mt-1
+            puff.calcRiseFallTimes()
         puff=self.puffs.getPuff()
         self.trace_plot.clear()
         puff.plot(self.trace_plot)
@@ -1169,7 +1170,7 @@ class Clusters():
     
         mt,mx,my=self.movieShape
         try:
-            cluster_im=np.zeros((mt,mx,my,4))
+            self.cluster_im=np.zeros((mt,mx,my,4),dtype=np.float16)
         except MemoryError:
             print('There is not enough memory to create the image of clusters.')
         cmap=matplotlib.cm.gist_rainbow
@@ -1177,14 +1178,14 @@ class Clusters():
             color=cmap(int(((i%5)*255./6)+np.random.randint(255./12)))
             for j in np.arange(len(self.clusters[i])):
                 t,x,y=self.idxs[self.clusters[i][j]]
-                cluster_im[t,x,y,:]=color
+                self.cluster_im[t,x,y,:]=color
         if self.persistentInfo is None:
-            self.puffAnalyzer.puffs=Puffs(self,cluster_im,self.puffAnalyzer)
+            self.puffAnalyzer.puffs=Puffs(self,self.cluster_im,self.puffAnalyzer)
             self.puffAnalyzer.preSetupUI()
         else:
-            self.puffAnalyzer.puffs=Puffs(self,cluster_im,self.puffAnalyzer,self.persistentInfo)
+            self.puffAnalyzer.puffs=Puffs(self,self.cluster_im,self.puffAnalyzer,self.persistentInfo)
     def finished(self):
-        print('Finished with clusters!!')
+        print('Finished with clusters! Getting puffs')
         self.getPuffs()
         
     def manuallySelectClusterCenters(self):
@@ -1225,12 +1226,15 @@ class Clusters():
             else:
                 centers_with_large_cluster.append(centers[i])
     
-        self.pw.plot(self.higher_pts[centers_with_large_cluster,2],np.log(self.higher_pts[centers_with_large_cluster,0]),pen=None, symbolBrush=QBrush(Qt.red), symbol='o')
-        self.pw.plot(self.higher_pts[centers_with_small_cluster,2],np.log(self.higher_pts[centers_with_small_cluster,0]),pen=None, symbolBrush=QBrush(Qt.green), symbol='o')
+        self.pw.plot(self.higher_pts[centers_with_large_cluster,2],np.log(self.higher_pts[centers_with_large_cluster,0]),pen=None, symbolBrush=QBrush(Qt.green), symbol='o')
+        self.pw.plot(self.higher_pts[centers_with_small_cluster,2],np.log(self.higher_pts[centers_with_small_cluster,0]),pen=None, symbolBrush=QBrush(Qt.red), symbol='o')
         self.pw.plot(self.higher_pts[outsideROI,2],np.log(self.higher_pts[outsideROI,0]),pen=None, symbolBrush=QBrush(Qt.blue), symbol='o')
         
         mt,mx,my=self.movieShape
-        self.cluster_im=np.zeros((mt,mx,my,4))
+        try:
+            self.cluster_im=np.zeros((mt,mx,my,4),dtype=np.float16)
+        except MemoryError:
+            print('There is not enough memory to create the image of clusters (error in function manuallySelectClusterCenters).')
         cmap=matplotlib.cm.gist_rainbow
         for i in np.arange(len(self.clusters)):
             color=cmap(int(((i%5)*255./6)+np.random.randint(255./12)))
@@ -1250,6 +1254,7 @@ class Puffs:
         self.index=0
         self.clusters=clusters
         self.highpass_window=puffAnalyzer.highpass_window
+        self.data_window=puffAnalyzer.data_window
         self.cluster_im=cluster_im
         self.puffs=[Puff(i,self.clusters,self,persistentInfo) for i in np.arange(len(self.clusters.clusters))]
 
@@ -1302,7 +1307,7 @@ class Puff:
         self.clusters=clusters
         self.puffs=puffs
         self.udc=puffs.udc
-        self.color=(0,0,255,255)
+        self.color=(255,0,0,255)
         self.originalbounds=self.clusters.bounds[starting_idx] # 2x3 array: [[t_min,x_min,y_min],[t_max,x_max,y_max]]
         t0=self.originalbounds[0][0]
         t1=self.originalbounds[1][0]
@@ -1327,7 +1332,7 @@ class Puff:
             self.mean_image=puff['mean_image']
             self.gaussianFit=puff['gaussianFit']
             try:
-                self.color=puff.color #(0,0,255,255)
+                self.color=puff.color #(255,0,0,255)
             except:
                 pass
             return None
@@ -1983,7 +1988,7 @@ class ScatterViewBox(ClusterViewBox):
         ClusterViewBox.__init__(self, *args, **kwds)
         self.colorDialog=QColorDialog()
         self.colorDialog.colorSelected.connect(self.colorSelected)
-        self.scatter_color=(255,0,0,255)
+        self.scatter_color=(255,239,5,255)
     def keyPressEvent(self,ev):
         if ev.key() == Qt.Key_Enter or ev.key() == Qt.Key_Return:
             self.EnterPressedSignal.emit()

@@ -145,7 +145,7 @@ class BaseDialog(QDialog):
                 item['object'].stateChanged.connect(self.changeSignal)
             elif 'currentIndexChanged' in methods:
                 item['object'].currentIndexChanged.connect(self.changeSignal)
-    def updateValues(self):
+    def updateValues(self): # copy values from gui into the 'item' dictionary
         for item in self.items:
             methods=[method for method in dir(item['object']) if callable(getattr(item['object'], method))]
             if 'value' in methods:
