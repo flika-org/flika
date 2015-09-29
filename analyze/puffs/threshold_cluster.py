@@ -301,14 +301,14 @@ class PuffAnalyzer(QWidget):
         for puff in self.puffs.puffs:
             x=puff.kinetics['x']
             y=puff.kinetics['y']
-            self.s1.addPoints(pos=[[x,y]],data=puff, brush=pg.mkBrush(puff.color))
+            self.s1.addPoints(pos=[[x,y]],data=puff, brush=pg.mkBrush(puff.color),pen=pg.mkPen([0,0,0,255]))
         self.s1.sigClicked.connect(self.clicked)
-        self.s2=pg.ScatterPlotItem(size=5, pen=pg.mkPen(None), brush=pg.mkBrush(0, 255, 0, 255)) #SITES
+        self.s2=pg.ScatterPlotItem(size=5,  brush=pg.mkBrush(0, 255, 0, 255),pen=pg.mkPen([0,0,0,255])) #SITES
         self.s2.sigClicked.connect(self.clickedSite)
         self.s2.addPoints(pos=[site.pos for site in self.sites],data=self.sites)
-        self.s3=pg.ScatterPlotItem(size=5, pen=pg.mkPen(None), brush=pg.mkBrush(0, 255, 255, 255)) #TRASH
+        self.s3=pg.ScatterPlotItem(size=5,  brush=pg.mkBrush(0, 255, 255, 255),pen=pg.mkPen([0,0,0,255])) #TRASH
         self.s3.sigClicked.connect(self.clickedTrash)
-        self.s4=pg.ScatterPlotItem(size=10, pen=pg.mkPen(None), brush=pg.mkBrush(255, 255, 255, 120))
+        self.s4=pg.ScatterPlotItem(size=10, brush=pg.mkBrush(255, 255, 255, 120),pen=pg.mkPen([0,0,0,255]))
         view = pg.GraphicsLayoutWidget()
         self.d4.addWidget(view)
         self.scatter_viewbox=ScatterViewBox()
@@ -411,7 +411,7 @@ class PuffAnalyzer(QWidget):
             puff.color=(255,0,0,255)
             x=puff.kinetics['x']
             y=puff.kinetics['y']
-            self.s1.addPoints(pos=[[x,y]],data=puff, brush=pg.mkBrush(puff.color))
+            self.s1.addPoints(pos=[[x,y]],data=puff, brush=pg.mkBrush(puff.color), pen=pg.mkPen([0,0,0,255]))
         self.updateScatter()
         
         
@@ -802,7 +802,12 @@ class PuffAnalyzer(QWidget):
         sheet.title="Site traces"
         groupN=1
         for site in self.sites:
-            trace=self.data_window.image[:,site.pos[0],site.pos[1]]
+            x=int(np.floor(site.pos[0]))
+            y=int(np.floor(site.pos[1]))
+            roi_width=g.m.puffAnalyzer.udc['roi_width']
+            r=(roi_width-1)/2        
+            trace=self.data_window.image[:,x-r:x+r+1,y-r:y+r+1]
+            trace=np.mean(np.mean(trace,1),1)
             col=get_column_letter(groupN)
             sheet.cell(col+'1').value="Site #{}".format(groupN)
             for i in np.arange(len(trace)):
