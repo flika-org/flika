@@ -182,6 +182,7 @@
      <addaction name="actionGaussian_Blur"/>
      <addaction name="separator"/>
      <addaction name="actionButterworth_Filter"/>
+     <addaction name="actionMean_Filter"/>
      <addaction name="actionDifference_Filter"/>
      <addaction name="actionBoxcar_Differential"/>
      <addaction name="actionWavelet_Filter"/>
@@ -467,6 +468,11 @@
   <action name="actionLoad_Points">
    <property name="text">
     <string>Load Points</string>
+   </property>
+  </action>
+  <action name="actionMean_Filter">
+   <property name="text">
+    <string>Mean Filter</string>
    </property>
   </action>
  </widget>

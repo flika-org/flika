@@ -14,7 +14,7 @@ from process.BaseProcess import BaseProcess, SliderLabel
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 
-__all__ = ['gaussian_blur','butterworth_filter','boxcar_differential_filter','wavelet_filter','difference_filter', 'fourier_filter']
+__all__ = ['gaussian_blur','mean_filter','butterworth_filter','boxcar_differential_filter','wavelet_filter','difference_filter', 'fourier_filter']
 ###############################################################################
 ##################   SPATIAL FILTERS       ####################################
 ###############################################################################
@@ -160,6 +160,59 @@ class Butterworth_filter(BaseProcess):
             padlen=6
         return b,a,padlen
 butterworth_filter=Butterworth_filter()
+
+from scipy.ndimage.filters import convolve
+class Mean_filter(BaseProcess):
+    """ mean_filter(nFrames, keepSourceWindow=False)
+    This filters a stack in time.
+    
+    Parameters:
+        | nFrames (int) -- Number of frames to average
+    Returns:
+        newWindow
+    """
+    def __init__(self):
+        super().__init__()
+    def gui(self):
+        self.gui_reset()
+        nFrames=SliderLabel(0)
+        nFrames.setRange(1,1000)
+        preview=QCheckBox()
+        preview.setChecked(True)
+        self.items.append({'name':'nFrames','string':'nFrames','object':nFrames})
+        self.items.append({'name':'preview','string':'Preview','object':preview})        
+        super().gui()
+        self.roi=g.m.currentWindow.currentROI
+        if self.roi is not None:
+            self.ui.rejected.connect(self.roi.translate_done.emit)
+        else:
+            preview.setChecked(False)
+            preview.setEnabled(False)
+            
+    def __call__(self,nFrames,keepSourceWindow=False):
+        self.start(keepSourceWindow)
+        self.newtif=convolve(self.tif,weights=np.full((nFrames,1,1),1.0/nFrames))        
+        self.newname=self.oldname+' - Mean Filtered'
+        return self.end()
+    def preview(self):
+        nFrames=self.getValue('nFrames')
+        preview=self.getValue('preview')
+        if self.roi is not None:
+            if preview:
+                print(nFrames)
+                if nFrames==1:
+                    self.roi.translate_done.emit() #redraw roi without filter
+                else:
+                    trace=self.roi.getTrace()
+                    trace=convolve(trace,weights=np.full((nFrames),1.0/nFrames))        
+                    roi_index=g.m.tracefig.get_roi_index(self.roi)
+                    g.m.tracefig.update_trace_full(roi_index,trace) #update_trace_partial may speed it up
+            else:
+                self.roi.translate_done.emit()    
+                
+mean_filter=Mean_filter()
+
+
 
 
 from scipy.fftpack import fft, ifft, fftfreq

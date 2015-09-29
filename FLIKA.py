@@ -30,7 +30,7 @@ else:
 from process.file_ import open_gui, save_as_gui, open_file, load_metadata, close, save_file, save_movie_gui, save_movie, change_internal_data_type, change_internal_data_type_gui, save_points_gui, load_points_gui
 from process.stacks import deinterleave, slicekeeper, zproject, image_calculator, pixel_binning, frame_binning
 from process.math_ import multiply, subtract, power, ratio, absolute_value, subtract_trace
-from process.filters import gaussian_blur, butterworth_filter,boxcar_differential_filter, wavelet_filter, difference_filter, fourier_filter
+from process.filters import gaussian_blur, butterworth_filter,boxcar_differential_filter, wavelet_filter, difference_filter, fourier_filter, mean_filter
 from process.binary import threshold, adaptive_threshold, canny_edge_detector, remove_small_blobs, logically_combine, binary_dilation, binary_erosion
 from process.roi import set_value
 from analyze.measure import measure
@@ -112,6 +112,7 @@ def initializeMainGui():
     g.m.actionPower.triggered.connect(power.gui)
     g.m.actionGaussian_Blur.triggered.connect(gaussian_blur.gui)
     g.m.actionButterworth_Filter.triggered.connect(butterworth_filter.gui)
+    g.m.actionMean_Filter.triggered.connect(mean_filter.gui)
     g.m.actionFourier_Filter.triggered.connect(fourier_filter.gui)
     g.m.actionDifference_Filter.triggered.connect(difference_filter.gui)
     g.m.actionBoxcar_Differential.triggered.connect(boxcar_differential_filter.gui)
@@ -191,7 +192,7 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     initializeMainGui()
     #print("Time to load Flika: {} s".format(time.time()-tic))
-    #open_file()
+    open_file()
     #data_window=open_file('D:/Desktop/test_data_long.tif')
     #density_window=open_file('D:/Desktop/density_long.tif')
     #threshold_cluster(density_window,data_window,data_window,paddingT_pre=25, paddingT_post=25)
