@@ -52,7 +52,7 @@ class Cluster(BaseProcess):
 		del self.cluster_mesh
 
 	def showCluster(self):
-		g.m.statusBar().showMessage('Plotting Cluster %d of %d. Point count: %d' % (self.cluster_id, len(self.clusters), len(self.clusters[self.cluster_id])))
+		g.m.statusBar().showMessage('Plotting Cluster %d of %d. Point count: %d' % (self.cluster_id + 1, len(self.clusters), len(self.clusters[self.cluster_id])))
 		ch = ConvexHull(self.clusters[self.cluster_id])
 		md = gl.MeshData(vertexes=ch.points, faces=ch.simplices)
 		if hasattr(self, 'cluster_mesh'):
@@ -70,7 +70,7 @@ class Cluster(BaseProcess):
 			self.cluster_id = (self.cluster_id + 1) % len(self.clusters)
 			self.showCluster()
 		else:
-			super(gl.GLViewWidget, g.m.currentWindow.view).keyPressEvent(e)
+			gl.GLViewWidget.keyPressEvent(g.m.currentWindow.view, e)
 	
 	def gui(self):
 		epsiSpin=QDoubleSpinBox()

@@ -196,21 +196,21 @@ class PuffAnalyzer(QWidget):
         self.roi.plot()
         tif.deleteButtonSignal.disconnect(self.roi.deleteCurrentROI)
         self.redTraces=[]
-        g.m.tracefig.finishedDrawingSignal.connect(self.drawRedOverlay)
-        g.m.tracefig.p1.scene().sigMouseClicked.connect(self.clickedTrace)
-        g.m.tracefig.keyPressSignal.connect(self.keyPressEvent)
+        g.m.currentTrace.finishedDrawingSignal.connect(self.drawRedOverlay)
+        g.m.currentTrace.p1.scene().sigMouseClicked.connect(self.clickedTrace)
+        g.m.currentTrace.keyPressSignal.connect(self.keyPressEvent)
         self.data_window.keyPressSignal.connect(self.keyPressEvent)
         self.drawRedOverlay()
     def closeEvent(self, event):
         if self.roi in self.data_window.rois:
             self.roi.delete()
         del self.roi
-        if g.m.tracefig is not None:
+        if g.m.currentTrace is not None:
             for i in np.arange(len(self.redTraces)):
-                g.m.tracefig.p1.removeItem(self.redTraces[i][0])
-            g.m.tracefig.finishedDrawingSignal.disconnect(self.drawRedOverlay)
-            g.m.tracefig.p1.scene().sigMouseClicked.disconnect(self.clickedTrace)
-            g.m.tracefig.keyPressSignal.disconnect(self.keyPressEvent)
+                g.m.currentTracep1.removeItem(self.redTraces[i][0])
+            g.m.currentTrace.finishedDrawingSignal.disconnect(self.drawRedOverlay)
+            g.m.currentTrace.p1.scene().sigMouseClicked.disconnect(self.clickedTrace)
+            g.m.currentTrace.keyPressSignal.disconnect(self.keyPressEvent)
         self.data_window.keyPressSignal.disconnect(self.keyPressEvent)
         if self.data_window in g.m.windows:
             if self.sitesVisible:
@@ -382,16 +382,16 @@ class PuffAnalyzer(QWidget):
     def drawRedOverlay(self):
         puffs=[pt.data() for pt in self.s1.points() if self.roi.contains(pt.pos().x(),pt.pos().y())]
         times=[[puff.kinetics['t_start'],puff.kinetics['t_end']] for puff in puffs]
-        data=g.m.tracefig.rois[g.m.tracefig.get_roi_index(self.roi)]['p1trace'].getData()[1]
+        data=g.m.currentTrace.rois[g.m.currentTrace.get_roi_index(self.roi)]['p1trace'].getData()[1]
         
         x=np.array([np.arange(*times[i]) for i in np.arange(len(times))])
         traces=[data[time] for time in x]
         y=np.array(traces)
         for i in np.arange(len(self.redTraces)):
-            g.m.tracefig.p1.removeItem(self.redTraces[i][0])
+            g.m.currentTrace.p1.removeItem(self.redTraces[i][0])
         self.redTraces=[]
         for i in np.arange(len(x)):
-            self.redTraces.append([g.m.tracefig.p1.plot(x[i],y[i],pen=pg.mkPen('r')),puffs[i]])
+            self.redTraces.append([g.m.currentTrace.p1.plot(x[i],y[i],pen=pg.mkPen('r')),puffs[i]])
         currentPuff=self.puffs.getPuff()
         if currentPuff in puffs:
             idx=puffs.index(currentPuff)
@@ -401,7 +401,7 @@ class PuffAnalyzer(QWidget):
     def clickedTrace(self,ev):
         self.EEEE=ev
         pos=ev.pos()
-        pos=g.m.tracefig.vb.mapSceneToView(pos)
+        pos=g.m.currentTrace.vb.mapSceneToView(pos)
         t=pos.x()
         puffs=[pt.data() for pt in self.s1.points() if self.roi.contains(pt.pos().x(),pt.pos().y())]
         times=[[puff.kinetics['t_start'],puff.kinetics['t_end']] for puff in puffs]

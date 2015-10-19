@@ -42,7 +42,7 @@ class Window(QWidget):
             y=oldGeometry.y()+10
         self.name=name
         self.filename=filename
-        self.setAsCurrentWindow()
+        self.setCurrentWindow()
         self.setWindowTitle(os.path.basename(name))
         self.imageview=pg.ImageView(self)
         self.imageview.setMouseTracking(True)
@@ -90,13 +90,11 @@ class Window(QWidget):
         self.scatterPlot.sigClicked.connect(self.clickedScatter)
         self.imageview.addItem(self.scatterPlot)
         self.pasteAct = QAction("&Paste", self, triggered=self.paste)
-        if g.m.settings['show_windows']:
-            self.show()
         self.sigTimeChanged.connect(self.showFrame)
+        g.widgetCreated(self)
         if self not in g.m.windows:
             g.m.windows.append(self)
         self.closed=False
-        
         
     def updateindex(self):
         (idx, t) = self.imageview.timeIndex(self.imageview.timeLine)
@@ -128,7 +126,7 @@ class Window(QWidget):
             del self.imageview
             g.m.setWindowTitle("FLIKA")
             if g.m.currentWindow==self:
-                g.m.currentWindow=None
+                g.m.currentWindow = None
             if self in g.m.windows:
                 g.m.windows.remove(self)
             self.closed=True
@@ -152,14 +150,15 @@ class Window(QWidget):
         
     def mousePressEvent(self,ev):
         ev.accept()
-        self.setAsCurrentWindow()
-    def setAsCurrentWindow(self):
+        self.setCurrentWindow()
+        
+    def setCurrentWindow(self):
         if g.m.currentWindow is not None:
             g.m.currentWindow.setStyleSheet("border:1px solid rgb(0, 0, 0); ")
-        g.m.currentWindow=self
+        g.m.currentWindow = self
         g.m.setWindowTitle("FLIKA - {}".format(os.path.basename(self.name)))
         self.setStyleSheet("border:1px solid rgb(0, 255, 0); ")
-        g.m.setCurrentWindowSignal.sig.emit()
+        g.m.windowSelectedSignal.sig.emit()
     
     def clickedScatter(self, plot, points):
         p=points[0]
