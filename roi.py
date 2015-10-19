@@ -8,7 +8,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 import global_vars as g
 import pyqtgraph as pg
-import skimage
+from skimage.draw import polygon, line
 import numpy as np
 from trace import roiPlot
 import os
@@ -54,12 +54,12 @@ class ROI(QWidget):
             self.window.rois.remove(self)
         self.window.currentROI=None
         self.view.removeItem(self.pathitem)
-        if g.m.tracefig is not None and g.m.tracefig.hasROI(self):
-            a=set([r['roi'] for r in g.m.tracefig.rois])
+        if g.m.currentTrace is not None and g.m.currentTrace.hasROI(self):
+            a=set([r['roi'] for r in g.m.currentTrace.rois])
             b=set(self.window.rois)
             if len(a.intersection(b))==0:
-                g.m.tracefig.indexChanged.disconnect(self.window.setIndex)
-            g.m.tracefig.removeROI(self)
+                g.m.currentTrace.indexChanged.disconnect(self.window.setIndex)
+            g.m.currentTrace.removeROI(self)
     def getPoints(self):
         points=[]
         for i in np.arange(self.path.elementCount()):
@@ -85,6 +85,7 @@ class ROI(QWidget):
         else:
             self.window.rois.append(self)
             self.getMask()
+
     def mouseOver(self,x,y):
         if self.mouseIsOver is False and self.contains(x,y):
             self.mouseIsOver=True
@@ -92,9 +93,10 @@ class ROI(QWidget):
         elif self.mouseIsOver and self.contains(x,y) is False:
             self.mouseIsOver=False
             self.pathitem.setPen(QPen(self.color))
+
     def contextMenuEvent(self, event):
         self.menu = QMenu(self)
-        if g.m.tracefig is not None and g.m.tracefig.hasROI(self):
+        if g.m.currentTrace is not None and g.m.currentTrace.hasROI(self):
             self.menu.addAction(self.unplotAct)
         else:
             self.menu.addAction(self.plotAct)
@@ -103,15 +105,19 @@ class ROI(QWidget):
         self.menu.addAction(self.deleteAct)
         self.menu.addAction(self.saveAct)
         self.menu.exec_(event.screenPos().toQPoint())
+
     def plot(self):
         roiPlot(self)
-        g.m.tracefig.indexChanged.connect(self.window.setIndex)
+        g.m.currentTrace.indexChanged.connect(self.window.setIndex)
         self.plotSignal.emit()
+
     def unplot(self):
-        g.m.tracefig.indexChanged.disconnect(self.window.setIndex)
-        g.m.tracefig.removeROI(self)
+        g.m.currentTrace.indexChanged.disconnect(self.window.setIndex)
+        g.m.currentTrace.removeROI(self)
+
     def copy(self):
         g.m.clipboard=self
+
     def save_gui(self):
         filename=g.m.settings['filename']
         directory=os.path.dirname(filename)
@@ -193,7 +199,7 @@ class ROI(QWidget):
         if nDims==2: #if this is a static image
             mask=np.zeros(tif.shape,np.bool)
             
-        xx,yy=skimage.draw.polygon(x,y,shape=mask.shape)
+        xx,yy=polygon(x,y,shape=mask.shape)
         mask[xx,yy]=True
         pts_plus=np.array(np.where(mask)).T
         for pt in pts_plus:
@@ -239,7 +245,7 @@ class ROI_line(ROI):
         self.beingDragged=False #either True or False depending on if a translation has been started or not
     def contextMenuEvent(self, event):
         self.menu = QMenu(self)
-        if g.m.tracefig is not None and g.m.tracefig.hasROI(self):
+        if g.m.currentTrace is not None and g.m.currentTrace.hasROI(self):
             self.menu.addAction(self.unplotAct)
         else:
             self.menu.addAction(self.plotAct)
@@ -259,7 +265,7 @@ class ROI_line(ROI):
         mt=tif.shape[0]
         x=np.array([p[0] for p in self.pts])
         y=np.array([p[1] for p in self.pts])
-        xx,yy=skimage.draw.line(x[0],y[0],x[1],y[1])
+        xx,yy=line(x[0],y[0],x[1],y[1])
         mn=np.zeros((mt,len(xx)))
         for t in np.arange(mt):
             mn[t]=tif[t,xx,yy]
@@ -349,7 +355,7 @@ class ROI_rectangle(ROI):
         self.pathitem.setPath(self.path)
     def contextMenuEvent(self, event):
         self.menu = QMenu(self)
-        if g.m.tracefig is not None and g.m.tracefig.hasROI(self):
+        if g.m.currentTrace is not None and g.m.currentTrace.hasROI(self):
             self.menu.addAction(self.unplotAct)
         else:
             self.menu.addAction(self.plotAct)

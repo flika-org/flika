@@ -38,7 +38,7 @@ def open_gui():
     if filename=='':
         return False
     else:
-        open_file(filename)
+        return open_file(filename)
             
 def open_file(filename=None):
     if filename is None and g.m.settings['filename'] is not None:
@@ -68,9 +68,9 @@ def open_file(filename=None):
     elif len(tif.shape)==2: # I haven't tested whether this preserved the x y and keeps it the same as in FIJI.  TEST THIS!!
         tif=np.transpose(tif,(1,0))
     g.m.statusBar().showMessage('{} successfully loaded ({} s)'.format(os.path.basename(filename), time.time()-t))
-    commands=["open_file('{}')".format(filename)]
-    newWindow=Window(tif,filename,filename,commands,metadata)
     g.m.settings['filename']=filename
+    commands = ["open_file('{}')".format(filename)]
+    newWindow=Window(tif,filename,filename,commands,metadata)
     return newWindow
     
 def change_internal_data_type_gui():
