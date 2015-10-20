@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>266</width>
+    <width>285</width>
     <height>401</height>
    </rect>
   </property>
@@ -88,7 +88,20 @@
         </rect>
        </property>
        <property name="text">
-        <string>Show Outline</string>
+        <string>LUT Slider</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="voltageButton">
+       <property name="geometry">
+        <rect>
+         <x>150</x>
+         <y>50</y>
+         <width>75</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Voltage Test</string>
        </property>
       </widget>
      </widget>
@@ -285,7 +298,7 @@
       <widget class="QPushButton" name="lineMeasureButton">
        <property name="geometry">
         <rect>
-         <x>110</x>
+         <x>130</x>
          <y>20</y>
          <width>91</width>
          <height>21</height>
@@ -300,12 +313,12 @@
         <rect>
          <x>10</x>
          <y>20</y>
-         <width>91</width>
+         <width>111</width>
          <height>21</height>
         </rect>
        </property>
        <property name="text">
-        <string>Show Trace</string>
+        <string>Average Movie Trace</string>
        </property>
       </widget>
       <widget class="QCheckBox" name="newWindowCheck">
@@ -318,7 +331,7 @@
         </rect>
        </property>
        <property name="text">
-        <string>Plot ROIs In Individual Windows</string>
+        <string>Plot Traces in New Window</string>
        </property>
       </widget>
      </widget>
@@ -364,7 +377,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>266</width>
+     <width>285</width>
      <height>21</height>
     </rect>
    </property>

@@ -19,7 +19,7 @@ from PyQt4.QtCore import pyqtSignal as Signal
 from pyqtgraph import plot, show
 import pyqtgraph as pg
 from scripts import getScriptList
-from roi import load_roi_gui, load_roi, makeROI, ROI_rectangle
+from roi import load_roi_gui, load_roi, makeROI, ROI_rectangle, ROI
 import global_vars as g
 from window import Window
 
@@ -33,6 +33,7 @@ from analyze.measure import measure
 from analyze.puffs.frame_by_frame_origin import frame_by_frame_origin
 from analyze.puffs.average_origin import average_origin
 from analyze.puffs.threshold_cluster import threshold_cluster
+from process.voltage_ import *
 
 from process.overlay import time_stamp,background, scale_bar
 from pyqtgraph.dockarea import *
@@ -103,21 +104,34 @@ def initializeMainGui():
 
     g.widgetCreated = dockCreated
     g.m.outlineCheck.toggled.connect(setIsoVisible)
-    g.m.outlineCheck.setChecked(True)
+    g.m.voltageButton.clicked.connect(runVoltage)
+
+def runVoltage():
+    img = g.m.currentWindow.imageview.image
+    v = np.average(img, (2, 1))
+    Vout, corrimg, weight_movie, offsetimg = extractV(img, v)
+    Window(corrimg, 'Corrected Image')
+    Window(weight_movie, "Weight Movie")
+    Window(offsetimg, 'Offset Image')
+    print(Vout)
+    pg.plot(Vout)
+    print(ApplyWeights(img[:], corrimg, weight_movie, offsetimg))
 
 def setIsoVisible(v):
     if g.m.currentWindow != None and hasattr(g.m.currentWindow, 'iso'):
         g.m.currentWindow.iso.setVisible(v)
         g.m.currentWindow.isoLine.setVisible(v)
 
+
 def dockCreated(widg):
-    widgDock = Dock(name = widg.name, widget=widg)
+    widgDock = Dock(name = widg.name, widget=widg, closable=True)
     g.m.dockarea.addDock(widgDock)
-    widg.closeEvent = lambda ev: widgetCloseEvent(ev, widg, widgDock)
+    widg.closeEvent = lambda ev: g.dockCloseEvent(ev, widg, widgDock)
     widgDock.closeEvent = widg.closeEvent
 
     if isinstance(widg, Window):
-        addIsoCurve(widg)
+        pass
+        #addIsoCurve(widg)
 
 def addIsoCurve(widg):
     lut = widg.imageview.getHistogramWidget().centralWidget
@@ -132,6 +146,8 @@ def addIsoCurve(widg):
     widg.iso.setData(pg.gaussianFilter(widg.image[widg.currentIndex], (2, 2)))
     def updateIsocurve():
         widg.iso.setLevel(widg.isoLine.value())
+    updateIsocurve()
+    setIsoVisible(False)
 
     widg.isoLine.sigDragged.connect(updateIsocurve)
 

@@ -116,10 +116,11 @@ def init(filename, docks=False):
 def dockCloseEvent(ev, widget, dock):
 	dock.close()
 	widget.__class__.closeEvent(widget, ev)
+	dock.__class__.closeEvent(dock, ev)
 
 def dockCreated(widg):
 	global m
-	widgDock = Dock(name = widg.name, widget=widg)
+	widgDock = Dock(name = widg.name, widget=widg, closable=True)
 	m.dockarea.addDock(widgDock)
 	widg.closeEvent = lambda ev: dockCloseEvent(ev, widg, widgDock)
 	widgDock.closeEvent = widg.closeEvent
