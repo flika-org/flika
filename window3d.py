@@ -19,6 +19,7 @@ import global_vars as g
 import pyqtgraph.opengl as gl
 
 class Window3D(QWidget):
+    closeSignal=Signal()
     keyPressSignal=Signal(QEvent)
     deleteButtonSignal=Signal()
     name = "3D Plot View"

@@ -15,6 +15,7 @@ else:
 	import pickle
 from os.path import expanduser
 import numpy as np
+from pyqtgraph.dockarea import *
 
 def widgetCreated(widg):
 	widg.show()
@@ -89,7 +90,7 @@ class Settings:
 	def setMultipleTraceWindows(self, f):
 		self.d['multipleTraceWindows'] = f
 
-def init(filename):
+def init(filename, docks=False):
 	global m
 	m=uic.loadUi(filename)
 	m.windowSelectedSignal=SetCurrentWindowSignal(m)
@@ -105,3 +106,20 @@ def init(filename):
 	m.setAcceptDrops(True)
 	m.onClose = mainguiClose
 	m.installEventFilter(mainWindowEventEater)
+	if docks:
+		m.dockarea = DockArea()
+		m.centralwidget.layout().addWidget(m.dockarea, 0, 1, m.centralwidget.layout().rowCount(), 1)
+		m.centralwidget.layout().setColumnStretch(1, 1)
+		widgetCreated = dockCreated
+
+
+def dockCloseEvent(ev, widget, dock):
+	dock.close()
+	widget.__class__.closeEvent(widget, ev)
+
+def dockCreated(widg):
+	global m
+	widgDock = Dock(name = widg.name, widget=widg)
+	m.dockarea.addDock(widgDock)
+	widg.closeEvent = lambda ev: dockCloseEvent(ev, widg, widgDock)
+	widgDock.closeEvent = widg.closeEvent

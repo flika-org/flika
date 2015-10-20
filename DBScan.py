@@ -26,9 +26,7 @@ try:
 except NameError:
 	pass
 
-from process.dbscan_ import cluster, save_scatter, save_clusters, export_distances, export_nearest_distances, load_scatter_gui, save_scatter_gui
-
-from pyqtgraph.dockarea import *
+from process.dbscan_ import cluster, save_scatter, save_clusters, export_distances, export_nearest_distances, load_scatter_gui, save_scatter_gui, getSaveFilename
 
 EPSILON = 30
 MIN_POINTS = 10
@@ -36,41 +34,26 @@ MIN_NEIGHBORS = 1
 
 
 def initializeMainGui():
-	g.init('gui/DBScan.ui')
+	g.init('gui/DBScan.ui', docks=True)
 
 	g.m.setGeometry(QRect(15, 33, 326, 80))
 	
 	g.m.actionCluster.triggered.connect(cluster.gui)
 	g.m.actionOpen.triggered.connect(load_scatter_gui)
 	g.m.actionSave_Scatter.triggered.connect(save_scatter_gui)
-	g.m.actionSave_Clusters.triggered.connect(save_clusters)
+	g.m.actionSave_Clusters.triggered.connect(lambda : save_clusters(getSaveFilename('Export Clusters', '*.txt')))
 	g.m.openButton.clicked.connect(load_scatter_gui)
 	g.m.saveButton.clicked.connect(save_scatter_gui)
-	g.m.saveClustersButton.clicked.connect(save_clusters)
-	g.m.exportAllDistancesButton.clicked.connect(export_distances)
-	g.m.exportNearestButton.clicked.connect(export_nearest_distances)
+	g.m.saveClustersButton.clicked.connect(lambda : save_clusters(getSaveFilename('Export Clusters', '*.txt')))
+	g.m.exportAllDistancesButton.clicked.connect(lambda : export_distances(getSaveFilename('Export distances...', '*.txt')))
+	g.m.exportNearestButton.clicked.connect(lambda : export_nearest_distances(getSaveFilename('Export nearest distances', '*.txt')))
 	g.m.clusterButton.clicked.connect(lambda : cluster(g.m.epsilonSpin.value(), g.m.minPointsSpin.value(), g.m.minNeighborsSpin.value()))
 	
 	g.m.epsilonSpin.setValue(EPSILON)
 	g.m.minPointsSpin.setValue(MIN_POINTS)
 	g.m.minNeighborsSpin.setValue(MIN_NEIGHBORS)
 
-	g.m.dockarea = DockArea()
-	g.m.centralwidget.layout().addWidget(g.m.dockarea, 0, 1)
-	g.m.centralwidget.layout().setColumnStretch(1, 1)
-	g.widgetCreated = widgetCreated
-
 	g.m.show()
-
-def widgetCloseEvent(ev, widget, dock):
-	dock.close()
-	widget.__class__.closeEvent(widget, ev)
-
-def widgetCreated(widg):
-	widgDock = Dock(name = widg.name, widget=widg)
-	g.m.dockarea.addDock(widgDock)
-	widg.closeEvent = lambda ev: widgetCloseEvent(ev, widg, widgDock)
-	widgDock.closeEvent = widg.closeEvent
 
 if __name__ == '__main__':
 	app = QApplication(sys.argv)

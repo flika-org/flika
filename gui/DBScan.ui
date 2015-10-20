@@ -76,10 +76,6 @@
           <string>Save Clusters</string>
          </property>
         </widget>
-        <zorder>openButton</zorder>
-        <zorder>saveButton</zorder>
-        <zorder>groupBox</zorder>
-        <zorder>saveClustersButton</zorder>
        </widget>
       </item>
       <item>

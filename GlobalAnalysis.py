@@ -54,7 +54,7 @@ def showImageTrace(window):
     roi.contains = lambda f, g: False
 
 def initializeMainGui():
-    g.init('gui/GlobalAnalysis.ui')
+    g.init('gui/GlobalAnalysis.ui', docks=True)
     g.m.setWindowTitle('Global Cell Analysis')
     g.m.setGeometry(QRect(15, 33, 100, 140))
 
@@ -99,19 +99,18 @@ def initializeMainGui():
     #g.m.actionDocs.triggered.connect(lambda: QDesktopServices.openUrl(QUrl(url)))
     g.m.setAcceptDrops(True)
 
-    #INCLUDE FOR DOCKS
-    g.m.dockarea = DockArea()
-    g.m.centralwidget.layout().addWidget(g.m.dockarea, 0, 1, g.m.centralwidget.layout().rowCount(), 1)
-    g.m.centralwidget.layout().setColumnStretch(1, 1)
-    g.widgetCreated = widgetCreated
-
     g.m.show()
 
-def widgetCloseEvent(ev, widget, dock):
-    dock.close()
-    widget.__class__.closeEvent(widget, ev)
+    g.widgetCreated = dockCreated
+    g.m.outlineCheck.toggled.connect(setIsoVisible)
+    g.m.outlineCheck.setChecked(True)
 
-def widgetCreated(widg):
+def setIsoVisible(v):
+    if g.m.currentWindow != None and hasattr(g.m.currentWindow, 'iso'):
+        g.m.currentWindow.iso.setVisible(v)
+        g.m.currentWindow.isoLine.setVisible(v)
+
+def dockCreated(widg):
     widgDock = Dock(name = widg.name, widget=widg)
     g.m.dockarea.addDock(widgDock)
     widg.closeEvent = lambda ev: widgetCloseEvent(ev, widg, widgDock)
@@ -122,26 +121,23 @@ def widgetCreated(widg):
 
 def addIsoCurve(widg):
     lut = widg.imageview.getHistogramWidget().centralWidget
-    iso = pg.IsocurveItem(level=0.8, pen='g')
-    iso.setParentItem(widg.imageview.getImageItem())
-    iso.setZValue(5)
-    isoLine = pg.InfiniteLine(angle=0, movable=True, pen='g')
-    lut.vb.addItem(isoLine)
+    widg.iso = pg.IsocurveItem(level=0.8, pen='g')
+    widg.iso.setParentItem(widg.imageview.getImageItem())
+    widg.iso.setZValue(5)
+    widg.isoLine = pg.InfiniteLine(angle=0, movable=True, pen='g')
+    lut.vb.addItem(widg.isoLine)
     #lut.vb.setMouseEnabled(y=False) # makes user interaction a little easier
-    isoLine.setValue(np.average(lut.getLevels()))
-    isoLine.setZValue(1000)
-    iso.setData(pg.gaussianFilter(widg.image[widg.currentIndex], (2, 2)))
+    widg.isoLine.setValue(np.average(lut.getLevels()))
+    widg.isoLine.setZValue(1000)
+    widg.iso.setData(pg.gaussianFilter(widg.image[widg.currentIndex], (2, 2)))
     def updateIsocurve():
-        iso.setLevel(isoLine.value())
-        print(iso._viewBox.items())
+        widg.iso.setLevel(widg.isoLine.value())
 
-
-    isoLine.sigDragged.connect(updateIsocurve)
+    widg.isoLine.sigDragged.connect(updateIsocurve)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     initializeMainGui()
-    open_file()
     
     
     insideSpyder='SPYDER_SHELL_ID' in os.environ

@@ -115,7 +115,12 @@ def save_scatter_gui():
 		save_scatter(filename)
 
 def save_clusters(filename):
-	pass
+	global cluster
+	with open(filename, 'w') as outf:
+		for cluster in cluster.clusters:
+			for x, y, z in cluster:
+				outf.write('%.4f\t%4f\t%.4f\n' % (x, y, z))
+			outf.write('\n')
 		
 def save_scatter(filename):
 	g.m.statusBar().showMessage('Saving Scatter in {}'.format(os.path.basename(filename)))
@@ -151,17 +156,26 @@ def load_scatter(filename=None):
 	if g.m.currentWindow == None:
 		Window3D()
 	g.m.currentWindow.addScatter(data)
-	g.m.resize(1200, 800)
-	
-'''
-def load_scatter(filename):
-	g.m.statusBar().showMessage('Loading scatter from {}'.format(os.path.basename(filename)))
-	g.m.currentWindow.scatterPoints = np.loadtxt(filename)
-	g.m.currentWindow.scatterPlot.setPoints(pos=g.m.currentWindow.scatterPoints)
-	g.m.statusBar().showMessage('Successfully loaded {}'.format(os.path.basename(filename)))
-'''
+
+
+def getSaveFilename(title, extensions):
+	filename=g.m.settings['filename']
+	if filename is not None and os.path.isfile(filename):
+		filename= QFileDialog.getSaveFileName(g.m, title, filename, extensions)
+	else:
+		filename= QFileDialog.getSaveFileName(g.m, title, '',extensions)
+	filename=str(filename)
+	if filename=='':
+		return False
+	else:
+		return filename
+
 def export_nearest_distances(filename):
-	print('In progress')
+	pts = g.m.currentWindow.scatterPoints
+	dists = []
+	for i, pt in enumerate(pts):
+		dist = np.min([np.linalg.norm(np.subtract(pt, pts[j])) for j in range(len(pts)) if j != i])
+	np.savetxt(filename, dists, header="Nearest Distance")
 
 def export_distances(filename):
 	pts = g.m.currentWindow.scatterPoints

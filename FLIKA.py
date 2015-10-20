@@ -60,11 +60,11 @@ def initializeMainGui():
 	g.m.openButton.clicked.connect(open_gui)
 	g.m.saveButton.clicked.connect(save_movie_gui)
 	g.m.saveAsButton.clicked.connect(save_as_gui)
+	
 	g.m.importROIButton.clicked.connect(load_roi_gui)
 	g.m.exportROIButton.clicked.connect(lambda : g.m.currentWindow.rois[0].save_gui() if len(g.m.currentWindow.rois) > 0 else None)
 	g.m.plotAllButton.clicked.connect(lambda : [roi.plot() for roi in g.m.currentWindow.rois])
 	g.m.clearButton.clicked.connect(lambda : [roi.delete() for roi in g.m.currentWindow.rois])
-	
 	g.m.freehand.clicked.connect(lambda: g.m.settings.setmousemode('freehand'))
 	g.m.line.clicked.connect(lambda: g.m.settings.setmousemode('line'))
 	g.m.rectangle.clicked.connect(lambda: g.m.settings.setmousemode('rectangle'))
@@ -110,23 +110,8 @@ def initializeMainGui():
 	g.m.actionAverage_origin.triggered.connect(average_origin.gui)
 	g.m.actionThreshold_cluster.triggered.connect(threshold_cluster.gui)
 	
-	#INCLUDE FOR DOCKS
-	#g.m.dockarea = DockArea()
-	#g.m.centralwidget.layout().addWidget(g.m.dockarea, 0, 1)
-	#g.m.centralwidget.layout().setColumnStretch(1, 1)
-	#g.widgetCreated = widgetCreated
 
 	g.m.show()
-
-def widgetCloseEvent(ev, widget, dock):
-	dock.close()
-	widget.__class__.closeEvent(widget, ev)
-
-def widgetCreated(widg):
-	widgDock = Dock(name = widg.name, widget=widg)
-	g.m.dockarea.addDock(widgDock)
-	widg.closeEvent = lambda ev: widgetCloseEvent(ev, widg, widgDock)
-	widgDock.closeEvent = widg.closeEvent
 
 if __name__ == '__main__':
 	app = QApplication(sys.argv)
