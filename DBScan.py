@@ -34,7 +34,7 @@ MIN_NEIGHBORS = 1
 
 
 def initializeMainGui():
-	g.init('gui/DBScan.ui', docks=True)
+	g.init('gui/DBScan.ui')
 
 	g.m.setGeometry(QRect(15, 33, 326, 80))
 	

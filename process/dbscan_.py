@@ -172,16 +172,20 @@ def getSaveFilename(title, extensions):
 		return filename
 
 def export_nearest_distances(filename):
+	g.m.statusBar().showMessage('Saving nearest distances to %s...' % filename)
 	pts = g.m.currentWindow.scatterPoints
 	dists = []
 	for i, pt in enumerate(pts):
 		dist = np.min([np.linalg.norm(np.subtract(pt, pts[j])) for j in range(len(pts)) if j != i])
 	np.savetxt(filename, dists, header="Nearest Distance")
+	g.m.statusBar().showMessage('Nearest Distances Saved Successfully' % filename)
 
 def export_distances(filename):
 	pts = g.m.currentWindow.scatterPoints
-	dists = []
-	for i, pt in enumerate(pts):
-		for j in range(i + 1, len(pts)):
-			dists.append(np.linalg.norm(np.subtract(pt, pts[j])))
-	np.savetxt(filename, dists, header="Distance")
+	g.m.statusBar().showMessage('Saving all distances to %s...' % filename)
+	with open(filename, 'w') as outf:
+		outf.write('Distances\n')
+		for i, pt in enumerate(pts):
+			for j in range(i + 1, len(pts)):
+				outf.write('%.3f\n' % np.linalg.norm(np.subtract(pt, pts[j])))
+	g.m.statusBar().showMessage('All Distances Saved Successfully' % filename)
