@@ -91,17 +91,17 @@
         <string>LUT Slider</string>
        </property>
       </widget>
-      <widget class="QPushButton" name="voltageButton">
+      <widget class="QPushButton" name="autoROIButton">
        <property name="geometry">
         <rect>
          <x>150</x>
          <y>50</y>
-         <width>75</width>
-         <height>23</height>
+         <width>81</width>
+         <height>21</height>
         </rect>
        </property>
        <property name="text">
-        <string>Voltage Test</string>
+        <string>Auto ROI</string>
        </property>
       </widget>
      </widget>

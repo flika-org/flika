@@ -35,6 +35,7 @@ from process.file_ import open_gui, save_as_gui, open_file, load_metadata, close
 from roi import load_roi_gui, load_roi, makeROI
 from process.overlay import time_stamp,background, scale_bar
 from scripts import getScriptList
+from process.voltage_ import *
 
 try:
 	os.chdir(os.path.split(os.path.realpath(__file__))[0])
@@ -107,9 +108,24 @@ def initializeMainGui():
 	g.m.actionFrame_by_frame_origin.triggered.connect(frame_by_frame_origin.gui)
 	g.m.actionAverage_origin.triggered.connect(average_origin.gui)
 	g.m.actionThreshold_cluster.triggered.connect(threshold_cluster.gui)
+
+	voltageButton = QPushButton("Extract Voltage")
+	voltageButton.clicked.connect(extractVoltage)
+	g.m.centralwidget.layout().addWidget(voltageButton)
 	
 
 	g.m.show()
+
+def extractVoltage():
+    img = g.m.currentWindow.imageview.image
+    v = np.average(img, (2, 1))
+    Vout, corrimg, weight_movie, offsetimg = extractV(img, v)
+    Window(corrimg, 'Corrected Image')
+    Window(weight_movie, "Weight Movie")
+    Window(offsetimg, 'Offset Image')
+    print(Vout)
+    pg.plot(Vout)
+    print(ApplyWeights(img[:], corrimg, weight_movie, offsetimg))
 
 if __name__ == '__main__':
 	app = QApplication(sys.argv)

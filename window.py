@@ -91,10 +91,13 @@ class Window(QWidget):
         self.imageview.addItem(self.scatterPlot)
         self.pasteAct = QAction("&Paste", self, triggered=self.paste)
         self.sigTimeChanged.connect(self.showFrame)
-        g.widgetCreated(self)
         if self not in g.m.windows:
             g.m.windows.append(self)
         self.closed=False
+        self.onCreate()
+
+    def onCreate(self):
+        self.show()
         
     def updateindex(self):
         (idx, t) = self.imageview.timeIndex(self.imageview.timeLine)

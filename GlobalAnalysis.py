@@ -33,7 +33,6 @@ from analyze.measure import measure
 from analyze.puffs.frame_by_frame_origin import frame_by_frame_origin
 from analyze.puffs.average_origin import average_origin
 from analyze.puffs.threshold_cluster import threshold_cluster
-from process.voltage_ import *
 
 from process.overlay import time_stamp,background, scale_bar
 from pyqtgraph.dockarea import *
@@ -85,8 +84,8 @@ def initializeMainGui():
     g.m.pointButton.clicked.connect(lambda: g.m.settings.setmousemode('point'))
     g.m.importROIButton.clicked.connect(load_roi_gui)
     g.m.exportROIButton.clicked.connect(lambda : g.m.currentWindow.rois[0].save_gui() if len(g.m.currentWindow.rois) > 0 else None)
-    g.m.plotAllButton.clicked.connect(lambda : [roi.plot() for roi in g.m.currentWindow.rois])
-    g.m.clearButton.clicked.connect(lambda : [roi.delete() for roi in g.m.currentWindow.rois])
+    g.m.plotAllButton.clicked.connect(lambda : [roi.plot() for roi in g.m.currentWindow.rois[:]])
+    g.m.clearButton.clicked.connect(lambda : [roi.delete() for roi in g.m.currentWindow.rois[:]])
     g.m.newWindowCheck.toggled.connect(g.m.settings.setMultipleTraceWindows)
 
     g.m.lineMeasureButton.clicked.connect(measure.gui)
@@ -102,36 +101,37 @@ def initializeMainGui():
 
     g.m.show()
 
-    g.widgetCreated = dockCreated
     g.m.outlineCheck.toggled.connect(setIsoVisible)
-    g.m.voltageButton.clicked.connect(runVoltage)
+    Window.onCreate = dockCreated
+    g.m.autoROIButton.clicked.connect(makeROIs)
 
-def runVoltage():
-    img = g.m.currentWindow.imageview.image
-    v = np.average(img, (2, 1))
-    Vout, corrimg, weight_movie, offsetimg = extractV(img, v)
-    Window(corrimg, 'Corrected Image')
-    Window(weight_movie, "Weight Movie")
-    Window(offsetimg, 'Offset Image')
-    print(Vout)
-    pg.plot(Vout)
-    print(ApplyWeights(img[:], corrimg, weight_movie, offsetimg))
+def makeROIs():
+    length = int(g.m.currentWindow.iso.path.length())
+    p = g.m.currentWindow.iso.path.pointAtPercent(0)
+    p = (p.x(), p.y())
+    last_p = p
+    cur_roi = ROI(g.m.currentWindow, p[0], p[1])
+    for i in range(1, length):
+        p = g.m.currentWindow.iso.path.pointAtPercent(i / length)
+        p = (p.x(), p.y())
+        if np.linalg.norm((last_p[0] - p[0], last_p[1] - p[1])) > 2:
+            cur_roi.drawFinished()
+            cur_roi = ROI(g.m.currentWindow, p[0], p[1])
+        else:
+            cur_roi.extend(p[0], p[1])
+        last_p = p
+    cur_roi.drawFinished()
 
 def setIsoVisible(v):
     if g.m.currentWindow != None and hasattr(g.m.currentWindow, 'iso'):
         g.m.currentWindow.iso.setVisible(v)
         g.m.currentWindow.isoLine.setVisible(v)
 
-
 def dockCreated(widg):
-    widgDock = Dock(name = widg.name, widget=widg, closable=True)
-    g.m.dockarea.addDock(widgDock)
-    widg.closeEvent = lambda ev: g.dockCloseEvent(ev, widg, widgDock)
-    widgDock.closeEvent = widg.closeEvent
-
+    g.dockCreated(widg)
+    widg.keyPressEvent = lambda e: keyPressed(widg, e)
     if isinstance(widg, Window):
-        pass
-        #addIsoCurve(widg)
+        addIsoCurve(widg)
 
 def addIsoCurve(widg):
     lut = widg.imageview.getHistogramWidget().centralWidget

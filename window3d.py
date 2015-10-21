@@ -50,10 +50,13 @@ class Window3D(QWidget):
         self.scatterPlot=gl.GLScatterPlotItem(pos=np.array([[0, 0, 0]]), size=3, color=(0,0,0, 255))  #this is the plot that all the red points will be drawn on
         self.view.addItem(self.scatterPlot)
         self.pasteAct = QAction("&Paste", self, triggered=self.paste)
-        g.widgetCreated(self)
+        self.onCreate()
         if self not in g.m.windows:
             g.m.windows.append(self)
         self.closed=False
+
+    def onCreate(self):
+        self.show()
 
     def setCurrentWindow(self):
         g.m.currentWindow = self

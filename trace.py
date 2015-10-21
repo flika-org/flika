@@ -65,7 +65,10 @@ class TraceFig(QWidget):
         self.measure=measure
         self.p1.scene().sigMouseClicked.connect(self.measure.pointclicked)
         self.p1.scene().sigMouseClicked.connect(self.setCurrentTraceWindow)
-        g.widgetCreated(self)
+        self.onCreate()
+
+    def onCreate(self):
+        self.show()
 
     def setCurrentTraceWindow(self):
         if g.m.currentTrace is not None:

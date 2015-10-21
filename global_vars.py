@@ -16,9 +16,9 @@ else:
 from os.path import expanduser
 import numpy as np
 from pyqtgraph.dockarea import *
-
-def widgetCreated(widg):
-	widg.show()
+from window import Window
+from trace import TraceFig
+from window3d import Window3D
 
 def mainguiClose(event):
 	global m
@@ -108,19 +108,19 @@ def init(filename, docks=False):
 	m.installEventFilter(mainWindowEventEater)
 	if docks:
 		m.dockarea = DockArea()
-		m.centralwidget.layout().addWidget(m.dockarea, 0, 1, m.centralwidget.layout().rowCount(), 1)
-		m.centralwidget.layout().setColumnStretch(1, 1)
-		widgetCreated = dockCreated
-
-
-def dockCloseEvent(ev, widget, dock):
-	dock.close()
-	widget.__class__.closeEvent(widget, ev)
-	dock.__class__.closeEvent(dock, ev)
+		m.mainDock = Dock(name = 'Options', widget = m.centralwidget)
+		m.dockarea.addDock(m.mainDock)
+		m.setCentralWidget(m.dockarea)
+		Window.onCreate = dockCreated
+		TraceFig.onCreate = dockCreated
+		Window3D.onCreate = dockCreated
 
 def dockCreated(widg):
 	global m
-	widgDock = Dock(name = widg.name, widget=widg, closable=True)
-	m.dockarea.addDock(widgDock)
-	widg.closeEvent = lambda ev: dockCloseEvent(ev, widg, widgDock)
-	widgDock.closeEvent = widg.closeEvent
+	widg.dock = Dock(name = widg.name, widget=widg, closable=True)
+	m.dockarea.addDock(widg.dock, 'right', m.mainDock)
+	widg.closeEvent = lambda e: widgetClosed(widg, e)
+
+def widgetClosed(widg, e):
+	widg.dock.close()
+	widg.__class__.closeEvent(widg, e)
