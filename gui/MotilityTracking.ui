@@ -18,25 +18,24 @@
     <item row="0" column="0">
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
-      <widget class="QWidget" name="tab">
+      <widget class="QWidget" name="viewTab">
        <attribute name="title">
         <string>Track View</string>
        </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout" stretch="1,0">
-        <item>
-         <widget class="QWidget" name="widget" native="true">
-          <zorder>groupBox</zorder>
-          <zorder>groupBox</zorder>
-          <zorder>groupBox</zorder>
-         </widget>
-        </item>
+       <layout class="QVBoxLayout" name="verticalLayout" stretch="0">
         <item>
          <widget class="QGroupBox" name="groupBox">
           <property name="minimumSize">
            <size>
             <width>0</width>
+            <height>80</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
             <height>80</height>
            </size>
           </property>
@@ -59,9 +58,9 @@
           <widget class="QLabel" name="label_2">
            <property name="geometry">
             <rect>
-             <x>310</x>
+             <x>260</x>
              <y>20</y>
-             <width>161</width>
+             <width>111</width>
              <height>16</height>
             </rect>
            </property>
@@ -79,15 +78,15 @@
             </rect>
            </property>
            <property name="text">
-            <string>Mean Distance Per Lag Minimum</string>
+            <string>Mean Distance Per Lag Minimum:</string>
            </property>
           </widget>
           <widget class="QLabel" name="label_4">
            <property name="geometry">
             <rect>
-             <x>310</x>
+             <x>260</x>
              <y>50</y>
-             <width>161</width>
+             <width>101</width>
              <height>16</height>
             </rect>
            </property>
@@ -98,7 +97,7 @@
           <widget class="QDoubleSpinBox" name="MLDMinimumSpin">
            <property name="geometry">
             <rect>
-             <x>200</x>
+             <x>180</x>
              <y>20</y>
              <width>62</width>
              <height>22</height>
@@ -108,17 +107,17 @@
           <widget class="QDoubleSpinBox" name="MLDMaximumSpin">
            <property name="geometry">
             <rect>
-             <x>200</x>
+             <x>180</x>
              <y>50</y>
              <width>62</width>
              <height>22</height>
             </rect>
            </property>
           </widget>
-          <widget class="QSpinBox" name="neighborSpin">
+          <widget class="QSpinBox" name="minNeighborsSpin">
            <property name="geometry">
             <rect>
-             <x>471</x>
+             <x>370</x>
              <y>50</y>
              <width>61</width>
              <height>22</height>
@@ -128,7 +127,7 @@
           <widget class="QDoubleSpinBox" name="neighborDistanceSpin">
            <property name="geometry">
             <rect>
-             <x>470</x>
+             <x>370</x>
              <y>20</y>
              <width>62</width>
              <height>22</height>
@@ -138,7 +137,7 @@
           <widget class="QCheckBox" name="hideBackgroundCheck">
            <property name="geometry">
             <rect>
-             <x>570</x>
+             <x>600</x>
              <y>20</y>
              <width>151</width>
              <height>20</height>
@@ -151,7 +150,7 @@
           <widget class="QCheckBox" name="ignoreOutsideCheck">
            <property name="geometry">
             <rect>
-             <x>570</x>
+             <x>600</x>
              <y>50</y>
              <width>151</width>
              <height>20</height>
@@ -161,22 +160,73 @@
             <string>Ignore Tracks Outside ROIs</string>
            </property>
           </widget>
+          <widget class="QLabel" name="label_5">
+           <property name="geometry">
+            <rect>
+             <x>450</x>
+             <y>20</y>
+             <width>91</width>
+             <height>16</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>Min Track Length:</string>
+           </property>
+          </widget>
+          <widget class="QLabel" name="label_6">
+           <property name="geometry">
+            <rect>
+             <x>450</x>
+             <y>50</y>
+             <width>91</width>
+             <height>16</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>Max Track Length:</string>
+           </property>
+          </widget>
+          <widget class="QSpinBox" name="minLengthSpin">
+           <property name="geometry">
+            <rect>
+             <x>540</x>
+             <y>20</y>
+             <width>42</width>
+             <height>22</height>
+            </rect>
+           </property>
+           <property name="value">
+            <number>4</number>
+           </property>
+          </widget>
+          <widget class="QSpinBox" name="maxLengthSpin">
+           <property name="geometry">
+            <rect>
+             <x>540</x>
+             <y>50</y>
+             <width>42</width>
+             <height>22</height>
+            </rect>
+           </property>
+           <property name="value">
+            <number>20</number>
+           </property>
+          </widget>
          </widget>
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="tab_2">
+      <widget class="QWidget" name="analysisTab">
        <attribute name="title">
-        <string>Track Analysis</string>
+        <string>Track Distance Analysis</string>
        </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_2">
-        <item>
-         <widget class="QWidget" name="widget_2" native="true"/>
-        </item>
-        <item>
-         <widget class="QWidget" name="widget_3" native="true"/>
-        </item>
-       </layout>
+       <layout class="QVBoxLayout" name="verticalLayout_2"/>
+      </widget>
+      <widget class="QWidget" name="cdfTab">
+       <attribute name="title">
+        <string>Cumulative Distribution Function</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_2"/>
       </widget>
      </widget>
     </item>

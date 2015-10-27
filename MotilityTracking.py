@@ -10,8 +10,6 @@ from future.builtins import (bytes, dict, int, list, object, range, str, ascii, 
 import time
 tic=time.time()
 import os, sys
-sys.path.insert(0, "C:/Users/Kyle Ellefsen/Documents/GitHub/pyqtgraph")
-sys.path.insert(0, "C:/Users/Medha/Documents/GitHub/pyqtgraph")
 import numpy as np
 from PyQt4.QtCore import * # Qt is Nokias GUI rendering code written in C++.  PyQt4 is a library in python which binds to Qt
 from PyQt4.QtGui import *
@@ -21,20 +19,11 @@ import pyqtgraph as pg
 import global_vars as g
 from window import Window
 from window3d import Window3D
-
-from process.stacks import deinterleave, slicekeeper, zproject, image_calculator, pixel_binning, frame_binning
-from process.math_ import multiply, subtract, power, ratio, absolute_value, subtract_trace
-from process.filters import gaussian_blur, butterworth_filter,boxcar_differential_filter, wavelet_filter, difference_filter, fourier_filter, mean_filter
-from process.binary import threshold, adaptive_threshold, canny_edge_detector, remove_small_blobs, logically_combine, binary_dilation, binary_erosion
-from process.roi import set_value
-from analyze.measure import measure
-from analyze.puffs.frame_by_frame_origin import frame_by_frame_origin
-from analyze.puffs.average_origin import average_origin
-from analyze.puffs.threshold_cluster import threshold_cluster
-from process.file_ import open_gui, save_as_gui, open_file, load_metadata, close, save_file, save_movie_gui, save_movie, change_internal_data_type, change_internal_data_type_gui, save_points_gui, load_points_gui
 from roi import load_roi_gui, load_roi, makeROI
-from process.overlay import time_stamp,background, scale_bar
-from scripts import getScriptList
+
+from histogram import Histogram
+from process.motility_ import open_bin_gui
+from process.file_ import open_gui
 
 try:
 	os.chdir(os.path.split(os.path.realpath(__file__))[0])
@@ -42,72 +31,102 @@ except NameError:
 	pass
 
 
+def import_coords():
+	pass
+
+def export_distances():
+	pass
+
+class TrackPlot(pg.PlotDataItem):
+	'''
+	PlotDataItem representation of a set of tracks, imported from a bin file.
+	Filterable by track length, mean lag distance, and neighbor points
+
+	'''
+	def __init__(self, *args, **kargs):
+		tracksChanged = Signal()
+		super(TrackPlot, self).__init__(*args, **kargs)
+		self.all_tracks = []
+		self.filtered_tracks = []
+
+
+	def setTracks(self, track_list):
+		self.tracks = track_list
+
+
+	def filter(**kargs):
+		self.filtered_tracks = []
+		for tr in self.all_tracks:
+			if 'MLD_Minimum' in kargs:
+				pass
+			if 'MLD_Maximum' in kargs:
+				pass
+			if 'Neighbor_Distance' in kargs:
+				pass
+			if 'Minimum_Neighbors' in kargs:
+				pass
+			if 'Minimum_Track_Length' in kargs:
+				pass
+			if 'Maximum_Track_Length' in kargs:
+				pass
+			if 'func' in kargs:
+				pass
+
+		self.tracksChanged.emit()
+
+	def export(filtered=False):
+		pass
+
+def simulateMeans():
+	pass
+
+def exportMSD():
+	pass
+
+def track_in_roi(track):
+	for roi in g.m.currentWindow.rois:
+		if roi.contains(track):
+			return True
+	return False
+
 def initializeMainGui():
 	g.init('gui/MotilityTracking.ui')
 
-	g.m.setGeometry(QRect(15, 33, 326, 80))
+	g.m.trackView = Window(np.zeros((3, 3, 3)))
+	g.m.histogram = Histogram()
+	g.m.trackPlot = TrackPlot()
 
-	g.m.actionOpen.triggered.connect(open_gui)    
-	g.m.actionSaveAs.triggered.connect(save_as_gui)
-	g.m.actionSave_Points.triggered.connect(save_points_gui)
-	g.m.actionLoad_Points.triggered.connect(load_points_gui)
-	g.m.actionSave_Movie.triggered.connect(save_movie_gui)
-	g.m.actionLoad_ROI_File.triggered.connect(load_roi_gui)
-	g.m.actionChange_Internal_Data_type.triggered.connect(change_internal_data_type_gui)
+	g.m.actionImportBin.triggered.connect(open_bin_gui)
+	g.m.actionImportBackground.triggered.connect(open_gui)
+	g.m.actionImportCoordinates.triggered.connect(import_coords)
+	g.m.actionSimulateDistances.triggered.connect(simulateMeans)
+	g.m.actionExportMSD.triggered.connect(exportMSD)
+	g.m.actionExportHistogram.triggered.connect(g.m.histogram.export)
+	g.m.actionExportOutlined.triggered.connect(lambda : g.m.trackPlot.export(filtered=True))
+	g.m.actionExportDistances.triggered.connect(export_distances)
 
-	g.m.openButton.clicked.connect(open_gui)
-	g.m.saveButton.clicked.connect(save_movie_gui)
-	g.m.saveAsButton.clicked.connect(save_as_gui)
+	g.m.MLDMaximumSpin.valueChanged.connect(lambda v: g.m.trackPlot.filter(MLD_Minimum=v))
+	g.m.MLDMinimumSpin.valueChanged.connect(lambda v: g.m.trackPlot.filter(MLD_Maximum=v))
+	g.m.neighborDistanceSpin.valueChanged.connect(lambda v: g.m.trackPlot.filter(Neighbor_Distance=v))
+	g.m.minNeighborsSpin.valueChanged.connect(lambda v: g.m.trackPlot.filter(Minimum_Neighbors=v))
+	g.m.minLengthSpin.valueChanged.connect(lambda v: g.m.trackPlot.filter(Minimum_Track_Length=v))
+	g.m.maxLengthSpin.valueChanged.connect(lambda v: g.m.trackPlot.filter(Maximum_Track_Length=v))
+	g.m.hideBackgroundCheck.toggled.connect(lambda v: g.m.trackView.imageitem.setVisible(v))
+	g.m.ignoreOutsideCheck.toggled.connect(lambda v: g.m.trackPlot.filter(func=track_in_roi))
+
+	g.m.viewTab.layout().insertWidget(0, g.m.trackView)
+
+	g.m.MSDWidget = pg.PlotWidget()
+	g.m.MSDPlot = pg.PlotDataItem()
+	g.m.MSDWidget.addItem(g.m.MSDPlot)
+	g.m.analysisTab.layout().addWidget(g.m.MSDWidget)
+
 	
-	g.m.importROIButton.clicked.connect(load_roi_gui)
-	g.m.exportROIButton.clicked.connect(lambda : g.m.currentWindow.rois[0].save_gui() if len(g.m.currentWindow.rois) > 0 else None)
-	g.m.plotAllButton.clicked.connect(lambda : [roi.plot() for roi in g.m.currentWindow.rois])
-	g.m.clearButton.clicked.connect(lambda : [roi.delete() for roi in g.m.currentWindow.rois])
-	g.m.freehand.clicked.connect(lambda: g.m.settings.setmousemode('freehand'))
-	g.m.line.clicked.connect(lambda: g.m.settings.setmousemode('line'))
-	g.m.rectangle.clicked.connect(lambda: g.m.settings.setmousemode('rectangle'))
-	g.m.point.clicked.connect(lambda: g.m.settings.setmousemode('point'))
+	g.m.analysisTab.layout().addWidget(g.m.histogram)
 
-	g.m.menuScripts.aboutToShow.connect(getScriptList)
-
-	url='file:///'+os.path.join(os.getcwd(),'docs','_build','html','index.html')
-	g.m.actionDocs.triggered.connect(lambda: QDesktopServices.openUrl(QUrl(url)))
-	
-	g.m.actionDeinterleave.triggered.connect(deinterleave.gui)
-	g.m.actionZ_Project.triggered.connect(zproject.gui)
-	g.m.actionPixel_Binning.triggered.connect(pixel_binning.gui)
-	g.m.actionFrame_Binning.triggered.connect(frame_binning.gui)
-	g.m.actionSlice_Keeper.triggered.connect(slicekeeper.gui)
-	g.m.actionMultiply.triggered.connect(multiply.gui)
-	g.m.actionSubtract.triggered.connect(subtract.gui)
-	g.m.actionPower.triggered.connect(power.gui)
-	g.m.actionGaussian_Blur.triggered.connect(gaussian_blur.gui)
-	g.m.actionButterworth_Filter.triggered.connect(butterworth_filter.gui)
-	g.m.actionMean_Filter.triggered.connect(mean_filter.gui)
-	g.m.actionFourier_Filter.triggered.connect(fourier_filter.gui)
-	g.m.actionDifference_Filter.triggered.connect(difference_filter.gui)
-	g.m.actionBoxcar_Differential.triggered.connect(boxcar_differential_filter.gui)
-	g.m.actionWavelet_Filter.triggered.connect(wavelet_filter.gui)
-	g.m.actionRatio.triggered.connect(ratio.gui)
-	g.m.actionSubtract_Trace.triggered.connect(subtract_trace.gui)
-	g.m.actionAbsolute_Value.triggered.connect(absolute_value.gui)
-	g.m.actionThreshold.triggered.connect(threshold.gui)
-	g.m.actionAdaptive_Threshold.triggered.connect(adaptive_threshold.gui)
-	g.m.actionCanny_Edge_Detector.triggered.connect(canny_edge_detector.gui)
-	g.m.actionLogically_Combine.triggered.connect(logically_combine.gui)
-	g.m.actionRemove_Small_Blobs.triggered.connect(remove_small_blobs.gui)
-	g.m.actionBinary_Erosion.triggered.connect(binary_erosion.gui)
-	g.m.actionBinary_Dilation.triggered.connect(binary_dilation.gui)
-	g.m.actionSet_value.triggered.connect(set_value.gui)
-	g.m.actionImage_Calculator.triggered.connect(image_calculator.gui)    
-	g.m.actionTime_Stamp.triggered.connect(time_stamp.gui)
-	g.m.actionScale_Bar.triggered.connect(scale_bar.gui)
-	g.m.actionBackground.triggered.connect(background.gui)
-	g.m.actionMeasure.triggered.connect(measure.gui)    
-	g.m.actionFrame_by_frame_origin.triggered.connect(frame_by_frame_origin.gui)
-	g.m.actionAverage_origin.triggered.connect(average_origin.gui)
-	g.m.actionThreshold_cluster.triggered.connect(threshold_cluster.gui)
-	
+	g.m.CDFWidget = pg.PlotWidget()
+	g.m.CDFPlot = pg.PlotCurveItem()
+	g.m.cdfTab.layout().addWidget(g.m.CDFWidget)
 
 	g.m.show()
 
