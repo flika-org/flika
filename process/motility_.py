@@ -13,9 +13,12 @@ from sklearn.cluster import DBSCAN
 from scipy.spatial import ConvexHull
 from window3d import Window3D
 import pyqtgraph.opengl as gl
-import struct
+import struct, time
 from collections import defaultdict
 # MList will be one array of (structures of arrays)
+
+fnames = ['x','y','xc','yc','h','a','w','phi','ax','bg','i','c','density',\
+		'frame','length','link','z','zc','selfframe']
 
 class BinaryReaderEOFException(Exception):
 	def __init__(self):
@@ -75,7 +78,7 @@ def bin2mat(infile):
 	fid.seek(0, 0);
 
 	# read header
-	version = "".join([fid.read('char') for i in range(4)]) # *char % M425
+	version = "".join([str(fid.read('char')) for i in range(4)]) # *char % M425
 	frames = fid.read('int32') # *int32 ;% number of frames. real frames.
 	status = fid.read('int32') # *int32 ;% identified = 2, stormed = 6, traced =3, tracked = 4
 	header_length = fid.tell()
@@ -93,7 +96,7 @@ def bin2mat(infile):
 	lengthfnames=np.size(fnames)
 	MList = []
 	for f in np.arange(frames):
-		fid.seek(sizeofminfo*nmol[f], 1)
+		fid.seek(int(sizeofminfo*nmol[f]), 1)
 		nmol[f+1]=fid.read('int32')
 
 	nmolcum=np.cumsum(nmol)
@@ -104,7 +107,7 @@ def bin2mat(infile):
 		keepframeinfo=1
 
 	# the byte offset of the last molecule 
-	#testoffset= header_length  + (nmolcum(frames)+nmol(frames+1)-1)*sizeofminfo + (frames+1)*4; 
+	#testoffset= header_length  + (nmolcum(frames)+nmol(frames+1)-1)*sizeofminfo + (frames+1)*4;
 
 	for index in range(int(nmol[0])):
 		fid.seek(header_length+4+(index) *sizeofminfo+14*4, 0)
@@ -173,15 +176,15 @@ def create_main_data_struct(mlist, ltl, utl):
 			pos_y = mlist[i]['y'][1:index+1]
 			par_det[-1].x_cor = pos_x
 			par_det[-1].y_cor = pos_y
-			par_det[-1].mean_x = mean(pos_x)
-			par_det[-1].mean_y = mean(pos_y)
+			par_det[-1].mean_x = np.mean(pos_x)
+			par_det[-1].mean_y = np.mean(pos_y)
 			par_det[-1].inst_vel = np.zeros((len(pos_x)-1))
 			par_det[-1].dis_pixel_lag = np.zeros((len(pos_x)-1))
 			for j in range(len(pos_x)-1):
-				par_det[-1].inst_vel[j] = (sqrt((pos_x[j+1]-pos_x[j])**2+(pos_y[j+1]-pos_y[j])**2))
-				par_det[-1].dis_pixel_lag[j]=(sqrt((pos_x[j+1]-pos_x[j])**2+(pos_y[j+1]-pos_y[j])**2))
-			par_det[-1].mean_vel = mean(par_det[-1].inst_vel)
-			par_det[-1].mean_dis_pixel_lag = mean(par_det[-1].dis_pixel_lag)
+				par_det[-1].inst_vel[j] = (np.sqrt((pos_x[j+1]-pos_x[j])**2+(pos_y[j+1]-pos_y[j])**2))
+				par_det[-1].dis_pixel_lag[j]=(np.sqrt((pos_x[j+1]-pos_x[j])**2+(pos_y[j+1]-pos_y[j])**2))
+			par_det[-1].mean_vel = np.mean(par_det[-1].inst_vel)
+			par_det[-1].mean_dis_pixel_lag = np.mean(par_det[-1].dis_pixel_lag)
 			Nt = len(pos_x)-1
 			par_det[-1].lag_num = np.zeros((Nt))
 			par_det[-1].dist_sqr = [None] * (Nt)
@@ -196,7 +199,7 @@ def create_main_data_struct(mlist, ltl, utl):
 					sp+=1
 				proxy_mean = par_det[-1].dist_sqr[n-1]
 				proxy_mean = proxy_mean[proxy_mean != 0]
-				par_det[-1].mean_dist_sqr[n-1] = mean(proxy_mean) if len(proxy_mean) != 0 else np.nan
+				par_det[-1].mean_dist_sqr[n-1] = np.mean(proxy_mean) if len(proxy_mean) != 0 else np.nan
 
 		elif index > utl:
 			rt += 1
@@ -208,6 +211,7 @@ def create_main_data_struct(mlist, ltl, utl):
 
 	return par_det, reject_track, rt
 
+
 def open_bin_gui():
 	filename=g.m.settings['filename']
 	if filename is not None and os.path.isfile(filename):
@@ -216,6 +220,11 @@ def open_bin_gui():
 		filename= QFileDialog.getOpenFileName(g.m, 'Open .bin File', '','*.bin')
 	filename=str(filename)
 	if filename=='':
-		return False
+		return []
 	else:
-		return bin2mat(filename)
+		g.m.statusBar().showMessage('Loading {}'.format(os.path.basename(filename)))
+		g.m.settings['filename']=filename
+		t = time.time()
+		mat = bin2mat(filename)
+		g.m.statusBar().showMessage('{} successfully loaded ({} s)'.format(os.path.basename(filename), time.time()-t))
+		return mat

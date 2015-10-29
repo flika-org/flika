@@ -17,7 +17,7 @@ import pyqtgraph.opengl as gl
 #cluster, open_scatter, save_scatter, save_clusters, export_distances, export_nearest_distances
 
 class Cluster(BaseProcess):
-	"""cluster(epsilon, minPoints, minNeighbors=1)
+	'''cluster(epsilon, minPoints, minNeighbors=1)
 	This takes three values used to cluster coordinates with the Density Based Scanning algorithm
 	
 	Parameters:
@@ -26,7 +26,8 @@ class Cluster(BaseProcess):
 		| minNeighbors (int) -- The minimum neighboring points to include a point in a cluster
 	Returns:
 		List of lists of clustered points
-	"""
+	'''
+	__name__ = "Density Based Scan Cluster Algorithm"
 	def __init__(self):
 		pass
 
@@ -81,11 +82,11 @@ class Cluster(BaseProcess):
 			epsiSpin.setValue(g.m.epsilonSpin.value())
 			minPSpin.setValue(g.m.minPointsSpin.value())
 			minNeighborsSpin.setValue(g.m.minNeighborsSpin.value())
-		items = []
-		items.append({'name':'epsilon','string':'Epsilon','object':epsiSpin})
-		items.append({'name':'minP','string':'Minimum Points','object':minPSpin})
-		items.append({'name':'minNeighbors','string':'Minimum Neighbors','object':minNeighborsSpin})
-		items.append({'name':'preview','string':'Preview','object':QCheckBox()})
+		self.items = []
+		self.items.append({'name':'epsilon','string':'Epsilon','object':epsiSpin})
+		self.items.append({'name':'minP','string':'Minimum Points','object':minPSpin})
+		self.items.append({'name':'minNeighbors','string':'Minimum Neighbors','object':minNeighborsSpin})
+		#self.items.append({'name':'preview','string':'Preview','object':QCheckBox()})
 		super().gui()
 
 	def preview(self):
@@ -93,11 +94,11 @@ class Cluster(BaseProcess):
 		minP=self.getValue('minP')
 		minNeighbors=self.getValue('minNeighbors')
 		preview=self.getValue('preview')
-		if preview:
-			g.m.currentWindow.reset()
-			self(epsilon, minP, minNeighbors)
-		else:
-			g.m.currentWindow.reset()
+		#if preview:
+		#	g.m.currentWindow.reset()
+		#	#self(epsilon, minP, minNeighbors)
+		#else:
+		#	g.m.currentWindow.reset()
 cluster = Cluster()
 
 def save_scatter_gui():

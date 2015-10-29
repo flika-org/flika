@@ -35,28 +35,6 @@ class SetCurrentWindowSignal(QWidget):
 		QWidget.__init__(self,parent)
 		self.hide()
 
-class MainWindowEventEater(QObject):
-	def __init__(self,parent=None):
-		QObject.__init__(self,parent)
-	def eventFilter(self,obj,event):
-		if (event.type()==QEvent.DragEnter):
-			if event.mimeData().hasUrls():
-				event.accept()   # must accept the dragEnterEvent or else the dropEvent can't occur !!!
-			else:
-				event.ignore()
-		if (event.type() == QEvent.Drop):
-			if event.mimeData().hasUrls():   # if file or link is dropped
-				url = event.mimeData().urls()[0]   # get first url
-				filename=url.toString()
-				filename=filename.split('file:///')[1]
-				print('filename={}'.format(filename)) 
-				open_file(filename)  #This fails on windows symbolic links.  http://stackoverflow.com/questions/15258506/os-path-islink-on-windows-with-python
-				event.accept()
-			else:
-				event.ignore()
-		return False # lets the event continue to the edit
-mainWindowEventEater = MainWindowEventEater()
-
 class Settings:
 	def __init__(self, name):
 		self.config_file=os.path.join(expanduser("~"),'.Configs','%s.p' % name)
@@ -104,8 +82,8 @@ def init(filename, docks=False):
 	m.clipboard = None
 	m.scriptEditor = None
 	m.setAcceptDrops(True)
-	m.onClose = mainguiClose
-	m.installEventFilter(mainWindowEventEater)
+	m.closeEvent = mainguiClose
+	
 	if docks:
 		m.dockarea = DockArea()
 		m.mainDock = Dock(name = 'Options', widget = m.centralwidget)

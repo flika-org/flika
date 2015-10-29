@@ -177,6 +177,14 @@ class TraceFig(QWidget):
         self.rois.append(dict({'roi':roi,'p1trace':p1trace,'p2trace':p2trace,'toBeRedrawn':False,'toBeRedrawnFull':False}))
         #self.rois.append([roi,p1data,p2data,proxy])
 
+    def addTrace(self, trace):
+        p1trace=self.p1.plot(trace)
+        p2trace=self.p2.plot(trace) 
+        #proxy= pg.SignalProxy(roi.translated,rateLimit=60, slot=self.redrawROIs)
+        if len(self.rois)==0:
+            self.region.setRegion([0, len(trace)-1])
+        #self.rois.append([roi,p1data,p2data,proxy])
+
     def removeROI(self,roi):
         index=[r['roi'] for r in self.rois].index(roi) #this is the index of the roi in self.rois
         self.p1.removeItem(self.rois[index]['p1trace'])

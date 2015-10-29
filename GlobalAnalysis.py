@@ -36,6 +36,7 @@ from analyze.puffs.threshold_cluster import threshold_cluster
 
 from process.overlay import time_stamp,background, scale_bar
 from pyqtgraph.dockarea import *
+from trace import TraceFig
 
 try:
     os.chdir(os.path.split(os.path.realpath(__file__))[0])
@@ -45,6 +46,10 @@ except NameError:
 def showImageTrace(window):
     if g.m.currentWindow == None:
         return
+    tf = TraceFig()
+    tf.addTrace(np.average(g.m.currentWindow.image, (2, 1)))
+    tf.indexChanged.connect(g.m.currentWindow.imageview.setCurrentIndex)
+    return
     roi = ROI_rectangle(g.m.currentWindow, 0, 0)
     t, y, x = np.shape(g.m.currentWindow.image)
     roi.extend(x, y)
@@ -54,7 +59,7 @@ def showImageTrace(window):
     roi.contains = lambda f, g: False
 
 def initializeMainGui():
-    g.init('gui/GlobalAnalysis.ui', docks=True)
+    g.init('gui/GlobalAnalysis.ui')
     g.m.setWindowTitle('Global Cell Analysis')
     g.m.setGeometry(QRect(15, 33, 100, 140))
 
@@ -99,11 +104,34 @@ def initializeMainGui():
     #g.m.actionDocs.triggered.connect(lambda: QDesktopServices.openUrl(QUrl(url)))
     g.m.setAcceptDrops(True)
 
-    g.m.show()
 
     g.m.outlineCheck.toggled.connect(setIsoVisible)
-    Window.onCreate = dockCreated
     g.m.autoROIButton.clicked.connect(makeROIs)
+    g.m.installEventFilter(mainWindowEventEater)
+    g.m.show()
+
+class MainWindowEventEater(QObject):
+    def __init__(self,parent=None):
+        QObject.__init__(self,parent)
+    def eventFilter(self,obj,event):
+        if (event.type()==QEvent.DragEnter):
+            if event.mimeData().hasUrls():
+                event.accept()   # must accept the dragEnterEvent or else the dropEvent can't occur !!!
+            else:
+                event.ignore()
+        if (event.type() == QEvent.Drop):
+            if event.mimeData().hasUrls():   # if file or link is dropped
+                url = event.mimeData().urls()[0]   # get first url
+                filename=url.toString()
+                filename=filename.split('file:///')[1]
+                print('filename={}'.format(filename))
+                open_file(filename)  #This fails on windows symbolic links.  http://stackoverflow.com/questions/15258506/os-path-islink-on-windows-with-python
+                event.accept()
+            else:
+                event.ignore()
+        return False # lets the event continue to the edit
+mainWindowEventEater = MainWindowEventEater()
+
 
 def makeROIs():
     length = int(g.m.currentWindow.iso.path.length())
@@ -123,15 +151,12 @@ def makeROIs():
     cur_roi.drawFinished()
 
 def setIsoVisible(v):
+    if not hasattr(g.m.currentWindow, 'iso'):
+        if isinstance(g.m.currentWindow, Window):
+            addIsoCurve(g.m.currentWindow)
     if g.m.currentWindow != None and hasattr(g.m.currentWindow, 'iso'):
         g.m.currentWindow.iso.setVisible(v)
         g.m.currentWindow.isoLine.setVisible(v)
-
-def dockCreated(widg):
-    g.dockCreated(widg)
-    widg.keyPressEvent = lambda e: keyPressed(widg, e)
-    if isinstance(widg, Window):
-        addIsoCurve(widg)
 
 def addIsoCurve(widg):
     lut = widg.imageview.getHistogramWidget().centralWidget
