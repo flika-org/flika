@@ -93,7 +93,7 @@ class Cluster(BaseProcess):
 		epsilon=self.getValue('epsilon')
 		minP=self.getValue('minP')
 		minNeighbors=self.getValue('minNeighbors')
-		preview=self.getValue('preview')
+		#preview=self.getValue('preview')
 		#if preview:
 		#	g.m.currentWindow.reset()
 		#	#self(epsilon, minP, minNeighbors)

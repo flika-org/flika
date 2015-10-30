@@ -58,6 +58,21 @@ def showImageTrace(window):
     roi.view.removeItem(roi.pathitem)
     roi.contains = lambda f, g: False
 
+def export_roi_traces():
+    filename=g.m.settings['filename']
+    directory=os.path.dirname(filename)
+    if filename is not None and directory != '':
+        filename= QFileDialog.getSaveFileName(g.m, 'Save ROI Traces', directory, '*.txt')
+    else:
+        filename= QFileDialog.getSaveFileName(g.m, 'Save ROI Traces', '*.txt')
+    filename=str(filename)
+    if filename=='':
+        return False
+    to_save = [roi.getTrace() for roi in g.m.currentWindow.rois]
+    np.savetxt(filename, np.transpose(to_save), header='\t'.join(['ROI %d' % i for i in range(len(to_save))]), fmt='%.4f', delimiter='\t', comments='')
+    g.m.settings['filename'] = filename
+
+
 def initializeMainGui():
     g.init('gui/GlobalAnalysis.ui')
     g.m.setWindowTitle('Global Cell Analysis')
@@ -70,6 +85,7 @@ def initializeMainGui():
 
     g.m.actionImport_ROI_File.triggered.connect(load_roi_gui)
     g.m.actionExport_ROIs.triggered.connect(lambda : g.m.currentWindow.rois[0].save_gui() if len(g.m.currentWindow.rois) > 0 else None)
+    g.m.actionExport_ROI_Traces.triggered.connect(export_roi_traces)
     g.m.actionSave_Points.triggered.connect(save_points_gui)
     g.m.actionLoad_Points.triggered.connect(load_points_gui)
     g.m.actionSubtract.triggered.connect(subtract.gui)

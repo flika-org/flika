@@ -53,7 +53,30 @@ def initializeMainGui():
 	g.m.minPointsSpin.setValue(MIN_POINTS)
 	g.m.minNeighborsSpin.setValue(MIN_NEIGHBORS)
 
+	g.m.installEventFilter(mainWindowEventEater)
 	g.m.show()
+
+class MainWindowEventEater(QObject):
+	def __init__(self,parent=None):
+		QObject.__init__(self,parent)
+	def eventFilter(self,obj,event):
+		if (event.type()==QEvent.DragEnter):
+			if event.mimeData().hasUrls():
+				event.accept()   # must accept the dragEnterEvent or else the dropEvent can't occur !!!
+			else:
+				event.ignore()
+		if (event.type() == QEvent.Drop):
+			if event.mimeData().hasUrls():   # if file or link is dropped
+				url = event.mimeData().urls()[0]   # get first url
+				filename=url.toString()
+				filename=filename.split('file:///')[1]
+				print('filename={}'.format(filename))
+				load_scatter_gui(filename)  #This fails on windows symbolic links.  http://stackoverflow.com/questions/15258506/os-path-islink-on-windows-with-python
+				event.accept()
+			else:
+				event.ignore()
+		return False # lets the event continue to the edit
+mainWindowEventEater = MainWindowEventEater()
 
 if __name__ == '__main__':
 	app = QApplication(sys.argv)
