@@ -209,7 +209,12 @@ class BaseProcess(object):
         except IndexError:
             print("Names in {}: {}".format(self.__name__,varnames))
         #print(args)
-        self.__call__(*args,keepSourceWindow=True)
+        try:
+            self.__call__(*args,keepSourceWindow=True)
+        except MemoryError as err:
+            print('There was a memory error in {}'.format(self.__name__))
+            g.m.statusBar().showMessage('There was a memory error in {}'.format(self.__name__))
+            print(err)
     def preview(self):
         pass
 
