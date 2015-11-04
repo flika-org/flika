@@ -109,6 +109,10 @@ class Window(QWidget):
             self.imageview.setCurrentIndex(index)
     def showFrame(self,index):
         g.m.statusBar().showMessage('frame {}'.format(index))
+    def setName(self,name):
+        name=str(name)
+        self.name=name
+        self.setWindowTitle(name)
         
     def reset(self):
         currentIndex=self.currentIndex

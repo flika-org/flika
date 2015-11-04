@@ -157,9 +157,9 @@ def save_points(filename):
 def load_points_gui():
     filename=g.m.settings['filename']
     if filename is not None and os.path.isfile(filename):
-        filename= QFileDialog.getOpenFileName(g.m, 'Open File', filename, '*.txt')
+        filename= QFileDialog.getOpenFileName(g.m, 'Open Points File', filename, '*.txt')
     else:
-        filename= QFileDialog.getOpenFileName(g.m, 'Open File', '','*.tif *.tiff *.stk')
+        filename= QFileDialog.getOpenFileName(g.m, 'Open Points File', '','*.txt')
     filename=str(filename)
     if filename=='':
         return False

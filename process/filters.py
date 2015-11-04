@@ -176,7 +176,7 @@ class Mean_filter(BaseProcess):
     def gui(self):
         self.gui_reset()
         nFrames=SliderLabel(0)
-        nFrames.setRange(1,1000)
+        nFrames.setRange(1,100)
         preview=QCheckBox()
         preview.setChecked(True)
         self.items.append({'name':'nFrames','string':'nFrames','object':nFrames})

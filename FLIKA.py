@@ -191,8 +191,12 @@ def mainguiClose(event):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     initializeMainGui()
+    
+    #from tests import puff_detect_test
+    #puff_detect_test.detect_simulated_blips(2)
     #print("Time to load Flika: {} s".format(time.time()-tic))
-    open_file()
+    
+    #open_file()
     #data_window=open_file('D:/Desktop/test_data_long.tif')
     #density_window=open_file('D:/Desktop/density_long.tif')
     #threshold_cluster(density_window,data_window,data_window,paddingT_pre=25, paddingT_post=25)
