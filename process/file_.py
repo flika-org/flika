@@ -151,7 +151,7 @@ def save_points(filename):
         for p in p_in[t]:
             p_out.append(np.array([t,p[0],p[1]]))
     p_out=np.array(p_out)
-    np.savetxt(filename,p_out)
+    np.savetxt(filename,p_out, delimiter='\t', header='Frame #\tX\tY', comments='')
     g.m.statusBar().showMessage('Successfully saved {}'.format(os.path.basename(filename)))
     
 def load_points_gui():
@@ -168,7 +168,7 @@ def load_points_gui():
         
 def load_points(filename):
     g.m.statusBar().showMessage('Loading points from {}'.format(os.path.basename(filename)))
-    pts=np.loadtxt(filename)
+    pts=np.loadtxt(filename, delimiter='\t', skiprows=1)
     for pt in pts:
         t=int(pt[0])
         if g.m.currentWindow.mt==1:
