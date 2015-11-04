@@ -440,8 +440,6 @@ def load_roi_gui():
     else:
         load_roi(filename)
     
-    
-    
 def makeROI(kind,pts,window=None):
     if window is None:
         window=g.m.currentWindow

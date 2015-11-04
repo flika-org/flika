@@ -209,7 +209,7 @@ class ParameterEditor(QtGui.QWidget):
 
 
 if __name__ == "__main__":
-	app = QApplication([])
+	app = QtGui.QApplication([])
 	pw = ParameterEditor("Options", [{"name": "Key", "value": "Name"}, {"name": "Age", "value": 18, "type": "int", "min": 0}, {"name": "Gender", "value": ["Male", "Female"]},\
 									{"name": "Color", "value": (0, 1, 2), "type": "color"}, {"name": "Subcategory", "children": [{"name": "Sub 1", "value": 0.0}, {"name": "Sub 2", "value": "Val"}]}])
 	pw.show()

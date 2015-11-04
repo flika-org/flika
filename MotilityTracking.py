@@ -20,10 +20,11 @@ import global_vars as g
 from window import Window
 from window3d import Window3D
 from roi import load_roi_gui, load_roi, makeROI
+from PropertiesWidget import ParameterEditor
 
 from histogram import Histogram
 from process.motility_ import open_bin_gui, create_main_data_struct, bin2mat
-from process.file_ import open_gui
+from process.file_ import open_gui, open_file_gui, save_file_gui
 
 try:
 	os.chdir(os.path.split(os.path.realpath(__file__))[0])
@@ -32,10 +33,17 @@ except NameError:
 
 
 def import_coords():
-	pass
+	filename = open_file_gui(prompt='Import coordinates from txt file', filetypes='*.txt')
+	headers = open(filename, 'r').readline().split('\t')
+	pe = ParameterEditor('Coordinate Columns', [{'name': 'X Column', 'value': headers}, {'name': 'Y Column', 'value': headers}])
+	pe.done.connect(lambda d: add_coords(np.loadtxt(filename, columns=[headers.index(d['X Column']), headers.index(d['Y Column'])])))
+
+def add_coords(arr):
+	print(arr)
 
 def export_distances():
-	pass
+	filename = save_file_gui(prompt='Export Distances', filetypes='*.txt')
+	np.savetxt(filename, TrackPlot.plot_data)
 
 class TrackPlot(pg.PlotDataItem):
 	'''
