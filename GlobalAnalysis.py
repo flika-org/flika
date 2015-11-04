@@ -38,6 +38,8 @@ from process.overlay import time_stamp,background, scale_bar
 from pyqtgraph.dockarea import *
 from trace import TraceFig
 
+from GlobalPolyfit import ROIRange, get_polyfit, analyze_trace, makePolyPath
+
 try:
     os.chdir(os.path.split(os.path.realpath(__file__))[0])
 except NameError:
@@ -50,13 +52,6 @@ def showImageTrace(window):
     tf.addTrace(np.average(g.m.currentWindow.image, (2, 1)))
     tf.indexChanged.connect(g.m.currentWindow.imageview.setCurrentIndex)
     return
-    roi = ROI_rectangle(g.m.currentWindow, 0, 0)
-    t, y, x = np.shape(g.m.currentWindow.image)
-    roi.extend(x, y)
-    roi.drawFinished()
-    roi.plot()
-    roi.view.removeItem(roi.pathitem)
-    roi.contains = lambda f, g: False
 
 def export_roi_traces():
     filename=g.m.settings['filename']
@@ -148,7 +143,6 @@ class MainWindowEventEater(QObject):
         return False # lets the event continue to the edit
 mainWindowEventEater = MainWindowEventEater()
 
-
 def makeROIs():
     length = int(g.m.currentWindow.iso.path.length())
     p = g.m.currentWindow.iso.path.pointAtPercent(0)
@@ -165,6 +159,60 @@ def makeROIs():
             cur_roi.extend(p[0], p[1])
         last_p = p
     cur_roi.drawFinished()
+
+def add_polyfit_item(traceWidget):
+    rangeItem = ROIRange()
+    traceWidget.p1.addItem(rangeItem)
+    rangeItem.__name__ = "%s Range %d" % (traceWidget.name, rangeItem.id)
+
+    rangeItem.poly_pen = QPen(QColor(255, 0, 0))
+    rangeItem.poly_pen.setStyle(Qt.DashLine)
+    rangeItem.poly_pen.setDashOffset(5)
+    #traceWidget.p1.menu.addMenu(rangeItem.menu)
+    #rangeItem.sigRemoved.connect(lambda : traceWidget.rangeMenu.removeAction(rangeItem.menu.menuAction()))
+
+    rangeItem.poly_fill = QGraphicsPathItem()
+    rangeItem.poly_fill.setBrush(QColor(0, 100, 155, 100))
+    rangeItem.polyfit_item = pg.PlotDataItem(pen=rangeItem.poly_pen)
+    rangeItem.fall_rise_points = pg.ScatterPlotItem()
+
+    rangeItem.poly_fill.setParentItem(rangeItem)
+    rangeItem.polyfit_item.setParentItem(rangeItem)
+    rangeItem.fall_rise_points.setParentItem(rangeItem)
+    rangeItem.sigRegionChangeFinished.connect(lambda : onRegionMove(rangeItem))
+    onRegionMove(rangeItem)
+
+def onRegionMove(region):
+    ''' when the region moves, recalculate the polyfit
+    data and plot/show it in the table and graph accordingly'''
+    x, y = region.getRegionTrace()
+    ftrace = get_polyfit(x, y)
+    data = analyze_trace(x, y, ftrace)
+    region.polyfit_item.setData(x=x, y=ftrace, pen=region.poly_pen)
+    integral = region.getIntegral()
+
+    pos = [data[k] for k in data.keys() if k.startswith('Rise, Fall')]
+    if len(pos) > 0:
+        region.fall_rise_points.setData(pos=pos, pen=region.poly_pen, symbolSize=4)
+    else:
+        print("Cannot find points")
+        region.fall_rise_points.clear()
+    region.poly_fill.setPath(makePolyPath(x, ftrace, data['Baseline'][1]))
+    if not hasattr(region, 'table_widget'):
+        region.table_widget = pg.TableWidget()
+        region.table_widget.__name__ = '%s Polyfit Table' % region.__name__
+        g.m.currentTrace.l.addWidget(region.table_widget)
+        region.sigRemoved.connect(region.table_widget.close)
+    region.table_widget.setData(data)
+    region.table_widget.setHorizontalHeaderLabels(['Frames', 'Y'])
+
+def traceShow(widg):
+    addButton = QPushButton('Add Polyfit Region')
+    addButton.clicked.connect(lambda : add_polyfit_item(widg))
+    widg.l.addWidget(addButton, 1)
+    addButton.setMaximumWidth(100)
+    QWidget.show(widg)
+TraceFig.show = traceShow
 
 def setIsoVisible(v):
     if not hasattr(g.m.currentWindow, 'iso'):
