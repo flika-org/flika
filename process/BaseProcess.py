@@ -48,11 +48,11 @@ class WindowSelector(QWidget):
         self.button.clicked.connect(self.buttonclicked)
     def buttonclicked(self):
         if self.button.isChecked() is False:
-            g.m.windowSelectedSignal.sig.disconnect(self.windowSet)
+            g.m.setCurrentWindowSignal.sig.disconnect(self.windowSet)
         else:
-            g.m.windowSelectedSignal.sig.connect(self.windowSet)
+            g.m.setCurrentWindowSignal.sig.connect(self.windowSet)
     def windowSet(self):
-        g.m.windowSelectedSignal.sig.disconnect(self.windowSet)
+        g.m.setCurrentWindowSignal.sig.disconnect(self.windowSet)
         self.window=g.m.currentWindow
         self.button.setChecked(False)
         self.label.setText('...'+os.path.split(self.window.name)[-1][-20:])
@@ -116,6 +116,7 @@ class BaseDialog(QDialog):
         QDialog.__init__(self)
         self.setWindowTitle(title)
         self.formlayout=QFormLayout()
+        self.formlayout.setLabelAlignment(Qt.AlignRight)
         
         self.items=items
         self.connectToChangeSignal()
@@ -189,17 +190,22 @@ class BaseProcess(object):
         del self.tif
         del self.newtif
         return newWindow
+
     def gui(self):
         if g.m.currentWindow is None:
             g.m.statusBar().showMessage('Select an image to process.')
             return False
         self.ui=BaseDialog(self.items,self.__name__,self.__doc__)
+        if hasattr(self, '__url__'):
+            self.ui.bbox.addButton(QDialogButtonBox.Help)
+            self.ui.bbox.helpRequested.connect(lambda : QDesktopServices.openUrl(QUrl(self.__url__)))
         self.proxy= pg.SignalProxy(self.ui.changeSignal,rateLimit=60, slot=self.preview)
         self.ui.rejected.connect(g.m.currentWindow.reset)
         self.ui.accepted.connect(self.call_from_gui)
         self.ui.show()
         g.m.dialog=self.ui
         return True
+
     def gui_reset(self):
         self.items=[]
     def call_from_gui(self):
@@ -209,7 +215,12 @@ class BaseProcess(object):
         except IndexError:
             print("Names in {}: {}".format(self.__name__,varnames))
         #print(args)
-        self.__call__(*args,keepSourceWindow=True)
+        try:
+            self.__call__(*args,keepSourceWindow=True)
+        except MemoryError as err:
+            print('There was a memory error in {}'.format(self.__name__))
+            g.m.statusBar().showMessage('There was a memory error in {}'.format(self.__name__))
+            print(err)
     def preview(self):
         pass
 

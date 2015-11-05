@@ -15,7 +15,7 @@ high_pass.setWindowTitle('High Pass Data Window (filtered F/F0)')
 low_pass=image_calculator(data_window,high_pass,'Subtract',keepSourceWindow=True) # we will use the low pass image as an approximation for the variance of the photon noise.  
 low_pass.image[low_pass.image<1]=1 # We can't take the sqrt of a negative number
 low_pass=power(.5) #convert from variance to standard deviation
-high_pass.select() 
+high_pass.setAsCurrentWindow() 
 norm_window=ratio(0,30,'standard deviation', keepSourceWindow=True) 
 image_calculator(norm_window,low_pass,'Divide') #now the noise should be constant throughout the imaging field and over the duration of the movie
 norm_window=set_value(0,  1000, 1099) #our butterworth_filter gives us an artifact towards the end of the movie

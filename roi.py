@@ -41,12 +41,21 @@ class ROI(QWidget):
         self.window.closeSignal.connect(self.delete)
         self.colorDialog=QColorDialog()
         self.colorDialog.colorSelected.connect(self.colorSelected)
+
     def extend(self,x,y):
         self.path.lineTo(QPointF(x,y))
         self.pathitem.setPath(self.path)
+
     def deleteCurrentROI(self):
         if self.window.currentROI is self:
             self.delete()
+
+    def getTraceWindow(self):
+        trace_with_roi = [t for t in g.m.traceWindows if t.hasROI(self)]
+        if len(trace_with_roi) == 1:
+            return trace_with_roi[0]
+        return False
+
     def delete(self):
         for roi in self.linkedROIs:
             roi.linkedROIs.remove(self)
@@ -54,12 +63,13 @@ class ROI(QWidget):
             self.window.rois.remove(self)
         self.window.currentROI=None
         self.view.removeItem(self.pathitem)
-        if g.m.currentTrace is not None and g.m.currentTrace.hasROI(self):
-            a=set([r['roi'] for r in g.m.currentTrace.rois])
+        trace = self.getTraceWindow()
+        if trace:
+            a=set([r['roi'] for r in trace.rois])
             b=set(self.window.rois)
             if len(a.intersection(b))==0:
-                g.m.currentTrace.indexChanged.disconnect(self.window.setIndex)
-            g.m.currentTrace.removeROI(self)
+                trace.indexChanged.disconnect(self.window.setIndex)
+            trace.removeROI(self)
     def getPoints(self):
         points=[]
         for i in np.arange(self.path.elementCount()):
@@ -96,10 +106,12 @@ class ROI(QWidget):
 
     def contextMenuEvent(self, event):
         self.menu = QMenu(self)
-        if g.m.currentTrace is not None and g.m.currentTrace.hasROI(self):
+        trace = self.getTraceWindow()
+        if trace:
             self.menu.addAction(self.unplotAct)
         else:
             self.menu.addAction(self.plotAct)
+        self.menu.addAction(self.plotAllAct)
         self.menu.addAction(self.colorAct)
         self.menu.addAction(self.copyAct)
         self.menu.addAction(self.deleteAct)
@@ -112,24 +124,13 @@ class ROI(QWidget):
         self.plotSignal.emit()
 
     def unplot(self):
-        g.m.currentTrace.indexChanged.disconnect(self.window.setIndex)
-        g.m.currentTrace.removeROI(self)
+        trace = self.getTraceWindow()
+        trace.indexChanged.disconnect(self.window.setIndex)
+        trace.removeROI(self)
 
     def copy(self):
         g.m.clipboard=self
 
-    def save_gui(self):
-        filename=g.m.settings['filename']
-        directory=os.path.dirname(filename)
-        if filename is not None:
-            filename= QFileDialog.getSaveFileName(g.m, 'Save ROIs', directory, '*.txt')
-        else:
-            filename= QFileDialog.getSaveFileName(g.m, 'Save ROIs', '*.txt')
-        filename=str(filename)
-        if filename=='':
-            return False
-        else:
-            self.save(filename)
     def save(self,filename):
         text=''
         for roi in g.m.currentWindow.rois:
@@ -149,16 +150,27 @@ class ROI(QWidget):
             self.color=QColor(color.name())
             self.pathitem.setPen(QPen(self.color))
             self.translate_done.emit()
-            
-            
+
+    def save_gui(self):
+        filename=g.m.settings['filename']
+        if filename is not None and os.path.isfile(filename):
+            filename= QFileDialog.getOpenFileName(g.m, 'Save ROI', filename, "*.txt")
+        else:
+            filename= QFileDialog.getOpenFileName(g.m, 'Save ROI', '', '*.txt')
+        filename=str(filename)
+        if filename != '':
+            self.save(filename)
+        else:
+            g.m.statusBar().showMessage('No File Selected')
             
     def createActions(self):
         self.plotAct = QAction("&Plot", self, triggered=self.plot)
+        self.plotAllAct = QAction('&Plot All', self, triggered=lambda : [roi.plot for roi in self.getTraceWindow().rois])
         self.colorAct = QAction("&Change Color",self,triggered=self.changeColor)
         self.unplotAct = QAction("&un-Plot", self, triggered=self.unplot)
         self.copyAct = QAction("&Copy", self, triggered=self.copy)
         self.deleteAct = QAction("&Delete", self, triggered=self.delete)
-        self.saveAct = QAction("&Save",self,triggered=self.save_gui)
+        self.saveAct = QAction("&Save",self,triggered=lambda : self.save_gui)
                 
     def contains(self,x,y):
         return self.path.contains(QPointF(x,y))
@@ -245,7 +257,7 @@ class ROI_line(ROI):
         self.beingDragged=False #either True or False depending on if a translation has been started or not
     def contextMenuEvent(self, event):
         self.menu = QMenu(self)
-        if g.m.currentTrace is not None and g.m.currentTrace.hasROI(self):
+        if self.getTraceWindow():
             self.menu.addAction(self.unplotAct)
         else:
             self.menu.addAction(self.plotAct)
@@ -355,7 +367,7 @@ class ROI_rectangle(ROI):
         self.pathitem.setPath(self.path)
     def contextMenuEvent(self, event):
         self.menu = QMenu(self)
-        if g.m.currentTrace is not None and g.m.currentTrace.hasROI(self):
+        if self.getTraceWindow():
             self.menu.addAction(self.unplotAct)
         else:
             self.menu.addAction(self.plotAct)
@@ -427,18 +439,7 @@ class ROI_rectangle(ROI):
         for roi in self.linkedROIs:
             roi.movingPoint=False
         self.movingPoint=False
-        
-def load_roi_gui():
-    filename=g.m.settings['filename']
-    if filename is not None and os.path.isfile(filename):
-        filename= QFileDialog.getOpenFileName(g.m, 'Open File', filename, '*.txt')
-    else:
-        filename= QFileDialog.getOpenFileName(g.m, 'Open File', '','*.txt')
-    filename=str(filename)
-    if filename=='':
-        return False
-    else:
-        load_roi(filename)
+    
     
 def makeROI(kind,pts,window=None):
     if window is None:

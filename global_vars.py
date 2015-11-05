@@ -18,7 +18,6 @@ import numpy as np
 from pyqtgraph.dockarea import *
 from window import Window
 from trace import TraceFig
-from window3d import Window3D
 
 def mainguiClose(event):
 	global m
@@ -46,6 +45,7 @@ class Settings:
 			self.d['data_type']=np.float64 #this is the data type used to save an image.  All image data are handled internally as np.float64 irrespective of this setting
 			self.d['internal_data_type']=np.float64
 		self.d['mousemode']='rectangle'
+		self.d['show_windows'] = True
 		self.d['multipleTraceWindows'] = False
 			
 	def __getitem__(self, item):
@@ -67,12 +67,16 @@ class Settings:
 		self.d['mousemode']=mode
 	def setMultipleTraceWindows(self, f):
 		self.d['multipleTraceWindows'] = f
+	def setInternalDataType(self, dtype):
+		self.d['internal_data_type'] = dtype
+		print('Changed data_type to {}'.format(data_type))
 
-def init(filename, docks=False):
+
+def init(filename, title='Flika'):
 	global m
 	m=uic.loadUi(filename)
-	m.windowSelectedSignal=SetCurrentWindowSignal(m)
-	m.settings = Settings("Flika")
+	m.setCurrentWindowSignal=SetCurrentWindowSignal(m)
+	m.settings = Settings("title")
 	
 	m.windows = []
 	m.traceWindows = []
@@ -83,22 +87,3 @@ def init(filename, docks=False):
 	m.scriptEditor = None
 	m.setAcceptDrops(True)
 	m.closeEvent = mainguiClose
-	
-	if docks:
-		m.dockarea = DockArea()
-		m.mainDock = Dock(name = 'Options', widget = m.centralwidget)
-		m.dockarea.addDock(m.mainDock)
-		m.setCentralWidget(m.dockarea)
-		Window.onCreate = dockCreated
-		TraceFig.onCreate = dockCreated
-		Window3D.onCreate = dockCreated
-
-def dockCreated(widg):
-	global m
-	widg.dock = Dock(name = widg.name, widget=widg, closable=True)
-	m.dockarea.addDock(widg.dock, 'right', m.mainDock)
-	widg.closeEvent = lambda e: widgetClosed(widg, e)
-
-def widgetClosed(widg, e):
-	widg.dock.close()
-	widg.__class__.closeEvent(widg, e)

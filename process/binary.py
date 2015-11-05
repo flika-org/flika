@@ -67,25 +67,24 @@ class Threshold(BaseProcess):
         preview=self.getValue('preview')
         darkBackground=self.getValue('darkBackground')
         nDim=len(g.m.currentWindow.image.shape)
-        currentWindow = g.m.currentWindow
         if preview:
             if nDim==3: # if the image is 3d
-                testimage=np.copy(currentWindow.image[currentWindow.currentIndex])
+                testimage=np.copy(g.m.currentWindow.image[g.m.currentWindow.currentIndex])
             elif nDim==2:
-                testimage=np.copy(currentWindow.image)
+                testimage=np.copy(g.m.currentWindow.image)
             if darkBackground:
                 testimage=testimage<value
             else:
                 testimage=testimage>value
-            currentWindow.imageview.setImage(testimage,autoLevels=False)
-            currentWindow.imageview.setLevels(-.1,1.1)
+            g.m.currentWindow.imageview.setImage(testimage,autoLevels=False)
+            g.m.currentWindow.imageview.setLevels(-.1,1.1)
         else:
-            currentWindow.reset()
+            g.m.currentWindow.reset()
             if nDim==3:
-                image=currentWindow.image[currentWindow.currentIndex]
+                image=g.m.currentWindow.image[g.m.currentWindow.currentIndex]
             else:
-                image=currentWindow.image
-            currentWindow.imageview.setLevels(np.min(image),np.max(image))
+                image=g.m.currentWindow.image
+            g.m.currentWindow.imageview.setLevels(np.min(image),np.max(image))
 threshold=Threshold()
 
 class BlocksizeSlider(SliderLabel):
@@ -153,25 +152,24 @@ class Adaptive_threshold(BaseProcess):
         preview=self.getValue('preview')
         darkBackground=self.getValue('darkBackground')
         nDim=len(g.m.currentWindow.image.shape)
-        currentWindow = g.m.currentWindow
         if preview:
             if nDim==3: # if the image is 3d
-                testimage=np.copy(currentWindow.image[currentWindow.currentIndex])
+                testimage=np.copy(g.m.currentWindow.image[g.m.currentWindow.currentIndex])
             elif nDim==2:
-                testimage=np.copy(currentWindow.image)
+                testimage=np.copy(g.m.currentWindow.image)
             testimage = threshold_adaptive(testimage,block_size,offset=value)
             if darkBackground:
                 testimage=np.logical_not(testimage)
             testimage=testimage.astype(g.m.settings['internal_data_type'])
-            currentWindow.imageview.setImage(testimage,autoLevels=False)
-            currentWindow.imageview.setLevels(-.1,1.1)
+            g.m.currentWindow.imageview.setImage(testimage,autoLevels=False)
+            g.m.currentWindow.imageview.setLevels(-.1,1.1)
         else:
-            currentWindow.reset()
+            g.m.currentWindow.reset()
             if nDim==3:
-                image=currentWindow.image[currentWindow.currentIndex]
+                image=g.m.currentWindow.image[g.m.currentWindow.currentIndex]
             else:
-                image=currentWindow.image
-            currentWindow.imageview.setLevels(np.min(image),np.max(image))
+                image=g.m.currentWindow.image
+            g.m.currentWindow.imageview.setLevels(np.min(image),np.max(image))
 adaptive_threshold=Adaptive_threshold()
 
 
@@ -213,22 +211,21 @@ class Canny_edge_detector(BaseProcess):
         sigma=self.getValue('sigma')
         preview=self.getValue('preview')
         nDim=len(g.m.currentWindow.image.shape)
-        currentWindow = g.m.currentWindow
         if preview:
             if nDim==3: # if the image is 3d
-                testimage=np.copy(currentWindow.image[currentWindow.currentIndex])
+                testimage=np.copy(g.m.currentWindow.image[g.m.currentWindow.currentIndex])
             elif nDim==2:
-                testimage=np.copy(currentWindow.image)
+                testimage=np.copy(g.m.currentWindow.image)
             testimage=feature.canny(testimage,sigma)
-            currentWindow.imageview.setImage(testimage,autoLevels=False)
-            currentWindow.imageview.setLevels(-.1,1.1)
+            g.m.currentWindow.imageview.setImage(testimage,autoLevels=False)
+            g.m.currentWindow.imageview.setLevels(-.1,1.1)
         else:
-            currentWindow.reset()
+            g.m.currentWindow.reset()
             if nDim==3:
-                image=currentWindow.image[currentWindow.currentIndex]
+                image=g.m.currentWindow.image[g.m.currentWindow.currentIndex]
             else:
-                image=currentWindow.image
-            currentWindow.imageview.setLevels(np.min(image),np.max(image))
+                image=g.m.currentWindow.image
+            g.m.currentWindow.imageview.setLevels(np.min(image),np.max(image))
 canny_edge_detector=Canny_edge_detector()
 
 class Logically_combine(BaseProcess):

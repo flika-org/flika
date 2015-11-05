@@ -24,6 +24,7 @@ class Subtract(BaseProcess):
     Returns:
         newWindow
     """
+    __url__ = ""
     def __init__(self):
         super().__init__()
     def gui(self):
@@ -64,7 +65,7 @@ class Subtract_trace(BaseProcess):
         super().__init__()
     def __call__(self,keepSourceWindow=False):
         self.start(keepSourceWindow)
-        trace=g.m.currentTrace.rois[-1]['roi'].getTrace()
+        trace=g.m.tracefig.rois[-1]['roi'].getTrace()
         nDims=len(self.tif.shape)
         if nDims !=3:
             print('Wrong number of dimensions')

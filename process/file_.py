@@ -24,25 +24,42 @@ import tifffile
 import json
 import re
 
+__all__ = ['open_file_gui','open_file','save_file_gui','save_file','save_movie','load_metadata','save_metadata','close', 'load_points', 'save_points', 'change_internal_data_type_gui', 'save_current_frame']
 
-__all__ = ['open_gui','open_file','save_as_gui','save_as_gui','save_file','save_movie_gui','save_movie','load_metadata','save_metadata','close','change_internal_data_type', 'load_points_gui','load_points', 'save_points_gui','save_points']
-    
-        
-def open_gui():
+def open_file_gui(func, filetypes, prompt='Open File'):
     filename=g.m.settings['filename']
     if filename is not None and os.path.isfile(filename):
-        filename= QFileDialog.getOpenFileName(g.m, 'Open File', filename, '*.tif *.tiff *.stk')
+        filename= QFileDialog.getOpenFileName(g.m, prompt, filename, filetypes)
     else:
-        filename= QFileDialog.getOpenFileName(g.m, 'Open File', '','*.tif *.tiff *.stk')
+        filename= QFileDialog.getOpenFileName(g.m, prompt, '', filetypes)
     filename=str(filename)
-    if filename=='':
-        return False
+    if filename != '':
+        func(filename)
     else:
-        return open_file(filename)
+        g.m.statusBar().showMessage('No File Selected')
+
+def save_file_gui(func, filetypes, prompt = 'Save File'):
+    filename=g.m.settings['filename']
+    directory=os.path.dirname(filename)
+    if filename is not None and directory != '':
+        filename= QFileDialog.getSaveFileName(g.m, prompt, directory, filetypes)
+    else:
+        filename= QFileDialog.getSaveFileName(g.m, prompt, filetypes)
+    filename=str(filename)
+    if filename != '':
+        func(filename)
+    else:
+        g.m.statusBar().showMessage('Save Cancelled')
+
+def save_roi_traces(filename):
+    g.m.statusBar().showMessage('Saving traces to {}'.format(os.path.basename(filename)))
+    to_save = [roi.getTrace() for roi in g.m.currentWindow.rois]
+    np.savetxt(filename, np.transpose(to_save), header='\t'.join(['ROI %d' % i for i in range(len(to_save))]), fmt='%.4f', delimiter='\t', comments='')
+    g.m.settings['filename'] = filename
+    g.m.statusBar().showMessage('Successfully saved traces to {}'.format(os.path.basename(filename)))
+
             
-def open_file(filename=None):
-    if filename is None and g.m.settings['filename'] is not None:
-        filename=g.m.settings['filename']
+def open_file(filename):
     g.m.statusBar().showMessage('Loading {}'.format(os.path.basename(filename)))
     t=time.time()
     Tiff=tifffile.TiffFile(filename)
@@ -80,39 +97,9 @@ def change_internal_data_type_gui():
     print(old_dtype)
     idx=change.data_type.findText(str(old_dtype))
     change.data_type.setCurrentIndex(idx)
-    change.accepted.connect(lambda: change_internal_data_type(np.dtype(str(change.data_type.currentText()))))
+    change.accepted.connect(lambda: g.m.settings.setInternalDataType(np.dtype(str(change.data_type.currentText()))))
     change.show()
-    g.m.dialog=change    
-def change_internal_data_type(data_type):
-    g.m.settings['internal_data_type']=data_type
-    print('Changed data_type to {}'.format(data_type))
-
-    
-def save_as_gui():
-    if g.m.currentWindow is None:
-        g.m.statusBar().showMessage('In order to save, you need to have a window selected')
-        return None
-    save=uic.loadUi("gui/save.ui")
-    old_dtype=g.m.settings['data_type']
-    idx=save.data_type.findText(str(old_dtype))
-    save.data_type.setCurrentIndex(idx)
-    save.accepted.connect(lambda: save_as_gui2(np.dtype(str(save.data_type.currentText()))))
-    save.show()
-    g.m.dialog=save
-    
-def save_as_gui2(data_type):
-    g.m.settings['data_type']=data_type
-    filename=g.m.settings['filename']
-    directory=os.path.dirname(filename)
-    if filename is not None and directory != '':
-        filename= QFileDialog.getSaveFileName(g.m, 'Save Tiff Stack', directory, '*.tif')
-    else:
-        filename= QFileDialog.getSaveFileName(g.m, 'Save Tiff Stack', '*.tif')
-    filename=str(filename)
-    if filename=='':
-        return False
-    else:
-        save_file(filename)
+    g.m.dialog=change
         
 def save_file(filename):
     if os.path.dirname(filename)=='': #if the user didn't specify a directory
@@ -127,22 +114,22 @@ def save_file(filename):
         tif=np.transpose(tif,(1,0))
     tifffile.imsave(filename, tif, description=metadata) #http://stackoverflow.com/questions/20529187/what-is-the-best-way-to-save-image-metadata-alongside-a-tif-with-python
     g.m.statusBar().showMessage('Successfully saved {}'.format(os.path.basename(filename)))
-    
-def save_points_gui():
-    if g.m.currentWindow is None:
-        return False
-    filename=g.m.settings['filename']
-    directory=os.path.dirname(filename)
-    if filename is not None and directory != '':
-        filename= QFileDialog.getSaveFileName(g.m, 'Save Points', directory, '*.txt')
-    else:
-        filename= QFileDialog.getSaveFileName(g.m, 'Save Points', '*.txt')
-    filename=str(filename)
-    if filename=='':
-        return False
-    else:
-        save_points(filename)
-        
+
+def save_current_frame(filename):
+    if os.path.dirname(filename)=='': #if the user didn't specify a directory
+        directory=os.path.normpath(os.path.dirname(g.m.settings['filename']))
+        filename=os.path.join(directory,filename)
+    g.m.statusBar().showMessage('Saving {}'.format(os.path.basename(filename)))
+    tif=np.average(g.m.currentWindow.image, 0).astype(g.m.settings['data_type'])
+    metadata=json.dumps(g.m.currentWindow.metadata)
+    if len(tif.shape)==3:
+        tif = tif[g.m.currentWindow.currentIndex]
+        tif=np.transpose(tif,(0,2,1)) # This keeps the x and the y the same as in FIJI
+    elif len(tif.shape)==2:
+        tif=np.transpose(tif,(1,0))
+    tifffile.imsave(filename, tif, description=metadata) #http://stackoverflow.com/questions/20529187/what-is-the-best-way-to-save-image-metadata-alongside-a-tif-with-python
+    g.m.statusBar().showMessage('Successfully saved {}'.format(os.path.basename(filename)))    
+
 def save_points(filename):
     g.m.statusBar().showMessage('Saving Points in {}'.format(os.path.basename(filename)))
     p_out=[]
@@ -153,18 +140,6 @@ def save_points(filename):
     p_out=np.array(p_out)
     np.savetxt(filename,p_out)
     g.m.statusBar().showMessage('Successfully saved {}'.format(os.path.basename(filename)))
-    
-def load_points_gui():
-    filename=g.m.settings['filename']
-    if filename is not None and os.path.isfile(filename):
-        filename= QFileDialog.getOpenFileName(g.m, 'Open File', filename, '*.txt')
-    else:
-        filename= QFileDialog.getOpenFileName(g.m, 'Open File', '','*.tif *.tiff *.stk')
-    filename=str(filename)
-    if filename=='':
-        return False
-    else:
-        load_points(filename)
         
 def load_points(filename):
     g.m.statusBar().showMessage('Loading points from {}'.format(os.path.basename(filename)))
@@ -177,21 +152,6 @@ def load_points(filename):
     t=g.m.currentWindow.currentIndex
     g.m.currentWindow.scatterPlot.setPoints(pos=g.m.currentWindow.scatterPoints[t])
     g.m.statusBar().showMessage('Successfully loaded {}'.format(os.path.basename(filename)))
-    
-def save_movie_gui():
-    if g.m.currentWindow is None:
-        return False
-    filename=g.m.settings['filename']
-    directory=os.path.dirname(filename)
-    if filename is not None and directory != '':
-        filename= QFileDialog.getSaveFileName(g.m, 'Save Movie', directory, '*.mp4')
-    else:
-        filename= QFileDialog.getSaveFileName(g.m, 'Save Movie', '*.mp4')
-    filename=str(filename)
-    if filename=='':
-        return False
-    else:
-        save_movie(filename)
         
 def save_movie(filename):
     '''
@@ -297,30 +257,3 @@ def close(windows=None):
     elif windows is None:
         if g.m.currentWindow is not None:
             g.m.currentWindow.close()
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    

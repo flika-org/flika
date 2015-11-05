@@ -6,300 +6,134 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>580</width>
-    <height>472</height>
+    <width>310</width>
+    <height>79</height>
    </rect>
   </property>
-  <property name="acceptDrops">
-   <bool>true</bool>
-  </property>
   <property name="windowTitle">
-   <string>FLIKA Docks</string>
+   <string>FLIKA</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QGridLayout" name="gridLayout" columnstretch="0">
-    <item row="0" column="0">
-     <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,1">
-      <property name="sizeConstraint">
-       <enum>QLayout::SetDefaultConstraint</enum>
-      </property>
-      <item>
-       <widget class="QGroupBox" name="groupBox_3">
-        <property name="minimumSize">
-         <size>
-          <width>180</width>
-          <height>80</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>200</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="title">
-         <string>File</string>
-        </property>
-        <widget class="QPushButton" name="openButton">
-         <property name="geometry">
-          <rect>
-           <x>10</x>
-           <y>20</y>
-           <width>71</width>
-           <height>21</height>
-          </rect>
-         </property>
-         <property name="text">
-          <string>Open</string>
-         </property>
-        </widget>
-        <widget class="QPushButton" name="saveButton">
-         <property name="geometry">
-          <rect>
-           <x>90</x>
-           <y>20</y>
-           <width>81</width>
-           <height>21</height>
-          </rect>
-         </property>
-         <property name="text">
-          <string>Save</string>
-         </property>
-        </widget>
-        <widget class="QPushButton" name="saveAsButton">
-         <property name="geometry">
-          <rect>
-           <x>10</x>
-           <y>50</y>
-           <width>81</width>
-           <height>21</height>
-          </rect>
-         </property>
-         <property name="text">
-          <string>Save As</string>
-         </property>
-        </widget>
-       </widget>
-      </item>
-      <item>
-       <widget class="QGroupBox" name="groupBox">
-        <property name="minimumSize">
-         <size>
-          <width>180</width>
-          <height>120</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>200</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="title">
-         <string>ROI Tools</string>
-        </property>
-        <widget class="QPushButton" name="plotAllButton">
-         <property name="geometry">
-          <rect>
-           <x>10</x>
-           <y>60</y>
-           <width>71</width>
-           <height>21</height>
-          </rect>
-         </property>
-         <property name="text">
-          <string>Plot All</string>
-         </property>
-        </widget>
-        <widget class="QPushButton" name="clearButton">
-         <property name="geometry">
-          <rect>
-           <x>90</x>
-           <y>60</y>
-           <width>81</width>
-           <height>21</height>
-          </rect>
-         </property>
-         <property name="text">
-          <string>Clear All</string>
-         </property>
-        </widget>
-        <widget class="QPushButton" name="importROIButton">
-         <property name="geometry">
-          <rect>
-           <x>10</x>
-           <y>90</y>
-           <width>71</width>
-           <height>21</height>
-          </rect>
-         </property>
-         <property name="text">
-          <string>Import ROIs</string>
-         </property>
-        </widget>
-        <widget class="QPushButton" name="exportROIButton">
-         <property name="geometry">
-          <rect>
-           <x>90</x>
-           <y>90</y>
-           <width>81</width>
-           <height>21</height>
-          </rect>
-         </property>
-         <property name="text">
-          <string>Export ROIs</string>
-         </property>
-        </widget>
-        <widget class="QPushButton" name="point">
-         <property name="geometry">
-          <rect>
-           <x>130</x>
-           <y>20</y>
-           <width>41</width>
-           <height>31</height>
-          </rect>
-         </property>
-         <property name="toolTip">
-          <string>Point</string>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-         <property name="icon">
-          <iconset>
-           <normaloff>../images/point.png</normaloff>../images/point.png</iconset>
-         </property>
-         <property name="checkable">
-          <bool>true</bool>
-         </property>
-         <property name="checked">
-          <bool>false</bool>
-         </property>
-         <property name="autoExclusive">
-          <bool>true</bool>
-         </property>
-         <property name="flat">
-          <bool>false</bool>
-         </property>
-        </widget>
-        <widget class="QPushButton" name="freehand">
-         <property name="geometry">
-          <rect>
-           <x>90</x>
-           <y>20</y>
-           <width>41</width>
-           <height>31</height>
-          </rect>
-         </property>
-         <property name="toolTip">
-          <string>Freehand</string>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-         <property name="icon">
-          <iconset>
-           <normaloff>../images/freehand.png</normaloff>../images/freehand.png</iconset>
-         </property>
-         <property name="checkable">
-          <bool>true</bool>
-         </property>
-         <property name="checked">
-          <bool>false</bool>
-         </property>
-         <property name="autoExclusive">
-          <bool>true</bool>
-         </property>
-         <property name="flat">
-          <bool>false</bool>
-         </property>
-        </widget>
-        <widget class="QPushButton" name="line">
-         <property name="geometry">
-          <rect>
-           <x>50</x>
-           <y>20</y>
-           <width>41</width>
-           <height>31</height>
-          </rect>
-         </property>
-         <property name="toolTip">
-          <string>Line</string>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-         <property name="icon">
-          <iconset>
-           <normaloff>../images/line.png</normaloff>../images/line.png</iconset>
-         </property>
-         <property name="checkable">
-          <bool>true</bool>
-         </property>
-         <property name="autoExclusive">
-          <bool>true</bool>
-         </property>
-         <property name="flat">
-          <bool>false</bool>
-         </property>
-        </widget>
-        <widget class="QPushButton" name="rectangle">
-         <property name="geometry">
-          <rect>
-           <x>10</x>
-           <y>20</y>
-           <width>41</width>
-           <height>31</height>
-          </rect>
-         </property>
-         <property name="toolTip">
-          <string>Rectangle</string>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-         <property name="icon">
-          <iconset>
-           <normaloff>../images/rect.png</normaloff>../images/rect.png</iconset>
-         </property>
-         <property name="checkable">
-          <bool>true</bool>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-         <property name="autoExclusive">
-          <bool>true</bool>
-         </property>
-         <property name="flat">
-          <bool>false</bool>
-         </property>
-        </widget>
-       </widget>
-      </item>
-      <item>
-       <spacer name="verticalSpacer">
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>20</width>
-          <height>40</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-     </layout>
-    </item>
-   </layout>
+   <widget class="QPushButton" name="freehand">
+    <property name="geometry">
+     <rect>
+      <x>90</x>
+      <y>0</y>
+      <width>41</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="icon">
+     <iconset>
+      <normaloff>../../StudentAssistantIV/Flika/images/freehand.png</normaloff>../../StudentAssistantIV/Flika/images/freehand.png</iconset>
+    </property>
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+    <property name="checked">
+     <bool>false</bool>
+    </property>
+    <property name="autoExclusive">
+     <bool>true</bool>
+    </property>
+    <property name="flat">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="line">
+    <property name="geometry">
+     <rect>
+      <x>50</x>
+      <y>0</y>
+      <width>41</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="icon">
+     <iconset>
+      <normaloff>../../StudentAssistantIV/Flika/images/line.png</normaloff>../../StudentAssistantIV/Flika/images/line.png</iconset>
+    </property>
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+    <property name="autoExclusive">
+     <bool>true</bool>
+    </property>
+    <property name="flat">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="rectangle">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>0</y>
+      <width>41</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="icon">
+     <iconset>
+      <normaloff>../../StudentAssistantIV/Flika/images/rect.png</normaloff>../../StudentAssistantIV/Flika/images/rect.png</iconset>
+    </property>
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+    <property name="checked">
+     <bool>true</bool>
+    </property>
+    <property name="autoExclusive">
+     <bool>true</bool>
+    </property>
+    <property name="flat">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="point">
+    <property name="geometry">
+     <rect>
+      <x>130</x>
+      <y>0</y>
+      <width>41</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="icon">
+     <iconset>
+      <normaloff>../../StudentAssistantIV/Flika/images/point.png</normaloff>../../StudentAssistantIV/Flika/images/point.png</iconset>
+    </property>
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+    <property name="checked">
+     <bool>false</bool>
+    </property>
+    <property name="autoExclusive">
+     <bool>true</bool>
+    </property>
+    <property name="flat">
+     <bool>false</bool>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>580</width>
+     <width>310</width>
      <height>21</height>
     </rect>
    </property>
@@ -307,13 +141,20 @@
     <property name="title">
      <string>File</string>
     </property>
+    <widget class="QMenu" name="menuImport">
+     <property name="title">
+      <string>Import</string>
+     </property>
+     <addaction name="actionImport_ROIs"/>
+     <addaction name="actionImport_Points"/>
+    </widget>
     <addaction name="actionOpen"/>
     <addaction name="actionSaveAs"/>
+    <addaction name="menuImport"/>
     <addaction name="actionSave_Points"/>
-    <addaction name="actionLoad_Points"/>
-    <addaction name="actionLoad_ROI_File"/>
     <addaction name="actionSave_Movie"/>
     <addaction name="actionChange_Internal_Data_type"/>
+    <addaction name="actionSettings"/>
    </widget>
    <widget class="QMenu" name="menuImage">
     <property name="title">
@@ -323,7 +164,7 @@
      <property name="title">
       <string>Stacks</string>
      </property>
-     <addaction name="actionSlice_Keeper"/>
+     <addaction name="actionCrop_Frames"/>
      <addaction name="actionDeinterleave"/>
      <addaction name="actionZ_Project"/>
      <addaction name="actionPixel_Binning"/>
@@ -388,20 +229,6 @@
     <addaction name="menuFilters"/>
     <addaction name="actionImage_Calculator"/>
    </widget>
-   <widget class="QMenu" name="menuAnalyze">
-    <property name="title">
-     <string>Analyze</string>
-    </property>
-    <widget class="QMenu" name="menuPuffs">
-     <property name="title">
-      <string>puffs</string>
-     </property>
-     <addaction name="actionFrame_by_frame_origin"/>
-     <addaction name="actionAverage_origin"/>
-     <addaction name="actionThreshold_cluster"/>
-    </widget>
-    <addaction name="menuPuffs"/>
-   </widget>
    <widget class="QMenu" name="menuScripts">
     <property name="title">
      <string>Scripts</string>
@@ -413,11 +240,16 @@
     </property>
     <addaction name="actionDocs"/>
    </widget>
+   <widget class="QMenu" name="menuPlugins">
+    <property name="title">
+     <string>Plugins</string>
+    </property>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuImage"/>
    <addaction name="menuProcess"/>
-   <addaction name="menuAnalyze"/>
    <addaction name="menuScripts"/>
+   <addaction name="menuPlugins"/>
    <addaction name="menuDocs"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -481,9 +313,9 @@
     <string>Kymograph</string>
    </property>
   </action>
-  <action name="actionSlice_Keeper">
+  <action name="actionCrop_Frames">
    <property name="text">
-    <string>Slice Keeper</string>
+    <string>Crop Frames</string>
    </property>
   </action>
   <action name="actionPython_Interpreter">
@@ -544,6 +376,11 @@
   <action name="actionAbsolute_Value">
    <property name="text">
     <string>Absolute Value</string>
+   </property>
+  </action>
+  <action name="actionRodent_Tracker">
+   <property name="text">
+    <string>Rodent Tracker</string>
    </property>
   </action>
   <action name="actionZ_Project">
@@ -651,10 +488,28 @@
     <string>Mean Filter</string>
    </property>
   </action>
+  <action name="actionExport">
+   <property name="text">
+    <string>Export</string>
+   </property>
+  </action>
+  <action name="actionImport_ROIs">
+   <property name="text">
+    <string>ROI File</string>
+   </property>
+  </action>
+  <action name="actionImport_Points">
+   <property name="text">
+    <string>Points</string>
+   </property>
+  </action>
+  <action name="actionSettings">
+   <property name="text">
+    <string>Settings</string>
+   </property>
+  </action>
  </widget>
- <resources>
-  <include location="../images/images.qrc"/>
- </resources>
+ <resources/>
  <connections>
   <connection>
    <sender>freehand</sender>

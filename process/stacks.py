@@ -13,8 +13,19 @@ import global_vars as g
 from process.BaseProcess import BaseProcess, WindowSelector, MissingWindowError
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
+from trace import TraceFig
 
-__all__ = ['deinterleave','slicekeeper','zproject','image_calculator','add_background', 'pixel_binning', 'frame_binning']
+__all__ = ['deinterleave','cropper','zproject','image_calculator','add_background', 'pixel_binning', 'frame_binning', 'average_trace']
+
+def average_trace():
+    if g.m.currentWindow == None:
+        return
+    if g.m.settings['multipleTraceWindows'] or g.m.currentTrace == None:
+        tf = TraceFig()
+    else:
+        tf = g.m.currentTrace
+    tf.addTrace(np.average(g.m.currentWindow.image, (2, 1)))
+    tf.indexChanged.connect(g.m.currentWindow.imageview.setCurrentIndex)
 
 class Deinterleave(BaseProcess):
     """ deinterleave(nChannels, keepSourceWindow=False)
@@ -120,8 +131,8 @@ class Frame_binning(BaseProcess):
 frame_binning=Frame_binning()
 
 
-class Slicekeeper(BaseProcess):
-    """ slicekeeper(firstFrame,lastFrame,increment,keepSourceWindow=False)
+class Cropper(BaseProcess):
+    """ cropper(firstFrame,lastFrame,increment,keepSourceWindow=False)
     This creates a new stack from the frames between the firstFrame and the lastFrame
     
     Parameters:
@@ -155,7 +166,7 @@ class Slicekeeper(BaseProcess):
         self.newtif=self.tif[firstFrame:lastFrame+1:increment]
         self.newname=self.oldname+' - Kept Stack'
         return self.end()
-slicekeeper=Slicekeeper()
+cropper=Cropper()
 
 
 class ZProject(BaseProcess):
@@ -317,7 +328,9 @@ class Image_calculator(BaseProcess):
 image_calculator=Image_calculator()
     
 class Add_Background(BaseProcess):
-    """ deinterleave(nChannels, keepSourceWindow=False)
+    """ 
+    Kyle did not change this process?
+    deinterleave(nChannels, keepSourceWindow=False)
     This deinterleaves a stack into nChannels
     
     Parameters:

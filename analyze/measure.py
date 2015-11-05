@@ -68,15 +68,15 @@ class Measure(BaseProcess):
         if self.ON is False:
             return
         pos=evt.pos()
-        if self.tracefig is not g.m.currentTrace: #if we created a new tracefig
-            self.tracefig=g.m.currentTrace
+        if self.tracefig is not g.m.tracefig: #if we created a new tracefig
+            self.tracefig=g.m.tracefig
             self.viewbox=self.tracefig.p1.getPlotItem().vb
             self.pathitem=QGraphicsPathItem(self.viewbox)
             self.pathitem.setPen(QPen(Qt.red))
             self.viewbox.addItem(self.pathitem,ignoreBounds=True)
-        if not g.m.currentTrace.p1.plotItem.sceneBoundingRect().contains(pos):
+        if not g.m.tracefig.p1.plotItem.sceneBoundingRect().contains(pos):
             return
-        mousePoint = g.m.currentTrace.vb.mapSceneToView(pos)
+        mousePoint = g.m.tracefig.vb.mapSceneToView(pos)
         point = np.array([mousePoint.x(),mousePoint.y()])
 
         modifiers = QApplication.keyboardModifiers()
@@ -115,12 +115,12 @@ class Measure(BaseProcess):
         self.ON=False
     def getNearestPoint(self,point):
         
-        roi=g.m.currentTrace.rois[0]
+        roi=g.m.tracefig.rois[0]
         d=roi['p2trace'].getData()
         index=np.abs(d[0]-point[0]).argmin()
         x=d[0][index]
         ys=[]
-        for roi in g.m.currentTrace.rois:
+        for roi in g.m.tracefig.rois:
             d=roi['p2trace'].getData()
             ys.append(d[1][index])
         roi_idx=np.argmin(abs(ys-point[1]))

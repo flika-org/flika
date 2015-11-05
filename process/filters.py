@@ -56,17 +56,16 @@ class Gaussian_blur(BaseProcess):
     def preview(self):
         sigma=self.getValue('sigma')
         preview=self.getValue('preview')
-        currentWindow = g.m.currentWindow
         if preview:
-            if len(currentWindow.image.shape)==3:
-                testimage=np.copy(currentWindow.image[currentWindow.currentIndex])
-            elif len(currentWindow.image.shape)==2:
-                testimage=np.copy(currentWindow.image)
+            if len(g.m.currentWindow.image.shape)==3:
+                testimage=np.copy(g.m.currentWindow.image[g.m.currentWindow.currentIndex])
+            elif len(g.m.currentWindow.image.shape)==2:
+                testimage=np.copy(g.m.currentWindow.image)
             if sigma>0:
                 testimage=skimage.filters.gaussian_filter(testimage,sigma)
-            currentWindow.imageview.setImage(testimage,autoLevels=False)            
+            g.m.currentWindow.imageview.setImage(testimage,autoLevels=False)            
         else:
-            currentWindow.reset()
+            g.m.currentWindow.reset()
 gaussian_blur=Gaussian_blur()    
     
     
@@ -141,8 +140,8 @@ class Butterworth_filter(BaseProcess):
                     b,a,padlen=self.makeButterFilter(filter_order,low,high)
                     trace=self.roi.getTrace()
                     trace=filtfilt(b,a, trace, padlen=padlen)
-                    roi_index=g.m.currentTrace.get_roi_index(self.roi)
-                    g.m.currentTrace.update_trace_full(roi_index,trace) #update_trace_partial may speed it up
+                    roi_index=g.m.tracefig.get_roi_index(self.roi)
+                    g.m.tracefig.update_trace_full(roi_index,trace) #update_trace_partial may speed it up
             else:
                 self.roi.translate_done.emit()        
     def makeButterFilter(self,filter_order,low,high):
@@ -177,7 +176,7 @@ class Mean_filter(BaseProcess):
     def gui(self):
         self.gui_reset()
         nFrames=SliderLabel(0)
-        nFrames.setRange(1,1000)
+        nFrames.setRange(1,100)
         preview=QCheckBox()
         preview.setChecked(True)
         self.items.append({'name':'nFrames','string':'nFrames','object':nFrames})
@@ -206,8 +205,8 @@ class Mean_filter(BaseProcess):
                 else:
                     trace=self.roi.getTrace()
                     trace=convolve(trace,weights=np.full((nFrames),1.0/nFrames))        
-                    roi_index=g.m.currentTrace.get_roi_index(self.roi)
-                    g.m.currentTrace.update_trace_full(roi_index,trace) #update_trace_partial may speed it up
+                    roi_index=g.m.tracefig.get_roi_index(self.roi)
+                    g.m.tracefig.update_trace_full(roi_index,trace) #update_trace_partial may speed it up
             else:
                 self.roi.translate_done.emit()    
                 
@@ -288,8 +287,8 @@ class Fourier_filter(BaseProcess):
                     f_signal[(np.abs(W)<low)] = 0
                     f_signal[(np.abs(W)>high)] = 0
                     cut_signal=np.real(ifft(f_signal))
-                    roi_index=g.m.currentTrace.get_roi_index(self.roi)
-                    g.m.currentTrace.update_trace_full(roi_index,cut_signal) #update_trace_partial may speed it up
+                    roi_index=g.m.tracefig.get_roi_index(self.roi)
+                    g.m.tracefig.update_trace_full(roi_index,cut_signal) #update_trace_partial may speed it up
             else:
                 self.roi.translate_done.emit()    
                 
@@ -411,8 +410,8 @@ class Boxcar_differential_filter(BaseProcess):
                 newtrace=np.zeros(mt)
                 for i in np.arange(maxNframes,mt):
                     newtrace[i]=np.mean(tif[i]-np.min(tif[i-maxNframes:i-minNframes],0))
-                roi_index=g.m.currentTrace.get_roi_index(self.roi)
-                g.m.currentTrace.update_trace_full(roi_index,newtrace) #update_trace_partial may speed it up
+                roi_index=g.m.tracefig.get_roi_index(self.roi)
+                g.m.tracefig.update_trace_full(roi_index,newtrace) #update_trace_partial may speed it up
             else:
                 self.roi.translate_done.emit()        
 boxcar_differential_filter=Boxcar_differential_filter()
@@ -476,14 +475,14 @@ class Wavelet_filter(BaseProcess):
                 widths = np.arange(low, high)
                 cwtmatr = signal.cwt(trace, wavelet, widths)
                 newtrace=np.mean(cwtmatr,0)
-                roi_index=g.m.currentTrace.get_roi_index(self.roi)
-                g.m.currentTrace.update_trace_full(roi_index,newtrace) #update_trace_partial may speed it up
+                roi_index=g.m.tracefig.get_roi_index(self.roi)
+                g.m.tracefig.update_trace_full(roi_index,newtrace) #update_trace_partial may speed it up
             else:
                 self.roi.translate_done.emit()        
 wavelet_filter=Wavelet_filter()
     
 #from scipy import signal
-#data=g.m.currentTracerois[0]['roi'].getTrace()
+#data=g.m.tracefig.rois[0]['roi'].getTrace()
 #wavelet = signal.ricker
 #widths = np.arange(1, 200)
 #cwtmatr = signal.cwt(data, wavelet, widths)

@@ -15,6 +15,7 @@ from window3d import Window3D
 import pyqtgraph.opengl as gl
 
 #cluster, open_scatter, save_scatter, save_clusters, export_distances, export_nearest_distances
+__all__ = ['save_scatter', 'save_clusters', 'load_scatter', 'export_distances', 'export_nearest_distances']
 
 class Cluster(BaseProcess):
 	'''cluster(epsilon, minPoints, minNeighbors=1)
@@ -86,35 +87,9 @@ class Cluster(BaseProcess):
 		self.items.append({'name':'epsilon','string':'Epsilon','object':epsiSpin})
 		self.items.append({'name':'minP','string':'Minimum Points','object':minPSpin})
 		self.items.append({'name':'minNeighbors','string':'Minimum Neighbors','object':minNeighborsSpin})
-		#self.items.append({'name':'preview','string':'Preview','object':QCheckBox()})
 		super().gui()
 
-	def preview(self):
-		epsilon=self.getValue('epsilon')
-		minP=self.getValue('minP')
-		minNeighbors=self.getValue('minNeighbors')
-		#preview=self.getValue('preview')
-		#if preview:
-		#	g.m.currentWindow.reset()
-		#	#self(epsilon, minP, minNeighbors)
-		#else:
-		#	g.m.currentWindow.reset()
 cluster = Cluster()
-
-def save_scatter_gui():
-	if g.m.currentWindow is None:
-		return False
-	filename=g.m.settings['filename']
-	directory=os.path.dirname(filename)
-	if filename is not None and directory != '':
-		filename= QFileDialog.getSaveFileName(g.m, 'Save Scatter', directory, '*.txt')
-	else:
-		filename= QFileDialog.getSaveFileName(g.m, 'Save Scatter', '*.txt')
-	filename=str(filename)
-	if filename=='':
-		return False
-	else:
-		save_scatter(filename)
 
 def save_clusters(filename):
 	global cluster
@@ -129,18 +104,6 @@ def save_scatter(filename):
 	p_out=g.m.currentWindow.scatterPoints
 	np.savetxt(filename,p_out)
 	g.m.statusBar().showMessage('Successfully saved {}'.format(os.path.basename(filename)))
-	
-def load_scatter_gui():
-	filename=g.m.settings['filename']
-	if filename is not None and os.path.isfile(filename):
-		filename= QFileDialog.getOpenFileName(g.m, 'Open Scatter', filename, '*.txt')
-	else:
-		filename= QFileDialog.getOpenFileName(g.m, 'Open Scatter', '','*.txt')
-	filename=str(filename)
-	if filename=='':
-		return False
-	else:
-		load_scatter(filename)
 		
 def load_scatter(filename=None):
 	if filename is None and g.m.settings['filename'] is not None:
@@ -158,19 +121,6 @@ def load_scatter(filename=None):
 	if g.m.currentWindow == None:
 		Window3D()
 	g.m.currentWindow.addScatter(data)
-
-
-def getSaveFilename(title, extensions):
-	filename=g.m.settings['filename']
-	if filename is not None and os.path.isfile(filename):
-		filename= QFileDialog.getSaveFileName(g.m, title, filename, extensions)
-	else:
-		filename= QFileDialog.getSaveFileName(g.m, title, '',extensions)
-	filename=str(filename)
-	if filename=='':
-		return False
-	else:
-		return filename
 
 def export_nearest_distances(filename):
 	g.m.statusBar().showMessage('Saving nearest distances to %s...' % filename)
