@@ -54,7 +54,7 @@ class ROI(QWidget):
         trace_with_roi = [t for t in g.m.traceWindows if t.hasROI(self)]
         if len(trace_with_roi) == 1:
             return trace_with_roi[0]
-        raise Exception("ROI does not belong to a window")
+        return False
 
     def delete(self):
         for roi in self.linkedROIs:

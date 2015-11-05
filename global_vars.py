@@ -73,12 +73,13 @@ class Settings:
 		print('Changed data_type to {}'.format(dtype))
 
 def init_plugins():
-	print(glob(os.cwd()))
+	print(glob(os.path.join(os.getcwd(), 'plugins\\*')))
 
 
 def init(filename, title='Flika'):
 	global m
 	m=uic.loadUi(filename)
+	init_plugins()
 	m.setCurrentWindowSignal=SetCurrentWindowSignal(m)
 	m.settings = Settings("Flika")
 	
