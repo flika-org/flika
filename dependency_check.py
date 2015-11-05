@@ -36,10 +36,10 @@ os.chdir(flika_dir)
 def download_file(download_url):
     req = Request(download_url,headers={'User-Agent':"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.132 Safari/537.36"})
     response = urlopen(req)
-    file = open(basename(download_url), 'wb')
+    f = open(basename(download_url), 'wb')
     the_page=response.read()
-    file.write(the_page)
-    file.close()
+    f.write(the_page)
+    f.close()
     
 def install(dep):
     try:
