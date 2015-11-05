@@ -28,7 +28,7 @@
     </property>
     <property name="icon">
      <iconset>
-      <normaloff>../../StudentAssistantIV/Flika/images/freehand.png</normaloff>../../StudentAssistantIV/Flika/images/freehand.png</iconset>
+      <normaloff>../images/freehand.png</normaloff>../images/freehand.png</iconset>
     </property>
     <property name="checkable">
      <bool>true</bool>
@@ -57,7 +57,7 @@
     </property>
     <property name="icon">
      <iconset>
-      <normaloff>../../StudentAssistantIV/Flika/images/line.png</normaloff>../../StudentAssistantIV/Flika/images/line.png</iconset>
+      <normaloff>../images/line.png</normaloff>../images/line.png</iconset>
     </property>
     <property name="checkable">
      <bool>true</bool>
@@ -83,7 +83,7 @@
     </property>
     <property name="icon">
      <iconset>
-      <normaloff>../../StudentAssistantIV/Flika/images/rect.png</normaloff>../../StudentAssistantIV/Flika/images/rect.png</iconset>
+      <normaloff>../images/rect.png</normaloff>../images/rect.png</iconset>
     </property>
     <property name="checkable">
      <bool>true</bool>
@@ -112,7 +112,7 @@
     </property>
     <property name="icon">
      <iconset>
-      <normaloff>../../StudentAssistantIV/Flika/images/point.png</normaloff>../../StudentAssistantIV/Flika/images/point.png</iconset>
+      <normaloff>../images/point.png</normaloff>../images/point.png</iconset>
     </property>
     <property name="checkable">
      <bool>true</bool>
@@ -509,7 +509,9 @@
    </property>
   </action>
  </widget>
- <resources/>
+ <resources>
+  <include location="../images/images.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>freehand</sender>

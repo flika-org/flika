@@ -261,6 +261,7 @@ class ROI_line(ROI):
             self.menu.addAction(self.unplotAct)
         else:
             self.menu.addAction(self.plotAct)
+        self.menu.addAction(self.plotAllAct)
         self.menu.addAction(self.colorAct)
         self.menu.addAction(self.copyAct)
         self.menu.addAction(self.kymographAct)
@@ -365,18 +366,21 @@ class ROI_rectangle(ROI):
         self.path.lineTo(QPointF(x,y0))
         self.path.lineTo(QPointF(x0,y0))
         self.pathitem.setPath(self.path)
+
     def contextMenuEvent(self, event):
         self.menu = QMenu(self)
         if self.getTraceWindow():
             self.menu.addAction(self.unplotAct)
         else:
             self.menu.addAction(self.plotAct)
+        self.menu.addAction(self.plotAllAct)
         self.menu.addAction(self.colorAct)
         self.menu.addAction(self.copyAct)
         self.menu.addAction(self.deleteAct)
         self.menu.addAction(self.saveAct)
         self.menu.addAction(self.cropAct)
         self.menu.exec_(event.screenPos().toQPoint())
+        
     def crop(self):
         from window import Window
         self.pts=self.getPoints()
