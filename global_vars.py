@@ -18,6 +18,7 @@ import numpy as np
 from pyqtgraph.dockarea import *
 from window import Window
 from trace import TraceFig
+from glob import glob
 
 def mainguiClose(event):
 	global m
@@ -69,14 +70,17 @@ class Settings:
 		self.d['multipleTraceWindows'] = f
 	def setInternalDataType(self, dtype):
 		self.d['internal_data_type'] = dtype
-		print('Changed data_type to {}'.format(data_type))
+		print('Changed data_type to {}'.format(dtype))
+
+def init_plugins():
+	print(glob(os.cwd()))
 
 
 def init(filename, title='Flika'):
 	global m
 	m=uic.loadUi(filename)
 	m.setCurrentWindowSignal=SetCurrentWindowSignal(m)
-	m.settings = Settings("title")
+	m.settings = Settings("Flika")
 	
 	m.windows = []
 	m.traceWindows = []

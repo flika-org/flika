@@ -54,7 +54,7 @@ class ROI(QWidget):
         trace_with_roi = [t for t in g.m.traceWindows if t.hasROI(self)]
         if len(trace_with_roi) == 1:
             return trace_with_roi[0]
-        return False
+        raise Exception("ROI does not belong to a window")
 
     def delete(self):
         for roi in self.linkedROIs:
@@ -165,7 +165,7 @@ class ROI(QWidget):
             
     def createActions(self):
         self.plotAct = QAction("&Plot", self, triggered=self.plot)
-        self.plotAllAct = QAction('&Plot All', self, triggered=lambda : [roi.plot for roi in self.getTraceWindow().rois])
+        self.plotAllAct = QAction('&Plot All', self, triggered=lambda : [roi.plot() for roi in self.window.rois])
         self.colorAct = QAction("&Change Color",self,triggered=self.changeColor)
         self.unplotAct = QAction("&un-Plot", self, triggered=self.unplot)
         self.copyAct = QAction("&Copy", self, triggered=self.copy)
