@@ -49,6 +49,7 @@ class ROIRange(pg.LinearRegionItem):
 		self.menu.addAction(QAction("&Remove", self.menu, triggered=self.delete))
 
 	def contextMenuEvent(self, ev):
+		ev.accept()
 		self.menu.popup(ev.screenPos())
 
 	def delete(self):

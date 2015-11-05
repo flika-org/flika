@@ -125,7 +125,6 @@ class BaseDialog(QDialog):
         self.bbox=QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         self.bbox.accepted.connect(self.accept)
         self.bbox.rejected.connect(self.reject)
-        self.formlayout.addWidget(self.bbox)
         
         self.docstring=QLabel(docstring)
         self.docstring.setWordWrap(True)        
@@ -133,6 +132,7 @@ class BaseDialog(QDialog):
         self.layout=QVBoxLayout()
         self.layout.addWidget(self.docstring)
         self.layout.addLayout(self.formlayout)
+        self.layout.addWidget(self.bbox)
         self.setLayout(self.layout)
         self.changeSignal.connect(self.updateValues)
         self.updateValues()

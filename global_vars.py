@@ -19,6 +19,10 @@ from pyqtgraph.dockarea import *
 from window import Window
 from trace import TraceFig
 from glob import glob
+from process.BaseProcess import BaseDialog
+import pyqtgraph as pg
+
+data_types = ['uint8', 'uint16', 'uint32', 'uint64', 'int8', 'int16', 'int32', 'int64', 'float16', 'float32', 'float64']
 
 def mainguiClose(event):
 	global m
@@ -48,6 +52,7 @@ class Settings:
 		self.d['mousemode']='rectangle'
 		self.d['show_windows'] = True
 		self.d['multipleTraceWindows'] = False
+		self.editable = ['show_windows', 'multipleTraceWindows', 'internal_data_type']
 			
 	def __getitem__(self, item):
 		try:
@@ -71,10 +76,37 @@ class Settings:
 	def setInternalDataType(self, dtype):
 		self.d['internal_data_type'] = dtype
 		print('Changed data_type to {}'.format(dtype))
+	def gui(self):
+		old_dtype=str(np.dtype(self.d['internal_data_type']))
+		dataDrop = pg.ComboBox(items=data_types, default=old_dtype)
+		showCheck = QCheckBox()
+		showCheck.setChecked(self.d['show_windows'])
+		multipleTracesCheck = QCheckBox()
+		multipleTracesCheck.setChecked(self.d['multipleTraceWindows'])
+		items = []
+		items.append({'name': 'internal_data_type', 'string': 'Internal Data Type', 'object': dataDrop})
+		items.append({'name': 'show_windows', 'string': 'Show Windows', 'object': showCheck})
+		items.append({'name': 'multipleTraceWindows', 'string': 'Multiple Trace Windows', 'object': multipleTracesCheck})
+		def update():
+			self.d['internal_data_type'] = np.dtype(str(dataDrop.currentText()))
+			self.d['show_windows'] = showCheck.isChecked()
+			self.d['multipleTraceWindows'] = multipleTracesCheck.isChecked()
+		self.bd = BaseDialog(items, 'FLIKA Settings', '')
+		self.bd.accepted.connect(update)
+		#self.bd.bbox.addButton(QDialogButtonBox.Help)
+		#self.bd.bbox.helpRequested.connect()
+		self.bd.show()
+
 
 def init_plugins():
-	print(glob(os.path.join(os.getcwd(), 'plugins\\*')))
-
+	paths = glob(os.path.join(os.getcwd(), 'plugins\\*'))
+	for p in paths:
+		try:
+			_temp = __import__('plugins.%s' % os.path.basename(p), fromlist=['init'])
+			menu = _temp.init.menu
+			m.menuPlugins.addMenu(menu)
+		except Exception as e:
+			print('Could not import %s: %s' % (os.path.basename(p), e))
 
 def init(filename, title='Flika'):
 	global m

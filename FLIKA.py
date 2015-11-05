@@ -45,6 +45,7 @@ def initializeMainGui():
     g.m.actionOpen.triggered.connect(lambda : open_file_gui(open_file, prompt='Open File', filetypes='*.tif *.stk *.tiff'))
     g.m.actionSaveAs.triggered.connect(lambda : save_file_gui(save_file, prompt='Save File As Tif', filetypes='*.tif'))
     g.m.actionSave_Movie.triggered.connect(lambda : save_file_gui(save_movie, prompt='Save File as MP4', filetypes='*.mp4'))
+    g.m.actionSettings.triggered.connect(g.m.settings.gui)
     
     g.m.actionSave_Points.triggered.connect(lambda : save_file_gui(save_points, prompt='Save Points', filetypes='*.txt'))
     g.m.actionImport_Points.triggered.connect(lambda : open_file_gui(load_points, prompt='Load Points', filetypes='*.txt'))
