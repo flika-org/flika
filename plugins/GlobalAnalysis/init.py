@@ -13,7 +13,7 @@ def gui():
 	ui.measureButton.clicked.connect(measure.gui)
 	ui.sliderCheck.toggled.connect(setIsoVisible)
 	ui.show()
-	g.m.dialog = ui
+	g.m.dialogs.append(ui)
 
 def add_polyfit_item():
 	rangeItem = ROIRange()
@@ -105,6 +105,3 @@ def addIsoCurve(widg):
 	setIsoVisible(False)
 
 	widg.isoLine.sigDragged.connect(updateIsocurve)
-
-menu = QMenu('Global Analysis')
-menu.addAction(QAction('Show Toolbox', menu, triggered=gui))

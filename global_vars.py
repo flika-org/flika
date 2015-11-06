@@ -29,8 +29,12 @@ def mainguiClose(event):
 	windows=m.windows[:]
 	for window in windows:
 		window.close()
+	for trace in m.traceWindows[:]:
+		trace.close()
 	if m.scriptEditor is not None:
 		m.scriptEditor.close()
+	for dialog in m.dialogs[:]:
+		dialog.close()
 	event.accept() # let the window close
 
 class SetCurrentWindowSignal(QWidget):
@@ -93,8 +97,6 @@ class Settings:
 			self.d['multipleTraceWindows'] = multipleTracesCheck.isChecked()
 		self.bd = BaseDialog(items, 'FLIKA Settings', '')
 		self.bd.accepted.connect(update)
-		#self.bd.bbox.addButton(QDialogButtonBox.Help)
-		#self.bd.bbox.helpRequested.connect()
 		self.bd.show()
 
 
@@ -102,9 +104,8 @@ def init_plugins():
 	paths = glob(os.path.join(os.getcwd(), 'plugins\\*'))
 	for p in paths:
 		try:
-			_temp = __import__('plugins.%s' % os.path.basename(p), fromlist=['init'])
-			menu = _temp.init.menu
-			m.menuPlugins.addMenu(menu)
+			folder_name = os.path.basename(p)
+			m.menuPlugins.addAction(QAction(folder_name, m.menuPlugins, triggered = lambda : __import__('plugins.%s' % os.path.basename(p))))
 		except Exception as e:
 			print('Could not import %s: %s' % (os.path.basename(p), e))
 
@@ -117,6 +118,7 @@ def init(filename, title='Flika'):
 	
 	m.windows = []
 	m.traceWindows = []
+	m.dialogs = []
 	m.currentWindow = None
 	m.currentTrace = None
 

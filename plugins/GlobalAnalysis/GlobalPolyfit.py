@@ -91,24 +91,36 @@ def get_polyfit(x, y):
 	return ftrace
 
 def analyze_trace(x, y, ftrace):
+	x_peak = np.argmax(y)
+	f_peak = np.argmax(ftrace)
+	data = OrderedDict([('Baseline', (x[0], y[0]), x[0], ftrace[0]), ('Peak', (x_peak + x[0], y[x_peak]), f_peak + x[0], ftrace[f_peak]),\
+		('Delta Peak', (x_peak, y[x_peak]-y[0], f_peak, ftrace[f_peak] - ftrace[0]))])
+	yRiseFall = getRiseFall(x, y)
+	ftraceRiseFall = getRiseFall(x, ftrace)
+	data.update({k: yRiseFall[k] + ftraceRiseFall[k] for k in yRiseFall.keys()})
+	return data
+
+def getRiseFall(x, y):
 	x_peak = np.where(y == max(y))[0][0]
-	data = OrderedDict([('Baseline', (x[0], y[0])), ('Peak', (x_peak + x[0], y[x_peak])),('Delta Peak', (x_peak, y[x_peak]-y[0]))])
+	baseline = (x[0], y[0])
+	dPeak = (x_peak, y[x_peak]-y[0])
+	data = OrderedDict([])
 	try:
-		thresh20=data['Delta Peak'][1]*.2 + data['Baseline'][1]
-		thresh50=data['Delta Peak'][1]*.5 + data['Baseline'][1]
-		thresh80=data['Delta Peak'][1]*.8 + data['Baseline'][1]
+		thresh20=dPeak[1]*.2 + bseline[1]
+		thresh50=dPeak[1]*.5 + baseline[1]
+		thresh80=dPeak[1]*.8 + baseline[1]
 
-		data.update({'Rise 20%': (np.argwhere(ftrace>thresh20)[0][0], thresh20)})
-		data.update({'Rise 50%': (np.argwhere(ftrace>thresh50)[0][0], thresh50)})
-		data.update({'Rise 80%': (np.argwhere(ftrace>thresh80)[0][0], thresh80)})
-		data.update({'Rise 100%': (np.argmax(ftrace), max(ftrace))})
+		data['Rise 20%'] = [np.argwhere(y>thresh20)[0][0], thresh20]
+		data['Rise 50%'] = [np.argwhere(y>thresh50)[0][0], thresh50]
+		data['Rise 80%'] = [np.argwhere(y>thresh80)[0][0], thresh80]
+		data['Rise 100%'] = [np.argmax(y), max(y)]
 
-		tmp=np.squeeze(np.argwhere(ftrace<thresh80))
-		data.update({'Fall 80%': (tmp[tmp>data['Rise 100%'][0]][0], thresh80)})
-		tmp=np.squeeze(np.argwhere(ftrace<thresh50))
-		data.update({'Fall 50%': (tmp[tmp>data['Fall 80%'][0]][0], thresh50)})
-		tmp=np.squeeze(np.argwhere(ftrace<thresh20))
-		data.update({'Fall 20%': (tmp[tmp>data['Fall 50%'][0]][0], thresh20)})
+		tmp=np.squeeze(np.argwhere(y<thresh80))
+		data['Fall 80%'] = [tmp[tmp>data['Rise 100%'][0]][0], thresh80]
+		tmp=np.squeeze(np.argwhere(y<thresh50))
+		data['Fall 50%'] = [tmp[tmp>data['Fall 80%'][0]][0], thresh50]
+		tmp=np.squeeze(np.argwhere(y<thresh20))
+		data['Fall 20%'] = [tmp[tmp>data['Fall 50%'][0]][0], thresh20]
 	except Exception as e:
 		print("Analysis Failed: %s" % e)
 	return data
