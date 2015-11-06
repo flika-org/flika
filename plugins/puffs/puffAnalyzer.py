@@ -499,7 +499,7 @@ class PuffAnalyzer(QtGui.QWidget):
             tif['roi_small'].draw_from_points([(x-sigma,y-sigma),(x-sigma,y+sigma),(x+sigma,y+sigma),(x+sigma,y-sigma),(x-sigma,y-sigma)])
             tif['roi_small'].translate_done.emit()
             tif['tif'].setIndex(np.mean([t0,t1]))
-        g.m.tracefig.region.setRegion([t0, t1])
+        g.m.currentTrace.region.setRegion([t0, t1])
         #self.traceWidget.getPlotItem().getViewBox().setXRange(min(trace[0]),max(trace[0]))
 
     @Slot()
@@ -613,12 +613,12 @@ class PuffAnalyzer(QtGui.QWidget):
         roi_small.draw_from_points([(x0,y0),(x0,y1),(x1,y1),(x1,y0),(x0,y0)])
         tif.setIndex(np.mean([t0,t1]))
         roi_small.plot()
-        if self.vLine not in g.m.tracefig.p1.plotItem.items:
-            g.m.tracefig.p1.getPlotItem().addItem(self.vLine, ignoreBounds=True)
-        if self.startLine not in g.m.tracefig.p1.plotItem.items:
-            g.m.tracefig.p1.getPlotItem().addItem(self.startLine, ignoreBounds=True)
-        if self.endLine not in g.m.tracefig.p1.plotItem.items:
-            g.m.tracefig.p1.getPlotItem().addItem(self.endLine, ignoreBounds=True)
+        if self.vLine not in g.m.currentTrace.p1.plotItem.items:
+            g.m.currentTrace.p1.getPlotItem().addItem(self.vLine, ignoreBounds=True)
+        if self.startLine not in g.m.currentTrace.p1.plotItem.items:
+            g.m.currentTrace.p1.getPlotItem().addItem(self.startLine, ignoreBounds=True)
+        if self.endLine not in g.m.currentTrace.p1.plotItem.items:
+            g.m.currentTrace.p1.getPlotItem().addItem(self.endLine, ignoreBounds=True)
         pathitem=QGraphicsPathItem(tif.imageview.view)
         pathitem.setPen(QPen(Qt.red))
         tif.imageview.view.addItem(pathitem)

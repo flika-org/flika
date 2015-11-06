@@ -116,6 +116,7 @@ class BaseDialog(QDialog):
         QDialog.__init__(self)
         self.setWindowTitle(title)
         self.formlayout=QFormLayout()
+        self.formlayout.setLabelAlignment(Qt.AlignRight)
         
         self.items=items
         self.connectToChangeSignal()
@@ -124,7 +125,6 @@ class BaseDialog(QDialog):
         self.bbox=QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         self.bbox.accepted.connect(self.accept)
         self.bbox.rejected.connect(self.reject)
-        self.formlayout.addWidget(self.bbox)
         
         self.docstring=QLabel(docstring)
         self.docstring.setWordWrap(True)        
@@ -132,6 +132,7 @@ class BaseDialog(QDialog):
         self.layout=QVBoxLayout()
         self.layout.addWidget(self.docstring)
         self.layout.addLayout(self.formlayout)
+        self.layout.addWidget(self.bbox)
         self.setLayout(self.layout)
         self.changeSignal.connect(self.updateValues)
         self.updateValues()
@@ -189,17 +190,22 @@ class BaseProcess(object):
         del self.tif
         del self.newtif
         return newWindow
+
     def gui(self):
         if g.m.currentWindow is None:
             g.m.statusBar().showMessage('Select an image to process.')
             return False
         self.ui=BaseDialog(self.items,self.__name__,self.__doc__)
+        if hasattr(self, '__url__'):
+            self.ui.bbox.addButton(QDialogButtonBox.Help)
+            self.ui.bbox.helpRequested.connect(lambda : QDesktopServices.openUrl(QUrl(self.__url__)))
         self.proxy= pg.SignalProxy(self.ui.changeSignal,rateLimit=60, slot=self.preview)
         self.ui.rejected.connect(g.m.currentWindow.reset)
         self.ui.accepted.connect(self.call_from_gui)
         self.ui.show()
         g.m.dialog=self.ui
         return True
+
     def gui_reset(self):
         self.items=[]
     def call_from_gui(self):

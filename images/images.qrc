@@ -1,0 +1,8 @@
+<RCC>
+  <qresource prefix="roi_shapes">
+    <file>line.png</file>
+    <file>freehand.png</file>
+    <file>point.png</file>
+    <file>rect.png</file>
+  </qresource>
+</RCC>

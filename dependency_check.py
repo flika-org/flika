@@ -10,7 +10,7 @@ if sys.version_info.major==2:
 elif sys.version_info.major==3:
     from urllib.request import Request, urlopen
 dependencies_pypi=['future','leastsqbound','pyqtgraph','openpyxl']
-dependencies_gohlke=['PyQt4','numpy','scipy','skimage','OpenGL','shapely']
+dependencies_gohlke=['PyQt4','numpy','scipy','skimage','OpenGL']
 
 pyversion=str(sys.version_info.major)+str(sys.version_info.minor)
 is_64bits = sys.maxsize > 2**32
@@ -24,8 +24,7 @@ dependency_fnames={
     'numpy':'numpy-1.9.2+mkl',
     'scipy':'scipy-0.16.0rc1',
     'skimage':'scikit_image-0.11.3',
-    'OpenGL':'PyOpenGL-3.1.1a1',
-    'shapely':'Shapely-1.5.9'}
+    'OpenGL':'PyOpenGL-3.1.1a1'}
 base_url='http://www.lfd.uci.edu/~gohlke/pythonlibs/3i673h27/'
     
 old_cwd=os.getcwd()
@@ -37,10 +36,10 @@ os.chdir(flika_dir)
 def download_file(download_url):
     req = Request(download_url,headers={'User-Agent':"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.132 Safari/537.36"})
     response = urlopen(req)
-    file = open(basename(download_url), 'wb')
+    f = open(basename(download_url), 'wb')
     the_page=response.read()
-    file.write(the_page)
-    file.close()
+    f.write(the_page)
+    f.close()
     
 def install(dep):
     try:

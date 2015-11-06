@@ -8,7 +8,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 import global_vars as g
 import pyqtgraph as pg
-import skimage
+from skimage.draw import polygon, line
 import numpy as np
 from trace import roiPlot
 import os
@@ -41,12 +41,21 @@ class ROI(QWidget):
         self.window.closeSignal.connect(self.delete)
         self.colorDialog=QColorDialog()
         self.colorDialog.colorSelected.connect(self.colorSelected)
+
     def extend(self,x,y):
         self.path.lineTo(QPointF(x,y))
         self.pathitem.setPath(self.path)
+
     def deleteCurrentROI(self):
         if self.window.currentROI is self:
             self.delete()
+
+    def getTraceWindow(self):
+        trace_with_roi = [t for t in g.m.traceWindows if t.hasROI(self)]
+        if len(trace_with_roi) == 1:
+            return trace_with_roi[0]
+        return False
+
     def delete(self):
         for roi in self.linkedROIs:
             roi.linkedROIs.remove(self)
@@ -54,12 +63,13 @@ class ROI(QWidget):
             self.window.rois.remove(self)
         self.window.currentROI=None
         self.view.removeItem(self.pathitem)
-        if g.m.tracefig is not None and g.m.tracefig.hasROI(self):
-            a=set([r['roi'] for r in g.m.tracefig.rois])
+        trace = self.getTraceWindow()
+        if trace:
+            a=set([r['roi'] for r in trace.rois])
             b=set(self.window.rois)
             if len(a.intersection(b))==0:
-                g.m.tracefig.indexChanged.disconnect(self.window.setIndex)
-            g.m.tracefig.removeROI(self)
+                trace.indexChanged.disconnect(self.window.setIndex)
+            trace.removeROI(self)
     def getPoints(self):
         points=[]
         for i in np.arange(self.path.elementCount()):
@@ -85,6 +95,7 @@ class ROI(QWidget):
         else:
             self.window.rois.append(self)
             self.getMask()
+
     def mouseOver(self,x,y):
         if self.mouseIsOver is False and self.contains(x,y):
             self.mouseIsOver=True
@@ -92,38 +103,34 @@ class ROI(QWidget):
         elif self.mouseIsOver and self.contains(x,y) is False:
             self.mouseIsOver=False
             self.pathitem.setPen(QPen(self.color))
+
     def contextMenuEvent(self, event):
         self.menu = QMenu(self)
-        if g.m.tracefig is not None and g.m.tracefig.hasROI(self):
+        trace = self.getTraceWindow()
+        if trace:
             self.menu.addAction(self.unplotAct)
         else:
             self.menu.addAction(self.plotAct)
+        self.menu.addAction(self.plotAllAct)
         self.menu.addAction(self.colorAct)
         self.menu.addAction(self.copyAct)
         self.menu.addAction(self.deleteAct)
         self.menu.addAction(self.saveAct)
         self.menu.exec_(event.screenPos().toQPoint())
+
     def plot(self):
         roiPlot(self)
-        g.m.tracefig.indexChanged.connect(self.window.setIndex)
+        g.m.currentTrace.indexChanged.connect(self.window.setIndex)
         self.plotSignal.emit()
+
     def unplot(self):
-        g.m.tracefig.indexChanged.disconnect(self.window.setIndex)
-        g.m.tracefig.removeROI(self)
+        trace = self.getTraceWindow()
+        trace.indexChanged.disconnect(self.window.setIndex)
+        trace.removeROI(self)
+
     def copy(self):
         g.m.clipboard=self
-    def save_gui(self):
-        filename=g.m.settings['filename']
-        directory=os.path.dirname(filename)
-        if filename is not None:
-            filename= QFileDialog.getSaveFileName(g.m, 'Save ROIs', directory, '*.txt')
-        else:
-            filename= QFileDialog.getSaveFileName(g.m, 'Save ROIs', '*.txt')
-        filename=str(filename)
-        if filename=='':
-            return False
-        else:
-            self.save(filename)
+
     def save(self,filename):
         text=''
         for roi in g.m.currentWindow.rois:
@@ -143,16 +150,27 @@ class ROI(QWidget):
             self.color=QColor(color.name())
             self.pathitem.setPen(QPen(self.color))
             self.translate_done.emit()
-            
-            
+
+    def save_gui(self):
+        filename=g.m.settings['filename']
+        if filename is not None and os.path.isfile(filename):
+            filename= QFileDialog.getOpenFileName(g.m, 'Save ROI', filename, "*.txt")
+        else:
+            filename= QFileDialog.getOpenFileName(g.m, 'Save ROI', '', '*.txt')
+        filename=str(filename)
+        if filename != '':
+            self.save(filename)
+        else:
+            g.m.statusBar().showMessage('No File Selected')
             
     def createActions(self):
         self.plotAct = QAction("&Plot", self, triggered=self.plot)
+        self.plotAllAct = QAction('&Plot All', self, triggered=lambda : [roi.plot() for roi in self.window.rois])
         self.colorAct = QAction("&Change Color",self,triggered=self.changeColor)
         self.unplotAct = QAction("&un-Plot", self, triggered=self.unplot)
         self.copyAct = QAction("&Copy", self, triggered=self.copy)
         self.deleteAct = QAction("&Delete", self, triggered=self.delete)
-        self.saveAct = QAction("&Save",self,triggered=self.save_gui)
+        self.saveAct = QAction("&Save",self,triggered=lambda : self.save_gui)
                 
     def contains(self,x,y):
         return self.path.contains(QPointF(x,y))
@@ -193,7 +211,7 @@ class ROI(QWidget):
         if nDims==2: #if this is a static image
             mask=np.zeros(tif.shape,np.bool)
             
-        xx,yy=skimage.draw.polygon(x,y,shape=mask.shape)
+        xx,yy=polygon(x,y,shape=mask.shape)
         mask[xx,yy]=True
         pts_plus=np.array(np.where(mask)).T
         for pt in pts_plus:
@@ -239,10 +257,11 @@ class ROI_line(ROI):
         self.beingDragged=False #either True or False depending on if a translation has been started or not
     def contextMenuEvent(self, event):
         self.menu = QMenu(self)
-        if g.m.tracefig is not None and g.m.tracefig.hasROI(self):
+        if self.getTraceWindow():
             self.menu.addAction(self.unplotAct)
         else:
             self.menu.addAction(self.plotAct)
+        self.menu.addAction(self.plotAllAct)
         self.menu.addAction(self.colorAct)
         self.menu.addAction(self.copyAct)
         self.menu.addAction(self.kymographAct)
@@ -259,7 +278,7 @@ class ROI_line(ROI):
         mt=tif.shape[0]
         x=np.array([p[0] for p in self.pts])
         y=np.array([p[1] for p in self.pts])
-        xx,yy=skimage.draw.line(x[0],y[0],x[1],y[1])
+        xx,yy=line(x[0],y[0],x[1],y[1])
         mn=np.zeros((mt,len(xx)))
         for t in np.arange(mt):
             mn[t]=tif[t,xx,yy]
@@ -347,18 +366,21 @@ class ROI_rectangle(ROI):
         self.path.lineTo(QPointF(x,y0))
         self.path.lineTo(QPointF(x0,y0))
         self.pathitem.setPath(self.path)
+
     def contextMenuEvent(self, event):
         self.menu = QMenu(self)
-        if g.m.tracefig is not None and g.m.tracefig.hasROI(self):
+        if self.getTraceWindow():
             self.menu.addAction(self.unplotAct)
         else:
             self.menu.addAction(self.plotAct)
+        self.menu.addAction(self.plotAllAct)
         self.menu.addAction(self.colorAct)
         self.menu.addAction(self.copyAct)
         self.menu.addAction(self.deleteAct)
         self.menu.addAction(self.saveAct)
         self.menu.addAction(self.cropAct)
         self.menu.exec_(event.screenPos().toQPoint())
+        
     def crop(self):
         from window import Window
         self.pts=self.getPoints()
@@ -421,19 +443,6 @@ class ROI_rectangle(ROI):
         for roi in self.linkedROIs:
             roi.movingPoint=False
         self.movingPoint=False
-        
-def load_roi_gui():
-    filename=g.m.settings['filename']
-    if filename is not None and os.path.isfile(filename):
-        filename= QFileDialog.getOpenFileName(g.m, 'Open File', filename, '*.txt')
-    else:
-        filename= QFileDialog.getOpenFileName(g.m, 'Open File', '','*.txt')
-    filename=str(filename)
-    if filename=='':
-        return False
-    else:
-        load_roi(filename)
-    
     
     
 def makeROI(kind,pts,window=None):

@@ -13,19 +13,20 @@ import global_vars as g
 import os
 import time
 
-default_trace_color='w' #'k' is black and 'w' is white
+default_trace_color='w' #'k' is black and 'w' is white 
 
 class TraceFig(QWidget):
     indexChanged=Signal(int)
     redrawROIsPartialSlot=Signal()
     finishedDrawingSignal=Signal()
     keyPressSignal=Signal(QEvent)
+    name = "Trace Widget"
     def __init__(self):
         super(TraceFig,self).__init__()
-        g.m.tracefig=self
+        g.m.traceWindows.append(self)
+        self.setCurrentTraceWindow()
         #roi.translated.connect(lambda: self.translated(roi))
-        self.setWindowTitle('Flika')
-        self.setGeometry(QRect(8,150,1901,296))
+        #self.setGeometry(QRect(8,150,1901,296))
         self.label = pg.LabelItem(justify='right')
         self.l = QVBoxLayout()
         self.setLayout(self.l)
@@ -36,10 +37,10 @@ class TraceFig(QWidget):
         self.export_button = QPushButton("Export")
         self.export_button.setMaximumWidth(100)
         self.export_button.clicked.connect(self.export_gui)
-#        self.l.addItem(self.label)
-        self.l.addWidget(self.p1)
-        self.l.addWidget(self.p2)
-        self.l.addWidget(self.export_button)
+        #self.l.addItem(self.label)
+        self.l.addWidget(self.p1, 1)
+        self.l.addWidget(self.p2, 1)
+        self.l.addWidget(self.export_button, 0)
     
         self.region = pg.LinearRegionItem()         # Add the LinearRegionItem to the ViewBox, but tell the ViewBox to exclude this item when doing auto-range calculations.
         self.region.setZValue(10)
@@ -63,7 +64,15 @@ class TraceFig(QWidget):
         from analyze.measure import measure
         self.measure=measure
         self.p1.scene().sigMouseClicked.connect(self.measure.pointclicked)
+        self.p1.scene().sigMouseClicked.connect(self.setCurrentTraceWindow)
         self.show()
+
+    def setCurrentTraceWindow(self):
+        if g.m.currentTrace is not None:
+            g.m.currentTrace.setStyleSheet("border:1px solid rgb(0, 0, 0); ")
+        self.setStyleSheet("border:1px solid rgb(0, 255, 0); ")
+        g.m.currentTrace = self
+
     def mouseDragEvent2(self,ev):
         ev.ignore() # prevent anything from happening
     def mouseDragEvent1(self,ev):
@@ -74,7 +83,9 @@ class TraceFig(QWidget):
         for roi in self.rois:
             self.removeROI(roi['roi'])
         self.p1.scene().sigMouseClicked.disconnect(self.measure.pointclicked)
-        g.m.tracefig=None
+        self.p1.scene().sigMouseClicked.disconnect(self.setCurrentTraceWindow)
+
+        g.m.currentTrace = None
         event.accept() # let the window close
     def update(self):
         self.region.setZValue(10)
@@ -163,6 +174,14 @@ class TraceFig(QWidget):
         self.rois.append(dict({'roi':roi,'p1trace':p1trace,'p2trace':p2trace,'toBeRedrawn':False,'toBeRedrawnFull':False}))
         #self.rois.append([roi,p1data,p2data,proxy])
 
+    def addTrace(self, trace):
+        p1trace=self.p1.plot(trace)
+        p2trace=self.p2.plot(trace) 
+        #proxy= pg.SignalProxy(roi.translated,rateLimit=60, slot=self.redrawROIs)
+        if len(self.rois)==0:
+            self.region.setRegion([0, len(trace)-1])
+        #self.rois.append([roi,p1data,p2data,proxy])
+
     def removeROI(self,roi):
         index=[r['roi'] for r in self.rois].index(roi) #this is the index of the roi in self.rois
         self.p1.removeItem(self.rois[index]['p1trace'])
@@ -203,13 +222,9 @@ class TraceFig(QWidget):
         g.m.statusBar().showMessage('Successfully saved {}'.format(os.path.basename(filename)))
         
 def roiPlot(roi):
-    if g.m.tracefig is None:
-        g.m.tracefig=TraceFig()
-        g.m.tracefig.addROI(roi)
-    else:
-        g.m.tracefig.addROI(roi)
-    
-    
+    if g.m.settings['multipleTraceWindows'] or g.m.currentTrace is None:
+        TraceFig()
+    g.m.currentTrace.addROI(roi)
     
 class RedrawPartialThread(QThread):
     finished=Signal(float)

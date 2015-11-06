@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>475</width>
-    <height>128</height>
+    <width>310</width>
+    <height>79</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,14 +17,18 @@
    <widget class="QPushButton" name="freehand">
     <property name="geometry">
      <rect>
-      <x>120</x>
+      <x>90</x>
       <y>0</y>
-      <width>61</width>
+      <width>41</width>
       <height>31</height>
      </rect>
     </property>
     <property name="text">
-     <string>Freehand</string>
+     <string/>
+    </property>
+    <property name="icon">
+     <iconset>
+      <normaloff>../images/freehand.png</normaloff>../images/freehand.png</iconset>
     </property>
     <property name="checkable">
      <bool>true</bool>
@@ -42,14 +46,18 @@
    <widget class="QPushButton" name="line">
     <property name="geometry">
      <rect>
-      <x>60</x>
+      <x>50</x>
       <y>0</y>
-      <width>61</width>
+      <width>41</width>
       <height>31</height>
      </rect>
     </property>
     <property name="text">
-     <string>Line</string>
+     <string/>
+    </property>
+    <property name="icon">
+     <iconset>
+      <normaloff>../images/line.png</normaloff>../images/line.png</iconset>
     </property>
     <property name="checkable">
      <bool>true</bool>
@@ -64,14 +72,18 @@
    <widget class="QPushButton" name="rectangle">
     <property name="geometry">
      <rect>
-      <x>0</x>
+      <x>10</x>
       <y>0</y>
-      <width>61</width>
+      <width>41</width>
       <height>31</height>
      </rect>
     </property>
     <property name="text">
-     <string>Rect</string>
+     <string/>
+    </property>
+    <property name="icon">
+     <iconset>
+      <normaloff>../images/rect.png</normaloff>../images/rect.png</iconset>
     </property>
     <property name="checkable">
      <bool>true</bool>
@@ -89,14 +101,18 @@
    <widget class="QPushButton" name="point">
     <property name="geometry">
      <rect>
-      <x>180</x>
+      <x>130</x>
       <y>0</y>
-      <width>61</width>
+      <width>41</width>
       <height>31</height>
      </rect>
     </property>
     <property name="text">
-     <string>Point</string>
+     <string/>
+    </property>
+    <property name="icon">
+     <iconset>
+      <normaloff>../images/point.png</normaloff>../images/point.png</iconset>
     </property>
     <property name="checkable">
      <bool>true</bool>
@@ -117,7 +133,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>475</width>
+     <width>310</width>
      <height>21</height>
     </rect>
    </property>
@@ -125,13 +141,19 @@
     <property name="title">
      <string>File</string>
     </property>
+    <widget class="QMenu" name="menuImport">
+     <property name="title">
+      <string>Import</string>
+     </property>
+     <addaction name="actionImport_ROIs"/>
+     <addaction name="actionImport_Points"/>
+    </widget>
     <addaction name="actionOpen"/>
     <addaction name="actionSaveAs"/>
+    <addaction name="menuImport"/>
     <addaction name="actionSave_Points"/>
-    <addaction name="actionLoad_Points"/>
-    <addaction name="actionLoad_ROI_File"/>
     <addaction name="actionSave_Movie"/>
-    <addaction name="actionChange_Internal_Data_type"/>
+    <addaction name="actionSettings"/>
    </widget>
    <widget class="QMenu" name="menuImage">
     <property name="title">
@@ -141,7 +163,7 @@
      <property name="title">
       <string>Stacks</string>
      </property>
-     <addaction name="actionSlice_Keeper"/>
+     <addaction name="actionCrop_Frames"/>
      <addaction name="actionDeinterleave"/>
      <addaction name="actionZ_Project"/>
      <addaction name="actionPixel_Binning"/>
@@ -206,21 +228,6 @@
     <addaction name="menuFilters"/>
     <addaction name="actionImage_Calculator"/>
    </widget>
-   <widget class="QMenu" name="menuAnalyze">
-    <property name="title">
-     <string>Analyze</string>
-    </property>
-    <widget class="QMenu" name="menuPuffs">
-     <property name="title">
-      <string>puffs</string>
-     </property>
-     <addaction name="actionFrame_by_frame_origin"/>
-     <addaction name="actionAverage_origin"/>
-     <addaction name="actionThreshold_cluster"/>
-    </widget>
-    <addaction name="menuPuffs"/>
-    <addaction name="actionRodent_Tracker"/>
-   </widget>
    <widget class="QMenu" name="menuScripts">
     <property name="title">
      <string>Scripts</string>
@@ -232,11 +239,16 @@
     </property>
     <addaction name="actionDocs"/>
    </widget>
+   <widget class="QMenu" name="menuPlugins">
+    <property name="title">
+     <string>Plugins</string>
+    </property>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuImage"/>
    <addaction name="menuProcess"/>
-   <addaction name="menuAnalyze"/>
    <addaction name="menuScripts"/>
+   <addaction name="menuPlugins"/>
    <addaction name="menuDocs"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -300,9 +312,9 @@
     <string>Kymograph</string>
    </property>
   </action>
-  <action name="actionSlice_Keeper">
+  <action name="actionCrop_Frames">
    <property name="text">
-    <string>Slice Keeper</string>
+    <string>Crop Frames</string>
    </property>
   </action>
   <action name="actionPython_Interpreter">
@@ -475,8 +487,30 @@
     <string>Mean Filter</string>
    </property>
   </action>
+  <action name="actionExport">
+   <property name="text">
+    <string>Export</string>
+   </property>
+  </action>
+  <action name="actionImport_ROIs">
+   <property name="text">
+    <string>ROI File</string>
+   </property>
+  </action>
+  <action name="actionImport_Points">
+   <property name="text">
+    <string>Points</string>
+   </property>
+  </action>
+  <action name="actionSettings">
+   <property name="text">
+    <string>Settings</string>
+   </property>
+  </action>
  </widget>
- <resources/>
+ <resources>
+  <include location="../images/images.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>freehand</sender>
