@@ -99,13 +99,15 @@ class Settings:
 		self.bd.accepted.connect(update)
 		self.bd.show()
 
+def show(d):
+	print(d)
 
 def init_plugins():
 	paths = glob(os.path.join(os.getcwd(), 'plugins\\*'))
 	for p in paths:
 		try:
 			folder_name = os.path.basename(p)
-			temp = __import__('plugins.%s' % os.path.basename(p))
+			m.menuPlugins.addMenu(QMenu(folder_name, m.menuPlugins, triggered=show))
 		except Exception as e:
 			print('Could not import %s: %s' % (os.path.basename(p), e))
 
