@@ -105,7 +105,7 @@ def init_plugins():
 	for p in paths:
 		try:
 			folder_name = os.path.basename(p)
-			m.menuPlugins.addAction(QAction(folder_name, m.menuPlugins, triggered = lambda : __import__('plugins.%s' % os.path.basename(p))))
+			temp = __import__('plugins.%s' % os.path.basename(p))
 		except Exception as e:
 			print('Could not import %s: %s' % (os.path.basename(p), e))
 
