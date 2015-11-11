@@ -18,9 +18,9 @@ import numpy as np
 from pyqtgraph.dockarea import *
 from window import Window
 from trace import TraceFig
-from glob import glob
 from process.BaseProcess import BaseDialog
 import pyqtgraph as pg
+from plugin_manager import init_plugins
 
 data_types = ['uint8', 'uint16', 'uint32', 'uint64', 'int8', 'int16', 'int32', 'int64', 'float16', 'float32', 'float64']
 
@@ -99,17 +99,6 @@ class Settings:
 		self.bd.accepted.connect(update)
 		self.bd.show()
 
-def show(d):
-	print(d)
-
-def init_plugins():
-	paths = glob(os.path.join(os.getcwd(), 'plugins\\*'))
-	for p in paths:
-		try:
-			folder_name = os.path.basename(p)
-			m.menuPlugins.addMenu(QMenu(folder_name, m.menuPlugins, triggered=show))
-		except Exception as e:
-			print('Could not import %s: %s' % (os.path.basename(p), e))
 
 def init(filename, title='Flika'):
 	global m

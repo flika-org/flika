@@ -5,6 +5,8 @@ from .GlobalPolyfit import *
 from window import Window
 from roi import ROI
 from analyze.measure import measure
+import xlrd
+print(xlrd)
 
 def gui():
 	ui = uic.loadUi(os.path.join(os.getcwd(), 'plugins\\GlobalAnalysis\\main.ui'))
@@ -73,12 +75,12 @@ def onRegionMove(region):
 		region.fall_rise_points.clear()
 	region.poly_fill.setPath(makePolyPath(x, ftrace, data['Baseline'][1]))
 	if not hasattr(region, 'table_widget'):
-		region.table_widget = pg.TableWidget()
+		region.table_widget = pg.TableWidget(sortable=False, editable=False)
 		region.table_widget.__name__ = '%s Polyfit Table' % region.__name__
 		g.m.currentTrace.l.addWidget(region.table_widget)
 		region.sigRemoved.connect(region.table_widget.close)
 	region.table_widget.setData(data)
-	region.table_widget.setHorizontalHeaderLabels(['Frames', 'Y'])
+	region.table_widget.setHorizontalHeaderLabels(['Frames', 'Y', 'Ftrace Frames', 'Ftrace Y'])
 
 def setIsoVisible(v):
 	if not hasattr(g.m.currentWindow, 'iso'):

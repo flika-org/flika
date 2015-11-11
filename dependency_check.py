@@ -26,7 +26,7 @@ dependency_fnames={
     'skimage':'scikit_image-0.11.3',
     'OpenGL':'PyOpenGL-3.1.1a1'}
 base_url='http://www.lfd.uci.edu/~gohlke/pythonlibs/3i673h27/'
-    
+
 old_cwd=os.getcwd()
 flika_dir=os.path.join(expanduser("~"),'.FLIKA')
 if not os.path.exists(flika_dir):
@@ -41,7 +41,21 @@ def download_file(download_url):
     f.write(the_page)
     f.close()
     
+def is_installed(dep):
+    try:
+        import_module(dep)
+        return True
+    except ImportError as e:
+        if sys.version_info.major==2:
+            if e.message=='No module named {}'.format(dep):
+                return False
+        elif sys.version_info.major==3:
+            if e.msg=="No module named '{}'".format(dep):
+                return False
+
 def install(dep):
+    if is_installed(dep):
+        return
     try:
         pip.main(['install', dep])
     except IOError:
@@ -53,14 +67,10 @@ def install(dep):
             print('\n\n\n')
             print('This should install all the dependencies.  You only need to do this once.')
     
-
         
 if _platform == 'win32':
     for dep in dependencies_gohlke:
-        try:
-            import_module(dep)
-        except ImportError:
-            
+        if not is_installed(dep):
             fname=dependency_fnames[dep]+fnames_suffix
             if not os.path.isfile(fname):
                 print('Downloading {}'.format(dep))
@@ -76,15 +86,8 @@ else:
     print("I haven't yet coded how to install binaries for non-Windows systems")
 
 for dep in dependencies_pypi:
-    try:
-        import_module(dep)
-    except ImportError as e:
-        if sys.version_info.major==2:
-            if e.message=='No module named {}'.format(dep):
-                install(dep)
-        elif sys.version_info.major==3:
-            if e.msg=="No module named '{}'".format(dep):
-                install(dep)
+    if not is_installed(dep):
+        install(dep)
         
         
 os.chdir(old_cwd)

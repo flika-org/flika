@@ -86,27 +86,29 @@ class ROIRange(pg.LinearRegionItem):
 
 def get_polyfit(x, y):
 	np.warnings.simplefilter('ignore', np.RankWarning)
-	poly=np.poly1d(np.polyfit(x, y,20))
+	poly=np.poly1d(np.polyfit(x, y, 20))
 	ftrace=poly(x)
 	return ftrace
-
 def analyze_trace(x, y, ftrace):
 	x_peak = np.argmax(y)
 	f_peak = np.argmax(ftrace)
-	data = OrderedDict([('Baseline', (x[0], y[0]), x[0], ftrace[0]), ('Peak', (x_peak + x[0], y[x_peak]), f_peak + x[0], ftrace[f_peak]),\
+	data = OrderedDict([('Baseline', (x[0], y[0], x[0], ftrace[0])), ('Peak', (x_peak + x[0], y[x_peak], f_peak + x[0], ftrace[f_peak])),\
 		('Delta Peak', (x_peak, y[x_peak]-y[0], f_peak, ftrace[f_peak] - ftrace[0]))])
 	yRiseFall = getRiseFall(x, y)
 	ftraceRiseFall = getRiseFall(x, ftrace)
-	data.update({k: yRiseFall[k] + ftraceRiseFall[k] for k in yRiseFall.keys()})
+	data.update(OrderedDict([(k, yRiseFall[k] + ftraceRiseFall[k]) for k in yRiseFall.keys()]))
 	return data
 
 def getRiseFall(x, y):
 	x_peak = np.where(y == max(y))[0][0]
 	baseline = (x[0], y[0])
 	dPeak = (x_peak, y[x_peak]-y[0])
-	data = OrderedDict([])
+	data = OrderedDict([('Rise 20%', [-1, -1]),
+		('Rise 50%', [-1, -1]), ('Rise 80%', [-1, -1]),
+		('Rise 100%', [-1, -1]), ('Fall 80%', [-1, -1]),
+		('Fall 50%', [-1, -1]), ('Fall 20%', [-1, -1])])
 	try:
-		thresh20=dPeak[1]*.2 + bseline[1]
+		thresh20=dPeak[1]*.2 + baseline[1]
 		thresh50=dPeak[1]*.5 + baseline[1]
 		thresh80=dPeak[1]*.8 + baseline[1]
 
