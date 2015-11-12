@@ -93,7 +93,6 @@ def initializeMainGui():
     g.m.actionScale_Bar.triggered.connect(scale_bar.gui)
     g.m.actionBackground.triggered.connect(background.gui)
     g.m.actionMeasure.triggered.connect(measure.gui)
-    
     g.m.installEventFilter(mainWindowEventEater)
     g.m.show()
 
