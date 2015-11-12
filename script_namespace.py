@@ -30,12 +30,12 @@ def getnamespace():
         
         from roi import load_roi
         namespace.append(load_roi)
-        from analyze.puffs.frame_by_frame_origin import frame_by_frame_origin
-        namespace.append(frame_by_frame_origin)     
-        from analyze.puffs.average_origin import average_origin
-        namespace.append(average_origin)
-        from analyze.puffs.threshold_cluster import threshold_cluster
-        namespace.append(threshold_cluster)
+        #from analyze.puffs.frame_by_frame_origin import frame_by_frame_origin
+        #namespace.append(frame_by_frame_origin)     
+        #from analyze.puffs.average_origin import average_origin
+        #namespace.append(average_origin)
+        #from analyze.puffs.threshold_cluster import threshold_cluster
+        #namespace.append(threshold_cluster)
         d=dict()
         for n in namespace:
             d[n.__name__]=n
@@ -56,12 +56,12 @@ def getnamespace():
         
         from roi import load_roi
         namespace.append(load_roi)
-        from analyze.puffs.frame_by_frame_origin import frame_by_frame_origin
-        namespace.append(frame_by_frame_origin)     
-        from analyze.puffs.average_origin import average_origin
-        namespace.append(average_origin)
-        from analyze.puffs.threshold_cluster import threshold_cluster
-        namespace.append(threshold_cluster)
+        #from analyze.puffs.frame_by_frame_origin import frame_by_frame_origin
+        #namespace.append(frame_by_frame_origin)     
+        #from analyze.puffs.average_origin import average_origin
+        #namespace.append(average_origin)
+        #from analyze.puffs.threshold_cluster import threshold_cluster
+        #namespace.append(threshold_cluster)
         d=dict()
         for n in namespace:
             d[n.__name__]=n

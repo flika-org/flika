@@ -15,7 +15,7 @@ from PyQt4.QtCore import *
 from window import Window #to display any 3d array in Flika, just call Window(array_name)
 import pyqtgraph as pg
 from scipy import ndimage
-from analyze.puffs.gaussianFitting import fitGaussian, fitRotGaussian
+from .gaussianFitting import fitGaussian, fitRotGaussian
 from process.filters import butterworth_filter
 from scipy.signal import filtfilt
 import pyqtgraph.opengl as gl

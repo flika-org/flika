@@ -17,7 +17,7 @@ import global_vars as g
 class ReproducibilityPlot(QWidget):
     def __init__(self,image=np.zeros((1,1)), parent=None):
         QWidget.__init__(self,parent)
-        from analyze.puffs.puffAnalyzer import PuffAnalyzer
+        from .puffAnalyzer import PuffAnalyzer
         self.puffs=[p for p in g.m.windows if type(p) is PuffAnalyzer][0].puffs
         self.view=pg.GraphicsLayoutWidget()
         self.layout=QVBoxLayout()
