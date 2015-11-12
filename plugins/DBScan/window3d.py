@@ -38,7 +38,6 @@ class Window3D(QWidget):
             height=oldGeometry.height()
             x=oldGeometry.x()+10
             y=oldGeometry.y()+10
-        self.setCurrentWindow()
         self.view=gl.GLViewWidget(self)
         self.view.installEventFilter(self)
 
@@ -57,9 +56,6 @@ class Window3D(QWidget):
 
     def onCreate(self):
         self.show()
-
-    def setCurrentWindow(self):
-        g.m.currentWindow = self
         
     def addScatter(self, scatterPoints, clear=False):
         if clear:
@@ -88,8 +84,6 @@ class Window3D(QWidget):
             self.view.close()
             del self.view
             g.m.setWindowTitle("FLIKA")
-            if g.m.currentWindow==self:
-                g.m.currentWindow = None
             if self in g.m.windows:
                 g.m.windows.remove(self)
             self.closed=True

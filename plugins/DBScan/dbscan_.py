@@ -18,7 +18,6 @@ from process.file_ import open_file_gui
 #cluster, open_scatter, save_scatter, save_clusters, export_distances, export_nearest_distances
 __all__ = ['load_scatter_gui', 'save_scatter', 'save_clusters', 'load_scatter', 'export_distances', 'export_nearest_distances']
 
-window3D = Window3D()
 class Cluster(BaseProcess):
 	'''cluster(epsilon, minPoints, minNeighbors=1)
 	This takes three values used to cluster coordinates with the Density Based Scanning algorithm
@@ -35,24 +34,24 @@ class Cluster(BaseProcess):
 		pass
 
 	def __call__(self, epsilon, minP, minNeighbors=1, keepSourceWindow=False):
-		g.m.statusBar().showMessage('Clustering %d points...' % len(window3D.scatterPoints))
+		g.m.statusBar().showMessage('Clustering %d points...' % len(g.m.window3D.scatterPoints))
 		scanner = DBSCAN(eps = epsilon, min_samples=minNeighbors)
-		db = scanner.fit(window3D.scatterPoints)
+		db = scanner.fit(g.m.window3D.scatterPoints)
 		count = len(set(db.labels_)) - (1 if -1 in db.labels_ else 0)
 		clusters = []
 		for i in range(count):
-			cl = np.array([window3D.scatterPoints[j] for j in np.where(db.labels_ == i)[0]])
+			cl = np.array([g.m.window3D.scatterPoints[j] for j in np.where(db.labels_ == i)[0]])
 			if len(cl) >= minP:
 				clusters.append(cl)
-		window3D.reset()
+		g.m.window3D.reset()
 		g.m.statusBar().showMessage('%d clusters found.' % len(clusters))
 		self.clusters = clusters
 		self.cluster_id = 0
 		self.showCluster()
-		window3D.view.keyPressEvent = self.keyPressed
+		g.m.window3D.view.keyPressEvent = self.keyPressed
 
 	def hideCluster(self):
-		window3D.view.removeItem(self.cluster_mesh)
+		g.m.window3D.view.removeItem(self.cluster_mesh)
 		del self.cluster_mesh
 
 	def showCluster(self):
@@ -63,8 +62,8 @@ class Cluster(BaseProcess):
 			self.cluster_mesh.setMeshData(meshdata=md)
 		else:
 			self.cluster_mesh = gl.GLMeshItem(meshdata=md, drawFaces=False, drawEdges=True, color=(0, 255, 0, 255))
-			window3D.view.addItem(self.cluster_mesh)
-		window3D.moveTo(np.average(self.clusters[self.cluster_id], 0))
+			g.m.window3D.view.addItem(self.cluster_mesh)
+		g.m.window3D.moveTo(np.average(self.clusters[self.cluster_id], 0))
 
 	def keyPressed(self, e):
 		if e.key() == 45:
@@ -75,13 +74,13 @@ class Cluster(BaseProcess):
 			self.showCluster()
 		else:
 			print(e.key())
-			gl.GLViewWidget.keyPressEvent(window3D.view, e)
+			gl.GLViewWidget.keyPressEvent(g.m.window3D.view, e)
 	
 	def gui(self):
 		epsiSpin=QDoubleSpinBox()
 		minPSpin = QSpinBox()
 		minNeighborsSpin = QSpinBox()
-		if window3D is not None:
+		if g.m.window3D is not None:
 			epsiSpin.setValue(5)
 			minPSpin.setValue(5)
 			minNeighborsSpin.setValue(2)
@@ -108,7 +107,7 @@ def save_clusters(filename):
 		
 def save_scatter(filename):
 	g.m.statusBar().showMessage('Saving Scatter in {}'.format(os.path.basename(filename)))
-	p_out=window3D.scatterPoints
+	p_out=g.m.window3D.scatterPoints
 	np.savetxt(filename,p_out)
 	g.m.statusBar().showMessage('Successfully saved {}'.format(os.path.basename(filename)))
 		
@@ -125,13 +124,13 @@ def load_scatter(filename=None):
 	g.m.statusBar().showMessage('{} successfully loaded ({} s)'.format(os.path.basename(filename), time.time()-t))
 	g.m.settings['filename']=filename
 	commands = ["load_scatter('{}')".format(filename)]
-	if window3D == None:
-		Window3D()
-	window3D.addScatter(data)
+	if not hasattr(g.m, 'window3D'):
+		g.m.window3D = Window3D()
+	g.m.window3D.addScatter(data)
 
 def export_nearest_distances(filename):
 	g.m.statusBar().showMessage('Saving nearest distances to %s...' % filename)
-	pts = window3D.scatterPoints
+	pts = g.m.window3D.scatterPoints
 	dists = []
 	for i, pt in enumerate(pts):
 		dist = np.min([np.linalg.norm(np.subtract(pt, pts[j])) for j in range(len(pts)) if j != i])
@@ -139,7 +138,7 @@ def export_nearest_distances(filename):
 	g.m.statusBar().showMessage('Nearest Distances Saved Successfully' % filename)
 
 def export_distances(filename):
-	pts = window3D.scatterPoints
+	pts = g.m.window3D.scatterPoints
 	g.m.statusBar().showMessage('Saving all distances to %s...' % filename)
 	with open(filename, 'w') as outf:
 		outf.write('Distances\n')

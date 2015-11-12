@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-import os
+import os, re, sys, pip
 from os.path import basename, expanduser
-import pip
 from sys import platform as _platform
-import sys
 from importlib import import_module
+
 if sys.version_info.major==2:
     from urllib2 import Request, urlopen
 elif sys.version_info.major==3:
@@ -25,14 +24,60 @@ dependency_fnames={
     'scipy':'scipy-0.16.0rc1',
     'skimage':'scikit_image-0.11.3',
     'OpenGL':'PyOpenGL-3.1.1a1'}
-base_url='http://www.lfd.uci.edu/~gohlke/pythonlibs/3i673h27/'
+base_url='http://www.lfd.uci.edu/~gohlke/pythonlibs/'
 
-old_cwd=os.getcwd()
-flika_dir=os.path.join(expanduser("~"),'.FLIKA')
-if not os.path.exists(flika_dir):
-    os.makedirs(flika_dir)
-os.chdir(flika_dir)
-            
+
+
+def get_url(ml,mi):
+    mi = mi.replace('&lt;', '<')
+    mi = mi.replace('&gt;', '>')
+    mi = mi.replace('&amp;', '&')
+    ot="";
+    for j in range(len(mi)):
+        ot += chr(ml[ord(mi[j])-48])
+    return ot
+
+def get_wheel_url(plugin):
+    if is_64bits:
+        fnames_suffix="-cp"+pyversion+"-none-win_amd64.whl"
+    else:
+        fnames_suffix="-cp"+pyversion+"-none-win32.whl"
+    url = "http://www.lfd.uci.edu/~gohlke/pythonlibs"
+    req = Request(url,headers={'User-Agent':"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.132 Safari/537.36"})
+    resp = urlopen(req)
+    regex = re.compile('javascript:dl(\([^\)]*\))[^>]*>(%s[^<]*)<' % plugin, re.IGNORECASE | re.DOTALL)
+    fnames = {}
+    for line in resp.readlines():
+        line = line.decode('utf-8').replace('&#8209;', '-')
+        fname = re.findall(regex, line)
+        if len(fname) > 0:
+            res, fname = fname[0]
+            res = eval(res)
+            if fname.endswith(fnames_suffix):
+                fnames[fname] = res
+
+    return get_newest_version(fnames)
+
+def get_newest_version(fnames):
+    if len(fnames) == 0:
+        return ''
+    fname = ''
+    version = ['0']
+    regex = re.compile('[^-]*-([a-zA-Z0-9\.]*)')
+    for f in fnames:
+        v = re.findall(regex, f)[0].split('.')
+        i = 0
+        if fname == '' or int(v[0]) > int(version[0]):
+            fname = f
+            version = v
+            continue
+        while i < min(len(v), len(version)) - 1 and v[i] == version[i]:
+            if int(v[i+1]) > int(version[i+1]):
+                version = v
+                fname = f
+            i += 1
+    return get_url(*fnames[fname])
+
 def download_file(download_url):
     req = Request(download_url,headers={'User-Agent':"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.132 Safari/537.36"})
     response = urlopen(req)
@@ -54,7 +99,13 @@ def is_installed(dep):
                 return False
 
 def install(dep):
+    old_cwd=os.getcwd()
+    flika_dir=os.path.join(expanduser("~"),'.FLIKA')
+    if not os.path.exists(flika_dir):
+        os.makedirs(flika_dir)
+    os.chdir(flika_dir)
     if is_installed(dep):
+        os.chdir(old_cwd)  
         return
     try:
         pip.main(['install', dep])
@@ -66,30 +117,33 @@ def install(dep):
             print('python dependency_check.py')
             print('\n\n\n')
             print('This should install all the dependencies.  You only need to do this once.')
-    
-        
-if _platform == 'win32':
-    for dep in dependencies_gohlke:
-        if not is_installed(dep):
-            fname=dependency_fnames[dep]+fnames_suffix
-            if not os.path.isfile(fname):
-                print('Downloading {}'.format(dep))
-                download_file(base_url+fname)
-            print('Installing {}'.format(dep))
-            install(fname)
-            try:
-                import_module(dep)
-                os.remove(fname) #if the installation was successful, remove the .whl file
-            except:
-                pass #if it wasn't successful, keep the .whl file.
-else:
-    print("I haven't yet coded how to install binaries for non-Windows systems")
+    except Exception:
+        print('Trying to install from Gohlke on win32 only')
+        try:
+            install_wheel(dep)
+        except:
+            print('Could not install %s' % dep)
 
-for dep in dependencies_pypi:
-    if not is_installed(dep):
+    os.chdir(old_cwd)  
+        
+def install_wheel(dep):
+    if _platform != 'win32':
+        print("No support for installing binaries on non-windows machines")
+        return
+    wheel = get_wheel_url(dep)
+    if wheel != '':
+        if not os.path.isfile(wheel):
+            print('Downloading {}'.format(wheel))
+            download_file(base_url+wheel)
+        print('Installing {}'.format(wheel))
+        install(basename(wheel))
+        try:
+            import_module(dep)
+            os.remove(fname) #if the installation was successful, remove the .whl file
+        except:
+            pass #if it wasn't successful, keep the .whl file.
+
+def check_dependencies(*args):
+    for dep in args:
         install(dep)
-        
-        
-os.chdir(old_cwd)
-
 
