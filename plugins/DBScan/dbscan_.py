@@ -88,7 +88,10 @@ class Cluster(BaseProcess):
 		self.items.append({'name':'epsilon','string':'Epsilon','object':epsiSpin})
 		self.items.append({'name':'minP','string':'Minimum Points in Cluster','object':minPSpin})
 		self.items.append({'name':'minNeighbors','string':'Minimum Neighbors per Point','object':minNeighborsSpin})
+		old_window = g.m.currentWindow
+		g.m.currentWindow = g.m.window3D
 		super().gui()
+		g.m.currentWindow = old_window
 cluster = Cluster()
 
 def cluster_gui():
