@@ -5,7 +5,7 @@ Created on Tue Aug 12 10:38:28 2014
 @author: Kyle Ellefsen
 """
 from scipy.fftpack import *
-from analyze.puffs.gaussianFitting import fitGaussian
+from .gaussianFitting import fitGaussian
 import pyqtgraph as pg
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *

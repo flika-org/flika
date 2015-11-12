@@ -18,7 +18,7 @@ from shapely.geometry import Point, LineString, MultiPoint, Polygon
 from skimage.draw import polygon
 from shapely.affinity import translate,rotate,scale
 from leastsqbound import leastsqbound
-from analyze.behavior.attention import getAttention
+from .attention import getAttention
 import global_vars as g
 
 

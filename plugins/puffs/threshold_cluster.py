@@ -179,6 +179,8 @@ class Threshold_cluster(BaseProcess):
         return puffAnalyzer
 
 threshold_cluster=Threshold_cluster()
+def threshold_cluster_gui():
+    threshold_cluster.gui()
 
 class PuffAnalyzer(QWidget):
     def __init__(self,data_window,binary_window,highpass_window,udc,persistentInfo=None,parent=None):
