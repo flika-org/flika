@@ -5,8 +5,7 @@ from .GlobalPolyfit import *
 from window import Window
 from roi import ROI
 from analyze.measure import measure
-import xlrd
-print(xlrd)
+print("GlobalAnalysis imported")
 
 def gui():
 	ui = uic.loadUi(os.path.join(os.getcwd(), 'plugins\\GlobalAnalysis\\main.ui'))
