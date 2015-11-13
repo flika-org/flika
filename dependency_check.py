@@ -117,8 +117,8 @@ def install(dep):
             print('python dependency_check.py')
             print('\n\n\n')
             print('This should install all the dependencies.  You only need to do this once.')
-    except Exception:
-        print('Trying to install from Gohlke on win32 only')
+    if not is_installed(dep):
+        print('Trying to install %s from Gohlke on win32 only' % dep)
         try:
             install_wheel(dep)
         except:
