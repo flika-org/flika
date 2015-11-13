@@ -81,6 +81,10 @@ def download_file(download_url):
     
 def is_installed(dep):
     try:
+        reqs = dict([re.match(r'([^=]*)==(.*)', i).groups() for i in pip.operations.freeze.freeze()])
+        for mod in reqs:
+            if mod.lower() == dep.lower():
+                return True
         import_module(dep)
         return True
     except ImportError as e:
@@ -114,6 +118,7 @@ def install(dep):
         print('Trying to install %s from Gohlke on win32 only' % dep)
         try:
             install_wheel(dep)
+            print('Successfully installed %d' % dep)
         except:
             print('Could not install %s' % dep)
 
