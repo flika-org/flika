@@ -8,8 +8,6 @@ if sys.version_info.major==2:
     from urllib2 import Request, urlopen
 elif sys.version_info.major==3:
     from urllib.request import Request, urlopen
-dependencies_pypi=['future','leastsqbound','pyqtgraph','openpyxl']
-dependencies_gohlke=['PyQt4','numpy','scipy','skimage','OpenGL']
 
 pyversion=str(sys.version_info.major)+str(sys.version_info.minor)
 is_64bits = sys.maxsize > 2**32
@@ -18,12 +16,7 @@ if is_64bits:
 else:
     fnames_suffix="-cp"+pyversion+"-none-win32.whl"
     
-dependency_fnames={
-    'PyQt4':'PyQt4-4.11.4',
-    'numpy':'numpy-1.9.2+mkl',
-    'scipy':'scipy-0.16.0rc1',
-    'skimage':'scikit_image-0.11.3',
-    'OpenGL':'PyOpenGL-3.1.1a1'}
+
 base_url='http://www.lfd.uci.edu/~gohlke/pythonlibs/'
 
 

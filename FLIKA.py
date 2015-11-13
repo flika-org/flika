@@ -6,7 +6,7 @@ updated 2015.01.27
 """
 from __future__ import (absolute_import, division,print_function, unicode_literals)
 from dependency_check import check_dependencies
-check_dependencies('future','leastsqbound','pyqtgraph','openpyxl', 'PyQt4','numpy','scipy','skimage','OpenGL')
+check_dependencies('future','leastsqbound','pyqtgraph','openpyxl', 'PyQt4','numpy','scipy','skimage')
 
 
 from future.builtins import (bytes, dict, int, list, object, range, str, ascii, chr, hex, input, next, oct, open, pow, round, super, filter, map, zip)

@@ -5,7 +5,7 @@ Created on Mon Jul 21 10:32:00 2014
 @author: Kyle Ellefsen
 """
 
-dependencies = ['skimage', 'leastsqbound', 'matplotlib']
+dependencies = ['skimage', 'leastsqbound', 'matplotlib','OpenGL']
 
 menu_layout = {'Puffs': \
 				{'Average Origin': 'average_origin.average_origin_gui', \
