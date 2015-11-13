@@ -5,7 +5,10 @@ updated 2015.01.27
 @author: Kyle Ellefsen
 """
 from __future__ import (absolute_import, division,print_function, unicode_literals)
-import dependency_check
+from dependency_check import check_dependencies
+check_dependencies('future','leastsqbound','pyqtgraph','openpyxl', 'PyQt4','numpy','scipy','skimage','OpenGL')
+
+
 from future.builtins import (bytes, dict, int, list, object, range, str, ascii, chr, hex, input, next, oct, open, pow, round, super, filter, map, zip)
 import time
 tic=time.time()
@@ -93,6 +96,7 @@ def initializeMainGui():
     g.m.actionScale_Bar.triggered.connect(scale_bar.gui)
     g.m.actionBackground.triggered.connect(background.gui)
     g.m.actionMeasure.triggered.connect(measure.gui)
+    
     g.m.installEventFilter(mainWindowEventEater)
     g.m.show()
 

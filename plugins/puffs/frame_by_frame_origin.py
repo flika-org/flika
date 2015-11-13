@@ -14,7 +14,7 @@ from process.BaseProcess import BaseProcess, WindowSelector, MissingWindowError
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 
-from analyze.puffs.puffAnalyzer import getCentersOfMass, Puffs, PuffAnalyzer
+from .puffAnalyzer import getCentersOfMass, Puffs, PuffAnalyzer
 
 
         
@@ -60,3 +60,6 @@ class Frame_by_frame_origin(BaseProcess):
         return puffAnalyzer
 
 frame_by_frame_origin=Frame_by_frame_origin()
+
+def frame_by_frame_gui():
+    frame_by_frame_origin.gui()

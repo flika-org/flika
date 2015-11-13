@@ -11,11 +11,12 @@ from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 from sklearn.cluster import DBSCAN
 from scipy.spatial import ConvexHull
-from window3d import Window3D
+from .window3d import Window3D
 import pyqtgraph.opengl as gl
+from process.file_ import open_file_gui
 
 #cluster, open_scatter, save_scatter, save_clusters, export_distances, export_nearest_distances
-__all__ = ['save_scatter', 'save_clusters', 'load_scatter', 'export_distances', 'export_nearest_distances']
+__all__ = ['load_scatter_gui', 'save_scatter', 'save_clusters', 'load_scatter', 'export_distances', 'export_nearest_distances']
 
 class Cluster(BaseProcess):
 	'''cluster(epsilon, minPoints, minNeighbors=1)
@@ -32,25 +33,25 @@ class Cluster(BaseProcess):
 	def __init__(self):
 		pass
 
-	def __call__(self, epsilon, minP, minNeighbors=1):
-		g.m.statusBar().showMessage('Clustering %d points...' % len(g.m.currentWindow.scatterPoints))
+	def __call__(self, epsilon, minP, minNeighbors=1, keepSourceWindow=False):
+		g.m.statusBar().showMessage('Clustering %d points...' % len(g.m.window3D.scatterPoints))
 		scanner = DBSCAN(eps = epsilon, min_samples=minNeighbors)
-		db = scanner.fit(g.m.currentWindow.scatterPoints)
+		db = scanner.fit(g.m.window3D.scatterPoints)
 		count = len(set(db.labels_)) - (1 if -1 in db.labels_ else 0)
 		clusters = []
 		for i in range(count):
-			cl = np.array([g.m.currentWindow.scatterPoints[j] for j in np.where(db.labels_ == i)[0]])
+			cl = np.array([g.m.window3D.scatterPoints[j] for j in np.where(db.labels_ == i)[0]])
 			if len(cl) >= minP:
 				clusters.append(cl)
-		g.m.currentWindow.reset()
+		g.m.window3D.reset()
 		g.m.statusBar().showMessage('%d clusters found.' % len(clusters))
 		self.clusters = clusters
 		self.cluster_id = 0
 		self.showCluster()
-		g.m.currentWindow.view.keyPressEvent = self.keyPressed
+		g.m.window3D.view.keyPressEvent = self.keyPressed
 
 	def hideCluster(self):
-		g.m.currentWindow.view.removeItem(self.cluster_mesh)
+		g.m.window3D.view.removeItem(self.cluster_mesh)
 		del self.cluster_mesh
 
 	def showCluster(self):
@@ -61,8 +62,8 @@ class Cluster(BaseProcess):
 			self.cluster_mesh.setMeshData(meshdata=md)
 		else:
 			self.cluster_mesh = gl.GLMeshItem(meshdata=md, drawFaces=False, drawEdges=True, color=(0, 255, 0, 255))
-			g.m.currentWindow.view.addItem(self.cluster_mesh)
-		g.m.currentWindow.moveTo(np.average(self.clusters[self.cluster_id], 0))
+			g.m.window3D.view.addItem(self.cluster_mesh)
+		g.m.window3D.moveTo(np.average(self.clusters[self.cluster_id], 0))
 
 	def keyPressed(self, e):
 		if e.key() == 45:
@@ -73,23 +74,31 @@ class Cluster(BaseProcess):
 			self.showCluster()
 		else:
 			print(e.key())
-			gl.GLViewWidget.keyPressEvent(g.m.currentWindow.view, e)
+			gl.GLViewWidget.keyPressEvent(g.m.window3D.view, e)
 	
 	def gui(self):
 		epsiSpin=QDoubleSpinBox()
 		minPSpin = QSpinBox()
 		minNeighborsSpin = QSpinBox()
-		if g.m.currentWindow is not None:
-			epsiSpin.setValue(g.m.epsilonSpin.value())
-			minPSpin.setValue(g.m.minPointsSpin.value())
-			minNeighborsSpin.setValue(g.m.minNeighborsSpin.value())
+		if g.m.window3D is not None:
+			epsiSpin.setValue(5)
+			minPSpin.setValue(5)
+			minNeighborsSpin.setValue(2)
 		self.items = []
 		self.items.append({'name':'epsilon','string':'Epsilon','object':epsiSpin})
-		self.items.append({'name':'minP','string':'Minimum Points','object':minPSpin})
-		self.items.append({'name':'minNeighbors','string':'Minimum Neighbors','object':minNeighborsSpin})
+		self.items.append({'name':'minP','string':'Minimum Points in Cluster','object':minPSpin})
+		self.items.append({'name':'minNeighbors','string':'Minimum Neighbors per Point','object':minNeighborsSpin})
+		old_window = g.m.currentWindow
+		g.m.currentWindow = g.m.window3D
 		super().gui()
-
+		g.m.currentWindow = old_window
 cluster = Cluster()
+
+def cluster_gui():
+	cluster.gui()
+
+def load_scatter_gui():
+	open_file_gui(load_scatter, prompt='Import a scatter of points for clustering', filetypes='*.txt')
 
 def save_clusters(filename):
 	global cluster
@@ -101,7 +110,7 @@ def save_clusters(filename):
 		
 def save_scatter(filename):
 	g.m.statusBar().showMessage('Saving Scatter in {}'.format(os.path.basename(filename)))
-	p_out=g.m.currentWindow.scatterPoints
+	p_out=g.m.window3D.scatterPoints
 	np.savetxt(filename,p_out)
 	g.m.statusBar().showMessage('Successfully saved {}'.format(os.path.basename(filename)))
 		
@@ -117,14 +126,14 @@ def load_scatter(filename=None):
 	data = np.loadtxt(filename, skiprows=1, usecols=(x, y, z))
 	g.m.statusBar().showMessage('{} successfully loaded ({} s)'.format(os.path.basename(filename), time.time()-t))
 	g.m.settings['filename']=filename
-	commands = ["open_file('{}')".format(filename)]
-	if g.m.currentWindow == None:
-		Window3D()
-	g.m.currentWindow.addScatter(data)
+	commands = ["load_scatter('{}')".format(filename)]
+	if not hasattr(g.m, 'window3D'):
+		g.m.window3D = Window3D()
+	g.m.window3D.addScatter(data)
 
 def export_nearest_distances(filename):
 	g.m.statusBar().showMessage('Saving nearest distances to %s...' % filename)
-	pts = g.m.currentWindow.scatterPoints
+	pts = g.m.window3D.scatterPoints
 	dists = []
 	for i, pt in enumerate(pts):
 		dist = np.min([np.linalg.norm(np.subtract(pt, pts[j])) for j in range(len(pts)) if j != i])
@@ -132,7 +141,7 @@ def export_nearest_distances(filename):
 	g.m.statusBar().showMessage('Nearest Distances Saved Successfully' % filename)
 
 def export_distances(filename):
-	pts = g.m.currentWindow.scatterPoints
+	pts = g.m.window3D.scatterPoints
 	g.m.statusBar().showMessage('Saving all distances to %s...' % filename)
 	with open(filename, 'w') as outf:
 		outf.write('Distances\n')

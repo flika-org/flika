@@ -18,10 +18,9 @@ import numpy as np
 from pyqtgraph.dockarea import *
 from window import Window
 from trace import TraceFig
-from glob import glob
 from process.BaseProcess import BaseDialog
 import pyqtgraph as pg
-import imp
+from plugin_manager import init_plugins
 
 data_types = ['uint8', 'uint16', 'uint32', 'uint64', 'int8', 'int16', 'int32', 'int64', 'float16', 'float32', 'float64']
 
@@ -30,8 +29,12 @@ def mainguiClose(event):
 	windows=m.windows[:]
 	for window in windows:
 		window.close()
+	for trace in m.traceWindows[:]:
+		trace.close()
 	if m.scriptEditor is not None:
 		m.scriptEditor.close()
+	for dialog in m.dialogs[:]:
+		dialog.close()
 	event.accept() # let the window close
 
 class SetCurrentWindowSignal(QWidget):
@@ -94,57 +97,8 @@ class Settings:
 			self.d['multipleTraceWindows'] = multipleTracesCheck.isChecked()
 		self.bd = BaseDialog(items, 'FLIKA Settings', '')
 		self.bd.accepted.connect(update)
-		#self.bd.bbox.addButton(QDialogButtonBox.Help)
-		#self.bd.bbox.helpRequested.connect()
 		self.bd.show()
 
-def callPlugin(config,funcname):
-    print('\n\nconfig: {}, function name: {}'.format(config,funcname))
-    print('Need to call: {}'.format(config.menu_actions[funcname]))
-    filename=config.menu_actions[funcname].split('.')[0]
-    funcname=config.menu_actions[funcname].split('.')[1]
-    try:
-        exec("from plugins."+config.name+'.'+filename+' import '+funcname)
-        exec(funcname+'()')
-    except Exception as e:
-        print(e)
-    
-def addItemToMenu(menu,item,config):
-    if isinstance(item,str):
-        menu.addAction(QAction("&"+item, m, triggered=lambda: callPlugin(config,item)))
-    elif len(item)==2 and isinstance(item[1],list):
-        newMenu=menu.addMenu('&'+item[0])
-        for newItem in item[1]:
-            addItemToMenu(newMenu,newItem,config)
-    else:
-        for i in item:
-            addItemToMenu(menu,i,config)
-        
-        
-def init_plugins():
-    plugins=[]
-    paths = glob(os.path.join(os.getcwd(), 'plugins','*'))
-    for p in paths:
-        config_file=os.path.join(p,'config.py')
-        if not os.path.isfile(config_file):
-            continue #there must be a config.py file or the module won't load
-        module_name=os.path.basename(p)
-        config=imp.load_source(module_name,config_file)
-        config.loaded=False
-        config.path=p
-        config.name=module_name
-        plugins.append(config)
-        addItemToMenu(m.menuPlugins,config.menu,config)
-
-        # need to check for dependencies
-        
-    """
-		try:
-			_temp = __import__('plugins.%s' % os.path.basename(p), fromlist=['init'])
-			menu = _temp.init.menu
-			m.menuPlugins.addMenu(menu)
-		except Exception as e:
-			print('Could not import %s: %s' % (os.path.basename(p), e))"""
 
 def init(filename, title='Flika'):
 	global m
@@ -155,6 +109,7 @@ def init(filename, title='Flika'):
 	
 	m.windows = []
 	m.traceWindows = []
+	m.dialogs = []
 	m.currentWindow = None
 	m.currentTrace = None
 

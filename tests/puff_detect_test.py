@@ -17,7 +17,7 @@ from process.filters import gaussian_blur
 from process.binary import threshold
 from process.roi import set_value
 from roi import makeROI
-from analyze.puffs.threshold_cluster import threshold_cluster
+from .threshold_cluster import threshold_cluster
 
 cwd=os.path.dirname(os.path.abspath(__file__)) # cwd=r'C:\Users\Kyle Ellefsen\Documents\GitHub\Flika\tests'
 

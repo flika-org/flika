@@ -14,7 +14,7 @@ from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 import pyqtgraph as pg
 from scipy import ndimage
-from analyze.puffs.gaussianFitting import fitGaussian, fitRotGaussian
+from .gaussianFitting import fitGaussian, fitRotGaussian
 from process.filters import butterworth_filter
 from scipy.signal import filtfilt
 import pyqtgraph.opengl as gl
@@ -114,6 +114,8 @@ class Average_origin(BaseProcess):
         return puffAnalyzer
 
 average_origin=Average_origin()
+def average_origin_gui():
+    average_origin.gui()
 
 class PuffAnalyzer(QWidget):
     def __init__(self,puffs,data_window,binary_window,radius=2,parent=None):
