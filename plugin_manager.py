@@ -2,20 +2,24 @@ from dependency_check import *
 from glob import glob
 import global_vars as g
 from PyQt4.QtGui import *
-from types import FunctionType, LambdaType
-import sys
 	
 def str2func(module_name, function):
 	names = function.split('.')
 	func_str = names[-1]
 	module_location = '.'.join(names[:-1])
 	plugins = "plugins.%s.%s" % (module_name, module_location)
-	module = __import__('plugins.%s.%s' % (module_name, '.'.join(names[:-1])), fromlist=[func_str])
-	return getattr(module, func_str)
+	module = __import__(plugins, fromlist=[func_str])
+	try:
+		return getattr(module, func_str)
+	except:
+		raise Exception("Failed to import %s from module %s. Check name and try again." % (function, module_name))
+
+def get_lambda(mod_name, func):
+	return lambda : str2func(mod_name, func)()
 
 def build_plugin_menus(parentMenu, name, value, module_name):
 	if isinstance(value, str):
-		act = QAction(name, parentMenu, triggered=lambda : str2func(module_name, value)())
+		act = QAction(name, parentMenu, triggered=get_lambda(module_name, value))
 		parentMenu.addAction(act)
 	elif isinstance(value, dict):
 		#menu = QMenu(name)

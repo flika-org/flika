@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1039</width>
+    <height>685</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="0">
+     <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,1">
+      <item>
+       <widget class="QTabWidget" name="scriptTabs">
+        <property name="currentIndex">
+         <number>0</number>
+        </property>
+        <widget class="QWidget" name="mainTab">
+         <attribute name="title">
+          <string>Tab 1</string>
+         </attribute>
+        </widget>
+        <widget class="QWidget" name="tab_2">
+         <attribute name="title">
+          <string>Tab 2</string>
+         </attribute>
+        </widget>
+       </widget>
+      </item>
+      <item>
+       <widget class="ConsoleWidget" name="consoleWidget" native="true"/>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1039</width>
+     <height>38</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuScripts">
+    <property name="title">
+     <string>Scripts</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <widget class="QMenu" name="menuLoad_Script">
+     <property name="title">
+      <string>Load Script</string>
+     </property>
+     <addaction name="actionFrom_Window"/>
+     <addaction name="actionFrom_Fole"/>
+    </widget>
+    <addaction name="actionLoad_Script"/>
+    <addaction name="menuLoad_Script"/>
+    <addaction name="actionSave_Script"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuScripts"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionLoad_Script">
+   <property name="text">
+    <string>New Script</string>
+   </property>
+  </action>
+  <action name="actionSave_Script">
+   <property name="text">
+    <string>Save Script</string>
+   </property>
+  </action>
+  <action name="actionFrom_Window">
+   <property name="text">
+    <string>From Window</string>
+   </property>
+  </action>
+  <action name="actionFrom_Fole">
+   <property name="text">
+    <string>From Fole</string>
+   </property>
+  </action>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ConsoleWidget</class>
+   <extends>QWidget</extends>
+   <header>pyqtgraph</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

@@ -147,7 +147,15 @@ class Interpreter(pyqtgraph.console.ConsoleWidget):
         
         """
         pyqtgraph.console.ConsoleWidget.__init__(self,namespace=namespace,text=text)
-            
+
+
+if __name__ == "__main__":
+    from pyqtgraph import console
+    from PyQt4 import uic, QtCore, QtGui
+    app = QtGui.QApplication([])
+    ui = uic.loadUi('gui/scriptEditor.ui')
+    ui.show()       
+    app.exec_()     
 
     
     
