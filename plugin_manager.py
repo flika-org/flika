@@ -2,15 +2,13 @@ from dependency_check import *
 from glob import glob
 import global_vars as g
 from PyQt4.QtGui import *
-from types import FunctionType, LambdaType
-import sys
 	
 def str2func(module_name, function):
 	names = function.split('.')
 	func_str = names[-1]
 	module_location = '.'.join(names[:-1])
 	plugins = "plugins.%s.%s" % (module_name, module_location)
-	module = __import__('plugins.%s.%s' % (module_name, '.'.join(names[:-1])), fromlist=[func_str])
+	module = __import__(plugins, fromlist=[func_str])
 	try:
 		return getattr(module, func_str)
 	except:
