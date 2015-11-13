@@ -4,6 +4,8 @@ Created on Fri Oct 02 12:23:06 2015
 
 @author: Kyle Ellefsen
 """
+from __future__ import (absolute_import, division,print_function, unicode_literals)
+from future.builtins import (bytes, dict, int, list, object, range, str, ascii, chr, hex, input, next, oct, open, pow, round, super, filter, map, zip)
 
 import numpy as np
 import tifffile
@@ -23,8 +25,8 @@ cwd=os.path.dirname(os.path.abspath(__file__)) # cwd=r'C:\Users\Kyle Ellefsen\Do
 
 
 
-from process.BaseProcess import BaseProcess, WindowSelector, MissingWindowError, SliderLabel, CheckBox
-class Simulate_Puffs(BaseProcess):
+from process.BaseProcess import BaseProcess_noPriorWindow, WindowSelector, MissingWindowError, SliderLabel, CheckBox
+class Simulate_Puffs(BaseProcess_noPriorWindow):
     def __init__(self):
         super().__init__()
     def gui(self):
@@ -33,8 +35,9 @@ class Simulate_Puffs(BaseProcess):
         nFrames.setRange(0,10000)
         self.items.append({'name':'nFrames','string':'Movie Duration (frames)','object':nFrames})
         super().gui()
-    def __call__(self,nFrames):
-        self.start(keepSourceWindow=True)
+    def __call__(self,nFrames=10000):
+        print('called')
+        self.start()
         self.newtif=generatePuffImage()
         self.newname=' Simulated Puffs '
         return self.end()

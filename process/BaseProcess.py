@@ -192,15 +192,13 @@ class BaseProcess(object):
         return newWindow
 
     def gui(self):
-        if g.m.currentWindow is None:
-            g.m.statusBar().showMessage('Select an image to process.')
-            return False
         self.ui=BaseDialog(self.items,self.__name__,self.__doc__)
         if hasattr(self, '__url__'):
             self.ui.bbox.addButton(QDialogButtonBox.Help)
             self.ui.bbox.helpRequested.connect(lambda : QDesktopServices.openUrl(QUrl(self.__url__)))
         self.proxy= pg.SignalProxy(self.ui.changeSignal,rateLimit=60, slot=self.preview)
-        self.ui.rejected.connect(g.m.currentWindow.reset)
+        if g.m.currentWindow is not None:
+            self.ui.rejected.connect(g.m.currentWindow.reset)
         self.ui.accepted.connect(self.call_from_gui)
         self.ui.show()
         g.m.dialog=self.ui
@@ -224,8 +222,36 @@ class BaseProcess(object):
     def preview(self):
         pass
 
-
-
+class BaseProcess_noPriorWindow(BaseProcess):
+    def __init__(self):
+        super().__init__()
+    def start(self):
+        frame = inspect.getouterframes(inspect.currentframe())[1][0]
+        args, _, _, values = inspect.getargvalues(frame)
+        funcname=self.__name__
+        self.command=funcname+'('+', '.join([i+'='+str(values[i]) for i in args if i!='self'])+')'
+        g.m.statusBar().showMessage('Performing {}...'.format(self.__name__))
+        
+    def end(self):
+        commands=[self.command]
+        newWindow=Window(self.newtif,str(self.newname),commands=commands)
+        if np.max(self.newtif)==1 and np.min(self.newtif)==0: #if the array is boolean
+            newWindow.imageview.setLevels(-.1,1.1)
+        g.m.statusBar().showMessage('Finished with {}.'.format(self.__name__))
+        del self.newtif
+        return newWindow
+    def call_from_gui(self):
+        varnames=[i for i in inspect.getargspec(self.__call__)[0] if i!='self']
+        try:
+            args=[self.getValue(name) for name in varnames]
+        except IndexError:
+            print("Names in {}: {}".format(self.__name__,varnames))
+        try:
+            self.__call__(*args)
+        except MemoryError as err:
+            print('There was a memory error in {}'.format(self.__name__))
+            g.m.statusBar().showMessage('There was a memory error in {}'.format(self.__name__))
+            print(err)
 
 
 
