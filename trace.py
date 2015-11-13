@@ -61,7 +61,7 @@ class TraceFig(QWidget):
         #self.proxy2= pg.SignalProxy(self.redrawROIsPartialSlot,rateLimit=60, slot=self.redrawROIsPartial)
         self.redrawPartialThread=None
         self.redrawFullThread=None
-        from analyze.measure import measure
+        from process.measure import measure
         self.measure=measure
         self.p1.scene().sigMouseClicked.connect(self.measure.pointclicked)
         self.p1.scene().sigMouseClicked.connect(self.setCurrentTraceWindow)

@@ -29,7 +29,7 @@ from process.math_ import multiply, subtract, power, ratio, absolute_value, subt
 from process.filters import gaussian_blur, butterworth_filter,boxcar_differential_filter, wavelet_filter, difference_filter, fourier_filter, mean_filter
 from process.binary import threshold, adaptive_threshold, canny_edge_detector, remove_small_blobs, logically_combine, binary_dilation, binary_erosion
 from process.roi import set_value
-from analyze.measure import measure
+from process.measure import measure
 from process.file_ import open_file_gui, save_file_gui, open_file, load_metadata, close, save_file, save_movie, change_internal_data_type_gui, save_points, load_points, save_current_frame, save_roi_traces
 from roi import load_roi, makeROI
 from process.overlay import time_stamp,background, scale_bar

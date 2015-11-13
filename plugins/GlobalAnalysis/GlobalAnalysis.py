@@ -4,7 +4,7 @@ import pyqtgraph as pg
 from .GlobalPolyfit import *
 from window import Window
 from roi import ROI
-from analyze.measure import measure
+from process.measure import measure
 print("GlobalAnalysis imported")
 
 def gui():
