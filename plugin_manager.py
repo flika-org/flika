@@ -11,7 +11,10 @@ def str2func(module_name, function):
 	module_location = '.'.join(names[:-1])
 	plugins = "plugins.%s.%s" % (module_name, module_location)
 	module = __import__('plugins.%s.%s' % (module_name, '.'.join(names[:-1])), fromlist=[func_str])
-	return getattr(module, func_str)
+	try:
+		return getattr(module, func_str)
+	except:
+		raise Exception("Failed to import %s from module %s. Check name and try again." % (function, module_name))
 
 def get_lambda(mod_name, func):
 	return lambda : str2func(mod_name, func)()
