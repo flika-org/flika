@@ -40,7 +40,10 @@ def open_file_gui(func, filetypes, prompt='Open File'):
 
 def save_file_gui(func, filetypes, prompt = 'Save File'):
     filename=g.m.settings['filename']
-    directory=os.path.dirname(filename)
+    try:
+        directory=os.path.dirname(filename)
+    except:
+        directory=''
     if filename is not None and directory != '':
         filename= QFileDialog.getSaveFileName(g.m, prompt, directory, filetypes)
     else:

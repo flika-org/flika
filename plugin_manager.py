@@ -15,7 +15,7 @@ def str2func(module_name, function):
 
 def build_plugin_menus(parentMenu, name, value, module_name):
 	if isinstance(value, str):
-		act = QAction(name, parentMenu, triggered=str2func(module_name, value))
+		act = QAction(name, parentMenu, triggered=lambda : str2func(module_name, value)())
 		parentMenu.addAction(act)
 	elif isinstance(value, dict):
 		#menu = QMenu(name)
