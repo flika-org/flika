@@ -9,13 +9,15 @@ from __future__ import (absolute_import, division,print_function, unicode_litera
 from future.builtins import (bytes, dict, int, list, object, range, str, ascii, chr, hex, input, next, oct, open, pow, round, super, filter, map, zip)
 
 import os
-
 import numpy as np
 import global_vars as g
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 from process.BaseProcess import BaseProcess
 import pyqtgraph as pg
+
+__all__ = ['measure']
+
 
 np.set_printoptions(suppress=True)
 np.set_printoptions(precision=3)
