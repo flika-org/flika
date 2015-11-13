@@ -21,6 +21,26 @@ from plugins.detect_puffs.threshold_cluster import threshold_cluster
 
 cwd=os.path.dirname(os.path.abspath(__file__)) # cwd=r'C:\Users\Kyle Ellefsen\Documents\GitHub\Flika\plugins\puff_simulator'
 
+
+
+from process.BaseProcess import BaseProcess, WindowSelector, MissingWindowError, SliderLabel, CheckBox
+class Simulate_Puffs(BaseProcess):
+    def __init__(self):
+        super().__init__()
+    def gui(self):
+        self.gui_reset()
+        nFrames=SliderLabel(0)
+        nFrames.setRange(0,10000)
+        self.items.append({'name':'nFrames','string':'Movie Duration (frames)','object':nFrames})
+        super().gui()
+    def __call__(self,nFrames):
+        self.start(keepSourceWindow=True)
+        self.newtif=generatePuffImage()
+        self.newname=' Simulated Puffs '
+        return self.end()
+simulate_puffs=Simulate_Puffs()
+
+
 def generatePuffImage(amplitude=5):
     tif=tifffile.TIFFfile(os.path.join(cwd,'model_puff.stk'))
     model_puff=tif.asarray()
