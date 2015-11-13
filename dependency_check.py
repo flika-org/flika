@@ -19,8 +19,6 @@ else:
 
 base_url='http://www.lfd.uci.edu/~gohlke/pythonlibs/'
 
-
-
 def get_url(ml,mi):
     mi = mi.replace('&lt;', '<')
     mi = mi.replace('&gt;', '>')
