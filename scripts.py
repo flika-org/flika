@@ -19,23 +19,28 @@ import pyqtgraph as pg
 import pyqtgraph.console
 from script_namespace import getnamespace
 
-
-
-def getScriptList():
-    g.m.menuScripts.clear()
+def getScriptActions():
     g.m.scriptsDir=os.path.join(expanduser("~"),'.FLIKA','scripts')
     if not os.path.exists(g.m.scriptsDir):
         os.makedirs(g.m.scriptsDir)
     scripts=os.listdir(g.m.scriptsDir)
     scripts=sorted(scripts,key=str.lower)
-    def makeFun(fun,script):
-        return lambda: fun(script)
+    def makeFun(script):
+        return lambda: g.m.scriptEditor.importScript(script)
+    actions = []
     for script in scripts:
         name=os.path.splitext(script)[0]
         script=os.path.join(g.m.scriptsDir,script)
-        g.m.menuScripts.addAction(QAction("&"+name, g.m, triggered=makeFun(ScriptEditor,script)))
+        actions.append(QAction("&"+name, g.m, triggered=makeFun(script)))
+    return actions
+
+def buildScriptsMenu():
+    g.m.menuScripts.clear()
+    g.m.menuScripts.addAction(QAction('Script Editor', g.m, triggered=g.m.scriptEditor.show))
     g.m.menuScripts.addSeparator()
-    g.m.menuScripts.addAction(QAction("&New...", g.m, triggered=ScriptEditor.gui))
+    for action in getScriptActions():
+        g.m.menuScripts.addAction(action)
+
 
 def newScript():
     filename= QFileDialog.getSaveFileName(g.m, 'Open File', g.m.scriptsDir, '*.py')
@@ -82,14 +87,15 @@ class Editor(QPlainTextEdit):
     def save_as(self):
         filename= str(QFileDialog.getSaveFileName(g.m, 'Save script', g.m.scriptsDir, '*.py'))
         if filename == '':
-            return
+            return False
         self.scriptfile = filename
         self.save()
+        return True
 
     def save(self):
         if not hasattr(self, 'scriptfile'):
-            print('This script has not been saved yet, please specify a filename')
-            self.save_as()
+            if not self.save_as():
+                return
         f = open(self.scriptfile, 'w')
         command=qstr2str(self.toPlainText())
         f.write(command)
@@ -120,11 +126,17 @@ class ScriptEditor(QMainWindow):
         self.actionFrom_File.triggered.connect(self.importScript)
         self.actionFrom_Window.triggered.connect(lambda : self.currentTab().setPlainText('\n'.join(g.m.currentWindow.commands)))
         self.actionSave_Script.triggered.connect(self.saveCurrentScript)
+        self.menuScripts.aboutToShow.connect(self.load_scripts)
         g.m.scriptEditor = self
         self.eventeater = ScriptEventEater(self)
         self.setAcceptDrops(True)
         self.installEventFilter(self.eventeater)
         self.scriptTabs.tabCloseRequested.connect(self.closeTab)
+
+    def load_scripts(self):
+        self.menuScripts.clear()
+        for action in getScriptActions():
+            self.menuScripts.addAction(action)
 
     def closeTab(self, index):
         self.scriptTabs.removeTab(index)
@@ -134,17 +146,21 @@ class ScriptEditor(QMainWindow):
         if cw == None:
             return
         cw.save()
-        self.scriptTabs.setTabText(cw.currentIndex(), os.path.basename(cw.scriptfile))
+        self.scriptTabs.setTabText(self.scriptTabs.currentIndex(), os.path.basename(cw.scriptfile))
 
     def currentTab(self):
         return self.scriptTabs.currentWidget()
 
     def importScript(self, scriptfile=''):
+        if not g.m.scriptEditor.isVisible():
+            self.show()
         if scriptfile == '':
             scriptfile= str(QFileDialog.getOpenFileName(self, 'Load script', g.m.scriptsDir, '*.py'))
             if scriptfile == '':
                 return
         cw = self.currentTab()
+        if cw == None or cw.toPlainText() != '':
+            cw = self.addEditor(scriptfile)
         cw.load_file(scriptfile)
         self.scriptTabs.setTabText(self.scriptTabs.currentIndex(), os.path.basename(cw.scriptfile))
     
@@ -157,6 +173,7 @@ class ScriptEditor(QMainWindow):
         self.scriptTabs.insertTab(0, e, scriptfile)
         self.scriptTabs.setCurrentIndex(0)
         self.setUpdatesEnabled(True)
+        return e
 
     def keyPressEvent(self, ev):
         if ev.key() == Qt.Key_N and ev.modifiers() == Qt.ControlModifier:
@@ -184,12 +201,6 @@ class ScriptEditor(QMainWindow):
         self.command=command
         command=qstr2str(command)
         self.consoleWidget.runCmd(command)
-
-    @staticmethod
-    def gui():
-        if g.m.scriptEditor == None:
-            g.m.scriptEditor = ScriptEditor()
-        g.m.scriptEditor.show()
 
 
 class ScriptEventEater(QObject):

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>310</width>
-    <height>79</height>
+    <width>537</width>
+    <height>119</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -133,8 +133,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>310</width>
-     <height>21</height>
+     <width>537</width>
+     <height>38</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -228,11 +228,6 @@
     <addaction name="menuFilters"/>
     <addaction name="actionImage_Calculator"/>
    </widget>
-   <widget class="QMenu" name="menuScripts">
-    <property name="title">
-     <string>Scripts</string>
-    </property>
-   </widget>
    <widget class="QMenu" name="menuDocs">
     <property name="title">
      <string>Help</string>
@@ -244,11 +239,18 @@
      <string>Plugins</string>
     </property>
    </widget>
+   <widget class="QMenu" name="menuScripts">
+    <property name="title">
+     <string>Scripts</string>
+    </property>
+    <addaction name="actionScript_Editor"/>
+    <addaction name="separator"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuImage"/>
    <addaction name="menuProcess"/>
-   <addaction name="menuScripts"/>
    <addaction name="menuPlugins"/>
+   <addaction name="menuScripts"/>
    <addaction name="menuDocs"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -505,6 +507,16 @@
   <action name="actionSettings">
    <property name="text">
     <string>Settings</string>
+   </property>
+  </action>
+  <action name="actionScript_Editor">
+   <property name="text">
+    <string>Script Editor</string>
+   </property>
+  </action>
+  <action name="actionNew">
+   <property name="text">
+    <string>New...</string>
    </property>
   </action>
  </widget>

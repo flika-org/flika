@@ -21,6 +21,7 @@ from trace import TraceFig
 from process.BaseProcess import BaseDialog
 import pyqtgraph as pg
 from plugin_manager import init_plugins
+from scripts import ScriptEditor
 
 data_types = ['uint8', 'uint16', 'uint32', 'uint64', 'int8', 'int16', 'int32', 'int64', 'float16', 'float32', 'float64']
 
@@ -114,6 +115,6 @@ def init(filename, title='Flika'):
 	m.currentTrace = None
 
 	m.clipboard = None
-	m.scriptEditor = None
+	m.scriptEditor = ScriptEditor()
 	m.setAcceptDrops(True)
 	m.closeEvent = mainguiClose
