@@ -1,3 +1,3 @@
 dependencies = ['xlrd']
 
-menu_layout = {'Global Analysis': 'GlobalAnalysis.gui'}
+menu_layout = {'Global Analysis': ['GlobalAnalysis', 'gui']}

@@ -43,7 +43,6 @@ class Simulate_Puffs(BaseProcess_noPriorWindow):
         return self.end()
 simulate_puffs=Simulate_Puffs()
 
-
 def generatePuffImage(amplitude=5):
     tif=tifffile.TIFFfile(os.path.join(cwd,'model_puff.stk'))
     model_puff=tif.asarray()

@@ -3,24 +3,29 @@ from glob import glob
 import global_vars as g
 from PyQt4.QtGui import *
 	
-def str2func(module_name, function): 
-    print('something')
-    names = function.split('.')
-    func_str = names[-1]
-    module_location = '.'.join(names[:-1])
-    plugins = "plugins.%s.%s" % (module_name, module_location)
-    module = __import__(plugins, fromlist=[func_str])
+def str2func(plugin_name, object_location, function):
+    '''
+    takes plugin_name, path to object, function as arguments
+    imports plugin_name.path and gets the function from that imported object
+    to be run when an action is clicked
+    '''
+    plugins = "plugins.%s" % (plugin_name)
+    module = __import__(plugins, fromlist=[object_location]).__dict__[object_location]
+    while '.' in function:
+        dot = function.find('.')
+        func, function = function[:dot], function[dot + 1:]
+        module = getattr(module, func)
     try:
-        return getattr(module, func_str)
+        return getattr(module, function)
     except:
-        raise Exception("Failed to import %s from module %s. Check name and try again." % (function, module_name)) # only alerts on python 3?
+        raise Exception("Failed to import %s from module %s. Check name and try again." % (function, module)) # only alerts on python 3?
 
-def get_lambda(mod_name, func):
-    return lambda : str2func(mod_name, func)()
+def get_lambda(mod_name, path, func):
+    return lambda : str2func(mod_name, path, func)()
 
 def build_plugin_menus(parentMenu, name, value, module_name):
-    if isinstance(value, str):
-        act = QAction(name, parentMenu, triggered=get_lambda(module_name, value))
+    if isinstance(value, list):
+        act = QAction(name, parentMenu, triggered=get_lambda(module_name, *value))
         parentMenu.addAction(act)
     elif isinstance(value, dict):
         #menu = QMenu(name)

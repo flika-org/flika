@@ -72,6 +72,7 @@ def get_newest_version(fnames):
 def download_file(download_url):
     req = Request(download_url,headers={'User-Agent':"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.132 Safari/537.36"})
     response = urlopen(req)
+    print("Downloading to %s" % download_url)
     f = open(basename(download_url), 'wb')
     the_page=response.read()
     f.write(the_page)
@@ -127,6 +128,7 @@ def install_wheel(dep):
         print("No support for installing binaries on non-windows machines")
         return
     wheel = get_wheel_url(dep)
+    print(wheel)
     if wheel != '':
         if not os.path.isfile(wheel):
             print('Downloading {}'.format(wheel))
@@ -135,7 +137,7 @@ def install_wheel(dep):
         install(basename(wheel))
         try:
             import_module(dep)
-            os.remove(fname) #if the installation was successful, remove the .whl file
+            os.remove(basename(wheel)) #if the installation was successful, remove the .whl file
         except:
             pass #if it wasn't successful, keep the .whl file.
 

@@ -15,17 +15,7 @@ from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 from trace import TraceFig
 
-__all__ = ['deinterleave','cropper','zproject','image_calculator','add_background', 'pixel_binning', 'frame_binning', 'average_trace']
-
-def average_trace():
-    if g.m.currentWindow == None:
-        return
-    if g.m.settings['multipleTraceWindows'] or g.m.currentTrace == None:
-        tf = TraceFig()
-    else:
-        tf = g.m.currentTrace
-    tf.addTrace(np.average(g.m.currentWindow.image, (2, 1)))
-    tf.indexChanged.connect(g.m.currentWindow.imageview.setCurrentIndex)
+__all__ = ['deinterleave','cropper','zproject','image_calculator','add_background', 'pixel_binning', 'frame_binning']
 
 class Deinterleave(BaseProcess):
     """ deinterleave(nChannels, keepSourceWindow=False)
