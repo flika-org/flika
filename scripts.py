@@ -103,6 +103,9 @@ class Editor(QPlainTextEdit):
         self.parent.statusBar().showMessage('{} saved.'.format(os.path.basename(self.scriptfile)))
 
 class ScriptEditor(QMainWindow):
+    '''
+    QMainWindow for editing and running user scripts. Comprised of a tabbed text editor and console.
+    '''
     def __init__(self, parent=None):
         QMainWindow.__init__(self, parent)
         uic.loadUi('gui/scriptEditor.ui', self)

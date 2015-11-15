@@ -46,7 +46,7 @@ class SetCurrentWindowSignal(QWidget):
 
 class Settings:
 	def __init__(self, name):
-		self.config_file=os.path.join(expanduser("~"),'.Configs','%s.p' % name)
+		self.config_file=os.path.join(expanduser("~"),'.FLIKA','%s.p' % name)
 		try:
 			self.d=pickle.load(open(self.config_file, "rb" ))
 		except (IOError, ValueError):
