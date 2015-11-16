@@ -15,7 +15,7 @@ from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 from trace import TraceFig
 
-__all__ = ['deinterleave','cropper','zproject','image_calculator','add_background', 'pixel_binning', 'frame_binning']
+__all__ = ['deinterleave','trim','zproject','image_calculator','add_background', 'pixel_binning', 'frame_binning']
 
 class Deinterleave(BaseProcess):
     """ deinterleave(nChannels, keepSourceWindow=False)
@@ -121,8 +121,8 @@ class Frame_binning(BaseProcess):
 frame_binning=Frame_binning()
 
 
-class Cropper(BaseProcess):
-    """ cropper(firstFrame,lastFrame,increment,keepSourceWindow=False)
+class Trim(BaseProcess):
+    """ trim(firstFrame,lastFrame,increment,keepSourceWindow=False)
     This creates a new stack from the frames between the firstFrame and the lastFrame
     
     Parameters:
@@ -156,7 +156,7 @@ class Cropper(BaseProcess):
         self.newtif=self.tif[firstFrame:lastFrame+1:increment]
         self.newname=self.oldname+' - Kept Stack'
         return self.end()
-cropper=Cropper()
+trim=Trim()
 
 
 class ZProject(BaseProcess):

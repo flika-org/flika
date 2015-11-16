@@ -134,7 +134,7 @@
      <x>0</x>
      <y>0</y>
      <width>537</width>
-     <height>38</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -163,7 +163,7 @@
      <property name="title">
       <string>Stacks</string>
      </property>
-     <addaction name="actionCrop_Frames"/>
+     <addaction name="actionTrim_Frames"/>
      <addaction name="actionDeinterleave"/>
      <addaction name="actionZ_Project"/>
      <addaction name="actionPixel_Binning"/>
@@ -314,9 +314,9 @@
     <string>Kymograph</string>
    </property>
   </action>
-  <action name="actionCrop_Frames">
+  <action name="actionTrim_Frames">
    <property name="text">
-    <string>Crop Frames</string>
+    <string>Trim Frames</string>
    </property>
   </action>
   <action name="actionPython_Interpreter">
