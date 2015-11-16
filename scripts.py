@@ -126,7 +126,7 @@ class ScriptEditor(QMainWindow):
         self.runButton.clicked.connect(self.runScript)
         self.runSelectedButton.clicked.connect(self.runSelected)
         self.actionNew_Script.triggered.connect(lambda f: self.addEditor())
-        self.actionFrom_File.triggered.connect(self.importScript)
+        self.actionFrom_File.triggered.connect(lambda f: self.importScript())
         self.actionFrom_Window.triggered.connect(lambda : self.currentTab().setPlainText('\n'.join(g.m.currentWindow.commands)))
         self.actionSave_Script.triggered.connect(self.saveCurrentScript)
         self.menuScripts.aboutToShow.connect(self.load_scripts)
