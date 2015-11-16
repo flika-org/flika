@@ -73,6 +73,7 @@ class Editor(QPlainTextEdit):
     def __init__(self, parent, scriptfile = ''):
         QWidget.__init__(self)
         self.parent = parent
+        self.scriptfile = ''
         if scriptfile != '':
             self.load_file(scriptfile)
         
@@ -93,7 +94,7 @@ class Editor(QPlainTextEdit):
         return True
 
     def save(self):
-        if not hasattr(self, 'scriptfile'):
+        if self.scriptfile == '':
             if not self.save_as():
                 return
         f = open(self.scriptfile, 'w')
@@ -127,7 +128,7 @@ class ScriptEditor(QMainWindow):
         self.runSelectedButton.clicked.connect(self.runSelected)
         self.actionNew_Script.triggered.connect(lambda f: self.addEditor())
         self.actionFrom_File.triggered.connect(lambda f: self.importScript())
-        self.actionFrom_Window.triggered.connect(lambda : self.currentTab().setPlainText('\n'.join(g.m.currentWindow.commands)))
+        self.actionFrom_Window.triggered.connect(lambda : self.loadFromWindow())
         self.actionSave_Script.triggered.connect(self.saveCurrentScript)
         self.menuScripts.aboutToShow.connect(self.load_scripts)
         g.m.scriptEditor = self
@@ -154,6 +155,12 @@ class ScriptEditor(QMainWindow):
     def currentTab(self):
         return self.scriptTabs.currentWidget()
 
+    def loadFromWindow(self, window=None):
+        if window == None:
+            window = g.m.currentWindow
+        editor = self.addEditor()
+        editor.setPlainText('\n'.join(window.commands))
+
     def importScript(self, scriptfile=''):
         if not g.m.scriptEditor.isVisible():
             self.show()
@@ -162,7 +169,7 @@ class ScriptEditor(QMainWindow):
             if scriptfile == '':
                 return
         cw = self.currentTab()
-        if cw == None or cw.toPlainText() != '':
+        if cw == None or cw.scriptfile != '':
             cw = self.addEditor(scriptfile)
         cw.load_file(scriptfile)
         self.scriptTabs.setTabText(self.scriptTabs.currentIndex(), os.path.basename(cw.scriptfile))
