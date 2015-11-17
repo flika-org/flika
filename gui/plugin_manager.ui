@@ -65,7 +65,7 @@
          <x>0</x>
          <y>0</y>
          <width>653</width>
-         <height>578</height>
+         <height>558</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_2">
@@ -219,6 +219,7 @@ p, li { white-space: pre-wrap; }
     </rect>
    </property>
   </widget>
+  <widget class="QStatusBar" name="statusBar"/>
  </widget>
  <resources/>
  <connections/>

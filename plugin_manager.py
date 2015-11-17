@@ -2,6 +2,7 @@ from dependency_check import *
 from glob import glob
 import global_vars as g
 from PyQt4.QtGui import *
+from PyQt4.QtCore import *
 from PyQt4 import uic
 from PyQt4.QtCore import Qt
 if sys.version_info.major==2:
@@ -118,16 +119,19 @@ class PluginManager(QMainWindow):
 
     def downloadClicked(self):
         plugin_name = self.pluginList.currentItem().text()
+        self.statusBar.showMessage('Opening %s' % self.link)
         data = urlopen(self.link).read()
         output = open("install.zip", "wb")
         output.write(data)
         output.close()
+        self.statusBar.showMessage('Extracting  %s' % plugin_name)
         with zipfile.ZipFile('install.zip', "r") as z:
             folder_name = z.namelist()[0]
             z.extractall("plugins\\")
         os.remove("install.zip")
         os.rename("plugins\\%s" % folder_name, 'plugins\\%s' % plugin_name)
         add_plugin_menu("plugins\\%s" % plugin_name)
+        self.statusBar.showMessage('Successfully installed %s' % plugin_name)
 
     def docsClicked(self):
         QDesktopServices.openUrl(QUrl(self.docs_link))
