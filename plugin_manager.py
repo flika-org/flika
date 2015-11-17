@@ -69,7 +69,7 @@ def init_plugins():
 
 class PluginManager(QMainWindow):
     def __init__(self):
-        super().__init__()
+        super(QMainWindow,self).__init__()
         uic.loadUi("gui/plugin_manager.ui", self)
         self.setPlugins(eval(urlopen('https://raw.githubusercontent.com/kyleellefsen/Flika_plugins/master/plugins.txt').read()))
         self.dl_link = None
