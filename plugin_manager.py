@@ -5,9 +5,9 @@ from PyQt4.QtGui import *
 from PyQt4 import uic
 from PyQt4.QtCore import Qt
 if sys.version_info.major==2:
-    from urllib2 import urlopen, URLopener
+    from urllib2 import urlopen
 elif sys.version_info.major==3:
-    from urllib.request import urlopen, URLopener
+    from urllib.request import urlopen
 import difflib
 import zipfile
 
@@ -132,8 +132,3 @@ class PluginManager(QMainWindow):
     def docsClicked(self):
         QDesktopServices.openUrl(QUrl(self.docs_link))
 
-    @staticmethod
-    def gui(self):
-        if not hasattr(g.m, 'pluginManager'):
-            g.m.pluginManager = PluginManager()
-        g.m.pluginManager.show()

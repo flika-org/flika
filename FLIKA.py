@@ -33,8 +33,7 @@ from process.measure import measure
 from process.file_ import open_file_gui, save_file_gui, open_file, load_metadata, close, save_file, save_movie, change_internal_data_type_gui, save_points, load_points, save_current_frame, save_roi_traces
 from roi import load_roi, makeROI
 from process.overlay import time_stamp,background, scale_bar
-from scripts import ScriptEditor, buildScriptsMenu
-from plugin_manager import PluginManager
+from scripts import buildScriptsMenu
 
 try:
     os.chdir(os.path.split(os.path.realpath(__file__))[0])
@@ -61,9 +60,9 @@ def initializeMainGui():
     g.m.rectangle.clicked.connect(lambda: g.m.settings.setmousemode('rectangle'))
     g.m.point.clicked.connect(lambda: g.m.settings.setmousemode('point'))
 
-    g.m.actionScript_Editor.triggered.connect(ScriptEditor.gui)
+    g.m.actionScript_Editor.triggered.connect(g.m.scriptEditor.show)
     g.m.menuScripts.aboutToShow.connect(buildScriptsMenu)
-    g.m.actionPlugin_Manager.triggered.connect(PluginManager.gui)
+    g.m.actionPlugin_Manager.triggered.connect(g.m.pluginManager.show)
 
     url='file:///'+os.path.join(os.getcwd(),'docs','_build','html','index.html')
     g.m.actionDocs.triggered.connect(lambda: QDesktopServices.openUrl(QUrl(url)))

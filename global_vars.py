@@ -111,6 +111,9 @@ def init(filename, title='Flika'):
 	m.currentWindow = None
 	m.currentTrace = None
 
+	m.pluginManager = PluginManager()
+	m.scriptEditor = ScriptEditor()
+
 	m.clipboard = None
 	m.setAcceptDrops(True)
 	m.closeEvent = mainguiClose
