@@ -43,7 +43,7 @@ class Window(QWidget):
         self.name=name
         self.filename=filename
         self.setAsCurrentWindow()
-        self.setWindowTitle(os.path.basename(name))
+        self.setWindowTitle(name)
         self.imageview=pg.ImageView(self)
         self.imageview.setMouseTracking(True)
         self.imageview.installEventFilter(self)

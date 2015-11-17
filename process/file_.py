@@ -90,7 +90,7 @@ def open_file(filename):
     g.m.statusBar().showMessage('{} successfully loaded ({} s)'.format(os.path.basename(filename), time.time()-t))
     g.m.settings['filename']=filename
     commands = ["open_file('{}')".format(filename)]
-    newWindow=Window(tif,filename,filename,commands,metadata)
+    newWindow=Window(tif,os.path.basename(filename),filename,commands,metadata)
     return newWindow
     
 def change_internal_data_type_gui():
