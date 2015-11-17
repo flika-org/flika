@@ -41,7 +41,6 @@ def buildScriptsMenu():
     for action in getScriptActions():
         g.m.menuScripts.addAction(action)
 
-
 def newScript():
     filename= QFileDialog.getSaveFileName(g.m, 'Open File', g.m.scriptsDir, '*.py')
     filename=str(filename)
@@ -70,12 +69,17 @@ def qstr2str(string):
     return string.replace(u'\u2029','\n')
 
 class Editor(QPlainTextEdit):
-    def __init__(self, parent, scriptfile = ''):
+    def __init__(self, scriptfile = ''):
         QWidget.__init__(self)
-        self.parent = parent
         self.scriptfile = ''
         if scriptfile != '':
             self.load_file(scriptfile)
+
+    @staticmethod
+    def fromWindow(self, window):
+        editor = Editor()
+        editor.setPlainText('\n'.join(window.commands))
+        return editor
         
     def load_file(self, scriptfile):
         self.scriptfile = scriptfile
@@ -83,11 +87,12 @@ class Editor(QPlainTextEdit):
         script=f.read()
         f.close()
         self.setPlainText(script)
-        self.parent.statusBar().showMessage('{} loaded.'.format(os.path.basename(self.scriptfile)))
+        g.m.statusBar().showMessage('{} loaded.'.format(os.path.basename(self.scriptfile)))
 
     def save_as(self):
         filename= str(QFileDialog.getSaveFileName(g.m, 'Save script', g.m.scriptsDir, '*.py'))
         if filename == '':
+            g.m.statusBar().showMessage('Save cancelled')
             return False
         self.scriptfile = filename
         self.save()
@@ -95,13 +100,13 @@ class Editor(QPlainTextEdit):
 
     def save(self):
         if self.scriptfile == '':
-            if not self.save_as():
-                return
+            return self.save_as()
         f = open(self.scriptfile, 'w')
         command=qstr2str(self.toPlainText())
         f.write(command)
         f.close()
-        self.parent.statusBar().showMessage('{} saved.'.format(os.path.basename(self.scriptfile)))
+        g.m.statusBar().showMessage('{} saved.'.format(os.path.basename(self.scriptfile)))
+        return True
 
 class ScriptEditor(QMainWindow):
     '''
@@ -128,7 +133,7 @@ class ScriptEditor(QMainWindow):
         self.runSelectedButton.clicked.connect(self.runSelected)
         self.actionNew_Script.triggered.connect(lambda f: self.addEditor())
         self.actionFrom_File.triggered.connect(lambda f: self.importScript())
-        self.actionFrom_Window.triggered.connect(lambda : self.loadFromWindow())
+        self.actionFrom_Window.triggered.connect(lambda : self.addEditor(Editor.fromWindow(g.m.currentWindow)))
         self.actionSave_Script.triggered.connect(self.saveCurrentScript)
         self.menuScripts.aboutToShow.connect(self.load_scripts)
         g.m.scriptEditor = self
@@ -149,46 +154,43 @@ class ScriptEditor(QMainWindow):
         cw = self.currentTab()
         if cw == None:
             return
-        cw.save()
-        self.scriptTabs.setTabText(self.scriptTabs.currentIndex(), os.path.basename(cw.scriptfile))
+        if cw.save():
+            self.scriptTabs.setTabText(self.scriptTabs.currentIndex(), os.path.basename(cw.scriptfile))
 
     def currentTab(self):
         return self.scriptTabs.currentWidget()
 
-    def loadFromWindow(self, window=None):
-        if window == None:
-            window = g.m.currentWindow
-        editor = self.addEditor()
-        editor.setPlainText('\n'.join(window.commands))
-
-    def importScript(self, scriptfile=''):
+    def importScript(self, scriptfile = ''):
         if not g.m.scriptEditor.isVisible():
             self.show()
         if scriptfile == '':
             scriptfile= str(QFileDialog.getOpenFileName(self, 'Load script', g.m.scriptsDir, '*.py'))
             if scriptfile == '':
                 return
-        cw = self.currentTab()
-        if cw == None or cw.scriptfile != '':
-            cw = self.addEditor(scriptfile)
-        cw.load_file(scriptfile)
-        self.scriptTabs.setTabText(self.scriptTabs.currentIndex(), os.path.basename(cw.scriptfile))
+        editor = Editor(scriptfile)
+        self.addEditor(editor)
     
-    def addEditor(self, scriptfile=''):
+    def addEditor(self, editor=None):
         self.setUpdatesEnabled(False)
-        e = Editor(self, scriptfile=scriptfile)
-        e.keyPressEvent = lambda ev: self.editorKeyPressEvent(e, ev)
-        if scriptfile == '':
-            scriptfile = 'New Script'
-        self.scriptTabs.insertTab(0, e, scriptfile)
+        if editor == None:
+            editor = Editor()
+        if editor.scriptfile == '':
+            name = 'New Script'
+        else:
+            name = editor.scriptfile
+        editor.keyPressEvent = lambda ev: self.editorKeyPressEvent(editor, ev)
+        self.scriptTabs.insertTab(0, editor, os.path.basename(name))
         self.scriptTabs.setCurrentIndex(0)
         self.setUpdatesEnabled(True)
-        return e
+        return editor
 
     def keyPressEvent(self, ev):
-        if ev.key() == Qt.Key_N and ev.modifiers() == Qt.ControlModifier:
-            self.addEditor()
-            ev.accept()
+        if ev.modifiers() == Qt.ControlModifier:
+            if ev.key() == Qt.Key_N:
+                self.addEditor()
+                ev.accept()
+            elif ev.key() == Qt.Key_S:
+                self.saveCurrentScript()
 
     def editorKeyPressEvent(self, editor, ev):
         if ev.key() == Qt.Key_F9:
@@ -207,7 +209,7 @@ class ScriptEditor(QMainWindow):
         if self.currentTab() == None:
             return
         cursor=self.currentTab().textCursor()
-        command=cursor.selectedText() #self=g.m.scriptEditor.editor; a=self.command
+        command=cursor.selectedText()
         self.command=command
         command=qstr2str(command)
         self.consoleWidget.runCmd(command)
