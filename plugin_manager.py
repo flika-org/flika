@@ -78,10 +78,14 @@ class PluginManager(QMainWindow):
         self.downloadButton.clicked.connect(self.downloadClicked)
         self.docsButton.clicked.connect(self.docsClicked)
         self.searchBox.textChanged.connect(self.search)
-        self.searchButton.clicked.connect(self.search)
-        self.pluginList.setSortingEnabled(True)
+        self.searchButton.clicked.connect(lambda f: self.search(self.searchBox.text()))
+        #self.pluginList.setSortingEnabled(True)
 
     def search(self, search_str):
+        if len(search_str) == 0:
+            self.sortPlugins(lambda name: name)
+        for plug in self.plugins:
+            print(plug['name'], search_str, -difflib.SequenceMatcher(None, plug['name'].lower(), search_str.lower()).ratio() - int(search_str.lower() in plug['name'].lower()))
         self.sortPlugins(lambda name: -difflib.SequenceMatcher(None, name.lower(), search_str.lower()).ratio() - int(search_str.lower() in name.lower()))
 
     def sortPlugins(self, func):
