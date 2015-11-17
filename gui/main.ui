@@ -238,6 +238,8 @@
     <property name="title">
      <string>Plugins</string>
     </property>
+    <addaction name="actionPlugin_Manager"/>
+    <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuScripts">
     <property name="title">
@@ -517,6 +519,11 @@
   <action name="actionNew">
    <property name="text">
     <string>New...</string>
+   </property>
+  </action>
+  <action name="actionPlugin_Manager">
+   <property name="text">
+    <string>Plugin Manager</string>
    </property>
   </action>
  </widget>

@@ -214,6 +214,11 @@ class ScriptEditor(QMainWindow):
         command=qstr2str(command)
         self.consoleWidget.runCmd(command)
 
+    def gui(self):
+        if not hasattr(g.m, 'scriptEditor'):
+            g.m.scriptEditor = ScriptEditor()
+        g.m.scriptEditor.show()
+
 
 class ScriptEventEater(QObject):
     def __init__(self,parent=None):

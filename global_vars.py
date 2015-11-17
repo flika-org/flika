@@ -20,22 +20,19 @@ from window import Window
 from trace import TraceFig
 from process.BaseProcess import BaseDialog
 import pyqtgraph as pg
-from plugin_manager import init_plugins
+from plugin_manager import init_plugins, PluginManager
 from scripts import ScriptEditor
 
 data_types = ['uint8', 'uint16', 'uint32', 'uint64', 'int8', 'int16', 'int32', 'int64', 'float16', 'float32', 'float64']
 
 def mainguiClose(event):
 	global m
-	windows=m.windows[:]
-	for window in windows:
-		window.close()
-	for trace in m.traceWindows[:]:
-		trace.close()
-	if m.scriptEditor is not None:
+	for win in m.windows[:] + m.traceWindows[:] + m.dialogs[:]:
+		win.close()
+	if hasattr(m, 'scriptEditor') and m.scriptEditor is not None:
 		m.scriptEditor.close()
-	for dialog in m.dialogs[:]:
-		dialog.close()
+	if hasattr(m, 'pluginManager') and m.pluginManager is not None:
+		m.pluginManager.close()
 	event.accept() # let the window close
 
 class SetCurrentWindowSignal(QWidget):
@@ -115,6 +112,5 @@ def init(filename, title='Flika'):
 	m.currentTrace = None
 
 	m.clipboard = None
-	m.scriptEditor = ScriptEditor()
 	m.setAcceptDrops(True)
 	m.closeEvent = mainguiClose
