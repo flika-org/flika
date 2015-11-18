@@ -67,5 +67,4 @@ develop-eggs/
 pip-log.txt
 
 
-plugins/**
-!plugins/__init__.py
+plugins/
