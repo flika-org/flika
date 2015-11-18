@@ -86,13 +86,11 @@ class PluginManager(QMainWindow):
     def search(self, search_str):
         if len(search_str) == 0:
             self.sortPlugins(lambda name: name)
-        for plug in self.plugins:
-            print(plug['name'], search_str, -difflib.SequenceMatcher(None, plug['name'].lower(), search_str.lower()).ratio() - int(search_str.lower() in plug['name'].lower()))
         self.sortPlugins(lambda name: -difflib.SequenceMatcher(None, name.lower(), search_str.lower()).ratio() - int(search_str.lower() in name.lower()))
 
     def sortPlugins(self, func):
         self.clearList()
-        names = sorted([p['name'] for p in self.plugins], key=func)
+        names = sorted([p for p in self.plugins], key=func)
         for name in names:
             self.pluginList.addItem(name)
 
@@ -101,16 +99,14 @@ class PluginManager(QMainWindow):
             self.pluginList.takeItem(0)
 
     def setPlugins(self, plugins):
-        self.plugins = []
+        self.plugins = plugins
         self.clearList()
-
         for plugin in plugins:
-            self.plugins.append(plugin)
-            self.pluginList.addItem(plugin['name'])
+            self.pluginList.addItem(plugin)
 
     def pluginSelected(self, item):
-        plugin = [p for p in self.plugins if p['name'] == item.text()][0]
-        self.pluginLabel.setText(plugin['name'])
+        plugin = self.plugins[item.text()]
+        self.pluginLabel.setText(item.text())
         self.descriptionLabel.setText(plugin['description'])
         info = ''
         if "author" in plugin:
