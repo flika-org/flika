@@ -68,4 +68,5 @@ pip-log.txt
 
 
 plugins/**
+!/plugins
 !/plugins/__init__.py
