@@ -22,6 +22,7 @@ from process.BaseProcess import BaseDialog
 import pyqtgraph as pg
 from plugin_manager import init_plugins, PluginManager
 from scripts import ScriptEditor
+from plugin_manager import PluginManager
 
 data_types = ['uint8', 'uint16', 'uint32', 'uint64', 'int8', 'int16', 'int32', 'int64', 'float16', 'float32', 'float64']
 
@@ -29,10 +30,8 @@ def mainguiClose(event):
     global m
     for win in m.windows[:] + m.traceWindows[:] + m.dialogs[:]:
         win.close()
-    if m.scriptEditor.isVisible():
-        m.scriptEditor.close()
-    if m.pluginManager.isVisible():
-        m.pluginManager.close()
+    ScriptEditor.close()
+    PluginManager.close()
     event.accept() # let the window close
 
 class SetCurrentWindowSignal(QWidget):
@@ -109,9 +108,6 @@ def init(filename, title='Flika'):
     m.dialogs = []
     m.currentWindow = None
     m.currentTrace = None
-
-    m.pluginManager = PluginManager()
-    m.scriptEditor = ScriptEditor()
 
     m.clipboard = None
     m.setAcceptDrops(True)

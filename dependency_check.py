@@ -117,9 +117,9 @@ def install(dep):
         print('Trying to install %s from Gohlke on win32 only' % dep)
         try:
             install_wheel(dep)
-            print('Successfully installed %d' % dep)
-        except:
-            print('Could not install %s' % dep)
+            print('Successfully installed %s' % dep)
+        except Exception as e:
+            print('Could not install %s: %s' % (dep, e))
 
     os.chdir(old_cwd)  
         
@@ -128,18 +128,21 @@ def install_wheel(dep):
         print("No support for installing binaries on non-windows machines")
         return
     wheel = get_wheel_url(dep)
-    print(wheel)
     if wheel != '':
         if not os.path.isfile(wheel):
             print('Downloading {}'.format(wheel))
             download_file(base_url+wheel)
         print('Installing {}'.format(wheel))
-        install(basename(wheel))
+        old_cwd=os.getcwd()
+        flika_dir=os.path.join(expanduser("~"),'.FLIKA')
+        pip.main(['install', os.path.basename(wheel)])
+        
         try:
             import_module(dep)
             os.remove(basename(wheel)) #if the installation was successful, remove the .whl file
         except:
             pass #if it wasn't successful, keep the .whl file.
+        os.chdir(old_cwd)
 
 def check_dependencies(*args):
     for dep in args:
