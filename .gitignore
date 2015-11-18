@@ -65,3 +65,7 @@ develop-eggs/
 
 # Installer logs
 pip-log.txt
+
+
+plugins/**
+!plugins/__init__.py

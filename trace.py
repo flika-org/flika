@@ -70,20 +70,19 @@ class TraceFig(QWidget):
         self.p1.scene().sigMouseClicked.connect(self.measure.pointclicked)
         self.p1.scene().sigMouseClicked.connect(self.setCurrentTraceWindow)
         self.resizeEvent = self.onResize
+        self.moveEvent = self.onMove
         self.show()
         if 'tracefig_settings' not in g.m.settings.d.keys():
             g.m.settings['tracefig_settings']=dict()
             try:
                 g.m.settings['tracefig_settings']['coords']=self.geometry().getRect()
             except Exception as e:
-                print(e)
-            print(self.geometry().getRect())
-        
+                print(e)        
         
     def onResize(self,event):
-        self.event=event
         g.m.settings['tracefig_settings']['coords']=self.geometry().getRect()
-        print(self.geometry().getRect())
+    def onMove(self,event):
+        g.m.settings['tracefig_settings']['coords']=self.geometry().getRect()
         
     def setCurrentTraceWindow(self):
         if g.m.currentTrace is not None:
