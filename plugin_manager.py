@@ -80,6 +80,7 @@ class PluginManager(QMainWindow):
         self.searchBox.textChanged.connect(self.search)
         self.searchButton.clicked.connect(self.search)
         self.pluginList.setSortingEnabled(True)
+        self.setWindowTitle('Plugin Manager')
 
     def search(self, search_str):
         self.sortPlugins(lambda name: -difflib.SequenceMatcher(None, name.lower(), search_str.lower()).ratio() - int(search_str.lower() in name.lower()))

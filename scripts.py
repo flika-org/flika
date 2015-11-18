@@ -141,6 +141,7 @@ class ScriptEditor(QMainWindow):
         self.setAcceptDrops(True)
         self.installEventFilter(self.eventeater)
         self.scriptTabs.tabCloseRequested.connect(self.closeTab)
+        self.setWindowTitle('Script Editor')
 
     def load_scripts(self):
         self.menuScripts.clear()
