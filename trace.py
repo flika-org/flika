@@ -23,10 +23,14 @@ class TraceFig(QWidget):
     name = "Trace Widget"
     def __init__(self):
         super(TraceFig,self).__init__()
+        
+                
+                
         g.m.traceWindows.append(self)
         self.setCurrentTraceWindow()
         #roi.translated.connect(lambda: self.translated(roi))
-        #self.setGeometry(QRect(8,150,1901,296))
+        if 'tracefig_settings' in g.m.settings.d.keys() and 'coords' in g.m.settings['tracefig_settings']:
+            self.setGeometry(QRect(*g.m.settings['tracefig_settings']['coords']))
         self.label = pg.LabelItem(justify='right')
         self.l = QVBoxLayout()
         self.setLayout(self.l)
@@ -65,8 +69,22 @@ class TraceFig(QWidget):
         self.measure=measure
         self.p1.scene().sigMouseClicked.connect(self.measure.pointclicked)
         self.p1.scene().sigMouseClicked.connect(self.setCurrentTraceWindow)
+        self.resizeEvent = self.onResize
         self.show()
-
+        if 'tracefig_settings' not in g.m.settings.d.keys():
+            g.m.settings['tracefig_settings']=dict()
+            try:
+                g.m.settings['tracefig_settings']['coords']=self.geometry().getRect()
+            except Exception as e:
+                print(e)
+            print(self.geometry().getRect())
+        
+        
+    def onResize(self,event):
+        self.event=event
+        g.m.settings['tracefig_settings']['coords']=self.geometry().getRect()
+        print(self.geometry().getRect())
+        
     def setCurrentTraceWindow(self):
         if g.m.currentTrace is not None:
             g.m.currentTrace.setStyleSheet("border:1px solid rgb(0, 0, 0); ")
