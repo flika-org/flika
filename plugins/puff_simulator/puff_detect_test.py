@@ -12,7 +12,7 @@ import tifffile
 import os
 import numpy.random as random
 import shutil
-from window import Window
+from window import Windows
 import global_vars as g
 from process.file_ import close
 from process.filters import gaussian_blur
@@ -121,6 +121,22 @@ def detect_simulated_puffs():
                       maxSigmaForGaussianFit=20,
                       load_flika_file=True)
 
+class Simulate_Blips(BaseProcess_noPriorWindow):
+    def __init__(self):
+        super().__init__()
+    def gui(self):
+        self.gui_reset()
+        nFrames=SliderLabel(0)
+        nFrames.setRange(0,10000)
+        self.items.append({'name':'nFrames','string':'Movie Duration (frames)','object':nFrames})
+        super().gui()
+    def __call__(self,nFrames=10000):
+        print('called')
+        self.start()
+        self.newtif=generateBlipImage()
+        self.newname=' Simulated Blips '
+        return self.end()
+simulate_blips=Simulate_Blips()
 
 def generateBlip(sigma=1,amplitude=1,duration=1):
     sigma=int(sigma)
@@ -136,7 +152,7 @@ def generateBlip(sigma=1,amplitude=1,duration=1):
     return blip
     
 
-def generateBlips(amplitude=1):
+def generateBlipImage(amplitude=1):
     A = random.randn(1100,128,128) # tif.asarray() # A[t,y,x]
     
     #puffArray=[ x,    y,   ti, sigma, amplitude, duration] to create puffs
@@ -172,7 +188,7 @@ def generateBlips(amplitude=1):
         y=np.arange(y-dy,y+dy+1,dtype=np.int)
         x=np.arange(x-dx,x+dx+1,dtype=np.int)
         A[np.ix_(t,y,x)]=A[np.ix_(t,y,x)]+amplitude*blip
-    return A
+    return Window(A)
 
 def detect_simulated_blips(amplitude=1):
     tmpdir=os.path.join(os.path.dirname(g.m.settings.config_file),'tmp')
