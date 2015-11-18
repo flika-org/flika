@@ -12,7 +12,7 @@ import tifffile
 import os
 import numpy.random as random
 import shutil
-from window import Windows
+from window import Window
 import global_vars as g
 from process.file_ import close
 from process.filters import gaussian_blur
