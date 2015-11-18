@@ -4,7 +4,6 @@ import global_vars as g
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 from PyQt4 import uic
-from PyQt4.QtCore import Qt
 if sys.version_info.major==2:
     from urllib2 import urlopen
 elif sys.version_info.major==3:
@@ -78,6 +77,7 @@ class PluginManager(QMainWindow):
         self.downloadButton.clicked.connect(self.downloadClicked)
         self.docsButton.clicked.connect(self.docsClicked)
         self.searchBox.textChanged.connect(self.search)
+        self.updateButton.hide()
 
         self.searchButton.clicked.connect(lambda f: self.search(self.searchBox.text()))
         #self.pluginList.setSortingEnabled(True)
@@ -131,12 +131,18 @@ class PluginManager(QMainWindow):
         output.write(data)
         output.close()
         self.statusBar.showMessage('Extracting  %s' % plugin_name)
+
         with zipfile.ZipFile('install.zip', "r") as z:
-            folder_name = z.namelist()[0]
+            try:
+                folder_name = os.path.dirname(z.namelist()[0])
+            except:
+                self.statusBar.showMessage('No __init__ file found.')
             z.extractall("plugins\\")
+
         os.remove("install.zip")
-        os.rename("plugins\\%s" % folder_name, 'plugins\\%s' % plugin_name)
-        add_plugin_menu("plugins\\%s" % plugin_name)
+        base_dir = __import__('plugins', fromlist=[folder_name]).__dict__[folder_name].base_dir
+        os.rename("plugins\\%s" % folder_name, 'plugins\\%s' % base_dir)
+        add_plugin_menu("plugins\\%s" % base_dir)
         self.statusBar.showMessage('Successfully installed %s' % plugin_name)
 
     def docsClicked(self):

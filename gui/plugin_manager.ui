@@ -85,6 +85,16 @@
            </spacer>
           </item>
           <item>
+           <widget class="QPushButton" name="updateButton">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>Update</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QPushButton" name="docsButton">
             <property name="enabled">
              <bool>false</bool>

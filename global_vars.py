@@ -29,9 +29,9 @@ def mainguiClose(event):
     global m
     for win in m.windows[:] + m.traceWindows[:] + m.dialogs[:]:
         win.close()
-    if hasattr(m, 'scriptEditor') and m.scriptEditor is not None:
+    if m.scriptEditor.isVisible():
         m.scriptEditor.close()
-    if hasattr(m, 'pluginManager') and m.pluginManager is not None:
+    if m.pluginManager.isVisible():
         m.pluginManager.close()
     event.accept() # let the window close
 
