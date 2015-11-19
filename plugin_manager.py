@@ -14,22 +14,25 @@ import time, shutil
 
 
     
-def str2func(plugin_name, object_location, function):
+def str2func(plugin_name, file_location, function):
     '''
     takes plugin_name, path to object, function as arguments
     imports plugin_name.path and gets the function from that imported object
     to be run when an action is clicked
     '''
-    plugins = "plugins.%s" % (plugin_name)
-    module = __import__(plugins, fromlist=[object_location]).__dict__[object_location]
-    while '.' in function:
-        dot = function.find('.')
-        func, function = function[:dot], function[dot + 1:]
-        module = getattr(module, func)
+    plugin_dir = "plugins.%s.%s" % (plugin_name, file_location)
+    levels = function.split('.')
     try:
-        return getattr(module, function)
+        module = __import__(plugin_dir, fromlist=[levels[0]]).__dict__[levels[0]]
     except:
-        raise Exception("Failed to import %s from module %s. Check name and try again." % (function, module)) # only alerts on python 3?
+        raise Exception("No attribute %s of module %s" % (levels[0], plugin_dir))
+    for i in range(1, len(levels)):
+        try:
+            module = getattr(module, levels[i])
+        except:
+            raise Exception("Failed to import %s from module %s. Check name and try again." % (levels[i], module)) # only alerts on python 3?
+    return module
+    
 
 def get_lambda(mod_name, path, func):
     return lambda : str2func(mod_name, path, func)()
@@ -98,8 +101,10 @@ class PluginManager(QMainWindow):
                 continue
             base_dir = os.path.basename(p)
             module = __import__('plugins', fromlist=[base_dir]).__dict__[base_dir]
-            PluginManager.installed_plugins[module.name] = {'base_dir': module.base_dir, 'date': module.date}
-
+            try:
+                PluginManager.installed_plugins[module.name] = {'base_dir': module.base_dir, 'date': module.date}
+            except:
+                print('Could not load plugin %s. Open plugin manager to download it again.' % base_dir)
         PluginManager.all_plugins = eval(urlopen(PluginManager.PLUGIN_LIST_URL).read())
         PluginManager.gui.updateList()
 
@@ -176,6 +181,9 @@ class PluginManager(QMainWindow):
         for plugin in self.all_plugins:
             item=PluginManager.makeListWidgetItem(plugin)
             self.pluginList.addItem(item)
+
+        if self.pluginList.currentItem() == None:
+            self.pluginList.setCurrentItem(self.pluginList.item(0))
 
     def pluginSelected(self, item):
         if item == None:
