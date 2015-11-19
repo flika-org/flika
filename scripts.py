@@ -26,7 +26,7 @@ def getScriptActions():
     scripts=os.listdir(g.m.scriptsDir)
     scripts=sorted(scripts,key=str.lower)
     def makeFun(script):
-        return lambda: g.m.scriptEditor.importScript(script)
+        return lambda: ScriptEditor.importScript(script)
     actions = []
     for script in scripts:
         name=os.path.splitext(script)[0]
@@ -36,7 +36,7 @@ def getScriptActions():
 
 def buildScriptsMenu():
     g.m.menuScripts.clear()
-    g.m.menuScripts.addAction(QAction('Script Editor', g.m, triggered=g.m.scriptEditor.show))
+    g.m.menuScripts.addAction(QAction('Script Editor', g.m, triggered=ScriptEditor.show))
     g.m.menuScripts.addSeparator()
     for action in getScriptActions():
         g.m.menuScripts.addAction(action)
@@ -76,7 +76,7 @@ class Editor(QPlainTextEdit):
             self.load_file(scriptfile)
 
     @staticmethod
-    def fromWindow(self, window):
+    def fromWindow(window):
         editor = Editor()
         editor.setPlainText('\n'.join(window.commands))
         return editor
@@ -132,11 +132,10 @@ class ScriptEditor(QMainWindow):
         self.runButton.clicked.connect(self.runScript)
         self.runSelectedButton.clicked.connect(self.runSelected)
         self.actionNew_Script.triggered.connect(lambda f: self.addEditor())
-        self.actionFrom_File.triggered.connect(lambda f: self.importScript())
+        self.actionFrom_File.triggered.connect(lambda f: ScriptEditor.importScript())
         self.actionFrom_Window.triggered.connect(lambda : self.addEditor(Editor.fromWindow(g.m.currentWindow)))
         self.actionSave_Script.triggered.connect(self.saveCurrentScript)
         self.menuScripts.aboutToShow.connect(self.load_scripts)
-        g.m.scriptEditor = self
         self.eventeater = ScriptEventEater(self)
         self.setAcceptDrops(True)
         self.installEventFilter(self.eventeater)
@@ -161,15 +160,16 @@ class ScriptEditor(QMainWindow):
     def currentTab(self):
         return self.scriptTabs.currentWidget()
 
-    def importScript(self, scriptfile = ''):
-        if not g.m.scriptEditor.isVisible():
-            self.show()
+    @staticmethod
+    def importScript(scriptfile = ''):
+        if not ScriptEditor.gui.isVisible():
+            ScriptEditor.gui.show()
         if scriptfile == '':
-            scriptfile= str(QFileDialog.getOpenFileName(self, 'Load script', g.m.scriptsDir, '*.py'))
+            scriptfile= str(QFileDialog.getOpenFileName(ScriptEditor.gui, 'Load script', g.m.scriptsDir, '*.py'))
             if scriptfile == '':
                 return
         editor = Editor(scriptfile)
-        self.addEditor(editor)
+        ScriptEditor.gui.addEditor(editor)
     
     def addEditor(self, editor=None):
         self.setUpdatesEnabled(False)
@@ -215,6 +215,17 @@ class ScriptEditor(QMainWindow):
         command=qstr2str(command)
         self.consoleWidget.runCmd(command)
 
+    @staticmethod
+    def show():
+        if not hasattr(ScriptEditor, 'gui'):
+            ScriptEditor.gui = ScriptEditor()
+        QMainWindow.show(ScriptEditor.gui)
+
+    @staticmethod
+    def close():
+        if hasattr(ScriptEditor, 'gui'):
+            QMainWindow.close(ScriptEditor.gui)
+
 class ScriptEventEater(QObject):
     def __init__(self,parent=None):
         QObject.__init__(self,parent)
@@ -231,7 +242,7 @@ class ScriptEventEater(QObject):
                 filename=url.toString()
                 filename=filename.split('file:///')[1]
                 print('filename={}'.format(filename))
-                self.parent.importScript(filename)  #This fails on windows symbolic links.  http://stackoverflow.com/questions/15258506/os-path-islink-on-windows-with-python
+                ScriptEditor.importScript(filename)  #This fails on windows symbolic links.  http://stackoverflow.com/questions/15258506/os-path-islink-on-windows-with-python
                 event.accept()
             else:
                 event.ignore()
