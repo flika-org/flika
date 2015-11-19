@@ -29,21 +29,31 @@ from process.BaseProcess import BaseProcess_noPriorWindow, WindowSelector, Missi
 class Simulate_Puffs(BaseProcess_noPriorWindow):
     def __init__(self):
         super().__init__()
+        self.puffs=None
     def gui(self):
         self.gui_reset()
         nFrames=SliderLabel(0)
         nFrames.setRange(0,10000)
+        nFrames.setValue(1000)
+        puffAmplitude=SliderLabel(2)
+        puffAmplitude.setRange(0,10)
+        puffAmplitude.setValue(5)
+        nPuffs=SliderLabel(0)
+        nPuffs.setRange(1,100)
+        nPuffs.setValue(10)
         self.items.append({'name':'nFrames','string':'Movie Duration (frames)','object':nFrames})
+        self.items.append({'name':'puffAmplitude','string':'Amplitude of puffs (multiples of SNR)','object':puffAmplitude})
+        self.items.append({'name':'nPuffs','string':'number of puffs','object': nPuffs})
         super().gui()
-    def __call__(self,nFrames=10000):
+    def __call__(self,nFrames=10000,puffAmplitude=5,nPuffs=10):
         print('called')
         self.start()
-        self.newtif=generatePuffImage()
+        self.newtif,self.puffs=generatePuffImage(nFrames,puffAmplitude,nPuffs)
         self.newname=' Simulated Puffs '
         return self.end()
 simulate_puffs=Simulate_Puffs()
 
-def generatePuffImage(amplitude=5):
+def generatePuffImage(nFrames=10000,puffAmplitude=5,nPuffs=10):
     tif=tifffile.TIFFfile(os.path.join(cwd,'model_puff.stk'))
     model_puff=tif.asarray()
     model_puff=model_puff.reshape(model_puff.shape[0:3])
@@ -51,37 +61,53 @@ def generatePuffImage(amplitude=5):
     model_puff-=model_puff[0:10].mean(0) #subtract baseline
     model_puff/=model_puff.max() # divide by max to normalize
     
-    A = random.randn(1100,128,128) # tif.asarray() # A[t,y,x]
+    mx,my=128,128
+    A = random.randn(nFrames,mx,my) 
     
     #puffArray=[ x,    y,   ti, ] to create puffs
-    puffArray=[[ 10,    115,  50 ], 
-               [ 40,   22,   100],  
-               [ 110,  10,   150], 
-               [ 118,  76,   200], 
-               [ 50,   50,   250], 
-               [ 113,  10,   300],
-               [ 11,   117,  350],
-               [ 15,   22,   400],
-               [ 65,   64,   450],
-               [ 114,  110,  500],
-               [ 10,   115,  550 ], 
-               [ 40,   22,   600],  
-               [ 110,  10,   650], 
-               [ 118,  76,   700], 
-               [ 50,   50,   750], 
-               [ 113,  10,   800],
-               [ 11,   117,  850],
-               [ 15,   22,   900],
-               [ 65,   64,   950],
-               [ 114,  110,  1000]]
-               
-    (dt,dy,dx)=model_puff.shape  
-    for p in puffArray:
-        t=np.arange(p[2],p[2]+dt,dtype=np.int)
-        y=np.arange(p[1]-dy/2,p[1]+dy/2,dtype=np.int)
-        x=np.arange(p[0]-dx/2,p[0]+dx/2,dtype=np.int)
-        A[np.ix_(t,y,x)]=A[np.ix_(t,y,x)]+amplitude*model_puff
-    return Window(A)
+#    puffArray=[[ 10,    115,  50 ], 
+#               [ 40,   22,   100],  
+#               [ 110,  10,   150], 
+#               [ 118,  76,   200], 
+#               [ 50,   50,   250], 
+#               [ 113,  10,   300],
+#               [ 11,   117,  350],
+#               [ 15,   22,   400],
+#               [ 65,   64,   450],
+#               [ 114,  110,  500],
+#               [ 10,   115,  550 ], 
+#               [ 40,   22,   600],  
+#               [ 110,  10,   650], 
+#               [ 118,  76,   700], 
+#               [ 50,   50,   750], 
+#               [ 113,  10,   800],
+#               [ 11,   117,  850],
+#               [ 15,   22,   900],
+#               [ 65,   64,   950]]
+#               
+#    (dt,dy,dx)=model_puff.shape  
+#    for p in puffArray:
+#        t=np.arange(p[2],p[2]+dt,dtype=np.int)
+#        y=np.arange(p[1]-dy/2,p[1]+dy/2,dtype=np.int)
+#        x=np.arange(p[0]-dx/2,p[0]+dx/2,dtype=np.int)
+#        A[np.ix_(t,y,x)]=A[np.ix_(t,y,x)]+puffAmplitude*model_puff
+    
+    (dt,dy,dx)=model_puff.shape 
+    puffs=[]
+    for i in np.arange(nPuffs):
+        t=random.randint(0,nFrames-dt)
+        x=random.randint(0,mx-dx)
+        y=random.randint(0,my-dy)
+        tt=np.arange(t,t+dt,dtype=np.int)
+        xx=np.arange(x,x+dx,dtype=np.int)
+        yy=np.arange(y,y+dy,dtype=np.int)
+        # check if they are too close to other events
+        if False:
+            continue
+        A[np.ix_(tt,yy,xx)]=A[np.ix_(tt,yy,xx)]+puffAmplitude*model_puff
+        puffs.append([t,x,y])
+    #puffs=np.array(puffs)
+    return Window(A),puffs
     
 def detect_simulated_puffs():
     tmpdir=os.path.join(os.path.dirname(g.m.settings.config_file),'tmp')
