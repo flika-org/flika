@@ -23,6 +23,7 @@ import shutil, subprocess
 import tifffile
 import json
 import re
+import nd2reader
 
 __all__ = ['open_file_gui','open_file','save_file_gui','save_file','save_movie','load_metadata','save_metadata','close', 'load_points', 'save_points', 'change_internal_data_type_gui', 'save_current_frame']
 
@@ -65,32 +66,48 @@ def save_roi_traces(filename):
 def open_file(filename):
     g.m.statusBar().showMessage('Loading {}'.format(os.path.basename(filename)))
     t=time.time()
-    Tiff=tifffile.TiffFile(filename)
-    try:
-        metadata=Tiff[0].image_description
-        metadata = txt2dict(metadata)
-    except AttributeError:
-        metadata=dict()
-    tif=Tiff.asarray().astype(g.m.settings['internal_data_type'])
-    Tiff.close()
-    #tif=imread(filename,plugin='tifffile').astype(g.m.settings['internal_data_type'])
-    if len(tif.shape)>3: # WARNING THIS TURNS COLOR movies TO BLACK AND WHITE BY AVERAGING ACROSS THE THREE CHANNELS
-        if 'channels' in metadata.keys() and 'ImageJ' in metadata.keys():
-            tif=np.transpose(tif,(0,3,2,1))
-        tif=np.mean(tif,3)
-    tif=np.squeeze(tif) #this gets rid of the meaningless 4th dimention in .stk files
-    if len(tif.shape)==3: #this could either be a movie or a colored still frame
-        if tif.shape[2]==3: #this is probably a colored still frame
-            tif=np.mean(tif,2)
-            tif=np.transpose(tif,(1,0)) # This keeps the x and y the same as in FIJI. 
-        else:
-            tif=np.transpose(tif,(0,2,1)) # This keeps the x and y the same as in FIJI. 
-    elif len(tif.shape)==2: # I haven't tested whether this preserved the x y and keeps it the same as in FIJI.  TEST THIS!!
-        tif=np.transpose(tif,(1,0))
+    metadata=dict()
+    ext=os.path.splitext(filename)[1]
+    if ext in ['.tif', '.stk', '.tiff']:
+        Tiff=tifffile.TiffFile(filename)
+        try:
+            metadata=Tiff[0].image_description
+            metadata = txt2dict(metadata)
+        except AttributeError:
+            metadata=dict()
+        A=Tiff.asarray().astype(g.m.settings['internal_data_type'])
+        Tiff.close()
+        #A=imread(filename,plugin='tifffile').astype(g.m.settings['internal_data_type'])
+        if len(A.shape)>3: # WARNING THIS TURNS COLOR movies TO BLACK AND WHITE BY AVERAGING ACROSS THE THREE CHANNELS
+            if 'channels' in metadata.keys() and 'ImageJ' in metadata.keys():
+                A=np.transpose(A,(0,3,2,1))
+            A=np.mean(A,3)
+        A=np.squeeze(A) #this gets rid of the meaningless 4th dimention in .stk files
+        if len(A.shape)==3: #this could either be a movie or a colored still frame
+            if A.shape[2]==3: #this is probably a colored still frame
+                A=np.mean(A,2)
+                A=np.transpose(A,(1,0)) # This keeps the x and y the same as in FIJI. 
+            else:
+                A=np.transpose(A,(0,2,1)) # This keeps the x and y the same as in FIJI. 
+        elif len(A.shape)==2: # I haven't tested whether this preserved the x y and keeps it the same as in FIJI.  TEST THIS!!
+            A=np.transpose(A,(1,0))
+    elif ext=='.nd2':
+        nd2 = nd2reader.Nd2(filename)
+        mt,mx,my=len(nd2),nd2.width,nd2.height
+        A=np.zeros((mt,mx,my))
+        for frame in np.arange(mt):
+            A[frame]=nd2[frame].T
+        metadata['channels']=nd2.channels
+        metadata['date']=nd2.date
+        metadata['fields_of_view']=nd2.fields_of_view
+        metadata['frames']=nd2.frames
+        metadata['height']=nd2.height
+        metadata['width']=nd2.width
+        metadata['z_levels']=nd2.z_levels
     g.m.statusBar().showMessage('{} successfully loaded ({} s)'.format(os.path.basename(filename), time.time()-t))
     g.m.settings['filename']=filename
     commands = ["open_file('{}')".format(filename)]
-    newWindow=Window(tif,os.path.basename(filename),filename,commands,metadata)
+    newWindow=Window(A,os.path.basename(filename),filename,commands,metadata)
     return newWindow
     
 def change_internal_data_type_gui():
@@ -109,13 +126,13 @@ def save_file(filename):
         directory=os.path.normpath(os.path.dirname(g.m.settings['filename']))
         filename=os.path.join(directory,filename)
     g.m.statusBar().showMessage('Saving {}'.format(os.path.basename(filename)))
-    tif=g.m.currentWindow.image.astype(g.m.settings['data_type'])
+    A=g.m.currentWindow.image.astype(g.m.settings['data_type'])
     metadata=json.dumps(g.m.currentWindow.metadata)
-    if len(tif.shape)==3:
-        tif=np.transpose(tif,(0,2,1)) # This keeps the x and the y the same as in FIJI
-    elif len(tif.shape)==2:
-        tif=np.transpose(tif,(1,0))
-    tifffile.imsave(filename, tif, description=metadata) #http://stackoverflow.com/questions/20529187/what-is-the-best-way-to-save-image-metadata-alongside-a-tif-with-python
+    if len(A.shape)==3:
+        A=np.transpose(A,(0,2,1)) # This keeps the x and the y the same as in FIJI
+    elif len(A.shape)==2:
+        A=np.transpose(A,(1,0))
+    tifffile.imsave(filename, A, description=metadata) #http://stackoverflow.com/questions/20529187/what-is-the-best-way-to-save-image-metadata-alongside-a-tif-with-python
     g.m.statusBar().showMessage('Successfully saved {}'.format(os.path.basename(filename)))
 
 def save_current_frame(filename):
@@ -123,14 +140,14 @@ def save_current_frame(filename):
         directory=os.path.normpath(os.path.dirname(g.m.settings['filename']))
         filename=os.path.join(directory,filename)
     g.m.statusBar().showMessage('Saving {}'.format(os.path.basename(filename)))
-    tif=np.average(g.m.currentWindow.image, 0).astype(g.m.settings['data_type'])
+    A=np.average(g.m.currentWindow.image, 0).astype(g.m.settings['data_type'])
     metadata=json.dumps(g.m.currentWindow.metadata)
-    if len(tif.shape)==3:
-        tif = tif[g.m.currentWindow.currentIndex]
-        tif=np.transpose(tif,(0,2,1)) # This keeps the x and the y the same as in FIJI
-    elif len(tif.shape)==2:
-        tif=np.transpose(tif,(1,0))
-    tifffile.imsave(filename, tif, description=metadata) #http://stackoverflow.com/questions/20529187/what-is-the-best-way-to-save-image-metadata-alongside-a-tif-with-python
+    if len(A.shape)==3:
+        A = A[g.m.currentWindow.currentIndex]
+        A=np.transpose(A,(0,2,1)) # This keeps the x and the y the same as in FIJI
+    elif len(A.shape)==2:
+        A=np.transpose(A,(1,0))
+    tifffile.imsave(filename, A, description=metadata) #http://stackoverflow.com/questions/20529187/what-is-the-best-way-to-save-image-metadata-alongside-a-tif-with-python
     g.m.statusBar().showMessage('Successfully saved {}'.format(os.path.basename(filename)))    
 
 def save_points(filename):
@@ -166,8 +183,8 @@ def save_movie(filename):
     -i: input files.  
     %03d: The files have to be numbered 001.jpg, 002.jpg... etc.
     '''
-    tif=g.m.currentWindow.image
-    if len(tif.shape)<3:
+    A=g.m.currentWindow.image
+    if len(A.shape)<3:
         g.m.statusBar().showMessage('Movie not the right shape for saving.')
         return
     try:
@@ -175,7 +192,7 @@ def save_movie(filename):
     except TypeError:
         exporter = pg.exporters.ImageExporter.ImageExporter(g.m.currentWindow.imageview.view)
         
-    nFrames=len(tif)
+    nFrames=len(A)
     tmpdir=os.path.join(os.path.dirname(g.m.settings.config_file),'tmp')
     if os.path.isdir(tmpdir):
         shutil.rmtree(tmpdir)

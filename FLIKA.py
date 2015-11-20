@@ -6,7 +6,7 @@ updated 2015.01.27
 """
 from __future__ import (absolute_import, division,print_function, unicode_literals)
 from dependency_check import check_dependencies
-check_dependencies('future','leastsqbound','pyqtgraph','openpyxl', 'PyQt4','numpy','scipy','skimage')
+check_dependencies('future','leastsqbound','pyqtgraph','openpyxl', 'PyQt4','numpy','scipy','skimage','nd2reader')
 
 
 from future.builtins import (bytes, dict, int, list, object, range, str, ascii, chr, hex, input, next, oct, open, pow, round, super, filter, map, zip)
@@ -46,7 +46,7 @@ def initializeMainGui():
     g.init('gui/main.ui')
     g.m.setGeometry(QRect(15, 33, 326, 80))
 
-    g.m.actionOpen.triggered.connect(lambda : open_file_gui(open_file, prompt='Open File', filetypes='*.tif *.stk *.tiff'))
+    g.m.actionOpen.triggered.connect(lambda : open_file_gui(open_file, prompt='Open File', filetypes='*.tif *.stk *.tiff *nd2'))
     g.m.actionSaveAs.triggered.connect(lambda : save_file_gui(save_file, prompt='Save File As Tif', filetypes='*.tif'))
     g.m.actionSave_Movie.triggered.connect(lambda : save_file_gui(save_movie, prompt='Save File as MP4', filetypes='*.mp4'))
     g.m.actionSettings.triggered.connect(g.m.settings.gui)
