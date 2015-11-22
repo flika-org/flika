@@ -44,6 +44,7 @@ class Window(QWidget):
         self.filename=filename
         self.setAsCurrentWindow()
         self.setWindowTitle(name)
+        self.setWindowIcon(QIcon('images/favicon.png'))
         self.imageview=pg.ImageView(self)
         self.imageview.setMouseTracking(True)
         self.imageview.installEventFilter(self)

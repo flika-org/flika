@@ -32,6 +32,7 @@ def mainguiClose(event):
         win.close()
     ScriptEditor.close()
     PluginManager.close()
+    m.settings.save()
     event.accept() # let the window close
 
 class SetCurrentWindowSignal(QWidget):

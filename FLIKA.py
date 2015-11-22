@@ -41,6 +41,7 @@ except NameError:
 def initializeMainGui():
     g.init('gui/main.ui')
     g.m.setGeometry(QRect(15, 33, 326, 80))
+    g.m.setWindowIcon(QIcon('images/favicon.png'))
 
     g.m.actionOpen.triggered.connect(lambda : open_file_gui(open_file, prompt='Open File', filetypes='*.tif *.stk *.tiff *nd2'))
     g.m.actionSaveAs.triggered.connect(lambda : save_file_gui(save_file, prompt='Save File As Tif', filetypes='*.tif'))
@@ -112,6 +113,7 @@ class MainWindowEventEater(QObject):
             if event.mimeData().hasUrls():   # if file or link is dropped
                 url = event.mimeData().urls()[0]   # get first url
                 filename=url.toString()
+                filename=str(filename)
                 filename=filename.split('file:///')[1]
                 print('filename={}'.format(filename))
                 open_file(filename)  #This fails on windows symbolic links.  http://stackoverflow.com/questions/15258506/os-path-islink-on-windows-with-python
@@ -133,6 +135,15 @@ if __name__ == '__main__':
     initializeMainGui()
     if os.name =='nt':
         closeCommandPrompt()        
+    args=sys.argv
+    args=[arg for arg in args if 'Flika.py' not in arg and 'FLIKA.py' not in arg and 'Flika.exe' not in arg]
+    if len(args)>0:
+        open_file(args[0])
+    
     insideSpyder='SPYDER_SHELL_ID' in os.environ
     if not insideSpyder: #if we are running outside of Spyder
         sys.exit(app.exec_()) #This is required to run outside of Spyder
+
+    
+    
+        
