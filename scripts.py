@@ -125,6 +125,7 @@ class ScriptEditor(QMainWindow):
             - You can get traces of those rois by using the roi.getTrace() function
         
         """
+        self.setWindowIcon(QIcon('images/favicon.png'))
         self.consoleWidget.localNamespace=getnamespace()
         self.consoleWidget.output.setPlainText(text)
         self.addEditor()

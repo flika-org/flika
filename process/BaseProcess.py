@@ -115,6 +115,7 @@ class BaseDialog(QDialog):
     def __init__(self,items,title,docstring):
         QDialog.__init__(self)
         self.setWindowTitle(title)
+        self.setWindowIcon(QIcon('images/favicon.png'))
         self.formlayout=QFormLayout()
         self.formlayout.setLabelAlignment(Qt.AlignRight)
         

@@ -31,6 +31,8 @@ class TraceFig(QWidget):
         #roi.translated.connect(lambda: self.translated(roi))
         if 'tracefig_settings' in g.m.settings.d.keys() and 'coords' in g.m.settings['tracefig_settings']:
             self.setGeometry(QRect(*g.m.settings['tracefig_settings']['coords']))
+        self.setWindowTitle('Flika')
+        self.setWindowIcon(QIcon('images/favicon.png'))
         self.label = pg.LabelItem(justify='right')
         self.l = QVBoxLayout()
         self.setLayout(self.l)

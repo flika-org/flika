@@ -126,6 +126,7 @@ class PluginManager(QMainWindow):
     def __init__(self):
         super(QMainWindow,self).__init__()
         uic.loadUi("gui/plugin_manager.ui", self)
+        self.setWindowIcon(QIcon('images/favicon.png'))
         self.dl_link = None
         self.docs_link = None
         self.pluginList.itemClicked.connect(self.pluginSelected)
