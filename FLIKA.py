@@ -7,8 +7,6 @@ updated 2015.01.27
 from __future__ import (absolute_import, division,print_function, unicode_literals)
 from dependency_check import check_dependencies
 check_dependencies('future','leastsqbound','pyqtgraph','openpyxl', 'PyQt4','numpy','scipy','skimage','nd2reader')
-
-
 from future.builtins import (bytes, dict, int, list, object, range, str, ascii, chr, hex, input, next, oct, open, pow, round, super, filter, map, zip)
 import time
 tic=time.time()
@@ -40,8 +38,6 @@ try:
     os.chdir(os.path.split(os.path.realpath(__file__))[0])
 except NameError:
     pass
-
-
 def initializeMainGui():
     g.init('gui/main.ui')
     g.m.setGeometry(QRect(15, 33, 326, 80))
@@ -125,9 +121,18 @@ class MainWindowEventEater(QObject):
         return False # lets the event continue to the edit
 mainWindowEventEater = MainWindowEventEater()
 
+def closeCommandPrompt():
+    from ctypes import windll
+    GetConsoleWindow = windll.kernel32.GetConsoleWindow
+    console_window_handle = GetConsoleWindow()
+    ShowWindow = windll.user32.ShowWindow
+    ShowWindow(console_window_handle, 0)
+    
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     initializeMainGui()
+    if os.name =='nt':
+        closeCommandPrompt()        
     insideSpyder='SPYDER_SHELL_ID' in os.environ
     if not insideSpyder: #if we are running outside of Spyder
         sys.exit(app.exec_()) #This is required to run outside of Spyder
