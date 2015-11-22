@@ -162,7 +162,7 @@ class Window(QWidget):
         if g.m.currentWindow is not None:
             g.m.currentWindow.setStyleSheet("border:1px solid rgb(0, 0, 0); ")
         g.m.currentWindow=self
-        g.m.setWindowTitle("FLIKA - {}".format(os.path.basename(self.name)))
+        g.m.setWindowTitle("Flika - {}".format(os.path.basename(self.name)))
         self.setStyleSheet("border:1px solid rgb(0, 255, 0); ")
         g.m.setCurrentWindowSignal.sig.emit()
     
