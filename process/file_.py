@@ -24,6 +24,7 @@ import tifffile
 import json
 import re
 import nd2reader
+import datetime
 
 __all__ = ['open_file_gui','open_file','save_file_gui','save_file','save_movie','load_metadata','save_metadata','close', 'load_points', 'save_points', 'change_internal_data_type_gui', 'save_current_frame']
 
@@ -120,14 +121,21 @@ def change_internal_data_type_gui():
     change.accepted.connect(lambda: g.m.settings.setInternalDataType(np.dtype(str(change.data_type.currentText()))))
     change.show()
     g.m.dialog=change
-        
+
+def JSONhandler(obj):
+    if isinstance(obj,datetime.datetime):
+        return obj.isoformat()
+    else:
+        json.JSONEncoder().default(obj)
+    
 def save_file(filename):
     if os.path.dirname(filename)=='': #if the user didn't specify a directory
         directory=os.path.normpath(os.path.dirname(g.m.settings['filename']))
         filename=os.path.join(directory,filename)
     g.m.statusBar().showMessage('Saving {}'.format(os.path.basename(filename)))
     A=g.m.currentWindow.image.astype(g.m.settings['data_type'])
-    metadata=json.dumps(g.m.currentWindow.metadata)
+    metadata=g.m.currentWindow.metadata
+    metadata=json.dumps(metadata,default=JSONhandler)
     if len(A.shape)==3:
         A=np.transpose(A,(0,2,1)) # This keeps the x and the y the same as in FIJI
     elif len(A.shape)==2:
