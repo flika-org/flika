@@ -101,9 +101,11 @@ class TraceFig(QWidget):
     def closeEvent(self, event):
         for roi in self.rois:
             self.removeROI(roi['roi'])
-        self.p1.scene().sigMouseClicked.disconnect(self.measure.pointclicked)
-        self.p1.scene().sigMouseClicked.disconnect(self.setCurrentTraceWindow)
-
+        try:
+            self.p1.scene().sigMouseClicked.disconnect(self.measure.pointclicked)
+            self.p1.scene().sigMouseClicked.disconnect(self.setCurrentTraceWindow)
+        except:
+            pass
         g.m.currentTrace = None
         event.accept() # let the window close
     def update(self):
