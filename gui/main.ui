@@ -205,6 +205,7 @@
      <addaction name="separator"/>
      <addaction name="actionButterworth_Filter"/>
      <addaction name="actionMean_Filter"/>
+     <addaction name="actionMedian_Filter"/>
      <addaction name="actionDifference_Filter"/>
      <addaction name="actionBoxcar_Differential"/>
      <addaction name="actionWavelet_Filter"/>
@@ -524,6 +525,11 @@
   <action name="actionPlugin_Manager">
    <property name="text">
     <string>Plugin Manager</string>
+   </property>
+  </action>
+  <action name="actionMedian_Filter">
+   <property name="text">
+    <string>Median Filter</string>
    </property>
   </action>
  </widget>

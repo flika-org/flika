@@ -48,6 +48,7 @@ class Window(QWidget):
         self.imageview=pg.ImageView(self)
         self.imageview.setMouseTracking(True)
         self.imageview.installEventFilter(self)
+        self.imageview.ui.menuBtn.setParent(None)
         #self.imageview.ui.normBtn.setParent(None) # gets rid of 'norm' button that comes with ImageView
         self.imageview.ui.roiBtn.setParent(None) # gets rid of 'roi' button that comes with ImageView
         self.imageview.setImage(tif)

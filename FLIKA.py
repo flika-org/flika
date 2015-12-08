@@ -11,6 +11,8 @@ from future.builtins import (bytes, dict, int, list, object, range, str, ascii, 
 import time
 tic=time.time()
 import os, sys
+reload(sys)
+sys.setdefaultencoding('utf8') #http://stackoverflow.com/questions/21129020/how-to-fix-unicodedecodeerror-ascii-codec-cant-decode-byte
 sys.path.insert(0, "C:/Users/Kyle Ellefsen/Documents/GitHub/pyqtgraph")
 sys.path.insert(0, "C:/Users/Medha/Documents/GitHub/pyqtgraph")
 import numpy as np
@@ -24,7 +26,7 @@ from window import Window
 
 from process.stacks import deinterleave, trim, zproject, image_calculator, pixel_binning, frame_binning
 from process.math_ import multiply, subtract, power, ratio, absolute_value, subtract_trace
-from process.filters import gaussian_blur, butterworth_filter,boxcar_differential_filter, wavelet_filter, difference_filter, fourier_filter, mean_filter
+from process.filters import gaussian_blur, butterworth_filter,boxcar_differential_filter, wavelet_filter, difference_filter, fourier_filter, mean_filter, median_filter
 from process.binary import threshold, adaptive_threshold, canny_edge_detector, remove_small_blobs, logically_combine, binary_dilation, binary_erosion
 from process.roi import set_value
 from process.measure import measure
@@ -76,6 +78,7 @@ def initializeMainGui():
     g.m.actionGaussian_Blur.triggered.connect(gaussian_blur.gui)
     g.m.actionButterworth_Filter.triggered.connect(butterworth_filter.gui)
     g.m.actionMean_Filter.triggered.connect(mean_filter.gui)
+    g.m.actionMedian_Filter.triggered.connect(median_filter.gui)
     g.m.actionFourier_Filter.triggered.connect(fourier_filter.gui)
     g.m.actionDifference_Filter.triggered.connect(difference_filter.gui)
     g.m.actionBoxcar_Differential.triggered.connect(boxcar_differential_filter.gui)

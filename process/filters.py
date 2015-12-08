@@ -10,11 +10,11 @@ from future.builtins import (bytes, dict, int, list, object, range, str, ascii, 
 import numpy as np
 import skimage
 import global_vars as g
-from process.BaseProcess import BaseProcess, SliderLabel
+from process.BaseProcess import BaseProcess, SliderLabel, SliderLabelOdd
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 
-__all__ = ['gaussian_blur','mean_filter','butterworth_filter','boxcar_differential_filter','wavelet_filter','difference_filter', 'fourier_filter']
+__all__ = ['gaussian_blur','mean_filter','median_filter','butterworth_filter','boxcar_differential_filter','wavelet_filter','difference_filter', 'fourier_filter']
 ###############################################################################
 ##################   SPATIAL FILTERS       ####################################
 ###############################################################################
@@ -199,7 +199,6 @@ class Mean_filter(BaseProcess):
         preview=self.getValue('preview')
         if self.roi is not None:
             if preview:
-                print(nFrames)
                 if nFrames==1:
                     self.roi.translate_done.emit() #redraw roi without filter
                 else:
@@ -209,8 +208,69 @@ class Mean_filter(BaseProcess):
                     g.m.currentTrace.update_trace_full(roi_index,trace) #update_trace_partial may speed it up
             else:
                 self.roi.translate_done.emit()    
-                
 mean_filter=Mean_filter()
+
+
+from scipy.signal import medfilt
+class Median_filter(BaseProcess):
+    """ median_filter(nFrames, keepSourceWindow=False)
+    This filters a stack in time.
+    
+    Parameters:
+        | nFrames (int) -- Number of frames to average.  This must be an odd number
+    Returns:
+        newWindow
+    """
+    def __init__(self):
+        super().__init__()
+    def gui(self):
+        self.gui_reset()
+        nFrames=SliderLabelOdd()
+        nFrames.setRange(1,100)
+        preview=QCheckBox()
+        preview.setChecked(True)
+        self.items.append({'name':'nFrames','string':'nFrames','object':nFrames})
+        self.items.append({'name':'preview','string':'Preview','object':preview})        
+        super().gui()
+        self.roi=g.m.currentWindow.currentROI
+        if self.roi is not None:
+            self.ui.rejected.connect(self.roi.translate_done.emit)
+        else:
+            preview.setChecked(False)
+            preview.setEnabled(False)
+            
+    def __call__(self,nFrames,keepSourceWindow=False):
+        if nFrames%2==0: #if value is even:
+            print('median_filter only takes odd numbers.  Operation cancelled')
+            return None
+        self.start(keepSourceWindow)
+        mx=self.tif.shape[2]
+        my=self.tif.shape[1]
+        self.newtif=np.zeros(self.tif.shape)
+        for i in np.arange(my):
+            for j in np.arange(mx):
+                self.newtif[:, i, j]=medfilt(self.tif[:, i, j], kernel_size=nFrames)      
+        self.newname=self.oldname+' - Median Filtered'
+        return self.end()
+    def preview(self):
+        nFrames=self.getValue('nFrames')
+        preview=self.getValue('preview')
+        if self.roi is not None:
+            if preview:
+                print(nFrames)
+                if nFrames==1:
+                    self.roi.translate_done.emit() #redraw roi without filter
+                elif nFrames%2==0: #if value is even
+                    return None
+                else:
+                    trace=self.roi.getTrace()
+                    trace=medfilt(trace,kernel_size=nFrames)
+                    roi_index=g.m.currentTrace.get_roi_index(self.roi)
+                    g.m.currentTrace.update_trace_full(roi_index,trace) #update_trace_partial may speed it up
+            else:
+                self.roi.translate_done.emit()    
+                
+median_filter=Median_filter()
 
 
 

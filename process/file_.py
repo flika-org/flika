@@ -78,20 +78,23 @@ def open_file(filename):
             metadata=dict()
         A=Tiff.asarray().astype(g.m.settings['internal_data_type'])
         Tiff.close()
-        #A=imread(filename,plugin='tifffile').astype(g.m.settings['internal_data_type'])
-        if len(A.shape)>3: # WARNING THIS TURNS COLOR movies TO BLACK AND WHITE BY AVERAGING ACROSS THE THREE CHANNELS
-            if 'channels' in metadata.keys() and 'ImageJ' in metadata.keys():
-                A=np.transpose(A,(0,3,2,1))
-            A=np.mean(A,3)
-        A=np.squeeze(A) #this gets rid of the meaningless 4th dimention in .stk files
-        if len(A.shape)==3: #this could either be a movie or a colored still frame
-            if A.shape[2]==3: #this is probably a colored still frame
-                A=np.mean(A,2)
-                A=np.transpose(A,(1,0)) # This keeps the x and y the same as in FIJI. 
-            else:
+        axes=[tifffile.AXES_LABELS[ax] for ax in Tiff.pages[0].axes]
+        print("Original Axes = {}".format(axes)) #sample means RBGA, plane means frame, width means X, height means Y
+        if Tiff.is_rgb:
+            if A.ndim==3: # still color image.  [X, Y, RBGA]
+                A=np.transpose(A,(1,0,2))
+            elif A.ndim==4: # movie in color.  [T, X, Y, RGBA]
+                A=np.transpose(A,(0,2,1,3))
+        else:
+            if A.ndim==2: # black and white still image [X,Y]
+                A=np.transpose(A,(1,0))
+            elif A.ndim==3: #black and white movie [T,X,Y]
                 A=np.transpose(A,(0,2,1)) # This keeps the x and y the same as in FIJI. 
-        elif len(A.shape)==2: # I haven't tested whether this preserved the x y and keeps it the same as in FIJI.  TEST THIS!!
-            A=np.transpose(A,(1,0))
+            elif A.ndim==4:
+                if axes[3]=='sample' and A.shape[3]==1:
+                    A=np.squeeze(A) #this gets rid of the meaningless 4th dimention in .stk files
+                    A=np.transpose(A,(0,2,1))
+        metadata['is_rgb']=Tiff[0].is_rgb
     elif ext=='.nd2':
         nd2 = nd2reader.Nd2(filename)
         mt,mx,my=len(nd2),nd2.width,nd2.height

@@ -101,6 +101,22 @@ class SliderLabel(QWidget):
     def setSingleStep(self,value):
         self.label.setSingleStep(value)
         
+class SliderLabelOdd(SliderLabel):
+    '''This is a modified SliderLabel class that forces the user to only choose odd numbers.'''
+    def __init__(self):
+        SliderLabel.__init__(self,decimals=0)
+    @Slot(int)
+    def updateSlider(self,value):
+        value=int(value)
+        if value%2==0: #if value is even
+            value+=1
+        self.slider.setValue(value)
+    def updateLabel(self,value):
+        value=int(value)
+        if value%2==0: #if value is even
+            value+=1
+        self.label.setValue(value)
+        
 class CheckBox(QCheckBox):
     ''' I overwrote the QCheckBox class so that every graphical element has the method 'setValue'
     '''
