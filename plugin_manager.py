@@ -105,8 +105,12 @@ class PluginManager(QMainWindow):
                 PluginManager.installed_plugins[module.name] = {'base_dir': module.base_dir, 'date': module.date}
             except:
                 print('Could not load plugin %s. Open plugin manager to download it again.' % base_dir)
-        PluginManager.all_plugins = eval(urlopen(PluginManager.PLUGIN_LIST_URL).read())
-        PluginManager.gui.updateList()
+        try:
+            PluginManager.all_plugins = eval(urlopen(PluginManager.PLUGIN_LIST_URL).read())
+            PluginManager.gui.updateList()
+        except:
+            g.m.statusBar().showMessage("No Internet connection. Please connect to the internet to access the plugin database")
+        
 
     @staticmethod
     def show():

@@ -136,10 +136,10 @@ def closeCommandPrompt():
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     initializeMainGui()
-    if os.name =='nt':
-        closeCommandPrompt()        
     args=sys.argv
-    args=[arg for arg in args if 'Flika.py' not in arg and 'FLIKA.py' not in arg and 'Flika.exe' not in arg]
+    if os.name =='nt' and '-debug' not in args:
+        closeCommandPrompt()        
+    args=[arg for arg in args if 'FLIKA.PY' not in arg.upper() and arg != '-debug']
     if len(args)>0:
         open_file(args[0])
     

@@ -108,6 +108,9 @@ def open_file(filename):
         metadata['height']=nd2.height
         metadata['width']=nd2.width
         metadata['z_levels']=nd2.z_levels
+    else:
+        print('Could not open %s' % filename)
+        return
     g.m.statusBar().showMessage('{} successfully loaded ({} s)'.format(os.path.basename(filename), time.time()-t))
     g.m.settings['filename']=filename
     commands = ["open_file('{}')".format(filename)]
