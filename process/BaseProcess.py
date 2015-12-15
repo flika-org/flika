@@ -32,7 +32,7 @@ class MissingWindowError(Exception):
         
 class WindowSelector(QWidget):
     """
-    This widget is a button with a lab.  Once you click the button, the widget waits for you to click a Window object.  Once you do, it sets self.window to be the window, and it sets the label to be the widget name.
+    This widget is a button with a label.  Once you click the button, the widget waits for you to click a Window object.  Once you do, it sets self.window to be the window, and it sets the label to be the widget name.
     """
     valueChanged=Signal()
     def __init__(self):
@@ -59,6 +59,42 @@ class WindowSelector(QWidget):
         self.valueChanged.emit()
     def value(self):
         return self.window
+        
+class FileSelector(QWidget):
+    """
+    This widget is a button with a label.  Once you click the button, the widget waits for you to select a file to save.  Once you do, it sets self.filename and it sets the label.
+    """
+    valueChanged=Signal()
+    def __init__(self,filetypes='*.*'):
+        QWidget.__init__(self)
+        self.button=QPushButton('Select Filename')
+        self.label=QLabel('None')
+        self.window=None
+        self.layout=QHBoxLayout()
+        self.layout.addWidget(self.button)
+        self.layout.addWidget(self.label)
+        self.setLayout(self.layout)
+        self.button.clicked.connect(self.buttonclicked)
+        self.filetypes=filetypes
+        self.filename=''
+        
+    def buttonclicked(self):
+        filename=g.m.settings['filename']
+        try:
+            directory=os.path.dirname(filename)
+        except:
+            directory=''
+        prompt='testing fileSelector'
+        if filename is not None and directory != '':
+            filename= QFileDialog.getSaveFileName(self, prompt, directory, self.filetypes)
+        else:
+            filename= QFileDialog.getSaveFileName(self, prompt, self.filetypes)
+        filename=str(filename)        
+        self.filename=str(filename)
+        self.label.setText('...'+os.path.split(self.filename)[-1][-20:])
+        self.valueChanged.emit()
+    def value(self):
+        return self.filename
         
 class SliderLabel(QWidget):
     changeSignal=Signal(int)
