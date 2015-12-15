@@ -397,6 +397,7 @@ class ROI_rectangle(ROI):
             if y2>=my: y2=my-1
             newtif=tif[:,x1:x2+1,y1:y2+1]
         elif len(tif.shape)==2:
+            mx,my=tif.shape
             if x1<0: x1=0
             if y1<0: y1=0
             if x2>=mx: x2=mx-1
