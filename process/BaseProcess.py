@@ -230,6 +230,9 @@ class BaseProcess(object):
         self.tif=self.oldwindow.image
         self.oldname=self.oldwindow.name
     def end(self):
+        if self.newtif is None:
+            self.oldwindow.reset()
+            return
         commands=self.oldwindow.commands[:]
         commands.append(self.command)
         newWindow=Window(self.newtif,str(self.newname),self.oldwindow.filename,commands,self.oldwindow.metadata)
@@ -265,7 +268,6 @@ class BaseProcess(object):
             args=[self.getValue(name) for name in varnames]
         except IndexError:
             print("Names in {}: {}".format(self.__name__,varnames))
-        #print(args)
         try:
             self.__call__(*args,keepSourceWindow=True)
         except MemoryError as err:

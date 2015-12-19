@@ -52,6 +52,7 @@ class Settings:
             self.d['data_type']=np.float64 #this is the data type used to save an image.  All image data are handled internally as np.float64 irrespective of this setting
             self.d['internal_data_type']=np.float64
             self.d['multipleTraceWindows'] = False
+            self.d['multiprocessing'] = True
         self.d['mousemode']='rectangle'
         self.d['show_windows'] = True
     def __getitem__(self, item):
@@ -60,6 +61,8 @@ class Settings:
         except KeyError:
             if item=='internal_data_type':
                 self.d[item]=np.float64
+            elif item=='multiprocessing':
+                self.d[item]=True
         return self.d[item]
     def __setitem__(self,key,item):
         self.d[key]=item
@@ -83,14 +86,18 @@ class Settings:
         showCheck.setChecked(self.d['show_windows'])
         multipleTracesCheck = QCheckBox()
         multipleTracesCheck.setChecked(self.d['multipleTraceWindows'])
+        multiprocessing = QCheckBox()
+        multiprocessing.setChecked(self.d['multiprocessing'])
         items = []
         items.append({'name': 'internal_data_type', 'string': 'Internal Data Type', 'object': dataDrop})
         items.append({'name': 'show_windows', 'string': 'Show Windows', 'object': showCheck})
         items.append({'name': 'multipleTraceWindows', 'string': 'Multiple Trace Windows', 'object': multipleTracesCheck})
+        items.append({'name': 'multiprocessing', 'string': 'Multiprocessing On', 'object': multiprocessing})
         def update():
             self.d['internal_data_type'] = np.dtype(str(dataDrop.currentText()))
             self.d['show_windows'] = showCheck.isChecked()
             self['multipleTraceWindows'] = multipleTracesCheck.isChecked()
+            self['multiprocessing']=multiprocessing.isChecked()
         self.bd = BaseDialog(items, 'FLIKA Settings', '')
         self.bd.accepted.connect(update)
         self.bd.changeSignal.connect(update)

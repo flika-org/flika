@@ -64,7 +64,12 @@ def save_roi_traces(filename):
     g.m.statusBar().showMessage('Successfully saved traces to {}'.format(os.path.basename(filename)))
 
             
-def open_file(filename):
+def open_file(filename=None):
+    if filename is None:
+        filename=g.m.settings['filename']
+        if filename is None:
+            print('No filename selected')
+            return
     g.m.statusBar().showMessage('Loading {}'.format(os.path.basename(filename)))
     t=time.time()
     metadata=dict()

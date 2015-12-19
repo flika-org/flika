@@ -13,6 +13,9 @@ import global_vars as g
 from process.BaseProcess import BaseProcess, SliderLabel, SliderLabelOdd
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
+from multiprocessing import cpu_count
+import time
+from .progress_bar import ProgressBar
 
 __all__ = ['gaussian_blur','mean_filter','median_filter','butterworth_filter','boxcar_differential_filter','wavelet_filter','difference_filter', 'fourier_filter']
 ###############################################################################
@@ -66,7 +69,7 @@ class Gaussian_blur(BaseProcess):
             g.m.currentWindow.imageview.setImage(testimage,autoLevels=False)            
         else:
             g.m.currentWindow.reset()
-gaussian_blur=Gaussian_blur()    
+gaussian_blur=Gaussian_blur()
     
     
 ###############################################################################
@@ -113,20 +116,23 @@ class Butterworth_filter(BaseProcess):
         else:
             preview.setChecked(False)
             preview.setEnabled(False)
-            
+        
     def __call__(self,filter_order,low,high,keepSourceWindow=False):
-        self.start(keepSourceWindow)
         if low==0 and high==1:
             return
-        b,a,padlen=self.makeButterFilter(filter_order,low,high)
-        mx=self.tif.shape[2]
-        my=self.tif.shape[1]
-        self.newtif=np.zeros(self.tif.shape)
-        for i in np.arange(my):
-            for j in np.arange(mx):
-                self.newtif[:, i, j]=filtfilt(b,a, self.tif[:, i, j], padlen=padlen)
+        self.start(keepSourceWindow)
+        if g.m.settings['multiprocessing']:
+            self.newtif=butterworth_filter_multi(filter_order,low,high,g.m.currentWindow.image)
+        else:
+            self.newtif=np.zeros(self.tif.shape)
+            mt,mx,my=self.tif.shape
+            b,a,padlen=self.makeButterFilter(filter_order,low,high)
+            for i in np.arange(my):
+                for j in np.arange(mx):
+                    self.newtif[:, i, j]=filtfilt(b,a, self.tif[:, i, j], padlen=padlen)
         self.newname=self.oldname+' - Butter Filtered'
         return self.end()
+        
     def preview(self):
         filter_order=self.getValue('filter_order')
         low=self.getValue('low')
@@ -159,7 +165,65 @@ class Butterworth_filter(BaseProcess):
                 [b,a]=butter(filter_order,[low,high], btype='bandpass')
             padlen=6
         return b,a,padlen
+        
 butterworth_filter=Butterworth_filter()
+
+        
+def butterworth_filter_multi(filter_order,low,high,tif):
+    nThreads= cpu_count()
+    mt,mx,my=tif.shape
+    block_ends=np.linspace(0,mx,nThreads+1).astype(np.int)
+    data=[tif[:, block_ends[i]:block_ends[i+1],:] for i in np.arange(nThreads)] #split up data along x axis. each thread will get one.
+    args=(filter_order,low,high)
+    progress = ProgressBar(butterworth_filter_multi_outer, data, args, nThreads, msg='Performing Butterworth Filter')
+    if progress.results is None or any(r is None for r in progress.results):
+        result=None
+    else:
+        result=np.concatenate(progress.results,axis=1)
+    return result
+    
+
+def butterworth_filter_multi_outer(q_results, q_progress, q_status, child_conn, args):
+    data=child_conn.recv()
+    status=q_status.get(True) #this blocks the process from running until all processes are launched
+    if status=='Stop':
+        q_results.put(None)
+    
+    def makeButterFilter(filter_order,low,high):
+        padlen=0
+        if high==1: 
+            if low==0: #if there is no temporal filter at all,
+                return None,None,None
+            else: #if only high pass temporal filter
+                [b,a]= butter(filter_order,low,btype='highpass')
+                padlen=3
+        else:
+            if low==0:
+                [b,a]= butter(filter_order,high,btype='lowpass')
+            else:
+                [b,a]=butter(filter_order,[low,high], btype='bandpass')
+            padlen=6
+        return b,a,padlen
+        
+    filter_order,low,high = args
+    b,a,padlen=makeButterFilter(filter_order,low,high)
+    mt,mx,my=data.shape
+    result=np.zeros(data.shape)
+    nPixels=mx*my
+    pixel=0
+    percent=0
+    for x in np.arange(mx):
+        for y in np.arange(my):
+            if not q_status.empty():
+                stop=q_status.get(False)
+                q_results.put(None)
+                return
+            pixel+=1
+            if percent<int(100*pixel/nPixels):
+                percent=int(100*pixel/nPixels)
+                q_progress.put(percent)
+            result[:, x, y]=filtfilt(b,a, data[:, x, y], padlen=padlen)
+    q_results.put(result)
 
 from scipy.ndimage.filters import convolve
 class Mean_filter(BaseProcess):

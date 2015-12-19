@@ -94,6 +94,7 @@ class Window(QWidget):
         self.pasteAct = QAction("&Paste", self, triggered=self.paste)
         if g.m.settings['show_windows']:
             self.show()
+            qApp.processEvents()
         self.sigTimeChanged.connect(self.showFrame)
         if self not in g.m.windows:
             g.m.windows.append(self)
