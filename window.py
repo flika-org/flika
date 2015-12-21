@@ -23,7 +23,7 @@ class Window(QWidget):
     keyPressSignal=Signal(QEvent)
     deleteButtonSignal=Signal()
     sigTimeChanged=Signal(int)
-    def __init__(self,tif,name='',filename='',commands=[],metadata=dict()):
+    def __init__(self,tif,name='Flika',filename='',commands=[],metadata=dict()):
         QWidget.__init__(self)
         self.commands=commands #commands is a list of the commands used to create this window, starting with loading the file
         self.metadata=metadata
@@ -56,9 +56,7 @@ class Window(QWidget):
         nDims=len(np.shape(self.image))
         if nDims==3:
             mt,mx,my=tif.shape
-            if np.min(self.image)==0 and (np.max(self.image)==0 or np.max(self.image)==1): #if the image is binary (either all 0s or 0s and 1s)
-                self.imageview.setLevels(-.01,1.01) #set levels from slightly below 0 to 1
-            elif np.all(self.image[0]==0): #if the first frame is all zeros
+            if np.all(self.image[0]==0): #if the first frame is all zeros
                 r=(np.min(self.image),np.max(self.image)) #set the levels to be just above and below the min and max of the entire tif
                 r=(r[0]-(r[1]-r[0])/100,r[1]+(r[1]-r[0])/100)
                 self.imageview.setLevels(r[0],r[1])
@@ -73,6 +71,9 @@ class Window(QWidget):
         elif nDims==2:
             mt=1
             mx,my=tif.shape
+        if np.min(self.image)==0 and (np.max(self.image)==0 or np.max(self.image)==1): #if the image is binary (either all 0s or 0s and 1s)
+            self.imageview.setLevels(-.01,1.01) #set levels from slightly below 0 to 1
+            
         self.mx=mx; self.my=my; self.mt=mt
         self.imageview.timeLine.sigPositionChanged.connect(self.updateindex)
         self.currentIndex=self.imageview.currentIndex

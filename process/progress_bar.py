@@ -4,6 +4,7 @@ from PyQt4.QtCore import QThread
 from PyQt4.QtCore import pyqtSignal as Signal
 from multiprocessing import Process, Queue, cpu_count, Pipe
 import os
+import numpy as np
 
 
 tic=time.time()
@@ -13,15 +14,15 @@ class ProcessLauncher(QThread):
     def __init__(self,parent):
         QThread.__init__(self)
         self.parent=parent
-        self.nThreads=parent.nThreads
+        self.nCores=parent.nCores
     def __del__(self):
         self.wait()
     def run(self):
         p=self.parent
-        nThreads=self.nThreads
+        nCores=self.nCores
 
-        for i in range(nThreads):
-            self.status_update.emit('Creating process {}/{}'.format(i+1,nThreads))
+        for i in range(nCores):
+            self.status_update.emit('Creating process {}/{}'.format(i+1,nCores))
             q_result=Queue()
             q_progress=Queue()
             q_status=Queue()
@@ -32,24 +33,24 @@ class ProcessLauncher(QThread):
             p.pipes.append(parent_conn)
             p.processes.append(Process(target=p.outerfunc, args=(q_result, q_progress, q_status, child_conn, p.args )))
 
-        started=[False for i in range(nThreads)]
-        for i in range(nThreads):
+        started=[False for i in range(nCores)]
+        for i in range(nCores):
             if p.stopPressed:
                 break
-            self.status_update.emit('Initializing process {}/{}'.format(i+1,nThreads))
+            self.status_update.emit('Initializing process {}/{}'.format(i+1,nCores))
             p.processes[i].start()
             started[i]=True
-        for i in range(nThreads):
+        for i in range(nCores):
             if started[i]:
                 if not p.stopPressed:
-                    self.status_update.emit('Sending data to process {}/{}'.format(i+1,nThreads))
+                    self.status_update.emit('Sending data to process {}/{}'.format(i+1,nCores))
                     tic=time.time()
                     p.pipes[i].send(p.data[i])
-                    print('Time it took to send data: {}'.format(time.time()-tic))
-        for i in range(nThreads):
+                    #print('Time it took to send data: {}'.format(time.time()-tic))
+        for i in range(nCores):
             if started[i]:
                 if not p.stopPressed:
-                    self.status_update.emit('Starting process {}/{}'.format(i+1,nThreads))
+                    self.status_update.emit('Starting process {}/{}'.format(i+1,nCores))
                     p.q_status[i].put('Start')
                 else:
                     p.q_status[i].put('Stop')
@@ -63,12 +64,12 @@ class ProcessLauncher(QThread):
     
 class ProgressBar(QtGui.QWidget):
     finished_sig=Signal()
-    def __init__(self, outerfunc, data, args, nThreads, msg='Performing Operations', parent=None ):
+    def __init__(self, outerfunc, data, args, nCores, msg='Performing Operations', parent=None ):
         super(ProgressBar, self).__init__(parent)
         self.outerfunc=outerfunc
         self.data=data
         self.args=args
-        self.nThreads=nThreads
+        self.nCores=nCores
         self.msg=msg
         
         # GUI
@@ -80,20 +81,20 @@ class ProgressBar(QtGui.QWidget):
         main_layout = QtGui.QGridLayout()
         main_layout.addWidget(self.label,0,0)
         main_layout.addWidget(self.button, 0, 1)
-        for i in range(nThreads):
+        for i in range(nCores):
             bar=QtGui.QProgressBar()
             bar.setMinimum(1)
             bar.setMaximum(100)
             main_layout.addWidget(bar, 1+i, 0)
             self.progress_bars.append(bar)
         self.setLayout(main_layout)
-        self.setWindowTitle('Progress')
+        self.setWindowTitle(msg)
         self.stopPressed = False
         self.show()
         QtGui.qApp.processEvents()
         
-        self.results=[None for i in range(nThreads)]
-        self.process_finished=[False for i in range(nThreads)]
+        self.results=[None for i in range(nCores)]
+        self.process_finished=[False for i in range(nCores)]
         self.q_results=[]
         self.q_progress=[]
         self.q_status=[]
@@ -136,7 +137,7 @@ class ProgressBar(QtGui.QWidget):
             self.finished_sig.emit()
         if self.stopPressed:
             #print('STOPPPPP')
-            for i in range(self.nThreads):
+            for i in range(self.nCores):
                 self.q_status[i].put('Stop')
 
     def handleButton(self):
@@ -147,78 +148,79 @@ class ProgressBar(QtGui.QWidget):
     def update_finished_status(self):
         self.finished=True
         
+        
+        
+'''
+When using the Progress Bar, you need to write two functions:
+    1) An outer function that takes an object like a numpy array, breaks it into blocks, and creates the ProgressBar object.
+    2) An inner function that receives the chunks, performs the processing, and returns the results.
 
-
-
-
-
-from scipy.signal import butter, filtfilt
-import numpy as np    
-def butterworth_filter_multi_outer(q_results, q_progress, q_status, child_conn, args):
+The first function should look something like this:  
+'''
+def outer_func():
+    # get original data and arguments that the inner function will receive
+    original_data=np.random.random((1000,200,200))
+    args=(1,)
+    
+    #break data into blocks
+    nCores = cpu_count()
+    
+    block_ends = np.linspace(0,len(original_data),nCores+1).astype(np.int)
+    data_blocks=[original_data[block_ends[i]:block_ends[i+1]] for  i in np.arange(nCores)] # each thread will get one element of this list.
+    
+    # create the ProgressBar object
+    progress = ProgressBar(inner_func, data_blocks, args, nCores, msg='Performing my cool inner function')
+    
+    # Once the ProgressBar object finishes running, the results of all the 
+    # inner function's computations will be stored in progress.results in a 
+    # list.  You will have to merge the list. If the user presses the Stop
+    # button, the progress.results will be set to None
+    if progress.results is None or any(r is None for r in progress.results):
+        result=None
+    else:
+        result=np.concatenate(progress.results,axis=0)
+    return result
+'''
+The inner function will actually do the heavy lifting.  
+Each process will be running the inner function.  Each inner function must 
+take the same 5 arguments.  
+'''
+def inner_func(q_results, q_progress, q_status, child_conn, args):
+    data=child_conn.recv() # unfortunately this step takes a long time
+    percent=0  # This is the variable we send back which displays our progress
     status=q_status.get(True) #this blocks the process from running until all processes are launched
     if status=='Stop':
-        q_results.put(None)
-        
-    data=child_conn.recv()
-    def makeButterFilter(filter_order,low,high):
-        padlen=0
-        if high==1: 
-            if low==0: #if there is no temporal filter at all,
-                return None,None,None
-            else: #if only high pass temporal filter
-                [b,a]= butter(filter_order,low,btype='highpass')
-                padlen=3
-        else:
-            if low==0:
-                [b,a]= butter(filter_order,high,btype='lowpass')
-            else:
-                [b,a]=butter(filter_order,[low,high], btype='bandpass')
-            padlen=6
-        return b,a,padlen
-        
-    filter_order,low,high = args
-    b,a,padlen=makeButterFilter(filter_order,low,high)
-    mt,mx,my=data.shape
+        q_results.put(None) # if the user presses stop, return None
+    
+    
+    # Here is the meat of the inner_func.
+    val,=args #unpack all the variables inside the args tuple
     result=np.zeros(data.shape)
-    nPixels=mx*my
-    pixel=0
-    percent=0
-    for x in np.arange(mx):
-        for y in np.arange(my):
-            if not q_status.empty():
-                stop=q_status.get(False)
-                q_results.put(None)
-                return
-            pixel+=1
-            if percent<int(100*pixel/nPixels):
-                percent=int(100*pixel/nPixels)
-                q_progress.put(percent)
-            result[:, x, y]=filtfilt(b,a, data[:, x, y], padlen=padlen)
+    ii,jj,kk=data.shape
+    for i in np.arange(ii):
+        for j in np.arange(jj):
+            for k in np.arange(kk):
+                result[i,j,k]=data[i,j,k]+val
+            
+        if not q_status.empty(): #check if the stop button has been pressed
+            stop=q_status.get(False)
+            q_results.put(None)
+            return
+        if percent<int(100*i/ii):
+            percent=int(100*i/ii)
+            q_progress.put(percent)
+                    
+    # finally, when we've finished with our calculation, we send back the result
     q_results.put(result)
     
     
-def butterworth_filter_multi(filter_order,low,high,tif):
-    nThreads= 4 #cpu_count()
-    mt,mx,my=tif.shape
-    block_ends=np.linspace(0,mx,nThreads+1).astype(np.int)
-    data=[tif[:, block_ends[i]:block_ends[i+1],:] for i in np.arange(nThreads)] #split up data along x axis. each thread will get one.
     
-    args=(filter_order,low,high)
-    
-    progress = ProgressBar(butterworth_filter_multi_outer, data, args, nThreads, msg='Performing Butterworth Filter')
-    if progress.results is None:
-        result=progress.results
-    else:
-        result=np.concatenate(progress.results,axis=1)
-    return result
+
         
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
-    
-    tif=np.random.random((1100,512,512))
-    tic=time.time()
-    result=butterworth_filter_multi(1,.5,.5,tif)
-    del tif
+    result=outer_func()
+    print(result)
 
 
 

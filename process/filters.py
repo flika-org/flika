@@ -175,7 +175,7 @@ def butterworth_filter_multi(filter_order,low,high,tif):
     block_ends=np.linspace(0,mx,nThreads+1).astype(np.int)
     data=[tif[:, block_ends[i]:block_ends[i+1],:] for i in np.arange(nThreads)] #split up data along x axis. each thread will get one.
     args=(filter_order,low,high)
-    progress = ProgressBar(butterworth_filter_multi_outer, data, args, nThreads, msg='Performing Butterworth Filter')
+    progress = ProgressBar(butterworth_filter_multi_inner, data, args, nThreads, msg='Performing Butterworth Filter')
     if progress.results is None or any(r is None for r in progress.results):
         result=None
     else:
@@ -183,7 +183,7 @@ def butterworth_filter_multi(filter_order,low,high,tif):
     return result
     
 
-def butterworth_filter_multi_outer(q_results, q_progress, q_status, child_conn, args):
+def butterworth_filter_multi_inner(q_results, q_progress, q_status, child_conn, args):
     data=child_conn.recv()
     status=q_status.get(True) #this blocks the process from running until all processes are launched
     if status=='Stop':
