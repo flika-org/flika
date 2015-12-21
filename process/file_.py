@@ -84,7 +84,7 @@ def open_file(filename=None):
         A=Tiff.asarray().astype(g.m.settings['internal_data_type'])
         Tiff.close()
         axes=[tifffile.AXES_LABELS[ax] for ax in Tiff.pages[0].axes]
-        print("Original Axes = {}".format(axes)) #sample means RBGA, plane means frame, width means X, height means Y
+        #print("Original Axes = {}".format(axes)) #sample means RBGA, plane means frame, width means X, height means Y
         if Tiff.is_rgb:
             if A.ndim==3: # still color image.  [X, Y, RBGA]
                 A=np.transpose(A,(1,0,2))

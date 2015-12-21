@@ -128,7 +128,7 @@ class ProgressBar(QtGui.QWidget):
             if not self.q_results[i].empty():
                 self.results[i]=self.q_results[i].get()
                 self.process_finished[i]=True
-                self.processes[i].join()
+                self.processes[i].join(1)
         QtGui.qApp.processEvents()
         if all(self.process_finished):
             if any(r is None for r in self.results):
