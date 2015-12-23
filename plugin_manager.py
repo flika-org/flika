@@ -110,15 +110,18 @@ class PluginManager(QMainWindow):
             PluginManager.gui.updateList()
         except:
             g.m.statusBar().showMessage("No Internet connection. Please connect to the internet to access the plugin database")
-        
+            PluginManager.all_plugins = PluginManager.installed_plugins
+            PluginManager.gui.updateList()
+            return False
+        return True
 
     @staticmethod
     def show():
         if not hasattr(PluginManager, 'gui'):
             PluginManager.gui = PluginManager()
         g.m.statusBar().showMessage('Loading plugin information...')
-        PluginManager.load_plugin_info()
-        g.m.statusBar().showMessage('Plugin Information Loaded')
+        if PluginManager.load_plugin_info():
+            g.m.statusBar().showMessage('Plugin Information Loaded')
         QMainWindow.show(PluginManager.gui)
 
 
@@ -196,7 +199,10 @@ class PluginManager(QMainWindow):
         plugin_name = str(item.text())
         plugin = self.all_plugins[plugin_name]
         self.pluginLabel.setText(plugin_name)
-        self.descriptionLabel.setText(plugin['description'])
+        if 'description' not in plugin:
+            self.descriptionLabel.setText("No description for plugin.")
+        else:
+            self.descriptionLabel.setText(plugin['description'])
         info = ''
         if "author" in plugin:
             info += 'By %s. ' % plugin['author']

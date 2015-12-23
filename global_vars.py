@@ -46,7 +46,7 @@ class Settings:
         self.config_file=os.path.join(expanduser("~"),'.FLIKA','%s.p' % name)
         try:
             self.d=pickle.load(open(self.config_file, "rb" ))
-        except (IOError, ValueError):
+        except (IOError, ValueError, EOFError):
             self.d=dict()
             self.d['filename']=None #this is the name of the most recently opened file
             self.d['data_type']=np.float64 #this is the data type used to save an image.  All image data are handled internally as np.float64 irrespective of this setting
