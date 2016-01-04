@@ -11,6 +11,8 @@ elif sys.version_info.major==3:
 import difflib
 import zipfile
 import time, shutil
+import os.path
+sep=os.path.sep
 
 
     
@@ -231,12 +233,12 @@ class PluginManager(QMainWindow):
                 folder_name = os.path.dirname(z.namelist()[0])
             except:
                 PluginManager.gui.statusBar.showMessage('No __init__ file found.')
-            z.extractall("plugins\\")
+            z.extractall("plugins")
 
         os.remove("install.zip")
         plugin = __import__('plugins', fromlist=[folder_name]).__dict__[folder_name]
-        os.rename("plugins\\%s" % folder_name, 'plugins\\%s' % plugin.base_dir)
-        add_plugin_menu("plugins\\%s" % plugin.base_dir)
+        os.rename('plugins'+sep+folder_name, 'plugins'+sep+plugin.base_dir)
+        add_plugin_menu('plugins'+sep+plugin.base_dir)
         PluginManager.installed_plugins[plugin_name] = {'date': plugin.date, 'base_dir': plugin.base_dir}
         PluginManager.gui.statusBar.showMessage('Successfully installed %s' % plugin_name)
         PluginManager.gui.pluginSelected(PluginManager.gui.pluginList.selectedItems()[0])
