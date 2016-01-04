@@ -45,6 +45,8 @@ def getnamespace():
         for importer, modname, ispkg in pkgutil.iter_modules(process.__path__):
             exec('import {}.{}'.format(process.__name__,modname))
             exec("from {}.{} import *".format(process.__name__,modname))
+            print(process.__name__)
+            print(modname)
             for f in eval('{}.{}.__all__'.format(process.__name__,modname)):
                 exec("namespace.append({})".format(f))
         
