@@ -15,7 +15,7 @@ from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 from trace import TraceFig
 
-__all__ = ['deinterleave','trim','zproject','image_calculator','add_background', 'pixel_binning', 'frame_binning']
+__all__ = ['deinterleave','trim','zproject','image_calculator', 'pixel_binning', 'frame_binning']
 
 class Deinterleave(BaseProcess):
     """ deinterleave(nChannels, keepSourceWindow=False)
@@ -316,38 +316,3 @@ class Image_calculator(BaseProcess):
         return newWindow
         
 image_calculator=Image_calculator()
-    
-class Add_Background(BaseProcess):
-    """ 
-    Kyle did not change this process?
-    deinterleave(nChannels, keepSourceWindow=False)
-    This deinterleaves a stack into nChannels
-    
-    Parameters:
-        | nChannels (int) -- The number of channels to deinterleave.
-    Returns:
-        newWindow
-    """
-    def __init__(self):
-        super().__init__()
-    def gui(self):
-        self.gui_reset()
-        nChannels=QSpinBox()
-        nChannels.setMinimum(2)
-        self.items.append({'name':'nChannels','string':'How many Channels?','object':nChannels})
-        super().gui()
-    def __call__(self,nChannels,keepSourceWindow=False):
-        self.start(keepSourceWindow)
-
-        newWindows=[]
-        for i in np.arange(nChannels):
-            newtif=self.tif[i::nChannels]
-            name=self.oldname+' - Channel '+str(i)
-            newWindow=Window(newtif,name,self.oldwindow.filename)
-            newWindows.append(newWindow)
-        
-        if keepSourceWindow is False:
-            self.oldwindow.close()  
-        g.m.statusBar().showMessage('Finished with {}.'.format(self.__name__))
-        return newWindows
-add_background=Add_Background()

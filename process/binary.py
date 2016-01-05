@@ -331,7 +331,7 @@ class Binary_Dilation(BaseProcess):
              `connectivity` may range from 1 (no diagonal elements are neighbors) 
              to `rank` (all elements are neighbors).
         | iterations (int) -- How many times to repeat the dilation
-        | darkBackground (bool) -- If this is True, pixels below the threshold will be True
+        | keepSourceWindow (bool) -- If this is False, a new Window is created with the result. Otherwise, the currentWindow is used
     Returns:
         newWindow
     """
@@ -365,6 +365,19 @@ class Binary_Dilation(BaseProcess):
 binary_dilation=Binary_Dilation()
 
 class Binary_Erosion(BaseProcess):
+    """binary_erosion(rank,connectivity,iterations, keepSourceWindow=False)
+    Performs a binary erosion on a binary image.  The 'True' pixels neighboring 'False' pixels become converted to 'False' pixels.
+    
+    Parameters:
+        | rank (int) -- The number of dimensions to erode. Can be either 2 or 3.  
+        | connectivity (int) -- `connectivity` determines the distance to erode.
+             `connectivity` may range from 1 (no diagonal elements are neighbors) 
+             to `rank` (all elements are neighbors).
+        | iterations (int) -- How many times to repeat the erosion
+        | keepSourceWindow (bool) -- If this is False, a new Window is created with the result. Otherwise, the currentWindow is used
+    Returns:
+        newWindow
+    """
     def __init__(self):
         super().__init__()
     def gui(self):

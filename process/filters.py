@@ -15,7 +15,7 @@ from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 from multiprocessing import cpu_count
 import time
-from .progress_bar import ProgressBar
+from process.progress_bar import ProgressBar
 
 __all__ = ['gaussian_blur','mean_filter','median_filter','butterworth_filter','boxcar_differential_filter','wavelet_filter','difference_filter', 'fourier_filter']
 ###############################################################################
@@ -457,7 +457,7 @@ class Difference_filter(BaseProcess):
     
     
     Parameters:
-        |
+        | None
     Returns:
         newWindow
     """
@@ -479,8 +479,8 @@ difference_filter=Difference_filter()
     
 class Boxcar_differential_filter(BaseProcess):
     """ boxcar_differential(minNframes, maxNframes, keepSourceWindow=False)
-    
-    
+    Applies a Boxcar differential filter by comparing each frameat index I to the frames in range [I+minNframes, I+maxNframes]
+
     Parameters:
         | minNframes (int) -- The starting point of your boxcar window.
         | maxNframes (int) -- The ending point of your boxcar window.

@@ -5,8 +5,7 @@
 
 Welcome to Flika's documentation!
 =================================
-
-Contents:
+Flika was created in the `Parker Lab <http://parkerlab.bio.uci.edu/index.htm>`_ in order to detect and measure |Ca2+| puffs caused by |IP3| channel openings.  It is growing into a general analysis tool for biological movies.
 
 .. toctree::
     :maxdepth: 2

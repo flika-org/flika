@@ -28,7 +28,16 @@ import datetime
 
 __all__ = ['open_file_gui','open_file','save_file_gui','save_file','save_movie','load_metadata','save_metadata','close', 'load_points', 'save_points', 'change_internal_data_type_gui', 'save_current_frame']
 
-def open_file_gui(func, filetypes, prompt='Open File'):
+def open_file_gui(func, filetypes, prompt='Open File', kargs={}):
+    '''
+    Open a file selection dialog to pass to open_file
+
+    Parameters:
+        | func (function) -- once the file is loaded, run this function with the data array as the first parameter
+        | filetypes (str) -- QFileDialog representation of acceptable filetypes eg "(Text Files (*.txt);;Images(*.tif, *.stk, *.nd2))"
+        | prompt (str) -- prompt shown at the top of the dialog
+        | kargs (dict) -- any excess arguments to be passed to func
+    '''
     filename=g.m.settings['filename']
     if filename is not None and os.path.isfile(filename):
         filename= QFileDialog.getOpenFileName(g.m, prompt, filename, filetypes)
@@ -36,11 +45,20 @@ def open_file_gui(func, filetypes, prompt='Open File'):
         filename= QFileDialog.getOpenFileName(g.m, prompt, '', filetypes)
     filename=str(filename)
     if filename != '':
-        func(filename)
+        func(filename, **kargs)
     else:
         g.m.statusBar().showMessage('No File Selected')
 
-def save_file_gui(func, filetypes, prompt = 'Save File'):
+def save_file_gui(func, filetypes, prompt = 'Save File', kargs={}):
+    '''
+    Open a dialog to choose a filename to save to via save_file
+
+    Parameters:
+        | func (function) -- once the file is selected, run this function with the data array as the first parameter
+        | filetypes (str) -- QFileDialog representation of acceptable filetypes eg "(Text Files (*.txt);;Images(*.tif, *.stk, *.nd2))"
+        | prompt (str) -- prompt shown at the top of the dialog
+        | kargs (dict) -- any excess arguments to be passed to func
+    '''
     filename=g.m.settings['filename']
     try:
         directory=os.path.dirname(filename)
@@ -52,7 +70,7 @@ def save_file_gui(func, filetypes, prompt = 'Save File'):
         filename= QFileDialog.getSaveFileName(g.m, prompt, filetypes)
     filename=str(filename)
     if filename != '':
-        func(filename)
+        func(filename, **kargs)
     else:
         g.m.statusBar().showMessage('Save Cancelled')
 
@@ -65,6 +83,14 @@ def save_roi_traces(filename):
 
             
 def open_file(filename=None):
+    """ open_file(filename=None)
+    Opens an image or movie file (.tif, .stk, .nd2) into a newWindow.
+    
+    Parameters:
+        | filename (str) -- Address of file to open. If no filename is provided, the last opened file is used.
+    Returns:
+        newWindow
+    """
     if filename is None:
         filename=g.m.settings['filename']
         if filename is None:
@@ -140,6 +166,12 @@ def JSONhandler(obj):
         json.JSONEncoder().default(obj)
     
 def save_file(filename):
+    """ save_file(filename)
+    Save the image in the currentWindow to a .tif file.
+    
+    Parameters:
+        | filename (str) -- Address to save the video to.
+    """
     if os.path.dirname(filename)=='': #if the user didn't specify a directory
         directory=os.path.normpath(os.path.dirname(g.m.settings['filename']))
         filename=os.path.join(directory,filename)
@@ -155,6 +187,12 @@ def save_file(filename):
     g.m.statusBar().showMessage('Successfully saved {}'.format(os.path.basename(filename)))
 
 def save_current_frame(filename):
+    """ save_current_frame(filename)
+    Save the current single frame image of the currentWindow to a .tif file.
+    
+    Parameters:
+        | filename (str) -- Address to save the frame to.
+    """
     if os.path.dirname(filename)=='': #if the user didn't specify a directory
         directory=os.path.normpath(os.path.dirname(g.m.settings['filename']))
         filename=os.path.join(directory,filename)
@@ -193,14 +231,18 @@ def load_points(filename):
     g.m.statusBar().showMessage('Successfully loaded {}'.format(os.path.basename(filename)))
         
 def save_movie(filename):
-    '''
-    Once you've exported all of the frames you wanted, open a command line and run the following:
-    
-        ffmpeg -r 100 -i %03d.jpg output.mp4
-        
-    -r: framerate
-    -i: input files.  
-    %03d: The files have to be numbered 001.jpg, 002.jpg... etc.
+    ''' save_movie(filename)
+    Saves the currentWindow video as a .mp4 movie by joining .jpg frames together
+
+    Parameters:
+        | filename (str) -- Address to save the movie to, with .mp4
+
+    Notes:
+        | Once you've exported all of the frames you wanted, open a command line and run the following:
+        |   ffmpeg -r 100 -i %03d.jpg output.mp4
+        | -r: framerate
+        | -i: input files.  
+        | %03d: The files have to be numbered 001.jpg, 002.jpg... etc.
     '''
     A=g.m.currentWindow.image
     if len(A.shape)<3:
@@ -276,7 +318,10 @@ def save_metadata(meta):
     f.close()
     
 def close(windows=None):
-    '''Will close a window or a set of windows.  Takes several types as its argument:
+    '''
+    Will close a window or a set of windows.
+
+    Values for windows:
         | 'all' (str) -- closes all windows
         | windows (list) - closes each window in the list
         | (Window) - closes individual window

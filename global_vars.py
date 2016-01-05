@@ -16,8 +16,6 @@ else:
 from os.path import expanduser
 import numpy as np
 from pyqtgraph.dockarea import *
-from window import Window
-from trace import TraceFig
 from process.BaseProcess import BaseDialog
 import pyqtgraph as pg
 from plugin_manager import init_plugins, PluginManager
