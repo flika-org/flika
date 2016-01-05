@@ -179,7 +179,7 @@
     </widget>
     <addaction name="menuStacks"/>
     <addaction name="actionMeasure"/>
-    <addaction name="actionSet_value"/>
+    <addaction name="actionSet_Value"/>
     <addaction name="menuWindow"/>
    </widget>
    <widget class="QMenu" name="menuProcess">
@@ -348,11 +348,6 @@
    </property>
   </action>
   <action name="actionSet_Value">
-   <property name="text">
-    <string>Set Value</string>
-   </property>
-  </action>
-  <action name="actionSet_value">
    <property name="text">
     <string>Set Value</string>
    </property>
