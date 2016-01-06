@@ -15,6 +15,7 @@ import time
 import os.path
 import numpy as np
 from skimage.io import imread, imsave
+#from process.BaseProcess import BaseQDialog
 from window import Window
 import global_vars as g
 from PyQt4 import uic
@@ -26,7 +27,7 @@ import re
 import nd2reader
 import datetime
 
-__all__ = ['open_file_gui','open_file','save_file_gui','save_file','save_movie','load_metadata','save_metadata','close', 'load_points', 'save_points', 'change_internal_data_type_gui', 'save_current_frame']
+__all__ = ['open_file_gui','open_file','save_file_gui','save_file','save_movie', 'save_movie_gui', 'load_metadata','save_metadata','close', 'load_points', 'save_points', 'change_internal_data_type_gui', 'save_current_frame']
 
 def open_file_gui(func, filetypes, prompt='Open File', kargs={}):
     '''
@@ -34,7 +35,7 @@ def open_file_gui(func, filetypes, prompt='Open File', kargs={}):
 
     Parameters:
         | func (function) -- once the file is loaded, run this function with the data array as the first parameter
-        | filetypes (str) -- QFileDialog representation of acceptable filetypes eg "(Text Files (*.txt);;Images(*.tif, *.stk, *.nd2))"
+        | filetypes (str) -- QFileDialog representation of acceptable filetypes eg (Text Files (\*.txt);;Images(\*.tif, \*.stk, \*.nd2))
         | prompt (str) -- prompt shown at the top of the dialog
         | kargs (dict) -- any excess arguments to be passed to func
     '''
@@ -55,7 +56,7 @@ def save_file_gui(func, filetypes, prompt = 'Save File', kargs={}):
 
     Parameters:
         | func (function) -- once the file is selected, run this function with the data array as the first parameter
-        | filetypes (str) -- QFileDialog representation of acceptable filetypes eg "(Text Files (*.txt);;Images(*.tif, *.stk, *.nd2))"
+        | filetypes (str) -- QFileDialog representation of acceptable filetypes eg (Text Files (\*.txt);;Images(\*.tif, \*.stk, \*.nd2))
         | prompt (str) -- prompt shown at the top of the dialog
         | kargs (dict) -- any excess arguments to be passed to func
     '''
@@ -229,8 +230,15 @@ def load_points(filename):
     t=g.m.currentWindow.currentIndex
     g.m.currentWindow.scatterPlot.setPoints(pos=g.m.currentWindow.scatterPoints[t])
     g.m.statusBar().showMessage('Successfully loaded {}'.format(os.path.basename(filename)))
-        
-def save_movie(filename):
+
+def save_movie_gui():
+    rateSpin = pg.SpinBox(value=50, bounds=[1, 1000], suffix='fps', int=True, step=1)
+    rateDialog = g.BaseQDialog(items=[{'string': 'Framerate', 'object': rateSpin}])
+    rateDialog.accepted.connect(lambda : save_file_gui(save_movie, "Movies (*.mp4)", "Save movie to .mp4 file", kargs={'rate': rateSpin.value()}))
+    g.m.dialogs.append(rateDialog)
+    rateDialog.show()
+
+def save_movie(filename, rate):
     ''' save_movie(filename)
     Saves the currentWindow video as a .mp4 movie by joining .jpg frames together
 
@@ -244,6 +252,7 @@ def save_movie(filename):
         | -i: input files.  
         | %03d: The files have to be numbered 001.jpg, 002.jpg... etc.
     '''
+    #http://ffmpeg.org/releases/ffmpeg-2.8.4.tar.bz2
     A=g.m.currentWindow.image
     if len(A.shape)<3:
         g.m.statusBar().showMessage('Movie not the right shape for saving.')
@@ -263,7 +272,7 @@ def save_movie(filename):
         exporter.export(os.path.join(tmpdir,'{:03}.jpg'.format(i)))
     olddir=os.getcwd()
     os.chdir(tmpdir)
-    subprocess.call(['ffmpeg', '-r', '50', '-i', '%03d.jpg', '-vf','scale=trunc(iw/2)*2:trunc(ih/2)*2', 'output.mp4'])
+    subprocess.call(['ffmpeg', '-r', '%d' % rate, '-i', '%03d.jpg', '-vf','scale=trunc(iw/2)*2:trunc(ih/2)*2', 'output.mp4'])
     os.rename('output.mp4',filename)
     os.chdir(olddir)
     g.m.statusBar().showMessage('Successfully saved movie as {}.'.format(os.path.basename(filename)))

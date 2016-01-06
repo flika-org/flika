@@ -124,7 +124,13 @@ class Background(BaseProcess):
 background=Background()
 
 class Scale_Bar(BaseProcess):
-    ''' There is currently a bug with updating that I'm unable to solve.  To update after making a change, check and uncheck the 'show' checkbox'''
+    ''' scale_bar(width_microns, width_pixels, font_size, color, background, location, show=True, keepSourceWindow=None)
+    There is currently a bug with updating that I'm unable to solve.  To update after making a change, check and uncheck the 'show' checkbox
+
+    Parameters:
+        | Unspecified
+    '''
+    
     def __init__(self):
         super().__init__()
     def gui(self):

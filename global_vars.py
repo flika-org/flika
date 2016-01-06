@@ -4,6 +4,7 @@ Created on Tue Jul 01 11:28:38 2014
 
 @author: Kyle Ellefsen
 """
+
 from PyQt4 import uic
 from PyQt4.QtCore import * # Qt is Nokias GUI rendering code written in C++.  PyQt4 is a library in python which binds to Qt
 from PyQt4.QtGui import *
@@ -20,24 +21,8 @@ from process.BaseProcess import BaseDialog
 import pyqtgraph as pg
 from plugin_manager import init_plugins, PluginManager
 from scripts import ScriptEditor
-from plugin_manager import PluginManager
 
 data_types = ['uint8', 'uint16', 'uint32', 'uint64', 'int8', 'int16', 'int32', 'int64', 'float16', 'float32', 'float64']
-
-def mainguiClose(event):
-    global m
-    for win in m.windows[:] + m.traceWindows[:] + m.dialogs[:]:
-        win.close()
-    ScriptEditor.close()
-    PluginManager.close()
-    m.settings.save()
-    event.accept() # let the window close
-
-class SetCurrentWindowSignal(QWidget):
-    sig=Signal()
-    def __init__(self,parent):
-        QWidget.__init__(self,parent)
-        self.hide()
 
 class Settings:
     def __init__(self, name):
@@ -100,6 +85,21 @@ class Settings:
         self.bd.accepted.connect(update)
         self.bd.changeSignal.connect(update)
         self.bd.show()
+        
+def mainguiClose(event):
+    global m
+    for win in m.windows[:] + m.traceWindows[:] + m.dialogs[:]:
+        win.close()
+    ScriptEditor.close()
+    PluginManager.close()
+    m.settings.save()
+    event.accept() # let the window close
+
+class SetCurrentWindowSignal(QWidget):
+    sig=Signal()
+    def __init__(self,parent):
+        QWidget.__init__(self,parent)
+        self.hide()
 
 
 def init(filename, title='Flika'):

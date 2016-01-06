@@ -11,7 +11,7 @@ import global_vars as g
 import numpy as np
 import scipy
 import pyqtgraph as pg
-from window import Window
+import window
 import sys
 
 
@@ -38,7 +38,7 @@ def getnamespace():
         d['scipy']=scipy
         d['pg']=pg
         d['plot']=pg.plot
-        d['Window']=Window
+        d['Window']=window.Window
         return d
     elif sys.version_info.major==3:
         namespace=[g]
@@ -60,5 +60,5 @@ def getnamespace():
         d['scipy']=scipy
         d['pg']=pg
         d['plot']=pg.plot
-        d['Window']=Window
+        d['Window']=window.Window
         return d

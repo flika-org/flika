@@ -1,0 +1,297 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Image &mdash; Flika 2.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Flika 2.0 documentation" href="index.html" />
+    <link rel="next" title="Process" href="process_doc.html" />
+    <link rel="prev" title="File" href="intro.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="process_doc.html" title="Process"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="intro.html" title="File"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Flika 2.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="image">
+<h1>Image<a class="headerlink" href="#image" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-stacks">
+<span id="stacks"></span><h2>Stacks<a class="headerlink" href="#module-stacks" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="stacks.deinterleave">
+<code class="descclassname">stacks.</code><code class="descname">deinterleave</code><span class="sig-paren">(</span><em>nChannels</em>, <em>keepSourceWindow=False</em><span class="sig-paren">)</span><a class="headerlink" href="#stacks.deinterleave" title="Permalink to this definition">¶</a></dt>
+<dd><p>This deinterleaves a stack into nChannels</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><div class="first last line-block">
+<div class="line">nChannels (int) &#8211; The number of channels to deinterleave.</div>
+</div>
+</dd>
+<dt>Returns:</dt>
+<dd>newWindow</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="stacks.pixel_binning">
+<code class="descclassname">stacks.</code><code class="descname">pixel_binning</code><span class="sig-paren">(</span><em>nPixels</em>, <em>keepSourceWindow=False</em><span class="sig-paren">)</span><a class="headerlink" href="#stacks.pixel_binning" title="Permalink to this definition">¶</a></dt>
+<dd><p>This bins the pixels to reduce the file size</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><div class="first last line-block">
+<div class="line">nPixels (int) &#8211; The number of pixels to bin.  Example: a value of 2 will reduce file size from 256x256-&gt;128x128.</div>
+</div>
+</dd>
+<dt>Returns:</dt>
+<dd>newWindow</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="stacks.frame_binning">
+<code class="descclassname">stacks.</code><code class="descname">frame_binning</code><span class="sig-paren">(</span><em>nFrames</em>, <em>keepSourceWindow=False</em><span class="sig-paren">)</span><a class="headerlink" href="#stacks.frame_binning" title="Permalink to this definition">¶</a></dt>
+<dd><p>This bins the pixels to reduce the file size</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><div class="first last line-block">
+<div class="line">nFrames (int) &#8211; The number of frames to bin.  Example: a value of 2 will reduce number of frames from 1000 to 500.</div>
+</div>
+</dd>
+<dt>Returns:</dt>
+<dd>newWindow</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="stacks.trim">
+<code class="descclassname">stacks.</code><code class="descname">trim</code><span class="sig-paren">(</span><em>firstFrame</em>, <em>lastFrame</em>, <em>increment</em>, <em>keepSourceWindow=False</em><span class="sig-paren">)</span><a class="headerlink" href="#stacks.trim" title="Permalink to this definition">¶</a></dt>
+<dd><p>This creates a new stack from the frames between the firstFrame and the lastFrame</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><div class="first last line-block">
+<div class="line">firstFrame (int) &#8211; The index of the first frame in the stack to be kept.</div>
+<div class="line">lastFrame (int) &#8211; The index of the last frame in the stack to be kept.</div>
+<div class="line">increment (int) &#8211; if increment equals, then every ith frame is kept.</div>
+</div>
+</dd>
+<dt>Returns:</dt>
+<dd>newWindow</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="stacks.zproject">
+<code class="descclassname">stacks.</code><code class="descname">zproject</code><span class="sig-paren">(</span><em>firstFrame</em>, <em>lastFrame</em>, <em>projection_type</em>, <em>keepSourceWindow=False</em><span class="sig-paren">)</span><a class="headerlink" href="#stacks.zproject" title="Permalink to this definition">¶</a></dt>
+<dd><p>This creates a new stack from the frames between the firstFrame and the lastFrame</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><div class="first last line-block">
+<div class="line">firstFrame (int) &#8211; The index of the first frame in the stack to be kept.</div>
+<div class="line">lastFrame (int) &#8211; The index of the last frame in the stack to be kept.</div>
+<div class="line">projection_type (str) &#8211; Method used to combine the frames.</div>
+</div>
+</dd>
+<dt>Returns:</dt>
+<dd>newWindow</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="stacks.image_calculator">
+<code class="descclassname">stacks.</code><code class="descname">image_calculator</code><span class="sig-paren">(</span><em>window1</em>, <em>window2</em>, <em>operation</em>, <em>keepSourceWindow=False</em><span class="sig-paren">)</span><a class="headerlink" href="#stacks.image_calculator" title="Permalink to this definition">¶</a></dt>
+<dd><p>This creates a new stack by combining two windows in an operation</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><div class="first last line-block">
+<div class="line">window1 (Window) &#8211; The first window </div>
+<div class="line">window2 (Window) &#8211; The second window</div>
+<div class="line">operation (str)  &#8211; Method used to combine the frames.</div>
+</div>
+</dd>
+<dt>Returns:</dt>
+<dd>newWindow</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-roi">
+<span id="roi"></span><h2>ROI<a class="headerlink" href="#module-roi" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="roi.set_value">
+<code class="descclassname">roi.</code><code class="descname">set_value</code><span class="sig-paren">(</span><em>value</em>, <em>firstFrame</em>, <em>lastFrame</em>, <em>restrictToROI=False</em>, <em>restrictToOutside=False</em>, <em>keepSourceWindow=False</em><span class="sig-paren">)</span><a class="headerlink" href="#roi.set_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>This sets the value from firstFrame to lastFrame to value.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><div class="first last line-block">
+<div class="line">value (int) &#8211; The desired value</div>
+<div class="line">firstFrame (int) &#8211; The first frame whos value you are setting</div>
+<div class="line">lastFrame (int) &#8211; The last frame whos value you are altering</div>
+<div class="line">restrictToROI (bool) &#8211; Whether or not only the current ROI will be effected.</div>
+</div>
+</dd>
+<dt>Returns:</dt>
+<dd>newWindow</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-overlay">
+<span id="overlay"></span><h2>Overlay<a class="headerlink" href="#module-overlay" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="overlay.time_stamp">
+<code class="descclassname">overlay.</code><code class="descname">time_stamp</code><span class="sig-paren">(</span><em>framerate</em>, <em>show=True</em><span class="sig-paren">)</span><a class="headerlink" href="#overlay.time_stamp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a time stamp to a movie</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><div class="first last line-block">
+<div class="line">framerate (float) &#8211; The number of frames per second</div>
+<div class="line">show (bool) &#8211; Turns on or off the time stamp</div>
+</div>
+</dd>
+<dt>Returns:</dt>
+<dd>None</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="overlay.background">
+<code class="descclassname">overlay.</code><code class="descname">background</code><span class="sig-paren">(</span><em>background_window</em>, <em>data_window</em><span class="sig-paren">)</span><a class="headerlink" href="#overlay.background" title="Permalink to this definition">¶</a></dt>
+<dd><p>Overlays the background_window onto the data_window</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><div class="first last line-block">
+<div class="line">background_window (Window)</div>
+<div class="line">data_window (Window)</div>
+</div>
+</dd>
+<dt>Returns:</dt>
+<dd>None</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="overlay.scale_bar">
+<code class="descclassname">overlay.</code><code class="descname">scale_bar</code><span class="sig-paren">(</span><em>width_microns</em>, <em>width_pixels</em>, <em>font_size</em>, <em>color</em>, <em>background</em>, <em>location</em>, <em>show=True</em>, <em>keepSourceWindow=None</em><span class="sig-paren">)</span><a class="headerlink" href="#overlay.scale_bar" title="Permalink to this definition">¶</a></dt>
+<dd><p>There is currently a bug with updating that I&#8217;m unable to solve.  To update after making a change, check and uncheck the &#8216;show&#8217; checkbox</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><div class="first last line-block">
+<div class="line">Unspecified</div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Image</a><ul>
+<li><a class="reference internal" href="#module-stacks">Stacks</a></li>
+<li><a class="reference internal" href="#module-roi">ROI</a></li>
+<li><a class="reference internal" href="#module-overlay">Overlay</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="intro.html"
+                        title="previous chapter">File</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="process_doc.html"
+                        title="next chapter">Process</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/image_doc.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="process_doc.html" title="Process"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="intro.html" title="File"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Flika 2.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2014, Kyle Ellefsen.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+    </div>
+  </body>
+</html>

@@ -341,9 +341,14 @@ median_filter=Median_filter()
 
 from scipy.fftpack import fft, ifft, fftfreq
 class Fourier_filter(BaseProcess):
-    """ fourier_filter(keepSourceWindow=False)
+    """ fourier_filter(frame_rate, low, high, loglogPreview, keepSourceWindow=False)
     I'm going to eventually plot the trace in the frequency domain inside this box so you can see where the power is.
-    
+
+    Parameters:
+        | frame_rate (int) -- Frame Rate in Hz
+        | low (float) -- Low cutoff frequency for the fourier filter
+        | high (float) -- High cutoff frequency for fourier filter
+        | loglogPreview (boolean) -- whether or not to plot frequency spectrum on log log axes
     """
     def __init__(self):
         super().__init__()
@@ -478,7 +483,7 @@ difference_filter=Difference_filter()
 
     
 class Boxcar_differential_filter(BaseProcess):
-    """ boxcar_differential(minNframes, maxNframes, keepSourceWindow=False)
+    """ boxcar_differential_filter(minNframes, maxNframes, keepSourceWindow=False)
     Applies a Boxcar differential filter by comparing each frameat index I to the frames in range [I+minNframes, I+maxNframes]
 
     Parameters:
@@ -543,7 +548,7 @@ boxcar_differential_filter=Boxcar_differential_filter()
     
 from scipy import signal
 class Wavelet_filter(BaseProcess):
-    """ wavelet_fitler(low, high, keepSourceWindow=False)
+    ''' wavelet_filter(low, high, keepSourceWindow=False)
     ***Warning!! This function is extremely slow.***
     
     Parameters:
@@ -551,7 +556,7 @@ class Wavelet_filter(BaseProcess):
         | high (int) -- The ending point of your boxcar window.
     Returns:
         newWindow
-    """
+    '''
     def __init__(self):
         super().__init__()
     def gui(self):
