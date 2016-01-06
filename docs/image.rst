@@ -1,3 +1,7 @@
+.. toctree::
+    :maxdepth: 2
+
+    
 Image
 -----------------
 Stacks

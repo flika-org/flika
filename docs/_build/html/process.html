@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Flika 2.0 documentation</title>
+    <title>Process &mdash; Flika 2.0 documentation</title>
     
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -24,13 +24,23 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="None" href="index.html#document-index" /> 
+    <link rel="top" title="Flika 2.0 documentation" href="documentation.html" />
+    <link rel="prev" title="Image" href="image.html" /> 
   </head>
   <body role="document">
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
-        <li class="nav-item nav-item-0"><a href="index.html#document-index">Flika 2.0 documentation</a> &raquo;</li> 
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="image.html" title="Image"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="documentation.html">Flika 2.0 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -39,232 +49,14 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="welcome-to-flika-s-documentation">
-<h1>Welcome to Flika&#8217;s documentation!<a class="headerlink" href="#welcome-to-flika-s-documentation" title="Permalink to this headline">¶</a></h1>
-<p>Flika was created in the <a class="reference external" href="http://parkerlab.bio.uci.edu/index.htm">Parker Lab</a> in order to detect and measure <a href="#id1"><span class="problematic" id="id2">|Ca2+|</span></a> puffs caused by <a href="#id3"><span class="problematic" id="id4">|IP3|</span></a> channel openings.  It is growing into a general analysis tool for biological movies.</p>
-<div class="toctree-wrapper compound">
-<span id="document-intro"></span><div class="section" id="getting-started">
-<h2>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h2>
-<p>Flika currently supports .tif files and .stk files.  To create a script, save a python file in the &#8216;scripts&#8217; directory.  To run it, select &#8216;Scripts&#8217;, then click on the name of your script.</p>
+  <div class="toctree-wrapper compound">
+<ul class="simple">
+</ul>
 </div>
-<div class="section" id="processes">
-<h2>Processes<a class="headerlink" href="#processes" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="module-file_">
-<span id="file"></span><h3>File<a class="headerlink" href="#module-file_" title="Permalink to this headline">¶</a></h3>
-<dl class="function">
-<dt id="file_.open_file">
-<code class="descclassname">file_.</code><code class="descname">open_file</code><span class="sig-paren">(</span><em>filename=None</em><span class="sig-paren">)</span><a class="headerlink" href="#file_.open_file" title="Permalink to this definition">¶</a></dt>
-<dd><p>Opens an image or movie file (.tif, .stk, .nd2) into a newWindow.</p>
-<dl class="docutils">
-<dt>Parameters:</dt>
-<dd><div class="first last line-block">
-<div class="line">filename (str) &#8211; Address of file to open. If no filename is provided, the last opened file is used.</div>
-</div>
-</dd>
-<dt>Returns:</dt>
-<dd>newWindow</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="file_.open_file_gui">
-<code class="descclassname">file_.</code><code class="descname">open_file_gui</code><span class="sig-paren">(</span><em>func</em>, <em>filetypes</em>, <em>prompt='Open File'</em>, <em>kargs={}</em><span class="sig-paren">)</span><a class="headerlink" href="#file_.open_file_gui" title="Permalink to this definition">¶</a></dt>
-<dd><p>Open a file selection dialog to pass to open_file</p>
-<dl class="docutils">
-<dt>Parameters:</dt>
-<dd><div class="first last line-block">
-<div class="line">func (function) &#8211; once the file is loaded, run this function with the data array as the first parameter</div>
-<div class="line">filetypes (str) &#8211; QFileDialog representation of acceptable filetypes eg (Text Files (*.txt);;Images(*.tif, *.stk, *.nd2))</div>
-<div class="line">prompt (str) &#8211; prompt shown at the top of the dialog</div>
-<div class="line">kargs (dict) &#8211; any excess arguments to be passed to func</div>
-</div>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="file_.save_file">
-<code class="descclassname">file_.</code><code class="descname">save_file</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#file_.save_file" title="Permalink to this definition">¶</a></dt>
-<dd><p>Save the image in the currentWindow to a .tif file.</p>
-<dl class="docutils">
-<dt>Parameters:</dt>
-<dd><div class="first last line-block">
-<div class="line">filename (str) &#8211; Address to save the video to.</div>
-</div>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="file_.save_file_gui">
-<code class="descclassname">file_.</code><code class="descname">save_file_gui</code><span class="sig-paren">(</span><em>func</em>, <em>filetypes</em>, <em>prompt='Save File'</em>, <em>kargs={}</em><span class="sig-paren">)</span><a class="headerlink" href="#file_.save_file_gui" title="Permalink to this definition">¶</a></dt>
-<dd><p>Open a dialog to choose a filename to save to via save_file</p>
-<dl class="docutils">
-<dt>Parameters:</dt>
-<dd><div class="first last line-block">
-<div class="line">func (function) &#8211; once the file is selected, run this function with the data array as the first parameter</div>
-<div class="line">filetypes (str) &#8211; QFileDialog representation of acceptable filetypes eg (Text Files (*.txt);;Images(*.tif, *.stk, *.nd2))</div>
-<div class="line">prompt (str) &#8211; prompt shown at the top of the dialog</div>
-<div class="line">kargs (dict) &#8211; any excess arguments to be passed to func</div>
-</div>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="file_.save_current_frame">
-<code class="descclassname">file_.</code><code class="descname">save_current_frame</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#file_.save_current_frame" title="Permalink to this definition">¶</a></dt>
-<dd><p>Save the current single frame image of the currentWindow to a .tif file.</p>
-<dl class="docutils">
-<dt>Parameters:</dt>
-<dd><div class="first last line-block">
-<div class="line">filename (str) &#8211; Address to save the frame to.</div>
-</div>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="file_.save_movie">
-<code class="descclassname">file_.</code><code class="descname">save_movie</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#file_.save_movie" title="Permalink to this definition">¶</a></dt>
-<dd><p>Saves the currentWindow video as a .mp4 movie by joining .jpg frames together</p>
-<dl class="docutils">
-<dt>Parameters:</dt>
-<dd><div class="first last line-block">
-<div class="line">filename (str) &#8211; Address to save the movie to, with .mp4</div>
-</div>
-</dd>
-<dt>Notes:</dt>
-<dd><div class="first last line-block">
-<div class="line">Once you&#8217;ve exported all of the frames you wanted, open a command line and run the following:</div>
-<div class="line-block">
-<div class="line">ffmpeg -r 100 -i %03d.jpg output.mp4</div>
-</div>
-<div class="line">-r: framerate</div>
-<div class="line">-i: input files.  </div>
-<div class="line">%03d: The files have to be numbered 001.jpg, 002.jpg... etc.</div>
-</div>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="file_.close">
-<code class="descclassname">file_.</code><code class="descname">close</code><span class="sig-paren">(</span><em>windows=None</em><span class="sig-paren">)</span><a class="headerlink" href="#file_.close" title="Permalink to this definition">¶</a></dt>
-<dd><p>Will close a window or a set of windows.</p>
-<dl class="docutils">
-<dt>Values for windows:</dt>
-<dd><div class="first last line-block">
-<div class="line">&#8216;all&#8217; (str) &#8211; closes all windows</div>
-<div class="line">windows (list) - closes each window in the list</div>
-<div class="line">(Window) - closes individual window</div>
-<div class="line">(None) - closes current window</div>
-</div>
-</dd>
-</dl>
-</dd></dl>
-
-<div class="section" id="module-stacks">
-<span id="stacks"></span><h4>Stacks<a class="headerlink" href="#module-stacks" title="Permalink to this headline">¶</a></h4>
-<dl class="function">
-<dt id="stacks.deinterleave">
-<code class="descclassname">stacks.</code><code class="descname">deinterleave</code><span class="sig-paren">(</span><em>nChannels</em>, <em>keepSourceWindow=False</em><span class="sig-paren">)</span><a class="headerlink" href="#stacks.deinterleave" title="Permalink to this definition">¶</a></dt>
-<dd><p>This deinterleaves a stack into nChannels</p>
-<dl class="docutils">
-<dt>Parameters:</dt>
-<dd><div class="first last line-block">
-<div class="line">nChannels (int) &#8211; The number of channels to deinterleave.</div>
-</div>
-</dd>
-<dt>Returns:</dt>
-<dd>newWindow</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="stacks.pixel_binning">
-<code class="descclassname">stacks.</code><code class="descname">pixel_binning</code><span class="sig-paren">(</span><em>nPixels</em>, <em>keepSourceWindow=False</em><span class="sig-paren">)</span><a class="headerlink" href="#stacks.pixel_binning" title="Permalink to this definition">¶</a></dt>
-<dd><p>This bins the pixels to reduce the file size</p>
-<dl class="docutils">
-<dt>Parameters:</dt>
-<dd><div class="first last line-block">
-<div class="line">nPixels (int) &#8211; The number of pixels to bin.  Example: a value of 2 will reduce file size from 256x256-&gt;128x128.</div>
-</div>
-</dd>
-<dt>Returns:</dt>
-<dd>newWindow</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="stacks.frame_binning">
-<code class="descclassname">stacks.</code><code class="descname">frame_binning</code><span class="sig-paren">(</span><em>nFrames</em>, <em>keepSourceWindow=False</em><span class="sig-paren">)</span><a class="headerlink" href="#stacks.frame_binning" title="Permalink to this definition">¶</a></dt>
-<dd><p>This bins the pixels to reduce the file size</p>
-<dl class="docutils">
-<dt>Parameters:</dt>
-<dd><div class="first last line-block">
-<div class="line">nFrames (int) &#8211; The number of frames to bin.  Example: a value of 2 will reduce number of frames from 1000 to 500.</div>
-</div>
-</dd>
-<dt>Returns:</dt>
-<dd>newWindow</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="stacks.trim">
-<code class="descclassname">stacks.</code><code class="descname">trim</code><span class="sig-paren">(</span><em>firstFrame</em>, <em>lastFrame</em>, <em>increment</em>, <em>keepSourceWindow=False</em><span class="sig-paren">)</span><a class="headerlink" href="#stacks.trim" title="Permalink to this definition">¶</a></dt>
-<dd><p>This creates a new stack from the frames between the firstFrame and the lastFrame</p>
-<dl class="docutils">
-<dt>Parameters:</dt>
-<dd><div class="first last line-block">
-<div class="line">firstFrame (int) &#8211; The index of the first frame in the stack to be kept.</div>
-<div class="line">lastFrame (int) &#8211; The index of the last frame in the stack to be kept.</div>
-<div class="line">increment (int) &#8211; if increment equals, then every ith frame is kept.</div>
-</div>
-</dd>
-<dt>Returns:</dt>
-<dd>newWindow</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="stacks.zproject">
-<code class="descclassname">stacks.</code><code class="descname">zproject</code><span class="sig-paren">(</span><em>firstFrame</em>, <em>lastFrame</em>, <em>projection_type</em>, <em>keepSourceWindow=False</em><span class="sig-paren">)</span><a class="headerlink" href="#stacks.zproject" title="Permalink to this definition">¶</a></dt>
-<dd><p>This creates a new stack from the frames between the firstFrame and the lastFrame</p>
-<dl class="docutils">
-<dt>Parameters:</dt>
-<dd><div class="first last line-block">
-<div class="line">firstFrame (int) &#8211; The index of the first frame in the stack to be kept.</div>
-<div class="line">lastFrame (int) &#8211; The index of the last frame in the stack to be kept.</div>
-<div class="line">projection_type (str) &#8211; Method used to combine the frames.</div>
-</div>
-</dd>
-<dt>Returns:</dt>
-<dd>newWindow</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="stacks.image_calculator">
-<code class="descclassname">stacks.</code><code class="descname">image_calculator</code><span class="sig-paren">(</span><em>window1</em>, <em>window2</em>, <em>operation</em>, <em>keepSourceWindow=False</em><span class="sig-paren">)</span><a class="headerlink" href="#stacks.image_calculator" title="Permalink to this definition">¶</a></dt>
-<dd><p>This creates a new stack by combining two windows in an operation</p>
-<dl class="docutils">
-<dt>Parameters:</dt>
-<dd><div class="first last line-block">
-<div class="line">window1 (Window) &#8211; The first window </div>
-<div class="line">window2 (Window) &#8211; The second window</div>
-<div class="line">operation (str)  &#8211; Method used to combine the frames.</div>
-</div>
-</dd>
-<dt>Returns:</dt>
-<dd>newWindow</dd>
-</dl>
-</dd></dl>
-
-</div>
+<div class="section" id="process">
+<h1>Process<a class="headerlink" href="#process" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="module-binary">
-<span id="binary"></span><h4>Binary<a class="headerlink" href="#module-binary" title="Permalink to this headline">¶</a></h4>
+<span id="binary"></span><h2>Binary<a class="headerlink" href="#module-binary" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="binary.threshold">
 <code class="descclassname">binary.</code><code class="descname">threshold</code><span class="sig-paren">(</span><em>value</em>, <em>darkBackground=False</em>, <em>keepSourceWindow=False</em><span class="sig-paren">)</span><a class="headerlink" href="#binary.threshold" title="Permalink to this definition">¶</a></dt>
@@ -387,7 +179,7 @@ to <cite>rank</cite> (all elements are neighbors).</div>
 
 </div>
 <div class="section" id="module-filters">
-<span id="filters"></span><h4>Filters<a class="headerlink" href="#module-filters" title="Permalink to this headline">¶</a></h4>
+<span id="filters"></span><h2>Filters<a class="headerlink" href="#module-filters" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="filters.gaussian_blur">
 <code class="descclassname">filters.</code><code class="descname">gaussian_blur</code><span class="sig-paren">(</span><em>sigma</em>, <em>keepSourceWindow=False</em><span class="sig-paren">)</span><a class="headerlink" href="#filters.gaussian_blur" title="Permalink to this definition">¶</a></dt>
@@ -515,7 +307,7 @@ to <cite>rank</cite> (all elements are neighbors).</div>
 
 </div>
 <div class="section" id="module-math_">
-<span id="math"></span><h4>Math<a class="headerlink" href="#module-math_" title="Permalink to this headline">¶</a></h4>
+<span id="math"></span><h2>Math<a class="headerlink" href="#module-math_" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="math_.subtract">
 <code class="descclassname">math_.</code><code class="descname">subtract</code><span class="sig-paren">(</span><em>value</em>, <em>keepSourceWindow=False</em><span class="sig-paren">)</span><a class="headerlink" href="#math_.subtract" title="Permalink to this definition">¶</a></dt>
@@ -610,20 +402,6 @@ to <cite>rank</cite> (all elements are neighbors).</div>
 
 </div>
 </div>
-</div>
-<div class="section" id="analyze">
-<h2>Analyze<a class="headerlink" href="#analyze" title="Permalink to this headline">¶</a></h2>
-</div>
-</div>
-</div>
-<div class="section" id="indices-and-tables">
-<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
-<ul class="simple">
-<li><a class="reference internal" href="genindex.html"><span>Index</span></a></li>
-<li><a class="reference internal" href="py-modindex.html"><span>Module Index</span></a></li>
-<li><a class="reference internal" href="search.html"><span>Search Page</span></a></li>
-</ul>
-</div>
 
 
           </div>
@@ -631,16 +409,39 @@ to <cite>rank</cite> (all elements are neighbors).</div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-  <h3><a href="index.html#document-index">Table Of Contents</a></h3>
+  <h3><a href="documentation.html">Table Of Contents</a></h3>
   <ul>
-<li class="toctree-l1"><a class="reference internal" href="index.html#document-intro">Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="index.html#processes">Processes</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="index.html#module-file_">File</a></li>
+<li><a class="reference internal" href="#">Process</a><ul>
+<li><a class="reference internal" href="#module-binary">Binary</a></li>
+<li><a class="reference internal" href="#module-filters">Filters</a></li>
+<li><a class="reference internal" href="#module-math_">Math</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="index.html#analyze">Analyze</a></li>
 </ul>
 
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="image.html"
+                        title="previous chapter">Image</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/process.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -648,7 +449,16 @@ to <cite>rank</cite> (all elements are neighbors).</div>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
-        <li class="nav-item nav-item-0"><a href="index.html#document-index">Flika 2.0 documentation</a> &raquo;</li> 
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="image.html" title="Image"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="documentation.html">Flika 2.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

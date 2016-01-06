@@ -12,9 +12,9 @@ Flika currently supports .tif, .nd2, and .stk files.
 .. toctree::
     :maxdepth: 2
 
-    intro
-    image_doc
-    process_doc
+    file
+    image
+    process
 
 
 Indices and tables
