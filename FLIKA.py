@@ -68,7 +68,7 @@ def initializeMainGui():
     g.m.menuScripts.aboutToShow.connect(buildScriptsMenu)
     g.m.actionPlugin_Manager.triggered.connect(PluginManager.show)
 
-    url='file:///'+os.path.join(os.getcwd(),'docs','_build','html','index.html')
+    url='file:///'+os.path.join(os.getcwd(),'docs','_build','html','documentation.html')
     g.m.actionDocs.triggered.connect(lambda: QDesktopServices.openUrl(QUrl(url)))
     
     g.m.actionDeinterleave.triggered.connect(deinterleave.gui)

@@ -124,11 +124,16 @@ class Background(BaseProcess):
 background=Background()
 
 class Scale_Bar(BaseProcess):
-    ''' scale_bar(width_microns, width_pixels, font_size, color, background, location, show=True, keepSourceWindow=None)
-    There is currently a bug with updating that I'm unable to solve.  To update after making a change, check and uncheck the 'show' checkbox
+    ''' scale_bar(width_microns, width_pixels, font_size, color, background, location, show=True)
 
     Parameters:
-        | Unspecified
+        | width_microns (float)
+        | width_pixels (float)
+        | font_size (int)
+        | color ['Black','White'] (string)
+        | background  ['Black','White', 'None'] (string)
+        | location ['Lower Right','Lower Left','Top Right','Top Left'] (string)
+        | show (bool)
     '''
     
     def __init__(self):
