@@ -148,6 +148,15 @@ class ProgressBar(QtGui.QWidget):
         self.label.setText(msg)
     def update_finished_status(self):
         self.finished=True
+
+    def clear_memory(self):
+        for child in self.children():
+            child.deleteLater()
+        for attr in dir(self):
+            try:
+                delattr(self, attr)
+            except Exception:
+                pass
         
         
         
