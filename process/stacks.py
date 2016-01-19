@@ -73,7 +73,15 @@ class Pixel_binning(BaseProcess):
         tif=self.tif
         nDim=len(tif.shape)
         if nPixels==2:
-            if nDim==3:
+            if nDim==4:
+                image1=tif[:,0::2,0::2,:]
+                image2=tif[:,1::2,0::2,:]
+                image3=tif[:,0::2,1::2,:]
+                image4=tif[:,1::2,1::2,:]
+                self.newtif=(image1+image2+image3+image4)/4
+                self.newname=self.oldname+' - Binned'
+                return self.end()
+            elif nDim==3:
                 image1=tif[:,0::2,0::2]
                 image2=tif[:,1::2,0::2]
                 image3=tif[:,0::2,1::2]
