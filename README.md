@@ -8,7 +8,7 @@
 [brettjsettle.pythonanywhere.com/documentation.html](http://brettjsettle.pythonanywhere.com/documentation.html)
 
 ### Installation Instructions ###
-
+Flika works in both Python 2 and Python 3.
 #### Windows ####
 Download the FLIKA zipped folder from Github and extract the folder to a location on your computer (Desktop or Program Files preferredly). After the folder has been extracted, you can double click the 'Flika.bat' file inside of the Flika-master folder. Or follow these steps to create an executable on the desktop:
 
