@@ -79,11 +79,13 @@ def download_file(download_url):
     f.close()
     
 def is_installed(dep):
+    installed_packages=pip.get_installed_distributions(local_only=False)
+    installed_packages=[p.project_name for p in installed_packages]
+    for mod in installed_packages:
+        if mod.lower() == dep.lower():
+            return True
+    #reqs = dict([re.match(r'([^=]*)==(.*)', i).groups() for i in installed_packages])
     try:
-        reqs = dict([re.match(r'([^=]*)==(.*)', i).groups() for i in pip.operations.freeze.freeze()])
-        for mod in reqs:
-            if mod.lower() == dep.lower():
-                return True
         import_module(dep)
         return True
     except ImportError as e:
