@@ -15,13 +15,13 @@ Download the FLIKA zipped folder from Github and extract the folder to a locatio
 Right click 'Flika.bat' and choose 'Create Shortcut', a shortcut icon should show up. Rename the 'Flika.bat - Shortcut' to just 'Flika', then right click it and select Properties. Click the button that says 'Change Icon' at the bottom of the window. (If a window pops up, press ok). Select 'Browse' to locate the FLIKA icon, located in the '/Flika-master/images/' folder under the name 'favicon.ico'. Once the icon is selected, you can move the shortcut to your desktop. Double click it to run Flika!
 
 #### Ubuntu ####
-
+Open a terminal and run the following commands:
 ```
 sudo apt-get install python-pip python-numpy python-scipy build-essential cython python-matplotlib
 sudo pip install scikit-image
 sudo pip install future
 ```
-Navigate to the directory Flika was downloaded into.  Run Flika with the command
+Download the FLIKA zipped folder from Github and extract the folder to a location on your computer.  Navigate to the directory Flika was downloaded into.  Run Flika with the command
 ```python FLIKA.py```
 
 #### Mac OSX ####
