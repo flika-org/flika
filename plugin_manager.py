@@ -88,7 +88,6 @@ class PluginManager(QMainWindow):
             return False
         installed_date = [int(i) for i in PluginManager.installed_plugins[plugin]['date'].split('/')]
         latest_date = [int(i) for i in PluginManager.all_plugins[plugin]['date'].split('/')]
-        print(plugin, installed_date, latest_date)
         if latest_date[2] > installed_date[2] or latest_date[0] > installed_date[0] or latest_date[1] > installed_date[1]:
             return True
         return False
