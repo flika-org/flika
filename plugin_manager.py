@@ -13,8 +13,6 @@ import zipfile
 import time, shutil
 import os.path
 sep=os.path.sep
-
-
     
 def str2func(plugin_name, file_location, function):
     '''
@@ -88,15 +86,21 @@ class PluginManager(QMainWindow):
     def update_available(plugin):
         if plugin not in PluginManager.installed_plugins:
             return False
-        installed_date = time.strptime(PluginManager.installed_plugins[plugin]['date'], "%m/%d/%Y")
-        latest_date = time.strptime(PluginManager.all_plugins[plugin]['date'], "%m/%d/%Y")
-        if latest_date > installed_date:
+        installed_date = [int(i) for i in PluginManager.installed_plugins[plugin]['date'].split('/')]
+        latest_date = [int(i) for i in PluginManager.all_plugins[plugin]['date'].split('/')]
+        print(plugin, installed_date, latest_date)
+        if latest_date[2] > installed_date[2] or latest_date[0] > installed_date[0] or latest_date[1] > installed_date[1]:
             return True
         return False
 
-    @classmethod
-    def load_plugin_info(cls):
+    @staticmethod
+    def load_plugin_info():
         PluginManager.installed_plugins = {}
+        PluginManager.load_installed_plugin_info()
+        return PluginManager.load_online_plugin_info()
+
+    @staticmethod
+    def load_installed_plugin_info():
         paths = glob(os.path.join(os.getcwd(), 'plugins', '*'))
         for p in paths:
             if '__' in p:
@@ -107,6 +111,9 @@ class PluginManager(QMainWindow):
                 PluginManager.installed_plugins[module.name] = {'base_dir': module.base_dir, 'date': module.date}
             except:
                 print('Could not load plugin %s. Open plugin manager to download it again.' % base_dir)
+
+    @staticmethod
+    def load_online_plugin_info():
         try:
             PluginManager.all_plugins = eval(urlopen(PluginManager.PLUGIN_LIST_URL).read())
             PluginManager.gui.updateList()
@@ -243,8 +250,8 @@ class PluginManager(QMainWindow):
 
         os.remove("install.zip")
         plugin = __import__('plugins', fromlist=[folder_name]).__dict__[folder_name]
-        os.rename('plugins'+sep+folder_name, 'plugins'+sep+plugin.base_dir)
-        add_plugin_menu('plugins'+sep+plugin.base_dir)
+        os.rename(os.path.join('plugins', folder_name), os.path.join('plugins', plugin.base_dir))
+        add_plugin_menu(os.path.join('plugins', plugin.base_dir))
         PluginManager.installed_plugins[plugin_name] = {'date': plugin.date, 'base_dir': plugin.base_dir}
         PluginManager.gui.statusBar.showMessage('Successfully installed %s' % plugin_name)
         PluginManager.gui.pluginSelected(PluginManager.gui.pluginList.selectedItems()[0])

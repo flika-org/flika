@@ -80,10 +80,9 @@ def download_file(download_url):
     
 def is_installed(dep):
     installed_packages=pip.get_installed_distributions(local_only=False)
-    installed_packages=[p.project_name for p in installed_packages]
-    for mod in installed_packages:
-        if mod.lower() == dep.lower():
-            return True
+    installed_packages=[p.project_name.lower() for p in installed_packages]
+    if dep.lower() in installed_packages:
+        return True
     #reqs = dict([re.match(r'([^=]*)==(.*)', i).groups() for i in installed_packages])
     try:
         import_module(dep)
@@ -127,8 +126,7 @@ def install(dep):
         
 def install_wheel(dep):
     if _platform != 'win32':
-        print("No support for installing binaries on non-windows machines")
-        return
+        raise Exception("No support for installing binaries on non-windows machines")
     wheel = get_wheel_url(dep)
     if wheel != '':
         if not os.path.isfile(wheel):
