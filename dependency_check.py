@@ -23,23 +23,22 @@ def get_url(ml,mi):
     mi = mi.replace('&lt;', '<')
     mi = mi.replace('&gt;', '>')
     mi = mi.replace('&amp;', '&')
+    mi = mi.replace("&#46;", '.')
+    mi = mi.replace("&#62;", '>')
+    mi = mi.replace("&#60;", '<')
     ot="";
     for j in range(len(mi)):
         ot += chr(ml[ord(mi[j])-48])
     return ot
 
 def get_wheel_url(plugin):
-    if is_64bits:
-        fnames_suffix="-cp"+pyversion+"-none-win_amd64.whl"
-    else:
-        fnames_suffix="-cp"+pyversion+"-none-win32.whl"
-    url = "http://www.lfd.uci.edu/~gohlke/pythonlibs"
-    req = Request(url,headers={'User-Agent':"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.132 Safari/537.36"})
+    req = Request(base_url, headers={'User-Agent':"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.132 Safari/537.36"})
     resp = urlopen(req)
     regex = re.compile('javascript:dl(\([^\)]*\))[^>]*>(%s[^<]*)<' % plugin, re.IGNORECASE | re.DOTALL)
     fnames = {}
     for line in resp.readlines():
         line = line.decode('utf-8').replace('&#8209;', '-')
+        line = line.replace("&#46;", '.')
         fname = re.findall(regex, line)
         if len(fname) > 0:
             res, fname = fname[0]
@@ -50,6 +49,7 @@ def get_wheel_url(plugin):
     return get_newest_version(fnames)
 
 def get_newest_version(fnames):
+    #print(fnames)
     if len(fnames) == 0:
         return ''
     fname = ''
@@ -115,7 +115,7 @@ def install(dep):
             print('\n\n\n')
             print('This should install all the dependencies.  You only need to do this once.')
     if not is_installed(dep):
-        print('Trying to install %s from Gohlke on win32 only' % dep)
+        print('Trying to install %s from Gohlke(win32 only)' % dep)
         try:
             install_wheel(dep)
             print('Successfully installed %s' % dep)
@@ -148,3 +148,6 @@ def check_dependencies(*args):
     for dep in args:
         install(dep)
 
+if __name__ == "__main__":
+    for arg in sys.argv[1:]:
+        install(arg)
