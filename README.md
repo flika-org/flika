@@ -17,7 +17,7 @@ Right click 'Flika.bat' and choose 'Create Shortcut', a shortcut icon should sho
 #### Ubuntu ####
 Open a terminal and run the following commands:
 ```
-sudo apt-get install python-pip python-numpy python-scipy build-essential cython python-matplotlib
+sudo apt-get install python-pip python-numpy python-scipy build-essential cython python-matplotlib python-qt4-gl
 sudo pip install scikit-image
 sudo pip install future
 ```
