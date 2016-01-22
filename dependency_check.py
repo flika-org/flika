@@ -105,7 +105,9 @@ def install(dep):
         os.chdir(old_cwd)  
         return
     try:
-        pip.main(['install', dep])
+        if pip.main(['install', dep]) == 0:
+            os.chdir(old_cwd)
+            return
     except IOError:
         print('You need to run this file with administrator privileges. Also, make sure that all other Python programs are closed.')
         if _platform == 'win32':
@@ -114,6 +116,7 @@ def install(dep):
             print('python dependency_check.py')
             print('\n\n\n')
             print('This should install all the dependencies.  You only need to do this once.')
+    
     if not is_installed(dep):
         print('Trying to install %s from Gohlke(win32 only)' % dep)
         try:
