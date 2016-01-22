@@ -12,6 +12,7 @@ import difflib
 import zipfile
 import time, shutil
 import os.path
+import traceback
 sep=os.path.sep
     
 def str2func(plugin_name, file_location, function):
@@ -25,7 +26,7 @@ def str2func(plugin_name, file_location, function):
     try:
         module = __import__(plugin_dir, fromlist=[levels[0]]).__dict__[levels[0]]
     except:
-        raise Exception("No attribute %s of module %s" % (levels[0], plugin_dir))
+        raise Exception("No attribute %s of module %s. %s" % (levels[0], plugin_dir, traceback.format_exc()))
     for i in range(1, len(levels)):
         try:
             module = getattr(module, levels[i])
