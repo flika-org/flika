@@ -44,6 +44,9 @@ try:
 except NameError:
     pass
 def initializeMainGui():
+    if g.mainGuiInitialized:
+        return 0 
+    g.app = QApplication(sys.argv)
     g.init('gui/main.ui')
     g.m.setGeometry(QRect(15, 33, 326, 80))
     g.m.setWindowIcon(QIcon('images/favicon.png'))
@@ -139,7 +142,7 @@ def closeCommandPrompt():
     ShowWindow(console_window_handle, 0)
     
 if __name__ == '__main__':
-    app = QApplication(sys.argv)
+    
     initializeMainGui()
     args=sys.argv
     if os.name =='nt' and '-debug' not in args:
@@ -150,7 +153,7 @@ if __name__ == '__main__':
     
     insideSpyder='SPYDER_SHELL_ID' in os.environ
     if not insideSpyder: #if we are running outside of Spyder
-        sys.exit(app.exec_()) #This is required to run outside of Spyder
+        sys.exit(g.app.exec_()) #This is required to run outside of Spyder
 
     
     

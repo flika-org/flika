@@ -24,6 +24,8 @@ from scripts import ScriptEditor
 
 data_types = ['uint8', 'uint16', 'uint32', 'uint64', 'int8', 'int16', 'int32', 'int64', 'float16', 'float32', 'float64']
 
+mainGuiInitialized=False
+
 class Settings:
     def __init__(self, name):
         self.config_file=os.path.join(expanduser("~"),'.FLIKA','%s.p' % name)
@@ -103,12 +105,12 @@ class SetCurrentWindowSignal(QWidget):
 
 
 def init(filename, title='Flika'):
-    global m
+    global m, mainGuiInitialized
+    mainGuiInitialized=True
     m=uic.loadUi(filename)
     init_plugins()
     m.setCurrentWindowSignal=SetCurrentWindowSignal(m)
     m.settings = Settings("Flika")
-    
     m.windows = []
     m.traceWindows = []
     m.dialogs = []
