@@ -247,7 +247,6 @@
      <string>Scripts</string>
     </property>
     <addaction name="actionScript_Editor"/>
-    <addaction name="separator"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuImage"/>

@@ -17,29 +17,8 @@ from PyQt4 import uic
 from pyqtgraph import console
 import pyqtgraph as pg
 import pyqtgraph.console
-from script_namespace import getnamespace
-
-def getScriptActions():
-    g.m.scriptsDir=os.path.join(expanduser("~"),'.FLIKA','scripts')
-    if not os.path.exists(g.m.scriptsDir):
-        os.makedirs(g.m.scriptsDir)
-    scripts=os.listdir(g.m.scriptsDir)
-    scripts=sorted(scripts,key=str.lower)
-    def makeFun(script):
-        return lambda: ScriptEditor.importScript(script)
-    actions = []
-    for script in scripts:
-        name=os.path.splitext(script)[0]
-        script=os.path.join(g.m.scriptsDir,script)
-        actions.append(QAction("&"+name, g.m, triggered=makeFun(script)))
-    return actions
-
-def buildScriptsMenu():
-    g.m.menuScripts.clear()
-    g.m.menuScripts.addAction(QAction('Script Editor', g.m, triggered=ScriptEditor.show))
-    g.m.menuScripts.addSeparator()
-    for action in getScriptActions():
-        g.m.menuScripts.addAction(action)
+from script_editor.script_namespace import getnamespace
+from script_editor.syntax import PythonHighlighter
 
 def newScript():
     filename= QFileDialog.getSaveFileName(g.m, 'Open File', g.m.scriptsDir, '*.py')
@@ -71,6 +50,7 @@ def qstr2str(string):
 class Editor(QPlainTextEdit):
     def __init__(self, scriptfile = ''):
         QWidget.__init__(self)
+        self.highlight = PythonHighlighter(self.document())
         self.scriptfile = ''
         if scriptfile != '':
             self.load_file(scriptfile)
@@ -136,7 +116,7 @@ class ScriptEditor(QMainWindow):
         self.actionFrom_File.triggered.connect(lambda f: ScriptEditor.importScript())
         self.actionFrom_Window.triggered.connect(lambda : self.addEditor(Editor.fromWindow(g.m.currentWindow)))
         self.actionSave_Script.triggered.connect(self.saveCurrentScript)
-        self.menuScripts.aboutToShow.connect(self.load_scripts)
+        self.menuRecentScripts.aboutToShow.connect(self.load_scripts)
         self.eventeater = ScriptEventEater(self)
         self.setAcceptDrops(True)
         self.installEventFilter(self.eventeater)
@@ -144,9 +124,17 @@ class ScriptEditor(QMainWindow):
         self.setWindowTitle('Script Editor')
 
     def load_scripts(self):
-        self.menuScripts.clear()
-        for action in getScriptActions():
-            self.menuScripts.addAction(action)
+        self.menuRecentScripts.clear()
+        def makeFun(script):
+            return lambda: ScriptEditor.importScript(script)
+        if len(g.m.settings['recent_scripts']) == 0:
+            action = QAction("No Recent Scripts", g.m)
+            action.setEnabled(False)
+            self.menuRecentScripts.addAction(action)
+        else:
+            for filename in g.m.settings['recent_scripts']:
+                action = QAction(filename, g.m, triggered=makeFun(filename))
+                self.menuRecentScripts.addAction(action)
 
     def closeTab(self, index):
         self.scriptTabs.removeTab(index)
@@ -166,10 +154,15 @@ class ScriptEditor(QMainWindow):
         if not ScriptEditor.gui.isVisible():
             ScriptEditor.gui.show()
         if scriptfile == '':
-            scriptfile= str(QFileDialog.getOpenFileName(ScriptEditor.gui, 'Load script', g.m.scriptsDir, '*.py'))
+            scriptfile= str(QFileDialog.getOpenFileName(ScriptEditor.gui, 'Load script', os.path.dirname(g.m.settings['recent_scripts'][-1]) if len(g.m.settings['recent_scripts']) > 0 else '', '*.py'))
             if scriptfile == '':
                 return
         editor = Editor(scriptfile)
+        if scriptfile in g.m.settings['recent_scripts']:
+            g.m.settings['recent_scripts'].remove(scriptfile)
+        g.m.settings['recent_scripts'].append(scriptfile)
+        if len(g.m.settings['recent_scripts']) > 8:
+            g.m.settings['recent_scripts'] = g.m.settings['recent_scripts'][-8:]
         ScriptEditor.gui.addEditor(editor)
     
     def addEditor(self, editor=None):

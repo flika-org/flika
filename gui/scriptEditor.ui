@@ -80,11 +80,6 @@
      <height>21</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuScripts">
-    <property name="title">
-     <string>Scripts</string>
-    </property>
-   </widget>
    <widget class="QMenu" name="menuFile">
     <property name="title">
      <string>File</string>
@@ -96,12 +91,18 @@
      <addaction name="actionFrom_Window"/>
      <addaction name="actionFrom_File"/>
     </widget>
+    <widget class="QMenu" name="menuRecentScripts">
+     <property name="title">
+      <string>Recent Scripts</string>
+     </property>
+     <addaction name="actionNo_Recent_Scripts"/>
+    </widget>
     <addaction name="actionNew_Script"/>
+    <addaction name="menuRecentScripts"/>
     <addaction name="menuLoad_Script"/>
     <addaction name="actionSave_Script"/>
    </widget>
    <addaction name="menuFile"/>
-   <addaction name="menuScripts"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionNew_Script">
@@ -122,6 +123,14 @@
   <action name="actionFrom_File">
    <property name="text">
     <string>From File</string>
+   </property>
+  </action>
+  <action name="actionNo_Recent_Scripts">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>No Recent Scripts</string>
    </property>
   </action>
  </widget>

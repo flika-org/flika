@@ -36,7 +36,7 @@ from process.measure import measure
 from process.file_ import open_file_gui, save_file_gui, open_file, load_metadata, close, save_file, save_movie, save_movie_gui, change_internal_data_type_gui, save_points, load_points, save_current_frame, save_roi_traces
 from roi import load_roi, makeROI
 from process.overlay import time_stamp,background, scale_bar
-from scripts import buildScriptsMenu, ScriptEditor
+from script_editor.ScriptEditor import ScriptEditor
 from plugin_manager import PluginManager
 
 try:
@@ -68,7 +68,6 @@ def initializeMainGui():
     g.m.point.clicked.connect(lambda: g.m.settings.setmousemode('point'))
 
     g.m.actionScript_Editor.triggered.connect(ScriptEditor.show)
-    g.m.menuScripts.aboutToShow.connect(buildScriptsMenu)
     g.m.actionPlugin_Manager.triggered.connect(PluginManager.show)
 
     url='file:///'+os.path.join(os.getcwd(),'docs','_build','html','documentation.html')

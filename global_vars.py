@@ -20,34 +20,25 @@ from pyqtgraph.dockarea import *
 from process.BaseProcess import BaseDialog
 import pyqtgraph as pg
 from plugin_manager import init_plugins, PluginManager
-from scripts import ScriptEditor
+from script_editor.ScriptEditor import ScriptEditor
 
 data_types = ['uint8', 'uint16', 'uint32', 'uint64', 'int8', 'int16', 'int32', 'int64', 'float16', 'float32', 'float64']
 
 mainGuiInitialized=False
 
 class Settings:
+    initial_settings = {'filename': None, 'data_type': np.float64, 'internal_data_type': np.float64, 'multiprocessing': True, 'multipleTraceWindows': False, 'mousemode': 'rectangle', 'show_windows': True, 'recent_scripts': []}
     def __init__(self, name):
         self.config_file=os.path.join(expanduser("~"),'.FLIKA','%s.p' % name)
         try:
             self.d=pickle.load(open(self.config_file, "rb" ))
         except (IOError, ValueError, EOFError):
-            self.d=dict()
-            self.d['filename']=None #this is the name of the most recently opened file
-            self.d['data_type']=np.float64 #this is the data type used to save an image.  All image data are handled internally as np.float64 irrespective of this setting
-            self.d['internal_data_type']=np.float64
-            self.d['multipleTraceWindows'] = False
-            self.d['multiprocessing'] = True
-        self.d['mousemode']='rectangle'
-        self.d['show_windows'] = True
+            self.d=Settings.initial_settings
     def __getitem__(self, item):
         try:
             self.d[item]
         except KeyError:
-            if item=='internal_data_type':
-                self.d[item]=np.float64
-            elif item=='multiprocessing':
-                self.d[item]=True
+            self.d[item]=Settings.initial_settings[item]
         return self.d[item]
     def __setitem__(self,key,item):
         self.d[key]=item
