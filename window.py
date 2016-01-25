@@ -128,7 +128,7 @@ class Window(QWidget):
             print('This window was already closed')
             event.accept()
         else:
-            #self.closeSignal.emit()
+            self.closeSignal.emit()
             if hasattr(self,'image'):
                 del self.image
             self.imageview.setImage(np.zeros((2,2))) #clear the memory
