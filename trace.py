@@ -33,7 +33,7 @@ class TraceFig(QWidget):
             self.setGeometry(QRect(*g.m.settings['tracefig_settings']['coords']))
         self.setWindowTitle('Flika')
         self.setWindowIcon(QIcon('images/favicon.png'))
-        self.label = pg.LabelItem(justify='right')
+        #self.label = pg.LabelItem(justify='right')
         self.l = QVBoxLayout()
         self.setLayout(self.l)
         self.p1=pg.PlotWidget()
@@ -132,7 +132,7 @@ class TraceFig(QWidget):
                 mousePoint = self.vb.mapSceneToView(pos)
                 index = int(mousePoint.x())
                 if index >= 0:
-                    self.label.setText("<span style='font-size: 12pt'>frame={0}</span>".format(index))
+                    #self.label.setText("<span style='font-size: 12pt'>frame={0}</span>".format(index))
                     self.indexChanged.emit(index)
                     g.m.statusBar().showMessage('frame {}    y={}'.format(index,mousePoint.y()))
 

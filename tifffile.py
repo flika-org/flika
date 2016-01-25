@@ -145,7 +145,11 @@ import collections
 from fractions import Fraction
 from xml.etree import cElementTree as ElementTree
 
+
 import numpy
+
+import global_vars as g
+from PyQt4 import QtGui
 
 __version__ = '2013.05.02'
 __docformat__ = 'restructuredtext en'
@@ -722,8 +726,23 @@ class TiffFile(object):
                 firstpage = next(p for p in pages if p)
                 nopage = numpy.zeros_like(
                     firstpage.asarray())
-            result = numpy.vstack((p.asarray() if p else nopage)
-                                  for p in pages)
+            else:
+                nopage=None
+            result_tmp=[]
+            nPages=len(pages)
+            percent=0
+            for i,p in enumerate(pages):
+                if percent<int(100*i/nPages):
+                    percent=int(100*i/nPages)
+                    g.m.statusBar().showMessage('Loading file {}%'.format(percent))
+                    QtGui.qApp.processEvents()
+
+                if p:
+                    result_tmp.append(p.asarray())
+                else:
+                    result_tmp.append(nopage)
+            result=numpy.vstack(result_tmp)
+            
         if key is None:
             try:
                 result.shape = self.series[series].shape

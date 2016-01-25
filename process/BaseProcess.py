@@ -17,7 +17,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtCore import pyqtSignal as Signal
 from PyQt4.QtCore import pyqtSlot  as Slot
 import pyqtgraph as pg
-
+import sys
 import inspect
 
 __all__ = []
@@ -210,7 +210,13 @@ class BaseDialog(QDialog):
                 item['value']=item['object'].isChecked()
     def closeEvent(self,ev):
         self.closeSignal.emit()
-        
+
+
+def convert_to_string(item):
+    if (sys.version_info.major == 2 and isinstance(item,basestring)) or isinstance(item,str):
+        return "'{}'".format(item)
+    else:
+        return str(item)
 class BaseProcess(object):
     def __init__(self):
         self.__name__=self.__class__.__name__.lower()
@@ -221,7 +227,9 @@ class BaseProcess(object):
         frame = inspect.getouterframes(inspect.currentframe())[1][0]
         args, _, _, values = inspect.getargvalues(frame)
         funcname=self.__name__
-        self.command=funcname+'('+', '.join([i+'='+str(values[i]) for i in args if i!='self'])+')'
+        self.command=funcname+'('+', '.join([i+'='+convert_to_string(values[i]) for i in args if i!='self'])+')'
+        
+        
         g.m.statusBar().showMessage('Performing {}...'.format(self.__name__))
         self.keepSourceWindow=keepSourceWindow
         self.oldwindow=g.m.currentWindow
@@ -284,7 +292,7 @@ class BaseProcess_noPriorWindow(BaseProcess):
         frame = inspect.getouterframes(inspect.currentframe())[1][0]
         args, _, _, values = inspect.getargvalues(frame)
         funcname=self.__name__
-        self.command=funcname+'('+', '.join([i+'='+str(values[i]) for i in args if i!='self'])+')'
+        self.command=funcname+'('+', '.join([i+'='+convert_to_string(values[i]) for i in args if i!='self'])+')'
         g.m.statusBar().showMessage('Performing {}...'.format(self.__name__))
         
     def end(self):
@@ -319,7 +327,7 @@ class BaseQDialog(QDialog):
         | docstring (str) -- Optional string to show at the top of the dialog
     '''
     def __init__(self, items, docstring='', buttons = QDialogButtonBox.Ok | QDialogButtonBox.Cancel):
-        super().__init__()
+        QDialog.__init__(self)
         self.setWindowTitle("Dialog Box")
         self.buttonBox = QDialogButtonBox(buttons)
         self.items = items

@@ -15,7 +15,7 @@ import time
 import os.path
 import numpy as np
 from skimage.io import imread, imsave
-#from process.BaseProcess import BaseQDialog
+from process.BaseProcess import BaseQDialog
 from window import Window
 import global_vars as g
 from PyQt4 import uic
@@ -233,7 +233,7 @@ def load_points(filename):
 
 def save_movie_gui():
     rateSpin = pg.SpinBox(value=50, bounds=[1, 1000], suffix='fps', int=True, step=1)
-    rateDialog = g.BaseQDialog(items=[{'string': 'Framerate', 'object': rateSpin}])
+    rateDialog = BaseQDialog(items=[{'string': 'Framerate', 'object': rateSpin}])
     rateDialog.accepted.connect(lambda : save_file_gui(save_movie, "Movies (*.mp4)", "Save movie to .mp4 file", kargs={'rate': rateSpin.value()}))
     g.m.dialogs.append(rateDialog)
     rateDialog.show()
