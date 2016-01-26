@@ -15,7 +15,7 @@ from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 from trace import TraceFig
 
-__all__ = ['deinterleave','trim','zproject','image_calculator', 'pixel_binning', 'frame_binning']
+__all__ = ['deinterleave','trim','zproject','image_calculator', 'pixel_binning', 'frame_binning', 'resize']
 
 class Deinterleave(BaseProcess):
     """ deinterleave(nChannels, keepSourceWindow=False)
@@ -132,6 +132,45 @@ class Frame_binning(BaseProcess):
         self.newname=self.oldname+' - Binned {} frames'.format(nFrames)
         return self.end()
 frame_binning=Frame_binning()
+
+
+import skimage.transform
+class Resize(BaseProcess):
+    """ resize(factor, keepSourceWindow=False)
+    Performs interpolation to up-size images
+    
+    Parameters:
+        | factor (int) -- The factor to scale the images by.  Example: a value of 2 will double the number of pixels wide the images are.
+    Returns:
+        newWindow
+    """
+    def __init__(self):
+        super().__init__()
+    def gui(self):
+        self.gui_reset()
+        factor=QSpinBox()
+        factor.setMinimum(2)
+        factor.setMaximum(100)
+        self.items.append({'name':'factor','string':'By what factor to resize the image?','object':factor})
+        super().gui()
+    def __call__(self,factor,keepSourceWindow=False):
+        self.start(keepSourceWindow)
+        A=self.tif
+        nDim=len(A.shape)
+        is_rgb=self.oldwindow.metadata['is_rgb']
+        if not is_rgb:
+            if nDim==3:
+                mt,mx,my=A.shape
+                B=np.zeros((mt,mx*factor,my*factor))
+                for t in np.arange(mt):
+                    B[t]=skimage.transform.resize(A[t],(mx*factor,my*factor))
+            elif nDim==2:
+                my,mt=A.shape
+                B=skimage.transform.resize(A,(mx*factor,my*factor))
+        self.newtif=B
+        self.newname=self.oldname+' - resized {}x '.format(factor)
+        return self.end()
+resize=Resize()
 
 
 class Trim(BaseProcess):

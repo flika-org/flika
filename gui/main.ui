@@ -168,6 +168,7 @@
      <addaction name="actionZ_Project"/>
      <addaction name="actionPixel_Binning"/>
      <addaction name="actionFrame_Binning"/>
+     <addaction name="actionResize"/>
     </widget>
     <widget class="QMenu" name="menuWindow">
      <property name="title">
@@ -524,6 +525,11 @@
   <action name="actionMedian_Filter">
    <property name="text">
     <string>Median Filter</string>
+   </property>
+  </action>
+  <action name="actionResize">
+   <property name="text">
+    <string>Resize</string>
    </property>
   </action>
  </widget>

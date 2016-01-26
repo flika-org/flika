@@ -27,7 +27,7 @@ import pyqtgraph as pg
 import global_vars as g
 from window import Window
 
-from process.stacks import deinterleave, trim, zproject, image_calculator, pixel_binning, frame_binning
+from process.stacks import deinterleave, trim, zproject, image_calculator, pixel_binning, frame_binning, resize
 from process.math_ import multiply, subtract, power, ratio, absolute_value, subtract_trace
 from process.filters import gaussian_blur, butterworth_filter,boxcar_differential_filter, wavelet_filter, difference_filter, fourier_filter, mean_filter, median_filter
 from process.binary import threshold, adaptive_threshold, canny_edge_detector, remove_small_blobs, logically_combine, binary_dilation, binary_erosion
@@ -77,6 +77,7 @@ def initializeMainGui():
     g.m.actionZ_Project.triggered.connect(zproject.gui)
     g.m.actionPixel_Binning.triggered.connect(pixel_binning.gui)
     g.m.actionFrame_Binning.triggered.connect(frame_binning.gui)
+    g.m.actionResize.triggered.connect(resize.gui)
     g.m.actionTrim_Frames.triggered.connect(trim.gui)
     g.m.actionMultiply.triggered.connect(multiply.gui)
     g.m.actionSubtract.triggered.connect(subtract.gui)
