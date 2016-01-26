@@ -16,33 +16,9 @@ import datetime
 from PyQt4 import uic
 from pyqtgraph import console
 import pyqtgraph as pg
-import pyqtgraph.console
 from script_editor.script_namespace import getnamespace
 from script_editor.syntax import PythonHighlighter
 
-def newScript():
-    filename= QFileDialog.getSaveFileName(g.m, 'Open File', g.m.scriptsDir, '*.py')
-    filename=str(filename)
-    if filename=='':
-        return False
-    elif os.path.basename(filename) in os.listdir(g.m.scriptsDir): #if this file already exists, don't save over it
-        g.m.statusBar().showMessage("You cannot write over an already saved script.  Manually delete the file if you'd like to reuse the filename.")
-        return False
-    else:
-        f=open(filename,'w')
-        d=datetime.datetime.now().isoformat().strip().split('T')[0].replace('-','.')
-        author=os.path.basename(expanduser("~"))
-        f.write('''"""\nCreated {}\n\n@author:{}\n"""\nopen_file(g.m.settings['filename'])'''.format(d,author))
-        f.close()        
-        
-def executeScript(scriptfile):
-    f = open(scriptfile, 'r')
-    script=f.read()
-    f.close()
-    if g.m.interpreter is None:
-        launch_interpreter()
-    g.m.interpreter.runCmd(script)
-    
 def qstr2str(string):
     string=str(string)
     return string.replace(u'\u2029','\n')
@@ -70,7 +46,7 @@ class Editor(QPlainTextEdit):
         g.m.statusBar().showMessage('{} loaded.'.format(os.path.basename(self.scriptfile)))
 
     def save_as(self):
-        filename= str(QFileDialog.getSaveFileName(g.m, 'Save script', g.m.scriptsDir, '*.py'))
+        filename= str(QFileDialog.getSaveFileName(g.m, 'Save script', ScriptEditor.most_recent_script(), '*.py'))
         if filename == '':
             g.m.statusBar().showMessage('Save cancelled')
             return False
@@ -85,6 +61,7 @@ class Editor(QPlainTextEdit):
         command=qstr2str(self.toPlainText())
         f.write(command)
         f.close()
+        ScriptEditor.add_recent_file(self.scriptfile)
         g.m.statusBar().showMessage('{} saved.'.format(os.path.basename(self.scriptfile)))
         return True
 
@@ -150,19 +127,27 @@ class ScriptEditor(QMainWindow):
         return self.scriptTabs.currentWidget()
 
     @staticmethod
+    def most_recent_script():
+        return g.m.settings['recent_scripts'][-1] if len(g.m.settings['recent_scripts']) > 0 else ''
+
+    @staticmethod
+    def add_recent_file(filename):
+        if filename in g.m.settings['recent_scripts']:
+            g.m.settings['recent_scripts'].remove(filename)
+        g.m.settings['recent_scripts'].insert(0, filename)
+        if len(g.m.settings['recent_scripts']) > 8:
+            g.m.settings['recent_scripts'] = g.m.settings['recent_scripts'][:-1]
+
+    @staticmethod
     def importScript(scriptfile = ''):
         if not ScriptEditor.gui.isVisible():
             ScriptEditor.gui.show()
         if scriptfile == '':
-            scriptfile= str(QFileDialog.getOpenFileName(ScriptEditor.gui, 'Load script', os.path.dirname(g.m.settings['recent_scripts'][-1]) if len(g.m.settings['recent_scripts']) > 0 else '', '*.py'))
+            scriptfile= str(QFileDialog.getOpenFileName(ScriptEditor.gui, 'Load script', os.path.dirname(ScriptEditor.most_recent_script()), '*.py'))
             if scriptfile == '':
                 return
         editor = Editor(scriptfile)
-        if scriptfile in g.m.settings['recent_scripts']:
-            g.m.settings['recent_scripts'].remove(scriptfile)
-        g.m.settings['recent_scripts'].append(scriptfile)
-        if len(g.m.settings['recent_scripts']) > 8:
-            g.m.settings['recent_scripts'] = g.m.settings['recent_scripts'][-8:]
+        ScriptEditor.add_recent_file(scriptfile)
         ScriptEditor.gui.addEditor(editor)
     
     def addEditor(self, editor=None):
