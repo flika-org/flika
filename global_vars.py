@@ -77,7 +77,7 @@ class Settings:
         nCores = QComboBox()
         for i in np.arange(cpu_count())+1:
             nCores.addItem(str(i))
-        nCores.setCurrentIndex(self.d['nCores']-1)
+        nCores.setCurrentIndex(self['nCores']-1)
         items = []
         items.append({'name': 'internal_data_type', 'string': 'Internal Data Type', 'object': dataDrop})
         items.append({'name': 'show_windows', 'string': 'Show Windows', 'object': showCheck})
