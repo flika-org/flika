@@ -105,7 +105,7 @@ def install(dep):
         os.chdir(old_cwd)  
         return
     try:
-        if pip.main(['install', dep]) == 0:
+        if pip.main(['install', dep, '--no-deps']) == 0:
             os.chdir(old_cwd)
             return
     except IOError:
