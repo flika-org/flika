@@ -27,6 +27,8 @@ class Window(QWidget):
         QWidget.__init__(self)
         self.commands=commands #commands is a list of the commands used to create this window, starting with loading the file
         self.metadata=metadata
+        if 'is_rgb' not in metadata.keys():
+            metadata['is_rgb']=False
         self.image=tif
         if g.m.currentWindow is None:
             width=684

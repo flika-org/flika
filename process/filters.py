@@ -127,8 +127,8 @@ class Butterworth_filter(BaseProcess):
             self.newtif=np.zeros(self.tif.shape)
             mt,mx,my=self.tif.shape
             b,a,padlen=self.makeButterFilter(filter_order,low,high)
-            for i in np.arange(my):
-                for j in np.arange(mx):
+            for i in np.arange(mx):
+                for j in np.arange(my):
                     self.newtif[:, i, j]=filtfilt(b,a, self.tif[:, i, j], padlen=padlen)
         self.newname=self.oldname+' - Butter Filtered'
         return self.end()

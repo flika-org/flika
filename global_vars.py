@@ -21,13 +21,23 @@ from process.BaseProcess import BaseDialog
 import pyqtgraph as pg
 from plugin_manager import init_plugins, PluginManager
 from script_editor.ScriptEditor import ScriptEditor
+from multiprocessing import cpu_count
+
 
 data_types = ['uint8', 'uint16', 'uint32', 'uint64', 'int8', 'int16', 'int32', 'int64', 'float16', 'float32', 'float64']
 
 mainGuiInitialized=False
 
 class Settings:
-    initial_settings = {'filename': None, 'data_type': np.float64, 'internal_data_type': np.float64, 'multiprocessing': True, 'multipleTraceWindows': False, 'mousemode': 'rectangle', 'show_windows': True, 'recent_scripts': []}
+    initial_settings = {'filename': None, 
+                        'data_type': np.float64, 
+                        'internal_data_type': np.float64, 
+                        'multiprocessing': True, 
+                        'multipleTraceWindows': False, 
+                        'mousemode': 'rectangle', 
+                        'show_windows': True, 
+                        'recent_scripts': [],
+                        'nCores':cpu_count()}
     def __init__(self, name):
         self.config_file=os.path.join(expanduser("~"),'.FLIKA','%s.p' % name)
         try:
@@ -64,16 +74,23 @@ class Settings:
         multipleTracesCheck.setChecked(self.d['multipleTraceWindows'])
         multiprocessing = QCheckBox()
         multiprocessing.setChecked(self.d['multiprocessing'])
+        nCores = QComboBox()
+        for i in np.arange(cpu_count())+1:
+            nCores.addItem(str(i))
+        nCores.setCurrentIndex(self.d['nCores']-1)
         items = []
         items.append({'name': 'internal_data_type', 'string': 'Internal Data Type', 'object': dataDrop})
         items.append({'name': 'show_windows', 'string': 'Show Windows', 'object': showCheck})
         items.append({'name': 'multipleTraceWindows', 'string': 'Multiple Trace Windows', 'object': multipleTracesCheck})
         items.append({'name': 'multiprocessing', 'string': 'Multiprocessing On', 'object': multiprocessing})
+        items.append({'name': 'nCores', 'string': 'Number of cores to use when multiprocessing', 'object': nCores})
         def update():
             self.d['internal_data_type'] = np.dtype(str(dataDrop.currentText()))
             self.d['show_windows'] = showCheck.isChecked()
             self['multipleTraceWindows'] = multipleTracesCheck.isChecked()
             self['multiprocessing']=multiprocessing.isChecked()
+            self['nCores']=int(nCores.itemText(nCores.currentIndex()))
+            
         self.bd = BaseDialog(items, 'FLIKA Settings', '')
         self.bd.accepted.connect(update)
         self.bd.changeSignal.connect(update)
