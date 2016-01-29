@@ -13,7 +13,6 @@ import global_vars as g
 from process.BaseProcess import BaseProcess, SliderLabel, SliderLabelOdd
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
-from multiprocessing import cpu_count
 import time
 from process.progress_bar import ProgressBar
 
@@ -170,7 +169,7 @@ butterworth_filter=Butterworth_filter()
 
         
 def butterworth_filter_multi(filter_order,low,high,tif):
-    nThreads= cpu_count()
+    nThreads= g.m.settings['nCores']
     mt,mx,my=tif.shape
     block_ends=np.linspace(0,mx,nThreads+1).astype(np.int)
     data=[tif[:, block_ends[i]:block_ends[i+1],:] for i in np.arange(nThreads)] #split up data along x axis. each thread will get one.
