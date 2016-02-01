@@ -30,6 +30,7 @@ class Editor(QPlainTextEdit):
         self.scriptfile = ''
         if scriptfile != '':
             self.load_file(scriptfile)
+        self.installEventFilter(self)
 
     @staticmethod
     def fromWindow(window):
@@ -64,6 +65,15 @@ class Editor(QPlainTextEdit):
         ScriptEditor.add_recent_file(self.scriptfile)
         g.m.statusBar().showMessage('{} saved.'.format(os.path.basename(self.scriptfile)))
         return True
+
+    def eventFilter(self, source, event):
+        if (event.type()==QKeyEvent.KeyPress and event.key() == Qt.Key_Tab):
+            event.accept()
+            self.insertPlainText('    ')
+            return True
+        else:
+            event.ignore()
+        return False
 
 class ScriptEditor(QMainWindow):
     '''
