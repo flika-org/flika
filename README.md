@@ -38,5 +38,6 @@ Download the [zipped folder](https://github.com/kyleellefsen/Flika/archive/maste
 Install [https://www.continuum.io/downloads](Anaconda) by Continuum. This will install Python along with most of Flika's dependencies.  Any libraries not included in Anaconda will be installed the first time Flika is run.
 
 2) Install Flika
+
 Download the [zipped folder](https://github.com/kyleellefsen/Flika/archive/master.zip) from Github and extract the folder to a location on your computer.  Open a terminal (Press command+space, type 'Terminal'). Navigate to the directory Flika was downloaded into.  Run Flika with the command
 ```python FLIKA.py```
