@@ -148,7 +148,14 @@
      <addaction name="actionImport_ROIs"/>
      <addaction name="actionImport_Points"/>
     </widget>
+    <widget class="QMenu" name="menuRecent_Files">
+     <property name="title">
+      <string>Recent Files</string>
+     </property>
+     <addaction name="actionNo_Recent_Files"/>
+    </widget>
     <addaction name="actionOpen"/>
+    <addaction name="menuRecent_Files"/>
     <addaction name="actionSaveAs"/>
     <addaction name="menuImport"/>
     <addaction name="actionSave_Points"/>
@@ -530,6 +537,14 @@
   <action name="actionResize">
    <property name="text">
     <string>Resize</string>
+   </property>
+  </action>
+  <action name="actionNo_Recent_Files">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>No Recent Files</string>
    </property>
   </action>
  </widget>

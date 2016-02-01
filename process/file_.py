@@ -15,7 +15,6 @@ import time
 import os.path
 import numpy as np
 from skimage.io import imread, imsave
-from process.BaseProcess import BaseQDialog
 from window import Window
 import global_vars as g
 from PyQt4 import uic
@@ -28,6 +27,24 @@ import nd2reader
 import datetime
 
 __all__ = ['open_file_gui','open_file','save_file_gui','save_file','save_movie', 'save_movie_gui', 'load_metadata','save_metadata','close', 'load_points', 'save_points', 'change_internal_data_type_gui', 'save_current_frame']
+
+def save_recent_file(fname):
+    while fname in g.m.settings['recent_files']:
+        g.m.settings['recent_files'].remove(fname)
+    g.m.settings['recent_files'].insert(0, fname)
+    make_recent_menu()
+
+def make_recent_menu():
+    g.m.menuRecent_Files.clear()
+    if len(g.m.settings['recent_files']) == 0:
+        no_recent = QAction("No Recent Files", g.m)
+        no_recent.setEnabled(False)
+        g.m.menuRecent_Files.addAction(no_recent)
+        return
+    def openFun(f):
+        return lambda : open_file(f)
+    for fname in g.m.settings['recent_files']:
+        g.m.menuRecent_Files.addAction(QAction(fname, g.m, triggered=openFun(fname)))
 
 def open_file_gui(func, filetypes, prompt='Open File', kargs={}):
     '''
@@ -46,6 +63,7 @@ def open_file_gui(func, filetypes, prompt='Open File', kargs={}):
         filename= QFileDialog.getOpenFileName(g.m, prompt, '', filetypes)
     filename=str(filename)
     if filename != '':
+        save_recent_file(filename)
         func(filename, **kargs)
     else:
         g.m.statusBar().showMessage('No File Selected')
@@ -233,10 +251,10 @@ def load_points(filename):
 
 def save_movie_gui():
     rateSpin = pg.SpinBox(value=50, bounds=[1, 1000], suffix='fps', int=True, step=1)
-    rateDialog = BaseQDialog(items=[{'string': 'Framerate', 'object': rateSpin}])
-    rateDialog.accepted.connect(lambda : save_file_gui(save_movie, "Movies (*.mp4)", "Save movie to .mp4 file", kargs={'rate': rateSpin.value()}))
-    g.m.dialogs.append(rateDialog)
-    rateDialog.show()
+    #rateDialog = BaseQDialog(items=[{'string': 'Framerate', 'object': rateSpin}])
+    #rateDialog.accepted.connect(lambda : save_file_gui(save_movie, "Movies (*.mp4)", "Save movie to .mp4 file", kargs={'rate': rateSpin.value()}))
+    #g.m.dialogs.append(rateDialog)
+    #rateDialog.show()
 
 def save_movie(filename, rate):
     ''' save_movie(filename)

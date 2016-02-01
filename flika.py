@@ -30,7 +30,7 @@ from process.filters import gaussian_blur, butterworth_filter,boxcar_differentia
 from process.binary import threshold, adaptive_threshold, canny_edge_detector, remove_small_blobs, logically_combine, binary_dilation, binary_erosion
 from process.roi import set_value
 from process.measure import measure
-from process.file_ import open_file_gui, save_file_gui, open_file, load_metadata, close, save_file, save_movie, save_movie_gui, change_internal_data_type_gui, save_points, load_points, save_current_frame, save_roi_traces
+from process.file_ import make_recent_menu, open_file_gui, save_file_gui, open_file, load_metadata, close, save_file, save_movie, save_movie_gui, change_internal_data_type_gui, save_points, load_points, save_current_frame, save_roi_traces
 from roi import load_roi, makeROI
 from process.overlay import time_stamp,background, scale_bar
 from script_editor.ScriptEditor import ScriptEditor
@@ -103,6 +103,7 @@ def initializeMainGui():
     g.m.actionScale_Bar.triggered.connect(scale_bar.gui)
     g.m.actionBackground.triggered.connect(background.gui)
     g.m.actionMeasure.triggered.connect(measure.gui)
+    make_recent_menu()
     
     g.m.installEventFilter(mainWindowEventEater)
     g.m.show()
@@ -130,20 +131,13 @@ class MainWindowEventEater(QObject):
                 event.ignore()
         return False # lets the event continue to the edit
 mainWindowEventEater = MainWindowEventEater()
-
-def closeCommandPrompt():
-    from ctypes import windll
-    GetConsoleWindow = windll.kernel32.GetConsoleWindow
-    console_window_handle = GetConsoleWindow()
-    ShowWindow = windll.user32.ShowWindow
-    ShowWindow(console_window_handle, 0)
     
 if __name__ == '__main__':
     
     initializeMainGui()
     args=sys.argv
     if os.name =='nt' and '-debug' not in args:
-        closeCommandPrompt()        
+        g.closeCommandPrompt()        
     args=[arg for arg in args if 'FLIKA.PY' not in arg.upper() and arg != '-debug']
     if len(args)>0:
         open_file(args[0])

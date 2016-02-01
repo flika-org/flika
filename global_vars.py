@@ -37,6 +37,7 @@ class Settings:
                         'mousemode': 'rectangle', 
                         'show_windows': True, 
                         'recent_scripts': [],
+                        'recent_files': [],
                         'nCores':cpu_count()}
     def __init__(self, name):
         self.config_file=os.path.join(expanduser("~"),'.FLIKA','%s.p' % name)
@@ -104,6 +105,13 @@ def mainguiClose(event):
     PluginManager.close()
     m.settings.save()
     event.accept() # let the window close
+
+def closeCommandPrompt():
+    from ctypes import windll
+    GetConsoleWindow = windll.kernel32.GetConsoleWindow
+    console_window_handle = GetConsoleWindow()
+    ShowWindow = windll.user32.ShowWindow
+    ShowWindow(console_window_handle, 0)
 
 class SetCurrentWindowSignal(QWidget):
     sig=Signal()

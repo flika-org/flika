@@ -265,7 +265,7 @@ class BaseProcess(object):
             self.ui.rejected.connect(g.m.currentWindow.reset)
         self.ui.accepted.connect(self.call_from_gui)
         self.ui.show()
-        g.m.dialog=self.ui
+        g.m.dialogs.append(self.ui)
         return True
 
     def gui_reset(self):
@@ -315,33 +315,6 @@ class BaseProcess_noPriorWindow(BaseProcess):
             print('There was a memory error in {}'.format(self.__name__))
             g.m.statusBar().showMessage('There was a memory error in {}'.format(self.__name__))
             print(err)
-
-
-class BaseQDialog(QDialog):
-    '''
-    opens a buttons dialog box with a default Ok Cancel option, and various widgets. Signals connected are accepted, rejected, helpRequested, etc.
-
-    Parameters
-        | items (list) -- list of widgets provided as dicts, with 'object' and 'string' keys
-        | buttons (StandardButtons) -- value(s) in list [QDialogButtonBox.Ok, Cancel, Yes, No, Open, Close, Save, etc.]
-        | docstring (str) -- Optional string to show at the top of the dialog
-    '''
-    def __init__(self, items, docstring='', buttons = QDialogButtonBox.Ok | QDialogButtonBox.Cancel):
-        QDialog.__init__(self)
-        self.setWindowTitle("Dialog Box")
-        self.buttonBox = QDialogButtonBox(buttons)
-        self.items = items
-        self.setLayout(QVBoxLayout())
-        self.formlayout = QFormLayout()
-        self.formlayout.setLabelAlignment(Qt.AlignRight)
-        if len(docstring) > 0:
-            self.layout().addWidget(QLabel(docstring))
-        for item in self.items:
-            self.formlayout.addRow(item['string'],item['object'])
-        self.buttonBox.accepted.connect(self.accept)
-        self.buttonBox.rejected.connect(self.reject)
-        self.layout().addLayout(self.formlayout)
-        self.layout().addWidget(self.buttonBox)
 
 
 
