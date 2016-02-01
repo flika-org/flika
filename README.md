@@ -22,12 +22,17 @@ Download the [zipped folder](https://github.com/kyleellefsen/Flika/archive/maste
 Right click 'Flika.bat' and choose 'Create Shortcut', a shortcut icon should show up. Rename the 'Flika.bat - Shortcut' to just 'Flika', then right click it and select Properties. Click the button that says 'Change Icon' at the bottom of the window. (If a window pops up, press ok). Select 'Browse' to locate the FLIKA icon, located in the 'C:/Program Files/Flika-master/images/' folder under the name 'favicon.ico'. Once the icon is selected, you can move the shortcut to your desktop. Double click it to run Flika!
 
 #### Ubuntu ####
+1) Install Flika dependencies
+
 Open a terminal and run the following commands:
 ```
 sudo apt-get install python-pip python-numpy python-scipy build-essential cython python-matplotlib python-qt4-gl libgeos-c1v5 libgeos-dev
 sudo pip install scikit-image
 sudo pip install future
 ```
+
+2) Install Flika
+
 Download the [zipped folder](https://github.com/kyleellefsen/Flika/archive/master.zip) from Github and extract the folder to a location on your computer.  Navigate to the directory Flika was downloaded into.  Run Flika with the command
 ```python FLIKA.py```
 
@@ -35,7 +40,7 @@ Download the [zipped folder](https://github.com/kyleellefsen/Flika/archive/maste
 
 1) Install Python and Flika Dependencies
 
-Install [https://www.continuum.io/downloads](Anaconda) by Continuum. This will install Python along with most of Flika's dependencies.  Any libraries not included in Anaconda will be installed the first time Flika is run.
+Flika requires Python to run.  You can install either Python 2 or Python 3 (if you are not sure, use Python 3). To install Python along with most of Flika's dependencies, download [Anaconda](https://www.continuum.io/downloads) by Continuum.  Any dependencies not included in Anaconda will be installed the first time Flika is run.
 
 2) Install Flika
 
