@@ -14,10 +14,7 @@ import os, sys
 if sys.version_info.major == 2:
     reload(sys)
     sys.setdefaultencoding('utf8') #http://stackoverflow.com/questions/21129020/how-to-fix-unicodedecodeerror-ascii-codec-cant-decode-byte
-    if os.path.exists("C:/Users/Kyle Ellefsen"):
-        sys.path.insert(0, "C:/Users/Kyle Ellefsen/Documents/GitHub/pyqtgraph")
-    elif os.path.exists("C:/Users/Medha"):
-        sys.path.insert(0, "C:/Users/Medha/Documents/GitHub/pyqtgraph")
+    sys.path.insert(0, os.path.expanduser(r'~\Documents\Github\pyqtgraph'))
 import numpy as np
 from PyQt4.QtCore import * # Qt is Nokias GUI rendering code written in C++.  PyQt4 is a library in python which binds to Qt
 from PyQt4.QtGui import *
