@@ -49,7 +49,7 @@ class Settings:
         try:
             self.d[item]
         except KeyError:
-            self.d[item]=Settings.initial_settings[item]
+            self.d[item]=Settings.initial_settings[item] if item in Settings.initial_settings else None
         return self.d[item]
     def __setitem__(self,key,item):
         self.d[key]=item
