@@ -150,6 +150,9 @@ def open_file(filename=None):
         mt,mx,my=len(nd2),nd2.width,nd2.height
         A=np.zeros((mt,mx,my))
         for frame in np.arange(mt):
+            print(frame)
+            print(np.shape(A[frame]))
+            print(np.shape(nd2[frame]))
             A[frame]=nd2[frame].T
         metadata['channels']=nd2.channels
         metadata['date']=nd2.date

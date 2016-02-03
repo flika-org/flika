@@ -53,6 +53,12 @@ class Window(QWidget):
         self.imageview.ui.menuBtn.setParent(None)
         #self.imageview.ui.normBtn.setParent(None) # gets rid of 'norm' button that comes with ImageView
         self.imageview.ui.roiBtn.setParent(None) # gets rid of 'roi' button that comes with ImageView
+
+        rp = self.imageview.ui.roiPlot.getPlotItem()
+        self.linkMenu = QMenu("Link frame")
+        rp.ctrlMenu = self.linkMenu
+        self.linkMenu.aboutToShow.connect(self.make_link_menu)
+
         self.imageview.setImage(tif)
         """ Here we set the initial range of the look up table.  """
         nDims=len(np.shape(self.image))
@@ -102,7 +108,29 @@ class Window(QWidget):
         if self not in g.m.windows:
             g.m.windows.append(self)
         self.closed=False
-        
+
+        self.linkedWindows = []
+    
+    def link(self, win, connect=True):
+        if connect:
+            self.sigTimeChanged.connect(win.setCurrentIndex)
+            self.linkedWindows.append(win)
+        else:
+            self.linkedWindows.remove(win)
+            self.sigTimeChanged.disconnect(win.setCurrentIndex)
+
+    def make_link_action(self, win, b):
+        return lambda : self.link(win, b)
+
+    def make_link_menu(self):
+        self.linkMenu.clear()
+        for win in g.m.windows:
+            if win == self:
+                continue
+            win_action = QAction("%s" % win.name, self.linkMenu, checkable=True, checked=win in self.linkedWindows)
+            win_action.toggled.connect(self.make_link_action(win, b))
+            self.linkMenu.addAction(win_action)
+
         
     def updateindex(self):
         (idx, t) = self.imageview.timeIndex(self.imageview.timeLine)
