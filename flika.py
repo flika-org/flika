@@ -135,10 +135,10 @@ mainWindowEventEater = MainWindowEventEater()
 if __name__ == '__main__':
     
     initializeMainGui()
-    args=sys.argv
-    if os.name =='nt' and '-debug' not in args:
-        g.closeCommandPrompt()        
-    args=[arg for arg in args if 'FLIKA.PY' not in arg.upper() and arg != '-debug']
+    args=sys.argv[1:]
+    if os.name =='nt':
+        g.setConsoleVisible(g.m.settings['debug_mode'])
+    args=[arg for arg in args if 'FLIKA.PY' not in arg.upper()]
     if len(args)>0:
         open_file(args[0])
     

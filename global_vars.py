@@ -38,7 +38,8 @@ class Settings:
                         'show_windows': True, 
                         'recent_scripts': [],
                         'recent_files': [],
-                        'nCores':cpu_count()}
+                        'nCores':cpu_count(),
+                        'debug_mode': False}
     def __init__(self, name):
         self.config_file=os.path.join(expanduser("~"),'.FLIKA','%s.p' % name)
         try:
@@ -77,6 +78,8 @@ class Settings:
         multiprocessing = QCheckBox()
         multiprocessing.setChecked(self.d['multiprocessing'])
         nCores = QComboBox()
+        debug_check = QCheckBox()
+        debug_check.toggled.connect(setConsoleVisible)
         for i in np.arange(cpu_count())+1:
             nCores.addItem(str(i))
         nCores.setCurrentIndex(self['nCores']-1)
@@ -86,12 +89,14 @@ class Settings:
         items.append({'name': 'multipleTraceWindows', 'string': 'Multiple Trace Windows', 'object': multipleTracesCheck})
         items.append({'name': 'multiprocessing', 'string': 'Multiprocessing On', 'object': multiprocessing})
         items.append({'name': 'nCores', 'string': 'Number of cores to use when multiprocessing', 'object': nCores})
+        items.append({'name': 'debug_mode', 'string': 'Debug Mode', 'object': debug_check})
         def update():
             self.d['internal_data_type'] = np.dtype(str(dataDrop.currentText()))
             self.d['show_windows'] = showCheck.isChecked()
             self['multipleTraceWindows'] = multipleTracesCheck.isChecked()
             self['multiprocessing']=multiprocessing.isChecked()
             self['nCores']=int(nCores.itemText(nCores.currentIndex()))
+            self['debug_mode'] = debug_check.isChecked()
             
         self.bd = BaseDialog(items, 'FLIKA Settings', '')
         self.bd.accepted.connect(update)
@@ -107,12 +112,12 @@ def mainguiClose(event):
     m.settings.save()
     event.accept() # let the window close
 
-def closeCommandPrompt():
+def setConsoleVisible(v):
     from ctypes import windll
     GetConsoleWindow = windll.kernel32.GetConsoleWindow
     console_window_handle = GetConsoleWindow()
     ShowWindow = windll.user32.ShowWindow
-    ShowWindow(console_window_handle, 0)
+    ShowWindow(console_window_handle, v)
 
 class SetCurrentWindowSignal(QWidget):
     sig=Signal()
