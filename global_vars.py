@@ -78,7 +78,7 @@ class Settings:
         multiprocessing = QCheckBox()
         multiprocessing.setChecked(self.d['multiprocessing'])
         nCores = QComboBox()
-        debug_check = QCheckBox()
+        debug_check = QCheckBox(checked=self.d['debug_mode'])
         debug_check.toggled.connect(setConsoleVisible)
         for i in np.arange(cpu_count())+1:
             nCores.addItem(str(i))
