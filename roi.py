@@ -70,6 +70,7 @@ class ROI(QWidget):
             if len(a.intersection(b))==0:
                 trace.indexChanged.disconnect(self.window.setIndex)
             trace.removeROI(self)
+
     def getPoints(self):
         points=[]
         for i in np.arange(self.path.elementCount()):

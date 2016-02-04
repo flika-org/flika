@@ -53,6 +53,12 @@ class Window(QWidget):
         self.imageview.ui.menuBtn.setParent(None)
         #self.imageview.ui.normBtn.setParent(None) # gets rid of 'norm' button that comes with ImageView
         self.imageview.ui.roiBtn.setParent(None) # gets rid of 'roi' button that comes with ImageView
+
+        rp = self.imageview.ui.roiPlot.getPlotItem()
+        self.linkMenu = QMenu("Link frame")
+        rp.ctrlMenu = self.linkMenu
+        self.linkMenu.aboutToShow.connect(self.make_link_menu)
+
         self.imageview.setImage(tif)
         """ Here we set the initial range of the look up table.  """
         nDims=len(np.shape(self.image))
@@ -102,7 +108,34 @@ class Window(QWidget):
         if self not in g.m.windows:
             g.m.windows.append(self)
         self.closed=False
-        
+
+        self.linkedWindows = []
+    
+    def link(self, win):
+        if win not in self.linkedWindows:
+            self.sigTimeChanged.connect(win.imageview.setCurrentIndex)
+            self.linkedWindows.append(win)
+            win.link(self)
+
+    def unlink(self, win):
+        if win in self.linkedWindows:
+            self.linkedWindows.remove(win)
+            self.sigTimeChanged.disconnect(win.imageview.setCurrentIndex)
+            win.unlink(self)
+
+    def link_toggled(self, win):
+        return lambda b: self.link(win) if b else self.unlink(win)
+
+    def make_link_menu(self):
+        self.linkMenu.clear()
+        for win in g.m.windows:
+            if win == self:
+                continue
+            win_action = QAction("%s" % win.name, self.linkMenu, checkable=True)
+            win_action.setChecked(win in self.linkedWindows)
+            win_action.toggled.connect(self.link_toggled(win))
+            self.linkMenu.addAction(win_action)
+
         
     def updateindex(self):
         (idx, t) = self.imageview.timeIndex(self.imageview.timeLine)
@@ -131,6 +164,8 @@ class Window(QWidget):
             event.accept()
         else:
             self.closeSignal.emit()
+            for win in self.linkedWindows:
+                self.unlink(win)
             if hasattr(self,'image'):
                 del self.image
             self.imageview.setImage(np.zeros((2,2))) #clear the memory

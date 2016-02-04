@@ -149,7 +149,7 @@ def open_file(filename=None):
         nd2 = nd2reader.Nd2(filename)
         mt,mx,my=len(nd2),nd2.width,nd2.height
         A=np.zeros((mt,mx,my))
-        for frame in np.arange(mt):
+        for frame in range(mt):
             A[frame]=nd2[frame].T
         metadata['channels']=nd2.channels
         metadata['date']=nd2.date

@@ -56,6 +56,7 @@ class Settings:
         self.save()
     def save(self):
         '''save to a config file.'''
+        self.d['mousemode'] = 'rectangle' # don't change initial mousemode
         if not os.path.exists(os.path.dirname(self.config_file)):
             os.makedirs(os.path.dirname(self.config_file))
         pickle.dump(self.d, open( self.config_file, "wb" ))
