@@ -13,6 +13,7 @@ import zipfile
 import time, shutil
 import os.path
 import traceback
+from plugins.plugin_data import plugin_list
 sep=os.path.sep
     
 def str2func(plugin_name, file_location, function):
@@ -61,9 +62,15 @@ def add_plugin_menu(plugin_path):
     for menu_name, value in module.menu_layout.items():
         build_plugin_menus(g.m.menuPlugins, menu_name, value, module_name)
 
+def get_plugin_paths():
+    paths = []
+    for p in glob(os.path.join(os.getcwd(), 'plugins', '*')):
+        if os.path.isdir(p) and not p.startswith('__') and os.path.exists(os.path.join(p, '__init__.py')):
+            paths.append(p)
+    return paths
+
 def init_plugins():
-    paths = glob(os.path.join(os.getcwd(), 'plugins', '*'))
-    for p in paths:
+    for p in get_plugin_paths():
         try:
             add_plugin_menu(p)
         except Exception as e:
@@ -73,7 +80,7 @@ def init_plugins():
 class PluginManager(QMainWindow):
     installed_plugins = {}
     all_plugins = {}
-    PLUGIN_LIST_URL = 'https://raw.githubusercontent.com/kyleellefsen/Flika_plugins/master/plugins.txt'
+    PLUGIN_LIST_URL = 'plugin_data.txt'
 
     '''
     PluginManager handles installed plugins and the online plugin database
@@ -101,10 +108,7 @@ class PluginManager(QMainWindow):
 
     @staticmethod
     def load_installed_plugin_info():
-        paths = glob(os.path.join(os.getcwd(), 'plugins', '*'))
-        for p in paths:
-            if '__' in p:
-                continue
+        for p in get_plugin_paths():
             base_dir = os.path.basename(p)
             module = __import__('plugins', fromlist=[base_dir]).__dict__[base_dir]
             try:
@@ -115,7 +119,7 @@ class PluginManager(QMainWindow):
     @staticmethod
     def load_online_plugin_info():
         try:
-            PluginManager.all_plugins = eval(urlopen(PluginManager.PLUGIN_LIST_URL).read())
+            PluginManager.all_plugins = plugin_list
             PluginManager.gui.updateList()
         except:
             g.m.statusBar().showMessage("No Internet connection. Please connect to the internet to access the plugin database")
@@ -208,29 +212,24 @@ class PluginManager(QMainWindow):
         plugin_name = str(item.text())
         plugin = self.all_plugins[plugin_name]
         self.pluginLabel.setText(plugin_name)
-        if 'description' not in plugin:
-            self.descriptionLabel.setText("No description for plugin.")
-        else:
-            self.descriptionLabel.setText(plugin['description'])
+        self.descriptionLabel.setText("No description for plugin." if 'description' not in plugin else plugin['description'])
         info = ''
         if "author" in plugin:
             info += 'By %s. ' % plugin['author']
         if "date" in plugin:
             info += 'Written on %s' % plugin['date']
-        if plugin_name in PluginManager.installed_plugins:
-            self.downloadButton.setText('Uninstall')
-        else:
-            self.downloadButton.setText('Download')
-        if PluginManager.update_available(plugin_name):
-            info += ". Update Available!"
-            self.updateButton.show()
-        else:
-            self.updateButton.hide()
+            if PluginManager.update_available(plugin_name):
+                info += ". Update Available!"
+                self.updateButton.show()
+            else:
+                self.updateButton.hide()
+        self.downloadButton.setText('Uninstall' if plugin_name in PluginManager.installed_plugins else 'Download')
         self.downloadButton.setVisible(True)
         self.infoLabel.setText(info)
-        self.docsButton.setVisible(plugin['docs'] != None)
+        self.docsButton.setVisible('docs' in plugin)
         self.link = plugin['url']
-        self.docs_link = plugin['docs']
+        if 'docs' in plugin:
+            self.docs_link = plugin['docs']
 
     @staticmethod
     def downloadPlugin(plugin_name):

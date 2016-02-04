@@ -69,4 +69,5 @@ pip-log.txt
 
 plugins/**
 !/plugins/__init__.py
+!/plugins/plugin_data.py
 analyze/**
