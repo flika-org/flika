@@ -154,12 +154,18 @@
      </property>
      <addaction name="actionNo_Recent_Files"/>
     </widget>
+    <widget class="QMenu" name="menuExport">
+     <property name="title">
+      <string>Export</string>
+     </property>
+     <addaction name="actionExport_Points"/>
+     <addaction name="actionExport_Movie"/>
+    </widget>
     <addaction name="actionOpen"/>
     <addaction name="menuRecent_Files"/>
     <addaction name="actionSaveAs"/>
     <addaction name="menuImport"/>
-    <addaction name="actionSave_Points"/>
-    <addaction name="actionSave_Movie"/>
+    <addaction name="menuExport"/>
     <addaction name="actionSettings"/>
    </widget>
    <widget class="QMenu" name="menuImage">
@@ -247,20 +253,14 @@
     <property name="title">
      <string>Plugins</string>
     </property>
+    <addaction name="actionScript_Editor"/>
     <addaction name="actionPlugin_Manager"/>
     <addaction name="separator"/>
-   </widget>
-   <widget class="QMenu" name="menuScripts">
-    <property name="title">
-     <string>Scripts</string>
-    </property>
-    <addaction name="actionScript_Editor"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuImage"/>
    <addaction name="menuProcess"/>
    <addaction name="menuPlugins"/>
-   <addaction name="menuScripts"/>
    <addaction name="menuDocs"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -307,11 +307,6 @@
   <action name="actionRemove_Small_Blobs">
    <property name="text">
     <string>Remove Small Blobs</string>
-   </property>
-  </action>
-  <action name="actionSaveAs">
-   <property name="text">
-    <string>Save As</string>
    </property>
   </action>
   <action name="actionMultiply">
@@ -439,11 +434,6 @@
     <string>Scale Bar</string>
    </property>
   </action>
-  <action name="actionSave_Movie">
-   <property name="text">
-    <string>Save Movie</string>
-   </property>
-  </action>
   <action name="actionThreshold_cluster">
    <property name="text">
     <string>threshold_cluster</string>
@@ -477,11 +467,6 @@
   <action name="actionSubtract_Trace">
    <property name="text">
     <string>Subtract Trace</string>
-   </property>
-  </action>
-  <action name="actionSave_Points">
-   <property name="text">
-    <string>Save Points</string>
    </property>
   </action>
   <action name="actionLoad_Points">
@@ -545,6 +530,26 @@
    </property>
    <property name="text">
     <string>No Recent Files</string>
+   </property>
+  </action>
+  <action name="actionExport_Points">
+   <property name="text">
+    <string>Points</string>
+   </property>
+  </action>
+  <action name="actionExport_Movie">
+   <property name="text">
+    <string>Movie as MP4</string>
+   </property>
+  </action>
+  <action name="actionSave">
+   <property name="text">
+    <string>Save</string>
+   </property>
+  </action>
+  <action name="actionSaveAs">
+   <property name="text">
+    <string>Save As</string>
    </property>
   </action>
  </widget>

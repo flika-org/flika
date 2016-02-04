@@ -51,10 +51,10 @@ def initializeMainGui():
     g.m.actionOpen.triggered.connect(lambda : open_file_gui(open_file, prompt='Open File', filetypes='Image Files (*.tif *.stk *.tiff *.nd2);;All Files (*.*)'))
     g.m.actionSaveAs.triggered.connect(lambda : save_file_gui(save_file, prompt='Save File As Tif', filetypes='*.tif'))
     #g.m.actionSave_Movie.triggered.connect(lambda : save_file_gui(save_movie, prompt='Save File as MP4', filetypes='*.mp4'))
-    g.m.actionSave_Movie.triggered.connect(save_movie_gui)
+    g.m.actionExport_Movie.triggered.connect(save_movie_gui)
     g.m.actionSettings.triggered.connect(g.m.settings.gui)
     
-    g.m.actionSave_Points.triggered.connect(lambda : save_file_gui(save_points, prompt='Save Points', filetypes='*.txt'))
+    g.m.actionExport_Points.triggered.connect(lambda : save_file_gui(save_points, prompt='Save Points', filetypes='*.txt'))
     g.m.actionImport_Points.triggered.connect(lambda : open_file_gui(load_points, prompt='Load Points', filetypes='*.txt'))
     g.m.actionImport_ROIs.triggered.connect(lambda : open_file_gui(load_roi, prompt='Load ROIs from file', filetypes='*.txt'))
     g.m.actionChange_Internal_Data_type.triggered.connect(change_internal_data_type_gui)

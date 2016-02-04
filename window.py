@@ -111,24 +111,29 @@ class Window(QWidget):
 
         self.linkedWindows = []
     
-    def link(self, win, connect=True):
-        if connect:
-            self.sigTimeChanged.connect(win.setCurrentIndex)
+    def link(self, win):
+        if win not in self.linkedWindows:
+            self.sigTimeChanged.connect(win.imageview.setCurrentIndex)
             self.linkedWindows.append(win)
-        else:
-            self.linkedWindows.remove(win)
-            self.sigTimeChanged.disconnect(win.setCurrentIndex)
+            win.link(self)
 
-    def make_link_action(self, win, b):
-        return lambda : self.link(win, b)
+    def unlink(self, win):
+        if win in self.linkedWindows:
+            self.linkedWindows.remove(win)
+            self.sigTimeChanged.disconnect(win.imageview.setCurrentIndex)
+            win.unlink(self)
+
+    def link_toggled(self, win):
+        return lambda b: self.link(win) if b else self.unlink(win)
 
     def make_link_menu(self):
         self.linkMenu.clear()
         for win in g.m.windows:
             if win == self:
                 continue
-            win_action = QAction("%s" % win.name, self.linkMenu, checkable=True, checked=win in self.linkedWindows)
-            win_action.toggled.connect(self.make_link_action(win, b))
+            win_action = QAction("%s" % win.name, self.linkMenu, checkable=True)
+            win_action.setChecked(win in self.linkedWindows)
+            win_action.toggled.connect(self.link_toggled(win))
             self.linkMenu.addAction(win_action)
 
         
@@ -159,6 +164,8 @@ class Window(QWidget):
             event.accept()
         else:
             self.closeSignal.emit()
+            for win in self.linkedWindows:
+                self.unlink(win)
             if hasattr(self,'image'):
                 del self.image
             self.imageview.setImage(np.zeros((2,2))) #clear the memory
