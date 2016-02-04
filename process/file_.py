@@ -149,8 +149,13 @@ def open_file(filename=None):
         nd2 = nd2reader.Nd2(filename)
         mt,mx,my=len(nd2),nd2.width,nd2.height
         A=np.zeros((mt,mx,my))
+        percent = 0
         for frame in range(mt):
             A[frame]=nd2[frame].T
+            if percent<int(100*float(frame)/mt):
+                percent=int(100*float(frame)/mt)
+                g.m.statusBar().showMessage('Loading file {}%'.format(percent))
+                qApp.processEvents()
         metadata['channels']=nd2.channels
         metadata['date']=nd2.date
         metadata['fields_of_view']=nd2.fields_of_view
