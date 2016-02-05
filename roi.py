@@ -172,7 +172,7 @@ class ROI(QWidget):
         self.unplotAct = QAction("&un-Plot", self, triggered=self.unplot)
         self.copyAct = QAction("&Copy", self, triggered=self.copy)
         self.deleteAct = QAction("&Delete", self, triggered=self.delete)
-        self.saveAct = QAction("&Save",self,triggered=lambda : self.save_gui)
+        self.saveAct = QAction("&Save ROIs",self,triggered=self.save_gui)
                 
     def contains(self,x,y):
         return self.path.contains(QPointF(x,y))
