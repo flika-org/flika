@@ -62,7 +62,8 @@ class ROI(QWidget):
         if self in self.window.rois:
             self.window.rois.remove(self)
         self.window.currentROI=None
-        self.view.removeItem(self.pathitem)
+        if self.pathitem in self.view.addedItems:
+            self.view.removeItem(self.pathitem)
         trace = self.getTraceWindow()
         if trace:
             a=set([r['roi'] for r in trace.rois])
