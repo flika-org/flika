@@ -30,7 +30,6 @@ mainGuiInitialized=False
 
 class Settings:
     initial_settings = {'filename': None, 
-                        'data_type': np.float64, 
                         'internal_data_type': np.float64, 
                         'multiprocessing': True, 
                         'multipleTraceWindows': False, 

@@ -4,7 +4,7 @@ plugin_list = {
 	'url': 'http://github.com/BrettJSettle/GlobalAnalysisPlugin/archive/master.zip',
 	'docs': 'http://github.com/BrettJSettle/GlobalAnalysisPlugin',
 	'author': 'Brett Settle',
-	'date': '11/18/2015'},
+	'date': '2/8/2016'},
 
 'Beam Splitter': {
 	'description': 'Analyze beam splitter movies by overlaying two frames of a movie. Use the arrow keys to align the movies, then copy amd paste ROIs to analyze the images together.',
