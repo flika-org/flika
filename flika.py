@@ -30,7 +30,7 @@ from process.filters import gaussian_blur, butterworth_filter,boxcar_differentia
 from process.binary import threshold, adaptive_threshold, canny_edge_detector, remove_small_blobs, logically_combine, binary_dilation, binary_erosion
 from process.roi import set_value
 from process.measure import measure
-from process.file_ import make_recent_menu, open_file_gui, save_file_gui, open_file, load_metadata, close, save_file, save_movie, save_movie_gui, change_internal_data_type_gui, save_points, load_points, save_current_frame, save_roi_traces
+from process.file_ import make_recent_menu, open_file_gui, save_file_gui, open_file, load_metadata, close, save_file, save_movie, save_movie_gui, save_points, load_points, save_current_frame, save_roi_traces
 from roi import load_roi, makeROI
 from process.overlay import time_stamp,background, scale_bar
 from script_editor.ScriptEditor import ScriptEditor
@@ -57,7 +57,6 @@ def initializeMainGui():
     g.m.actionExport_Points.triggered.connect(lambda : save_file_gui(save_points, prompt='Save Points', filetypes='*.txt'))
     g.m.actionImport_Points.triggered.connect(lambda : open_file_gui(load_points, prompt='Load Points', filetypes='*.txt'))
     g.m.actionImport_ROIs.triggered.connect(lambda : open_file_gui(load_roi, prompt='Load ROIs from file', filetypes='*.txt'))
-    g.m.actionChange_Internal_Data_type.triggered.connect(change_internal_data_type_gui)
 
     g.m.freehand.clicked.connect(lambda: g.m.settings.setmousemode('freehand'))
     g.m.line.clicked.connect(lambda: g.m.settings.setmousemode('line'))

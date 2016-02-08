@@ -156,9 +156,9 @@ class ROI(QWidget):
     def save_gui(self):
         filename=g.m.settings['filename']
         if filename is not None and os.path.isfile(filename):
-            filename= QFileDialog.getOpenFileName(g.m, 'Save ROI', filename, "*.txt")
+            filename= QFileDialog.getSaveFileName(g.m, 'Save ROI', filename, "*.txt")
         else:
-            filename= QFileDialog.getOpenFileName(g.m, 'Save ROI', '', '*.txt')
+            filename= QFileDialog.getSaveFileName(g.m, 'Save ROI', '', '*.txt')
         filename=str(filename)
         if filename != '':
             self.save(filename)
@@ -173,7 +173,7 @@ class ROI(QWidget):
         self.copyAct = QAction("&Copy", self, triggered=self.copy)
         self.deleteAct = QAction("&Delete", self, triggered=self.delete)
         self.saveAct = QAction("&Save ROIs",self,triggered=self.save_gui)
-                
+
     def contains(self,x,y):
         return self.path.contains(QPointF(x,y))
     def translate(self,difference,startpt):
@@ -183,6 +183,7 @@ class ROI(QWidget):
             roi.draw_from_points(self.getPoints())
             roi.translated.emit()
         self.translated.emit()
+        
     def finish_translate(self):
         for roi in self.linkedROIs:
             roi.draw_from_points(self.getPoints())

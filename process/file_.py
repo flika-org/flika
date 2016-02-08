@@ -28,13 +28,14 @@ import datetime
 from script_editor.ScriptEditor import ScriptEditor
 
 
-__all__ = ['open_file_gui','open_file','save_file_gui','save_file','save_movie', 'save_movie_gui', 'load_metadata','save_metadata','close', 'load_points', 'save_points', 'change_internal_data_type_gui', 'save_current_frame']
+__all__ = ['open_file_gui','open_file','save_file_gui','save_file','save_movie', 'save_movie_gui', 'load_metadata','save_metadata','close', 'load_points', 'save_points', 'save_current_frame']
 
 def save_recent_file(fname):
     while fname in g.m.settings['recent_files']:
         g.m.settings['recent_files'].remove(fname)
     g.m.settings['recent_files'].insert(0, fname)
     make_recent_menu()
+    return fname
 
 def make_recent_menu():
     g.m.menuRecent_Files.clear()
@@ -44,7 +45,7 @@ def make_recent_menu():
         g.m.menuRecent_Files.addAction(no_recent)
         return
     def openFun(f):
-        return lambda : open_file(f)
+        return lambda : open_file(save_recent_file(f))
     for fname in g.m.settings['recent_files']:
         g.m.menuRecent_Files.addAction(QAction(fname, g.m, triggered=openFun(fname)))
 
@@ -176,17 +177,6 @@ def open_file(filename=None):
     commands = ["open_file('{}')".format(filename)]
     newWindow=Window(A,os.path.basename(filename),filename,commands,metadata)
     return newWindow
-    
-def change_internal_data_type_gui():
-    change=uic.loadUi("gui/save.ui")
-    change.setWindowTitle('Change internal data type')
-    old_dtype=np.dtype(g.m.settings['internal_data_type'])
-    print(old_dtype)
-    idx=change.data_type.findText(str(old_dtype))
-    change.data_type.setCurrentIndex(idx)
-    change.accepted.connect(lambda: g.m.settings.setInternalDataType(np.dtype(str(change.data_type.currentText()))))
-    change.show()
-    g.m.dialog=change
 
 def JSONhandler(obj):
     if isinstance(obj,datetime.datetime):

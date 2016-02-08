@@ -444,11 +444,6 @@
     <string>Power</string>
    </property>
   </action>
-  <action name="actionChange_Internal_Data_type">
-   <property name="text">
-    <string>Change Internal Data Type</string>
-   </property>
-  </action>
   <action name="actionPixel_Binning">
    <property name="text">
     <string>Pixel Binning</string>
