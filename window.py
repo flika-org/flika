@@ -129,7 +129,7 @@ class Window(QWidget):
     def make_link_menu(self):
         self.linkMenu.clear()
         for win in g.m.windows:
-            if win == self:
+            if win == self or not win.isVisible():
                 continue
             win_action = QAction("%s" % win.name, self.linkMenu, checkable=True)
             win_action.setChecked(win in self.linkedWindows)
