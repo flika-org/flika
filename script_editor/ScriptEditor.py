@@ -150,8 +150,8 @@ class ScriptEditor(QMainWindow):
 
     @staticmethod
     def importScript(scriptfile = ''):
-        if not ScriptEditor.gui.isVisible():
-            ScriptEditor.gui.show()
+        if not hasattr(ScriptEditor, 'gui') or not ScriptEditor.gui.isVisible():
+            ScriptEditor.show()
         if scriptfile == '':
             scriptfile= str(QFileDialog.getOpenFileName(ScriptEditor.gui, 'Load script', os.path.dirname(ScriptEditor.most_recent_script()), '*.py'))
             if scriptfile == '':

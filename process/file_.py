@@ -25,6 +25,8 @@ import json
 import re
 import nd2reader
 import datetime
+from script_editor.ScriptEditor import ScriptEditor
+
 
 __all__ = ['open_file_gui','open_file','save_file_gui','save_file','save_movie', 'save_movie_gui', 'load_metadata','save_metadata','close', 'load_points', 'save_points', 'change_internal_data_type_gui', 'save_current_frame']
 
@@ -163,6 +165,9 @@ def open_file(filename=None):
         metadata['height']=nd2.height
         metadata['width']=nd2.width
         metadata['z_levels']=nd2.z_levels
+    elif ext == '.py':
+        ScriptEditor.importScript(filename)
+        return
     else:
         print('Could not open %s' % filename)
         return
