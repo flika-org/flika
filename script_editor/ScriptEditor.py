@@ -18,10 +18,27 @@ from pyqtgraph import console
 import pyqtgraph as pg
 from script_editor.script_namespace import getnamespace
 from script_editor.syntax import PythonHighlighter
+from process.BaseProcess import BaseDialog
 
 def qstr2str(string):
     string=str(string)
     return string.replace(u'\u2029','\n')
+
+class SettingsDialog(BaseDialog):
+    def __init__(self):
+        self.textSizeSpin = QSpinBox(value=ScriptEditor.gui.font().pointSize())
+        items = [{'string': 'Text Size', 'object': self.textSizeSpin}]
+        BaseDialog.__init__(self, items, "Script Editor Settings", '')
+        self.accepted.connect(self.applySettings)
+
+    def applySettings(self):
+        font = ScriptEditor.gui.font()
+        font.setPointSize(self.textSizeSpin.value())
+        ScriptEditor.gui.setFont(font)
+
+def settingsWindow():
+    ScriptEditor.gui.settingsWindow = SettingsDialog()
+    ScriptEditor.gui.settingsWindow.show()
 
 class Editor(QPlainTextEdit):
     def __init__(self, scriptfile = ''):
@@ -104,6 +121,7 @@ class ScriptEditor(QMainWindow):
         self.actionFrom_Window.triggered.connect(lambda : self.addEditor(Editor.fromWindow(g.m.currentWindow)))
         self.actionSave_Script.triggered.connect(self.saveCurrentScript)
         self.menuRecentScripts.aboutToShow.connect(self.load_scripts)
+        self.actionSettings.triggered.connect(settingsWindow)
         self.eventeater = ScriptEventEater(self)
         self.setAcceptDrops(True)
         self.installEventFilter(self.eventeater)

@@ -14,59 +14,68 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QGridLayout" name="gridLayout" rowstretch="1,0" columnstretch="1,1" columnminimumwidth="0,0">
+   <layout class="QGridLayout" name="gridLayout">
     <item row="0" column="0">
-     <widget class="QTabWidget" name="scriptTabs">
-      <property name="tabShape">
-       <enum>QTabWidget::Triangular</enum>
+     <widget class="QSplitter" name="splitter">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
       </property>
-      <property name="currentIndex">
-       <number>-1</number>
-      </property>
-      <property name="documentMode">
-       <bool>false</bool>
-      </property>
-      <property name="tabsClosable">
-       <bool>true</bool>
-      </property>
-      <property name="movable">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="0">
-     <layout class="QHBoxLayout" name="horizontalLayout">
-      <item>
-       <widget class="QPushButton" name="saveButton">
-        <property name="text">
-         <string>Save Script</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="runButton">
-        <property name="text">
-         <string>Run Script</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="runSelectedButton">
-        <property name="text">
-         <string>Run Highlighted (F9)</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-    <item row="0" column="1" rowspan="2">
-     <widget class="ConsoleWidget" name="consoleWidget" native="true">
-      <property name="minimumSize">
-       <size>
-        <width>0</width>
-        <height>0</height>
-       </size>
-      </property>
+      <widget class="QWidget" name="verticalLayoutWidget">
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <item>
+         <widget class="QTabWidget" name="scriptTabs">
+          <property name="tabShape">
+           <enum>QTabWidget::Triangular</enum>
+          </property>
+          <property name="currentIndex">
+           <number>-1</number>
+          </property>
+          <property name="documentMode">
+           <bool>false</bool>
+          </property>
+          <property name="tabsClosable">
+           <bool>true</bool>
+          </property>
+          <property name="movable">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <item>
+           <widget class="QPushButton" name="saveButton">
+            <property name="text">
+             <string>Save Script</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="runButton">
+            <property name="text">
+             <string>Run Script</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="runSelectedButton">
+            <property name="text">
+             <string>Run Highlighted (F9)</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+      <widget class="ConsoleWidget" name="consoleWidget" native="true">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>0</height>
+        </size>
+       </property>
+      </widget>
      </widget>
     </item>
    </layout>
@@ -101,6 +110,7 @@
     <addaction name="menuRecentScripts"/>
     <addaction name="menuLoad_Script"/>
     <addaction name="actionSave_Script"/>
+    <addaction name="actionSettings"/>
    </widget>
    <addaction name="menuFile"/>
   </widget>
@@ -131,6 +141,11 @@
    </property>
    <property name="text">
     <string>No Recent Scripts</string>
+   </property>
+  </action>
+  <action name="actionSettings">
+   <property name="text">
+    <string>Settings</string>
    </property>
   </action>
  </widget>
