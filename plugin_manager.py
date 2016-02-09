@@ -125,6 +125,7 @@ class PluginManager(QMainWindow):
                     PluginManager.plugins[name] = mod_dict
             except IOError as e:
                 g.m.statusBar().showMessage("No Internet connection. Please connect to the internet to access the plugin database")
+                print(traceback.format_exc())
                 return False
             except:
                 print("Could not load data from %s. %s" % (name, traceback.format_exc()))
@@ -261,7 +262,7 @@ class PluginManager(QMainWindow):
     def updateClicked(self):
         plugin_name = str(self.pluginList.currentItem().text())
         PluginManager.updatePlugin(plugin_name)
-        PluginManager.updateList()
+        PluginManager.gui.updateList()
 
     @staticmethod
     def updatePlugin(plugin_name):
