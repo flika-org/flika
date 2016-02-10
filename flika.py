@@ -66,7 +66,7 @@ def initializeMainGui():
     g.m.actionScript_Editor.triggered.connect(ScriptEditor.show)
     g.m.actionPlugin_Manager.triggered.connect(PluginManager.show)
 
-    url='file:///'+os.path.join(os.getcwd(),'docs','_build','html','documentation.html')
+    url='http://flika-org.github.io/documentation.html'
     g.m.actionDocs.triggered.connect(lambda: QDesktopServices.openUrl(QUrl(url)))
     
     g.m.actionDeinterleave.triggered.connect(deinterleave.gui)
