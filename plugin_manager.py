@@ -14,7 +14,7 @@ import time, shutil
 import os.path
 import traceback
 from plugins.plugin_data import plugin_list
-from collections import OrderedDict
+from plugins.xmltodict import parse
 sep=os.path.sep
     
 def str2func(plugin_name, file_location, function):
@@ -49,8 +49,11 @@ def build_plugin_menus(parentMenu, name, value, module_name):
         for k, v in value.items():
             build_plugin_menus(menu, k, v, module_name)
 
+def load_plugin_xml(xml):
+    return parse(xml)['plugin']
+
 def add_plugin_menu(plugin_path):
-    plugin_dict = eval(open(os.path.join(plugin_path, '__init__.py'), 'r').read())
+    plugin_dict = parse(open(os.path.join(plugin_path, '__init__.py'), 'r').read())
     if 'dependencies' not in plugin_dict or 'menu_layout' not in plugin_dict:
         print('Module %s must have a list of dependencies and menu layout dictionary' % plugin_dict['name'])
         return
@@ -67,9 +70,25 @@ def get_plugin_paths():
             paths.append(p)
     return paths
 
+def build_plugin_submenu(parent_menu, layout_dict):
+    for key, value in layout_dict.items():
+        if key == 'menu':
+            menu = QMenu(value)
+            if type(value) == list:
+                build_plugin_submenu
+        elif key == 'action':
+            action = QAction(value)
+
+def load_plugins():
+    PluginManager.load_installed_plugins()
+    for plugin, items in PluginManager.plugins.items():
+        menu = QMenu(plugin)
+        build_plugin_submenu(menu, items['menu_layout'])
+
 def init_plugins():
     for p in get_plugin_paths():
         try:
+            plugin_menu = QMenu()
             add_plugin_menu(p)
         except Exception as e:
             print('Could not import %s: %s' % (os.path.basename(p), traceback.format_exc()))
@@ -97,40 +116,37 @@ class PluginManager(QMainWindow):
         return False
 
     @staticmethod
-    def load_plugin_info():
+    def load_plugins():
         PluginManager.plugins = {}
-        PluginManager.load_installed_plugin_info()
-        if not PluginManager.load_online_plugin_info():
-            PluginManager.gui.updateList()
+        PluginManager.load_installed_plugins()
+        try:
+            PluginManager.load_online_plugins()
+        except IOError as e:
+            print("Could no connect to the internet. %s" % traceback.format_exc())
+        PluginManager.gui.updateList()
 
     @staticmethod
-    def load_installed_plugin_info():
+    def load_installed_plugins():
         for p in get_plugin_paths():
-            base_dir = os.path.basename(p)
             try:
-                mod_dict = eval(open(os.path.join(p, '__init__.py'), 'r').read())
+                mod_dict = load_plugin_xml(open(os.path.join(p, '__init__.py'), 'r').read())
                 mod_dict['install_date'] = mod_dict['date']
-                PluginManager.plugins[mod_dict['name']] = mod_dict
+                PluginManager.plugins[mod_dict['@name']] = mod_dict
             except Exception as e:
-                print("Could not load info for %s. %s" % (base_dir, e))
+                print("Could not load info for %s. %s" % (os.path.basename(p), e))
 
     @staticmethod
-    def load_online_plugin_info():
+    def load_online_plugins():
         for name, url in plugin_list.items():
+            txt = urlopen(url).read()
             try:
-                mod_dict = eval(urlopen(url).read())
+                mod_dict = load_plugin_xml(txt)
                 if name in PluginManager.plugins:
                     PluginManager.plugins[name].update(mod_dict)
                 else:
                     PluginManager.plugins[name] = mod_dict
-            except IOError as e:
-                g.m.statusBar().showMessage("No Internet connection. Please connect to the internet to access the plugin database")
-                print(traceback.format_exc())
-                return False
-            except:
+            except Exception as e:
                 print("Could not load data from %s. %s" % (name, traceback.format_exc()))
-        PluginManager.gui.updateList()
-        return True
 
     @staticmethod
     def show():
@@ -157,7 +173,7 @@ class PluginManager(QMainWindow):
         self.downloadButton.clicked.connect(self.downloadClicked)
         self.pluginList.currentItemChanged.connect(lambda new, old: self.pluginSelected(new))
         self.docsButton.clicked.connect(self.docsClicked)
-        self.actionCheck_For_Updates.triggered.connect(PluginManager.checkUpdates)
+        self.actionCheck_For_Updates.triggered.connect(PluginManager.applyUpdates)
         self.searchBox.textChanged.connect(self.search)
         self.updateButton.clicked.connect(self.updateClicked)
         self.downloadButton.hide()
@@ -168,7 +184,7 @@ class PluginManager(QMainWindow):
         self.setWindowTitle('Plugin Manager')
 
     @staticmethod
-    def checkUpdates():
+    def applyUpdates():
         for plugin in PluginManager.plugins:
             if PluginManager.update_available(plugin):
                 PluginManager.updatePlugin(plugin)
@@ -252,7 +268,7 @@ class PluginManager(QMainWindow):
             z.extractall("plugins")
 
         os.remove("install.zip")
-        plugin = eval(open(os.path.join('plugins', folder_name, '__init__.py'), 'r').read())
+        plugin = PluginManager.plugins[plugin_name]
         os.rename(os.path.join('plugins', folder_name), os.path.join('plugins', plugin['base_dir']))
         add_plugin_menu(os.path.join('plugins', plugin['base_dir']))
         PluginManager.plugins[plugin_name]['install_date'] = plugin['date']
@@ -274,12 +290,9 @@ class PluginManager(QMainWindow):
     @staticmethod
     def uninstallPlugin(plugin_name):
         base_dir = PluginManager.plugins[plugin_name]['base_dir']
-        menu_names = OrderedDict(PluginManager.plugins[plugin_name]['menu_layout']).keys()
         for menu in g.m.menuPlugins.actions():
-            if isinstance(menu, QMenu) and str(menu.menuAction().text()) in menu_names:
+            if isinstance(menu, QMenu) and str(menu.menuAction().text()) == plugin_name:
                 g.m.menuPlugins.removeAction(menu.menuAction())
-            elif str(menu.text()) in menu_names:
-                g.m.menuPlugins.removeAction(menu)
         shutil.rmtree(os.path.join('plugins', base_dir))
         PluginManager.plugins[plugin_name].pop('install_date')
         PluginManager.gui.pluginSelected(PluginManager.gui.pluginList.selectedItems()[0])
