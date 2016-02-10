@@ -34,6 +34,8 @@ def save_recent_file(fname):
     while fname in g.m.settings['recent_files']:
         g.m.settings['recent_files'].remove(fname)
     g.m.settings['recent_files'].insert(0, fname)
+    if len(g.m.settings['recent_files']) > 10:
+        g.m.settings['recent_files'] = g.m.settings['recent_files'][:10]
     make_recent_menu()
     return fname
 
@@ -46,7 +48,7 @@ def make_recent_menu():
         return
     def openFun(f):
         return lambda : open_file(save_recent_file(f))
-    for fname in g.m.settings['recent_files']:
+    for fname in g.m.settings['recent_files'][:10]:
         g.m.menuRecent_Files.addAction(QAction(fname, g.m, triggered=openFun(fname)))
 
 def open_file_gui(func, filetypes, prompt='Open File', kargs={}):
