@@ -34,34 +34,13 @@ def str2func(plugin_name, file_location, function):
             module = getattr(module, levels[i])
         except:
             raise Exception("Failed to import %s from module %s. Check name and try again." % (levels[i], module)) # only alerts on python 3?
-    return module
-    
+    return module    
 
 def get_lambda(mod_name, path, func):
     return lambda : str2func(mod_name, path, func)()
 
-def build_plugin_menus(parentMenu, name, value, module_name):
-    if isinstance(value, list):
-        act = QAction(name, parentMenu, triggered=get_lambda(module_name, *value))
-        parentMenu.addAction(act)
-    elif isinstance(value, dict):
-        menu = parentMenu.addMenu(name)
-        for k, v in value.items():
-            build_plugin_menus(menu, k, v, module_name)
-
 def load_plugin_xml(xml):
     return parse(xml)['plugin']
-
-def add_plugin_menu(plugin_path):
-    plugin_dict = parse(open(os.path.join(plugin_path, '__init__.py'), 'r').read())
-    if 'dependencies' not in plugin_dict or 'menu_layout' not in plugin_dict:
-        print('Module %s must have a list of dependencies and menu layout dictionary' % plugin_dict['name'])
-        return
-    for dep in plugin_dict['dependencies']:
-        install(dep)
-    menu_dict = OrderedDict(plugin_dict['menu_layout'])
-    for menu_name, value in menu_dict.items():
-        build_plugin_menus(g.m.menuPlugins, menu_name, value, plugin_dict['base_dir'])
 
 def get_plugin_paths():
     paths = []
@@ -70,28 +49,33 @@ def get_plugin_paths():
             paths.append(p)
     return paths
 
-def build_plugin_submenu(parent_menu, layout_dict):
+def build_plugin_submenu(module_name, parent_menu, layout_dict):
     for key, value in layout_dict.items():
+        print(key, value)
+        if type(value) != list:
+            value = [value]
         if key == 'menu':
-            menu = QMenu(value)
-            if type(value) == list:
-                build_plugin_submenu
+            for v in value:
+                menu = parent_menu.addMenu(v["@name"])
+                build_plugin_submenu(module_name, menu, v)
         elif key == 'action':
-            action = QAction(value)
+            for od in value:
+                action = QAction(od['#text'], parent_menu, triggered = get_lambda(module_name, od['@location'], od['@function']))
+                parent_menu.addAction(action)
 
-def load_plugins():
+def add_plugin_menu(plugin_name):
+    mod_dict = QMenu(plugin_name)
+    menu = QMenu(plugin_name)
+    build_plugin_submenu(PluginManager.plugins[plugin_name]['base_dir'], menu, PluginManager.plugins[plugin_name]['menu_layout'])
+    g.m.menuPlugins.addMenu(menu)
+
+def load_plugins_menu():
     PluginManager.load_installed_plugins()
-    for plugin, items in PluginManager.plugins.items():
-        menu = QMenu(plugin)
-        build_plugin_submenu(menu, items['menu_layout'])
-
-def init_plugins():
-    for p in get_plugin_paths():
+    for plugin in sorted(PluginManager.plugins.keys()):
         try:
-            plugin_menu = QMenu()
-            add_plugin_menu(p)
+            add_plugin_menu(plugin)
         except Exception as e:
-            print('Could not import %s: %s' % (os.path.basename(p), traceback.format_exc()))
+            print("Counld not load %s. %s" % (plugin, traceback.format_exc()))
 
 
 class PluginManager(QMainWindow):
@@ -118,25 +102,36 @@ class PluginManager(QMainWindow):
     @staticmethod
     def load_plugins():
         PluginManager.plugins = {}
-        PluginManager.load_installed_plugins()
+        success, fail = PluginManager.load_installed_plugins()
+        
         try:
-            PluginManager.load_online_plugins()
+            s, f = PluginManager.load_online_plugins()
         except IOError as e:
             print("Could no connect to the internet. %s" % traceback.format_exc())
+        success += s
+        fail += f
         PluginManager.gui.updateList()
+        return success, fail
 
     @staticmethod
     def load_installed_plugins():
+        success = 0
+        fail = 0
         for p in get_plugin_paths():
             try:
                 mod_dict = load_plugin_xml(open(os.path.join(p, '__init__.py'), 'r').read())
                 mod_dict['install_date'] = mod_dict['date']
                 PluginManager.plugins[mod_dict['@name']] = mod_dict
+                success += 1
             except Exception as e:
+                fail += 1
                 print("Could not load info for %s. %s" % (os.path.basename(p), e))
+        return success, fail
 
     @staticmethod
     def load_online_plugins():
+        success = 0
+        fail = 0
         for name, url in plugin_list.items():
             txt = urlopen(url).read()
             try:
@@ -145,18 +140,20 @@ class PluginManager(QMainWindow):
                     PluginManager.plugins[name].update(mod_dict)
                 else:
                     PluginManager.plugins[name] = mod_dict
+                success += 1
             except Exception as e:
+                fail += 1
                 print("Could not load data from %s. %s" % (name, traceback.format_exc()))
+        return success, fail
 
     @staticmethod
     def show():
         if not hasattr(PluginManager, 'gui'):
             PluginManager.gui = PluginManager()
         g.m.statusBar().showMessage('Loading plugin information...')
-        if PluginManager.load_plugin_info():
-            g.m.statusBar().showMessage('Plugin Information Loaded')
+        success, fail = PluginManager.load_plugins()
+        g.m.statusBar().showMessage('%d plugins successfully loaded, %d failed to load' % (success, fail))
         QMainWindow.show(PluginManager.gui)
-
 
     @staticmethod
     def close():
