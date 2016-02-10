@@ -61,12 +61,12 @@ class Editor(QPlainTextEdit):
         script=f.read()
         f.close()
         self.setPlainText(script)
-        g.m.statusBar().showMessage('{} loaded.'.format(os.path.basename(self.scriptfile)))
+        ScriptEditor.gui.statusBar().showMessage('{} loaded.'.format(os.path.basename(self.scriptfile)))
 
     def save_as(self):
         filename= str(QFileDialog.getSaveFileName(g.m, 'Save script', ScriptEditor.most_recent_script(), '*.py'))
         if filename == '':
-            g.m.statusBar().showMessage('Save cancelled')
+            ScriptEditor.gui.statusBar().showMessage('Save cancelled')
             return False
         self.scriptfile = filename
         self.save()
@@ -80,7 +80,7 @@ class Editor(QPlainTextEdit):
         f.write(command)
         f.close()
         ScriptEditor.add_recent_file(self.scriptfile)
-        g.m.statusBar().showMessage('{} saved.'.format(os.path.basename(self.scriptfile)))
+        ScriptEditor.gui.statusBar().showMessage('{} saved.'.format(os.path.basename(self.scriptfile)))
         return True
 
     def eventFilter(self, source, event):

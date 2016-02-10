@@ -19,7 +19,7 @@ import numpy as np
 from pyqtgraph.dockarea import *
 from process.BaseProcess import BaseDialog
 import pyqtgraph as pg
-from plugin_manager import init_plugins, PluginManager
+from plugin_manager import PluginManager, load_plugin_menu
 from script_editor.ScriptEditor import ScriptEditor
 from multiprocessing import cpu_count
 
@@ -129,7 +129,7 @@ def init(filename, title='Flika'):
     global m, mainGuiInitialized
     mainGuiInitialized=True
     m=uic.loadUi(filename)
-    init_plugins()
+    load_plugin_menu()
     m.setCurrentWindowSignal=SetCurrentWindowSignal(m)
     m.settings = Settings("Flika")
     m.windows = []
