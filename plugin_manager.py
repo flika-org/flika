@@ -40,18 +40,21 @@ def get_lambda(mod_name, path, func):
     return lambda : str2func(mod_name, path, func)()
 
 def load_plugin_xml(xml):
-    return parse(xml)['plugin']
+    try:
+        od = parse(xml)
+    except Exception as e:
+        return None
+    return od['plugin']
 
 def get_plugin_paths():
     paths = []
     for p in glob(os.path.join(os.getcwd(), 'plugins', '*')):
-        if os.path.isdir(p) and not p.startswith('__') and os.path.exists(os.path.join(p, '__init__.py')):
+        if os.path.isdir(p) and not p.startswith('__') and os.path.exists(os.path.join(p, 'info.xml')):
             paths.append(p)
     return paths
 
 def build_plugin_submenu(module_name, parent_menu, layout_dict):
     for key, value in layout_dict.items():
-        print(key, value)
         if type(value) != list:
             value = [value]
         if key == 'menu':
@@ -64,12 +67,10 @@ def build_plugin_submenu(module_name, parent_menu, layout_dict):
                 parent_menu.addAction(action)
 
 def add_plugin_menu(plugin_name):
-    mod_dict = QMenu(plugin_name)
-    menu = QMenu(plugin_name)
+    menu = g.m.menuPlugins.addMenu(plugin_name)
     build_plugin_submenu(PluginManager.plugins[plugin_name]['base_dir'], menu, PluginManager.plugins[plugin_name]['menu_layout'])
-    g.m.menuPlugins.addMenu(menu)
 
-def load_plugins_menu():
+def load_plugin_menu():
     PluginManager.load_installed_plugins()
     for plugin in sorted(PluginManager.plugins.keys()):
         try:
@@ -103,7 +104,6 @@ class PluginManager(QMainWindow):
     def load_plugins():
         PluginManager.plugins = {}
         success, fail = PluginManager.load_installed_plugins()
-        
         try:
             s, f = PluginManager.load_online_plugins()
         except IOError as e:
@@ -119,7 +119,7 @@ class PluginManager(QMainWindow):
         fail = 0
         for p in get_plugin_paths():
             try:
-                mod_dict = load_plugin_xml(open(os.path.join(p, '__init__.py'), 'r').read())
+                mod_dict = load_plugin_xml(open(os.path.join(p, 'info.xml'), 'r').read())
                 mod_dict['install_date'] = mod_dict['date']
                 PluginManager.plugins[mod_dict['@name']] = mod_dict
                 success += 1
@@ -261,13 +261,13 @@ class PluginManager(QMainWindow):
             try:
                 folder_name = os.path.dirname(z.namelist()[0])
             except:
-                PluginManager.gui.statusBar.showMessage('No __init__ file found.')
+                PluginManager.gui.statusBar.showMessage('No xml file found.')
             z.extractall("plugins")
 
         os.remove("install.zip")
         plugin = PluginManager.plugins[plugin_name]
         os.rename(os.path.join('plugins', folder_name), os.path.join('plugins', plugin['base_dir']))
-        add_plugin_menu(os.path.join('plugins', plugin['base_dir']))
+        add_plugin_menu(plugin_name)
         PluginManager.plugins[plugin_name]['install_date'] = plugin['date']
         PluginManager.gui.statusBar.showMessage('Successfully installed %s' % plugin_name)
         PluginManager.gui.pluginSelected(PluginManager.gui.pluginList.selectedItems()[0])
@@ -287,9 +287,9 @@ class PluginManager(QMainWindow):
     @staticmethod
     def uninstallPlugin(plugin_name):
         base_dir = PluginManager.plugins[plugin_name]['base_dir']
-        for menu in g.m.menuPlugins.actions():
-            if isinstance(menu, QMenu) and str(menu.menuAction().text()) == plugin_name:
-                g.m.menuPlugins.removeAction(menu.menuAction())
+        for act in g.m.menuPlugins.actions():
+            if str(act.text()) == plugin_name:
+                g.m.menuPlugins.removeAction(act)
         shutil.rmtree(os.path.join('plugins', base_dir))
         PluginManager.plugins[plugin_name].pop('install_date')
         PluginManager.gui.pluginSelected(PluginManager.gui.pluginList.selectedItems()[0])
