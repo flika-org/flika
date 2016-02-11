@@ -68,16 +68,16 @@ class Settings:
         self['internal_data_type'] = dtype
         print('Changed data_type to {}'.format(dtype))
     def gui(self):
-        old_dtype=str(np.dtype(self.d['internal_data_type']))
+        old_dtype=str(np.dtype(self['internal_data_type']))
         dataDrop = pg.ComboBox(items=data_types, default=old_dtype)
         showCheck = QCheckBox()
         showCheck.setChecked(self.d['show_windows'])
         multipleTracesCheck = QCheckBox()
-        multipleTracesCheck.setChecked(self.d['multipleTraceWindows'])
+        multipleTracesCheck.setChecked(self['multipleTraceWindows'])
         multiprocessing = QCheckBox()
-        multiprocessing.setChecked(self.d['multiprocessing'])
+        multiprocessing.setChecked(self['multiprocessing'])
         nCores = QComboBox()
-        debug_check = QCheckBox(checked=self.d['debug_mode'])
+        debug_check = QCheckBox(checked=self['debug_mode'])
         debug_check.toggled.connect(setConsoleVisible)
         for i in np.arange(cpu_count())+1:
             nCores.addItem(str(i))
@@ -90,8 +90,8 @@ class Settings:
         items.append({'name': 'nCores', 'string': 'Number of cores to use when multiprocessing', 'object': nCores})
         items.append({'name': 'debug_mode', 'string': 'Debug Mode', 'object': debug_check})
         def update():
-            self.d['internal_data_type'] = np.dtype(str(dataDrop.currentText()))
-            self.d['show_windows'] = showCheck.isChecked()
+            self['internal_data_type'] = np.dtype(str(dataDrop.currentText()))
+            self['show_windows'] = showCheck.isChecked()
             self['multipleTraceWindows'] = multipleTracesCheck.isChecked()
             self['multiprocessing']=multiprocessing.isChecked()
             self['nCores']=int(nCores.itemText(nCores.currentIndex()))

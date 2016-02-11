@@ -14,7 +14,7 @@ import time, shutil
 import os.path
 import traceback
 from plugins.plugin_data import plugin_list
-from plugins.xmltodict import parse
+from xmltodict import parse
 sep=os.path.sep
     
 def str2func(plugin_name, file_location, function):
