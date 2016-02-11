@@ -6,9 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>537</width>
-    <height>119</height>
+    <width>325</width>
+    <height>80</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
   <property name="windowTitle">
    <string>Flika</string>
@@ -133,7 +139,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>537</width>
+     <width>325</width>
      <height>21</height>
     </rect>
    </property>

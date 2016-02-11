@@ -46,11 +46,11 @@ def initializeMainGui():
     g.app = QApplication(sys.argv)
     g.init('gui/main.ui')
     g.m.setGeometry(QRect(15, 33, 326, 80))
+    g.m.setFixedSize(326, 80)
     g.m.setWindowIcon(QIcon('images/favicon.png'))
 
     g.m.actionOpen.triggered.connect(lambda : open_file_gui(open_file, prompt='Open File', filetypes='Image Files (*.tif *.stk *.tiff *.nd2);;All Files (*.*)'))
     g.m.actionSaveAs.triggered.connect(lambda : save_file_gui(save_file, prompt='Save File As Tif', filetypes='*.tif'))
-    #g.m.actionSave_Movie.triggered.connect(lambda : save_file_gui(save_movie, prompt='Save File as MP4', filetypes='*.mp4'))
     g.m.actionExport_Movie.triggered.connect(save_movie_gui)
     g.m.actionSettings.triggered.connect(g.m.settings.gui)
     
@@ -137,7 +137,7 @@ if __name__ == '__main__':
     args=sys.argv[1:]
     if os.name =='nt':
         g.setConsoleVisible(g.m.settings['debug_mode'])
-    args=[arg for arg in args if 'FLIKA.PY' not in arg.upper()]
+    args=[arg for arg in args[1:] if 'FLIKA.PY' not in arg.upper()]
     if len(args)>0:
         open_file(args[0])
     insideSpyder='SPYDER_SHELL_ID' in os.environ

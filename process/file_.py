@@ -26,6 +26,7 @@ import re
 import nd2reader
 import datetime
 from script_editor.ScriptEditor import ScriptEditor
+from process.BaseProcess import BaseDialog
 
 
 __all__ = ['open_file_gui','open_file','save_file_gui','save_file','save_movie', 'save_movie_gui', 'load_metadata','save_metadata','close', 'load_points', 'save_points', 'save_current_frame']
@@ -253,10 +254,10 @@ def load_points(filename):
 
 def save_movie_gui():
     rateSpin = pg.SpinBox(value=50, bounds=[1, 1000], suffix='fps', int=True, step=1)
-    #rateDialog = BaseQDialog(items=[{'string': 'Framerate', 'object': rateSpin}])
-    #rateDialog.accepted.connect(lambda : save_file_gui(save_movie, "Movies (*.mp4)", "Save movie to .mp4 file", kargs={'rate': rateSpin.value()}))
-    #g.m.dialogs.append(rateDialog)
-    #rateDialog.show()
+    rateDialog = BaseDialog([{'string': 'Framerate', 'object': rateSpin}],'Save Movie', 'Set the framerate')
+    rateDialog.accepted.connect(lambda : save_file_gui(save_movie, "Movies (*.mp4)", "Save movie to .mp4 file", kargs={'rate': rateSpin.value()}))
+    g.m.dialogs.append(rateDialog)
+    rateDialog.show()
 
 def save_movie(filename, rate):
     ''' save_movie(filename)
