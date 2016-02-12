@@ -216,6 +216,7 @@
      <addaction name="actionRatio"/>
      <addaction name="actionAbsolute_Value"/>
      <addaction name="actionSubtract_Trace"/>
+     <addaction name="actionDivide_Trace"/>
     </widget>
     <widget class="QMenu" name="menuFilters">
      <property name="title">
@@ -551,6 +552,11 @@
   <action name="actionSaveAs">
    <property name="text">
     <string>Save As</string>
+   </property>
+  </action>
+  <action name="actionDivide_Trace">
+   <property name="text">
+    <string>Divide Trace</string>
    </property>
   </action>
  </widget>

@@ -25,7 +25,7 @@ import global_vars as g
 from window import Window
 
 from process.stacks import deinterleave, trim, zproject, image_calculator, pixel_binning, frame_binning, resize
-from process.math_ import multiply, subtract, power, ratio, absolute_value, subtract_trace
+from process.math_ import multiply, subtract, power, ratio, absolute_value, subtract_trace, divide_trace
 from process.filters import gaussian_blur, butterworth_filter,boxcar_differential_filter, wavelet_filter, difference_filter, fourier_filter, mean_filter, median_filter
 from process.binary import threshold, adaptive_threshold, canny_edge_detector, remove_small_blobs, logically_combine, binary_dilation, binary_erosion
 from process.roi import set_value
@@ -88,6 +88,7 @@ def initializeMainGui():
     g.m.actionWavelet_Filter.triggered.connect(wavelet_filter.gui)
     g.m.actionRatio.triggered.connect(ratio.gui)
     g.m.actionSubtract_Trace.triggered.connect(subtract_trace.gui)
+    g.m.actionDivide_Trace.triggered.connect(divide_trace.gui)
     g.m.actionAbsolute_Value.triggered.connect(absolute_value.gui)
     g.m.actionThreshold.triggered.connect(threshold.gui)
     g.m.actionAdaptive_Threshold.triggered.connect(adaptive_threshold.gui)
@@ -145,5 +146,6 @@ if __name__ == '__main__':
         sys.exit(g.app.exec_()) #This is required to run outside of Spyder
 
     
-    
-    
+    open_file()
+    #from plugins.light_sheet_analyzer.light_sheet_analyzer import light_sheet_analyzer
+    #light_sheet_analyzer(786,2)

@@ -13,7 +13,7 @@ from process.BaseProcess import BaseProcess
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 
-__all__ = ['subtract','multiply','power','ratio','absolute_value','subtract_trace']
+__all__ = ['subtract','multiply','power','ratio','absolute_value','subtract_trace','divide_trace']
 
 class Subtract(BaseProcess):
     """ subtract(value, keepSourceWindow=False)
@@ -77,6 +77,32 @@ class Subtract_trace(BaseProcess):
         self.newname=self.oldname+' - subtracted trace'
         return self.end()
 subtract_trace=Subtract_trace()
+
+class Divide_trace(BaseProcess):
+    """ divide_trace(keepSourceWindow=False)
+    This takes the most recently plotted trace and divides each pixel in the current Window by its value.
+    
+    Parameters:
+        | 
+    Returns:
+        newWindow
+    """
+    def __init__(self):
+        super().__init__()
+    def __call__(self,keepSourceWindow=False):
+        self.start(keepSourceWindow)
+        trace=g.m.currentTrace.rois[-1]['roi'].getTrace()
+        nDims=len(self.tif.shape)
+        if nDims !=3:
+            print('Wrong number of dimensions')
+            return self.end()
+        if self.tif.shape[0]!=len(trace):
+            print('Wrong trace length')
+            return self.end()
+        self.newtif=np.transpose(np.transpose(self.tif)/trace)
+        self.newname=self.oldname+' - divided trace'
+        return self.end()
+divide_trace=Divide_trace()
     
 class Multiply(BaseProcess):
     """ multiply(value, keepSourceWindow=False)
