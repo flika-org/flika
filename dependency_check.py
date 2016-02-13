@@ -8,6 +8,7 @@ if sys.version_info.major==2:
     from urllib2 import Request, urlopen
 elif sys.version_info.major==3:
     from urllib.request import Request, urlopen
+import traceback
 
 pyversion=str(sys.version_info.major)+str(sys.version_info.minor)
 is_64bits = sys.maxsize > 2**32
