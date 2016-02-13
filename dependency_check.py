@@ -106,13 +106,12 @@ def install(dep):
     if _platform == 'win32':
         try:
             install_wheel(dep)
-            print('Successfully installed %s from Gohlke\'s website' % dep)
             os.chdir(old_cwd)
             return
         except IOError:
-            print('You need to run this file with administrator privileges. Also, make sure that all other Python programs are closed.')
+            print('Must have internet and administrator privileges. Also, make sure that all other Python programs are closed.')
         except Exception as e:
-            print("Could not install %s from Gohlke's website. %s" % traceback.format_exc())
+            print("Could not install %s from Gohlke's website. %s" % (dep, traceback.format_exc()))
     
     if not is_installed(dep):
         if pip.main(['install', dep, '--no-deps']) != 0:
