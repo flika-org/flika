@@ -39,8 +39,8 @@ class Settings:
                         'recent_files': [],
                         'nCores':cpu_count(),
                         'debug_mode': False}
-    def __init__(self, name):
-        self.config_file=os.path.join(expanduser("~"),'.FLIKA','%s.p' % name)
+    def __init__(self):
+        self.config_file=os.path.join(expanduser("~"),'.FLIKA','config.p' )
         try:
             self.d=pickle.load(open(self.config_file, "rb" ))
         except (IOError, ValueError, EOFError):
@@ -131,7 +131,7 @@ def init(filename, title='Flika'):
     m=uic.loadUi(filename)
     load_plugin_menu()
     m.setCurrentWindowSignal=SetCurrentWindowSignal(m)
-    m.settings = Settings("Flika")
+    m.settings = Settings()
     m.windows = []
     m.traceWindows = []
     m.dialogs = []

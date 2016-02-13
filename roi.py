@@ -241,8 +241,9 @@ class ROI(QWidget):
             if bounds[0]>len(tif) or bounds[1]<0:
                 return np.array([])
         mn=np.zeros(bounds[1]-bounds[0])
-        for t in np.arange(bounds[0],bounds[1]):
-            mn[t-bounds[0]]=np.mean(tif[t,xx,yy])       
+        #t=np.arange(bounds[0],bounds[1])
+        #for t in np.arange(bounds[0],bounds[1]):
+        return np.mean(tif[bounds[0]:bounds[1],xx,yy], 1) 
         return mn
         
     def link(self,roi):
