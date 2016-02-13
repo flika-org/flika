@@ -49,7 +49,6 @@ def get_wheel_url(plugin):
     return get_newest_version(fnames)
 
 def get_newest_version(fnames):
-    #print(fnames)
     if len(fnames) == 0:
         return ''
     fname = ''
@@ -79,11 +78,9 @@ def download_file(download_url):
     f.close()
     
 def is_installed(dep):
-    installed_packages=pip.get_installed_distributions(local_only=False)
-    installed_packages=[p.project_name.lower() for p in installed_packages]
-    if dep.lower() in installed_packages:
-        return True
-    #reqs = dict([re.match(r'([^=]*)==(.*)', i).groups() for i in installed_packages])
+    for dist in pip.get_installed_distributions(local_only=False):
+        if dep.lower() == dist.project_name.lower() or dist._provider.egg_info.split('\\')[-1].startswith(dep + '-'):
+            return True
     try:
         import_module(dep)
         return True
@@ -96,33 +93,28 @@ def is_installed(dep):
                 return False
 
 def install(dep):
+    if is_installed(dep):
+        return
     old_cwd=os.getcwd()
     flika_dir=os.path.join(expanduser("~"),'.FLIKA')
     if not os.path.exists(flika_dir):
         os.makedirs(flika_dir)
-    os.chdir(flika_dir)
-    if is_installed(dep):
-        os.chdir(old_cwd)  
-        return
-    try:
-        if pip.main(['install', dep, '--no-deps']) == 0:
-            os.chdir(old_cwd)
-            return
-    except IOError:
-        print('You need to run this file with administrator privileges. Also, make sure that all other Python programs are closed.')
-        if _platform == 'win32':
-            print(" Search for the 'cmd' program, right click it and select 'Run as Administrator'. Then enter the following commands:\n\n")
-            print("cd {}".format(os.path.realpath(__file__)))
-            print('python dependency_check.py')
-            print('\n\n\n')
-            print('This should install all the dependencies.  You only need to do this once.')
     
-    if not is_installed(dep):
-        print('Trying to install %s from Gohlke(win32 only)' % dep)
+    os.chdir(flika_dir)
+
+    if _platform == 'win32':
         try:
             install_wheel(dep)
-            print('Successfully installed %s' % dep)
+            print('Successfully installed %s from Gohlke\'s website' % dep)
+            os.chdir(old_cwd)
+            return
+        except IOError:
+            print('You need to run this file with administrator privileges. Also, make sure that all other Python programs are closed.')
         except Exception as e:
+            print("Could not install %s from Gohlke's website. %s" % traceback.format_exc())
+    
+    if not is_installed(dep):
+        if pip.main(['install', dep, '--no-deps']) != 0:
             print('Could not install %s: %s' % (dep, e))
 
     os.chdir(old_cwd)  
@@ -140,12 +132,11 @@ def install_wheel(dep):
         flika_dir=os.path.join(expanduser("~"),'.FLIKA')
         pip.main(['install', os.path.basename(wheel)])
         
-        try:
-            import_module(dep)
-            os.remove(basename(wheel)) #if the installation was successful, remove the .whl file
-        except:
-            pass #if it wasn't successful, keep the .whl file.
+        os.remove(basename(wheel)) #if the installation was successful, remove the .whl file
+        
         os.chdir(old_cwd)
+    else:
+        raise Exception("No module named %s found." % dep)
 
 def check_dependencies(*args):
     for dep in args:
