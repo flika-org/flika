@@ -93,6 +93,9 @@ def is_installed(dep):
             if e.msg=="No module named '{}'".format(dep):
                 return False
 
+class NotOnGohlkeError(Exception):
+    pass
+
 def install(dep):
     if is_installed(dep):
         return
@@ -110,6 +113,8 @@ def install(dep):
             return
         except IOError:
             print('Must have internet and administrator privileges. Also, make sure that all other Python programs are closed.')
+        except NotOnGohlkeError:
+            pass
         except Exception as e:
             print("Could not install %s from Gohlke's website. %s" % (dep, traceback.format_exc()))
     
@@ -136,7 +141,7 @@ def install_wheel(dep):
         
         os.chdir(old_cwd)
     else:
-        raise Exception("No module named %s found." % dep)
+        raise NotOnGohlkeError("No module named %s found." % dep)
 
 def check_dependencies(*args):
     for dep in args:
