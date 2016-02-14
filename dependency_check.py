@@ -80,8 +80,12 @@ def download_file(download_url):
     
 def is_installed(dep):
     for dist in pip.get_installed_distributions(local_only=False):
-        if dep.lower() == dist.project_name.lower() or dist._provider.egg_info.split('\\')[-1].startswith(dep + '-'):
+        if dep.lower() == dist.project_name.lower():
             return True
+        egg_info=dist._provider.egg_info
+        if egg_info is not None:
+            if egg_info.split('\\')[-1].startswith(dep + '-'):
+                return True
     try:
         import_module(dep)
         return True
