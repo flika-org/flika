@@ -146,6 +146,4 @@ if __name__ == '__main__':
         sys.exit(g.app.exec_()) #This is required to run outside of Spyder
 
     
-    #open_file()
-    #from plugins.light_sheet_analyzer.light_sheet_analyzer import light_sheet_analyzer
-    #light_sheet_analyzer(786,2)
+    

@@ -73,6 +73,7 @@ class ROI(QWidget):
             trace.removeROI(self)
 
     def getPoints(self):
+        
         points=[]
         for i in np.arange(self.path.elementCount()):
             e=self.path.elementAt(i)
@@ -179,18 +180,22 @@ class ROI(QWidget):
     def translate(self,difference,startpt):
         self.path.translate(difference)
         self.pathitem.setPath(self.path)
+        pts=self.getPoints()
+        self.minn=np.min(np.array( [np.array([p[0],p[1]]) for p in self.pts]),0)
         for roi in self.linkedROIs:
-            roi.draw_from_points(self.getPoints())
+            roi.draw_from_points(pts)
+            roi.minn=self.minn
             roi.translated.emit()
         self.translated.emit()
         
     def finish_translate(self):
+        pts=self.getPoints()
         for roi in self.linkedROIs:
-            roi.draw_from_points(self.getPoints())
+            roi.draw_from_points(pts)
             roi.translate_done.emit()
             roi.beingDragged=False
-        self.draw_from_points(self.getPoints())
-        self.getMask()
+        self.draw_from_points(pts)
+        #self.getMask()
         self.translate_done.emit()
         self.beingDragged=False
     def draw_from_points(self,pts):
@@ -240,11 +245,10 @@ class ROI(QWidget):
             if bounds[1]>len(tif): bounds[1]=len(tif)
             if bounds[0]>len(tif) or bounds[1]<0:
                 return np.array([])
-        mn=np.zeros(bounds[1]-bounds[0])
-        #t=np.arange(bounds[0],bounds[1])
-        #for t in np.arange(bounds[0],bounds[1]):
-        return np.mean(tif[bounds[0]:bounds[1],xx,yy], 1) 
-        return mn
+        trace=np.mean(tif[bounds[0]:bounds[1],xx,yy], 1) 
+        if np.isnan(np.sum(trace)):
+            return np.zeros(len(trace))
+        return trace
         
     def link(self,roi):
         '''This function links this roi to another, so a translation of one will cause a translation of the other'''
@@ -439,16 +443,38 @@ class ROI_rectangle(ROI):
                 self.path.translate(difference)
         
         self.pathitem.setPath(self.path)
-        for roi in self.linkedROIs:
-            roi.draw_from_points(self.getPoints())
-            roi.translated.emit()
+        pts=self.getPoints()
+        if self.movingPoint is False: # if regular translation
+            self.minn=np.min(np.array( [np.array([p[0],p[1]]) for p in self.pts]),0)
+            for roi in self.linkedROIs:
+                roi.minn=self.minn
+                roi.draw_from_points(pts)
+                roi.translated.emit()
+        else: #if resizing rectangle
+            self.getMask()
+            for roi in self.linkedROIs:
+                roi.minn=self.minn
+                roi.mask=self.mask
+                roi.draw_from_points(pts)
+                roi.translated.emit()
+        
         self.translated.emit()
     def finish_translate(self):
-        ROI.finish_translate(self)
+        pts=self.getPoints()
+        self.getMask()
         for roi in self.linkedROIs:
+            roi.minn=self.minn
+            roi.mask=self.mask
+            roi.draw_from_points(pts)
+            roi.translate_done.emit()
+            roi.beingDragged=False
             roi.movingPoint=False
+        self.draw_from_points(pts)
+        self.translate_done.emit()
+        self.beingDragged=False
         self.movingPoint=False
-    
+        
+        
     
 def makeROI(kind,pts,window=None):
     if window is None:

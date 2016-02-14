@@ -66,7 +66,6 @@ class TraceFig(QWidget):
         self.redrawROIsPartialSlot.connect(self.redrawROIsPartial)
         #self.proxy2= pg.SignalProxy(self.redrawROIsPartialSlot,rateLimit=60, slot=self.redrawROIsPartial)
         self.redrawPartialThread=None
-        self.redrawFullThread=None
         from process.measure import measure
         self.measure=measure
         self.p1.scene().sigMouseClicked.connect(self.measure.pointclicked)
@@ -145,19 +144,19 @@ class TraceFig(QWidget):
         self.rois[index]['toBeRedrawn']=True
         self.redrawROIsPartialSlot.emit()
     def translate_done(self,roi):
-        index=self.get_roi_index(roi)
-        self.rois[index]['toBeRedrawnFull']=True
-        if self.redrawFullThread is None or self.redrawFullThread.isFinished():
-            self.redrawFullThread=RedrawFullThread(self,roi)
-            if self.redrawPartialThread is not None and self.redrawPartialThread.isRunning():
-                self.redrawPartialThread.finished.connect(self.redrawFullThread.start)
-            else:
-                self.redrawFullThread.start()
+        roi_index=self.get_roi_index(roi)        
+        if self.redrawPartialThread is not None and self.redrawPartialThread.isRunning():
+            loop = QEventLoop()
+            self.redrawPartialThread.finished.connect(loop.quit)
+            loop.exec_()# This blocks until the "finished" signal is emitted
+            
+        roi.getPoints()
+        trace=roi.getTrace()
+        self.update_trace_full(roi_index,trace)
                 
     def redrawROIsPartial(self):
         if self.redrawPartialThread is None or self.redrawPartialThread.isFinished():
             self.redrawPartialThread=RedrawPartialThread(self)
-            #self.redrawPartialThread.finished.connect(self.printtoc)
             self.redrawPartialThread.start()
             
     def printtoc(self,toc):
@@ -255,17 +254,20 @@ class RedrawPartialThread(QThread):
         self.tracefig=tracefig
     def run(self):
         tic=time.time()
-        pts=[]
         idxs=[]
-        for i in np.arange(len(self.tracefig.rois)):
-            pts.append(self.tracefig.rois[i]['roi'].getPoints())
         for i in np.arange(len(self.tracefig.rois)):
             if self.tracefig.rois[i]['toBeRedrawn']:
                 self.tracefig.rois[i]['toBeRedrawn']=False
                 idxs.append(i)
         traces=[]
+        bounds=self.tracefig.getBounds()
+        #for i in idxs:
+            #roi=self.tracefig.rois[i]['roi']
+            #roi.getPoints()
+            
         for i in idxs:
-            trace=self.tracefig.rois[i]['roi'].getTrace(self.tracefig.getBounds(),pts[i])
+            roi=self.tracefig.rois[i]['roi']
+            trace=roi.getTrace(bounds)
             traces.append(trace)
         for i, idx in enumerate(idxs):
             self.tracefig.update_trace_partial(idx,traces[i]) #This function can sometimes take a long time.  
@@ -273,31 +275,9 @@ class RedrawPartialThread(QThread):
         self.finished.emit(toc)
         return
 
-class RedrawFullThread(QThread):
-    started=Signal()
-    finished=Signal(float)
-    def __init__(self,tracefig,roi):
-        QThread.__init__(self)
-        self.tracefig=tracefig
-        self.roi=roi
-    def run(self):
-        self.started.emit()
-        tic=time.time()
-        pts=[]
-        idxs=[]
-        for i in np.arange(len(self.tracefig.rois)):
-            pts.append(self.tracefig.rois[i]['roi'].getPoints())
-        for i in np.arange(len(self.tracefig.rois)):
-            if self.tracefig.rois[i]['toBeRedrawnFull']:
-                self.tracefig.rois[i]['toBeRedrawnFull']=False
-                idxs.append(i)
-        traces=[]
-        for i in idxs:
-            trace=self.tracefig.rois[i]['roi'].getTrace(pts=pts[i])
-            traces.append(trace)
-        for i, idx in enumerate(idxs):
-            self.tracefig.update_trace_full(idx,traces[i]) #This function can sometimes take a long time.  
-        toc=time.time()-tic
-        self.finished.emit(toc)
-        return
-    
+
+
+
+
+
+
