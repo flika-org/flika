@@ -177,6 +177,7 @@ def open_file(filename=None):
     else:
         print('Could not open %s' % filename)
         g.m.settings['recent_files'].remove(filename)
+        make_recent_menu()
         return
     g.m.statusBar().showMessage('{} successfully loaded ({} s)'.format(os.path.basename(filename), time.time()-t))
     g.m.settings['filename']=filename
