@@ -121,6 +121,8 @@ def open_file(filename=None):
         if filename is None:
             print('No filename selected')
             return
+    if filename not in g.m.settings['recent_files']:
+        save_recent_file(filename)
     g.m.statusBar().showMessage('Loading {}'.format(os.path.basename(filename)))
     t=time.time()
     metadata=dict()
@@ -174,6 +176,7 @@ def open_file(filename=None):
         return
     else:
         print('Could not open %s' % filename)
+        g.m.settings['recent_files'].remove(filename)
         return
     g.m.statusBar().showMessage('{} successfully loaded ({} s)'.format(os.path.basename(filename), time.time()-t))
     g.m.settings['filename']=filename

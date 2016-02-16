@@ -43,7 +43,8 @@ class Settings:
         self.config_file=os.path.join(expanduser("~"),'.FLIKA','config.p' )
         try:
             self.d=pickle.load(open(self.config_file, "rb" ))
-        except (IOError, ValueError, EOFError):
+        except Exception as e:
+            print("Failed to load settings file. %s\nDefault settings restored." % e)
             self.d=Settings.initial_settings
         self.d['mousemode'] = 'rectangle' # don't change initial mousemode
     def __getitem__(self, item):

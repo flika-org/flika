@@ -103,35 +103,25 @@ class PluginManager(QMainWindow):
     @staticmethod
     def load_plugins():
         PluginManager.plugins = {}
-        success, fail = PluginManager.load_installed_plugins()
+        PluginManager.load_installed_plugins()
         try:
-            s, f = PluginManager.load_online_plugins()
+            PluginManager.load_online_plugins()
         except IOError as e:
             print("Could no connect to the internet. %s" % traceback.format_exc())
-        success += s
-        fail += f
         PluginManager.gui.updateList()
-        return success, fail
 
     @staticmethod
     def load_installed_plugins():
-        success = 0
-        fail = 0
         for p in get_plugin_paths():
             try:
                 mod_dict = load_plugin_xml(open(os.path.join(p, 'info.xml'), 'r').read())
                 mod_dict['install_date'] = mod_dict['date']
                 PluginManager.plugins[mod_dict['@name']] = mod_dict
-                success += 1
             except Exception as e:
-                fail += 1
                 print("Could not load info for %s. %s" % (os.path.basename(p), e))
-        return success, fail
 
     @staticmethod
     def load_online_plugins():
-        success = 0
-        fail = 0
         for name, url in plugin_list.items():
             txt = urlopen(url).read()
             try:
@@ -140,19 +130,16 @@ class PluginManager(QMainWindow):
                     PluginManager.plugins[name].update(mod_dict)
                 else:
                     PluginManager.plugins[name] = mod_dict
-                success += 1
             except Exception as e:
-                fail += 1
                 print("Could not load data from %s. %s" % (name, traceback.format_exc()))
-        return success, fail
 
     @staticmethod
     def show():
         if not hasattr(PluginManager, 'gui'):
             PluginManager.gui = PluginManager()
         g.m.statusBar().showMessage('Loading plugin information...')
-        success, fail = PluginManager.load_plugins()
-        g.m.statusBar().showMessage('%d plugins successfully loaded, %d failed to load' % (success, fail))
+        PluginManager.load_plugins()
+        g.m.statusBar().showMessage('%d plugins successfully loaded' % (len(PluginManager.plugins)))
         QMainWindow.show(PluginManager.gui)
 
     @staticmethod
