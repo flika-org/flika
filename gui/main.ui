@@ -231,6 +231,7 @@
      <addaction name="actionBoxcar_Differential"/>
      <addaction name="actionWavelet_Filter"/>
      <addaction name="actionFourier_Filter"/>
+     <addaction name="actionBilateral_Filter"/>
     </widget>
     <widget class="QMenu" name="menuBinary">
      <property name="title">
@@ -557,6 +558,11 @@
   <action name="actionDivide_Trace">
    <property name="text">
     <string>Divide Trace</string>
+   </property>
+  </action>
+  <action name="actionBilateral_Filter">
+   <property name="text">
+    <string>Bilateral Filter</string>
    </property>
   </action>
  </widget>

@@ -26,7 +26,7 @@ from window import Window
 
 from process.stacks import deinterleave, trim, zproject, image_calculator, pixel_binning, frame_binning, resize
 from process.math_ import multiply, subtract, power, ratio, absolute_value, subtract_trace, divide_trace
-from process.filters import gaussian_blur, butterworth_filter,boxcar_differential_filter, wavelet_filter, difference_filter, fourier_filter, mean_filter, median_filter
+from process.filters import gaussian_blur, butterworth_filter,boxcar_differential_filter, wavelet_filter, difference_filter, fourier_filter, mean_filter, median_filter, bilateral_filter
 from process.binary import threshold, adaptive_threshold, canny_edge_detector, remove_small_blobs, logically_combine, binary_dilation, binary_erosion
 from process.roi import set_value
 from process.measure import measure
@@ -86,6 +86,7 @@ def initializeMainGui():
     g.m.actionDifference_Filter.triggered.connect(difference_filter.gui)
     g.m.actionBoxcar_Differential.triggered.connect(boxcar_differential_filter.gui)
     g.m.actionWavelet_Filter.triggered.connect(wavelet_filter.gui)
+    g.m.actionBilateral_Filter.triggered.connect(bilateral_filter.gui)
     g.m.actionRatio.triggered.connect(ratio.gui)
     g.m.actionSubtract_Trace.triggered.connect(subtract_trace.gui)
     g.m.actionDivide_Trace.triggered.connect(divide_trace.gui)

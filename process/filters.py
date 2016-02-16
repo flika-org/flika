@@ -16,7 +16,7 @@ from PyQt4.QtCore import *
 import time
 from process.progress_bar import ProgressBar
 
-__all__ = ['gaussian_blur','mean_filter','median_filter','butterworth_filter','boxcar_differential_filter','wavelet_filter','difference_filter', 'fourier_filter']
+__all__ = ['gaussian_blur','mean_filter','median_filter','butterworth_filter','boxcar_differential_filter','wavelet_filter','difference_filter', 'fourier_filter', 'bilateral_filter']
 ###############################################################################
 ##################   SPATIAL FILTERS       ####################################
 ###############################################################################
@@ -609,6 +609,208 @@ class Wavelet_filter(BaseProcess):
                 self.roi.translate_done.emit()        
 wavelet_filter=Wavelet_filter()
     
+    
+    
+    
+    
+    
+    
+    
+    
+    
+class Bilateral_filter(BaseProcess):
+    ''' bilateral_filter( keepSourceWindow=False)
+    
+    Parameters:
+        | soft (bool)  --     True for guassian, False for hard filter
+        | beta (float) --     beta of kernel
+        | width (float) --    width of kernel
+        | stoptol (float) --  tolerance for convergence
+        | maxiter (int)  --   maximum number of iterations
+    Returns:
+        newWindow
+    '''
+    def __init__(self):
+        super().__init__()
+    def gui(self):
+        self.gui_reset()
+        
+        soft=QCheckBox()
+        soft.setChecked(True)
+        beta=SliderLabel(2)
+        beta.setRange(1,500)
+        beta.setValue(200)
+        width=SliderLabel(2)
+        width.setRange(1,50)
+        width.setValue(8)
+        stoptol=SliderLabel(4)
+        stoptol.setRange(0,.02)
+        stoptol.setValue(.001)
+        maxiter=SliderLabel(0)
+        maxiter.setRange(1,100)
+        maxiter.setValue(10)
+        preview=QCheckBox()
+        preview.setChecked(True)
+        self.items.append({'name':'soft','string':'soft','object':soft})  
+        self.items.append({'name':'beta','string':'beta','object':beta})  
+        self.items.append({'name':'width','string':'width','object':width})  
+        self.items.append({'name':'stoptol','string':'stop tolerance','object':stoptol})  
+        self.items.append({'name':'maxiter','string':'Maximum Iterations','object':maxiter})  
+        self.items.append({'name':'preview','string':'Preview','object':preview})  
+        super().gui()
+        self.roi=g.m.currentWindow.currentROI
+        if self.roi is not None:
+            self.ui.rejected.connect(self.roi.translate_done.emit)
+        else:
+            preview.setChecked(False)
+            preview.setEnabled(False)
+        
+    def __call__(self,soft, beta, width, stoptol, maxiter, keepSourceWindow=False):
+        
+        self.start(keepSourceWindow)
+        if g.m.settings['multiprocessing']:
+            self.newtif=bilateral_filter_multi(soft,beta,width,stoptol,maxiter,g.m.currentWindow.image)
+        else:
+            self.newtif=np.zeros(self.tif.shape)
+            mt,mx,my=self.tif.shape
+            for i in np.arange(mx):
+                for j in np.arange(my):
+                    self.newtif[:, i, j]=bilateral_smooth(soft,beta,width,stoptol,maxiter,self.tif[:,i,j])
+        self.newname=self.oldname+' - Bilateral Filtered'
+        return self.end()
+
+    def preview(self):
+        soft=self.getValue('soft')
+        beta=self.getValue('beta')
+        width=self.getValue('width')
+        stoptol=self.getValue('stoptol')
+        maxiter=self.getValue('maxiter')
+        preview=self.getValue('preview')
+        
+        if self.roi is not None:
+            if preview:
+                trace=self.roi.getTrace()
+                trace=bilateral_smooth(soft,beta,width,stoptol,maxiter,trace)
+                roi_index=g.m.currentTrace.get_roi_index(self.roi)
+                g.m.currentTrace.update_trace_full(roi_index,trace) #update_trace_partial may speed it up
+            else:
+                self.roi.translate_done.emit()        
+        
+
+def bilateral_filter_multi(soft,beta,width,stoptol,maxiter,tif):
+    nThreads= g.m.settings['nCores']
+    mt,mx,my=tif.shape
+    block_ends=np.linspace(0,mx,nThreads+1).astype(np.int)
+    data=[tif[:, block_ends[i]:block_ends[i+1],:] for i in np.arange(nThreads)] #split up data along x axis. each thread will get one.
+    args=(soft,beta,width,stoptol,maxiter)
+    progress = ProgressBar(bilateral_filter_inner, data, args, nThreads, msg='Performing Bilateral Filter')
+    if progress.results is None or any(r is None for r in progress.results):
+        result=None
+    else:
+        result=np.concatenate(progress.results,axis=1)
+    return result
+    
+    
+def bilateral_filter_inner(q_results, q_progress, q_status, child_conn, args):
+    data=child_conn.recv() # unfortunately this step takes a long time
+    percent=0  # This is the variable we send back which displays our progress
+    status=q_status.get(True) #this blocks the process from running until all processes are launched
+    if status=='Stop':
+        q_results.put(None) # if the user presses stop, return None
+    
+    
+    # Here is the meat of the inner_func.
+    soft,beta,width,stoptol,maxiter=args #unpack all the variables inside the args tuple
+    result=np.zeros(data.shape)
+    tt,xx,yy=data.shape
+    for x in np.arange(xx):
+        for y in np.arange(yy):
+            result[:,x,y]=bilateral_smooth(soft,beta,width,stoptol,maxiter,data[:,x,y])
+            if not q_status.empty(): #check if the stop button has been pressed
+                stop=q_status.get(False)
+                q_results.put(None)
+                return
+        if percent<int(100*x/xx):
+            percent=int(100*x/xx)
+            q_progress.put(percent)
+                    
+    # finally, when we've finished with our calculation, we send back the result
+    q_results.put(result)
+    
+def bilateral_smooth(soft,beta,width,stoptol,maxiter,y):
+    display=False       # 1 to report iteration values
+    
+    y=np.array(y[:])
+    N=np.size(y,0)
+    w=np.zeros((N,N))
+    j=np.arange(0,N)
+    
+    #construct initial bilateral kernel
+    for i in np.arange(0,N):
+        w[i,np.arange(0,N)]=(abs(i-j) <= width)
+    
+    #initial guess from input signal
+    xold=np.copy(y)
+    
+    #new matrix for storing distances
+    d=np.zeros((N,N))
+    
+    #fig1 = plt.plot(y)
+    
+    if (display):
+        if (soft):
+            print('Soft kernel')
+        else:
+            print('Hard kernel')
+        print('Kernel parameters beta= %d, W= %d' % (beta,width))
+        print('Iter# Change')
+    
+    #start iteration
+    iterate=1
+    gap=np.inf
+    
+    while (iterate < maxiter):
+    
+        if (display):
+            print('%d %f'% (iterate,gap))
+    
+        # calculate paiwise distances for all points
+        for i in np.arange(0,N):
+            d[:,i] = (0.5 * (xold - xold[i]) ** 2)
+        
+        #create kernel
+        if (soft):
+            W=np.multiply(np.exp(-beta*d),w)
+    
+        else:
+            W=np.multiply((d <= beta ** 2),w)
+        
+        #apply kernel to get weighted mean shift   
+        xnew1=np.sum(np.multiply(np.transpose(W),xold), axis=1)
+        xnew2=np.sum(W, axis=1)
+        xnew=np.divide(xnew1,xnew2)
+       
+        #plt.plot(xnew)   
+        
+        #check for convergence
+        gap=np.sum(np.square(xold-xnew))
+    
+        if (gap < stoptol):
+            if (display):
+                print('Converged in %d iterations' % iterate)
+            break
+    
+        xold=np.copy(xnew)
+        iterate+=1
+    return xold
+    
+bilateral_filter=Bilateral_filter()
+
+
+
+
+
+
 #from scipy import signal
 #data=g.m.currentTrace.rois[0]['roi'].getTrace()
 #wavelet = signal.ricker
