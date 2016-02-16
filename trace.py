@@ -106,6 +106,8 @@ class TraceFig(QWidget):
             self.p1.scene().sigMouseClicked.disconnect(self.setCurrentTraceWindow)
         except:
             pass
+        if self in g.m.traceWindows:
+            g.m.traceWindows.remove(self)
         g.m.currentTrace = None
         event.accept() # let the window close
     def update(self):
