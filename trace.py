@@ -255,7 +255,7 @@ class RedrawPartialThread(QThread):
         QThread.__init__(self)
         self.tracefig=tracefig
     def run(self):
-        tic=time.time()
+        #tic=time.time()
         idxs=[]
         for i in np.arange(len(self.tracefig.rois)):
             if self.tracefig.rois[i]['toBeRedrawn']:
@@ -273,8 +273,8 @@ class RedrawPartialThread(QThread):
             traces.append(trace)
         for i, idx in enumerate(idxs):
             self.tracefig.update_trace_partial(idx,traces[i]) #This function can sometimes take a long time.  
-        toc=time.time()-tic
-        self.finished.emit(toc)
+        #toc=time.time()-tic
+        #self.finished.emit(toc)
         return
 
 
