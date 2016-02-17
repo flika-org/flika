@@ -249,15 +249,17 @@ class RedrawPartialThread(QThread):
         QThread.__init__(self)
         self.tracefig=tracefig
         self.redrawCompleted=True
+        self.quit_loop=False
         
     def run(self):
-        self.timer=QTimer()
-        self.timer.timeout.connect(self.redraw)
-        self.timer.start(50)
-        self.loop = QEventLoop()
-        self.finished_sig.connect(self.loop.quit)
-        self.loop.exec_() # This blocks until the "finished" signal is emitted
+        self.finished_sig.connect(self.request_quit_loop)
+        while self.quit_loop is False:
+            time.sleep(.05)
+            self.redraw()
         self.finished.emit()
+        
+    def request_quit_loop(self):
+        self.quit_loop=True
         
     def redraw(self):
         
