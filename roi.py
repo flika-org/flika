@@ -58,7 +58,8 @@ class ROI(QWidget):
 
     def delete(self):
         for roi in self.linkedROIs:
-            roi.linkedROIs.remove(self)
+            if self in roi.linkedROIs:
+                roi.linkedROIs.remove(self)
         if self in self.window.rois:
             self.window.rois.remove(self)
         self.window.currentROI=None
@@ -227,6 +228,7 @@ class ROI(QWidget):
                 mask[pt[0],pt[1]]=0
         self.minn=np.min(np.array( [np.array([p[0],p[1]]) for p in self.pts]),0)
         self.mask=np.array(np.where(mask)).T-self.minn
+
         
     def getTrace(self,bounds=None,pts=None):
         ''' bounds are two points in time.  If bounds is not None, we only calculate values between the bounds '''
@@ -365,8 +367,8 @@ class ROI_rectangle(ROI):
         self.movingPoint=False #either False, 0,1,2,3
         self.beingDragged=False #either True or False depending on if a translation has been started or not
         self.cropAct = QAction("&Crop", self, triggered=self.crop)
-    def extend(self,x,y):
-        e=self.path.elementAt(0)
+    def extend(self,x,y, staticPoint=0):
+        e=self.path.elementAt(staticPoint)
         x0=int(np.round(e.x)); y0=int(np.round(e.y))
         self.path=QPainterPath(QPointF(x0,y0))
         self.path.lineTo(QPointF(x0,y))
@@ -428,16 +430,10 @@ class ROI_rectangle(ROI):
                 staticPoint=np.mod(self.movingPoint+2,4)
                 self.movingPoint=2
                 x0,y0=pts[staticPoint]
-                x,y=(self.window.x,self.window.y)
-                path=QPainterPath(QPointF(x0,y0))
-                path.lineTo(QPointF(x0,y))
-                path.lineTo(QPointF(x,y))
-                path.lineTo(QPointF(x,y0))
-                path.lineTo(QPointF(x0,y0))
-                if np.abs(x-x0)<1 or np.abs(y-y0)<1:
+                self.extend(self.window.x,self.window.y, staticPoint=staticPoint)
+                if np.abs(self.window.x-x0)<1 or np.abs(self.window.y-y0)<1:
                     return
                 else:
-                    self.path=path
                     self.getMask()
             else:
                 self.path.translate(difference)
@@ -461,6 +457,7 @@ class ROI_rectangle(ROI):
         self.translated.emit()
     def finish_translate(self):
         pts=self.getPoints()
+        self.draw_from_points(pts)
         self.getMask()
         for roi in self.linkedROIs:
             roi.minn=self.minn
@@ -469,7 +466,6 @@ class ROI_rectangle(ROI):
             roi.translate_done.emit()
             roi.beingDragged=False
             roi.movingPoint=False
-        self.draw_from_points(pts)
         self.translate_done.emit()
         self.beingDragged=False
         self.movingPoint=False
