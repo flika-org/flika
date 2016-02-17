@@ -256,9 +256,12 @@ class PluginManager(QMainWindow):
         os.rename(os.path.join('plugins', folder_name), os.path.join('plugins', plugin['base_dir']))
         add_plugin_menu(plugin_name)
         PluginManager.plugins[plugin_name]['install_date'] = plugin['date']
-        PluginManager.gui.statusBar.showMessage('Successfully installed %s' % plugin_name)
+        deps = PluginManager.plugins[plugin_name]['dependencies']['dependency']
+        deps = [dep['@name'] for dep in deps]
+        check_dependencies(*deps)
+        PluginManager.gui.statusBar.showMessage('Successfully installed %s and it\'s plugins' % plugin_name)
         PluginManager.gui.pluginSelected(PluginManager.gui.pluginList.selectedItems()[0])
-        
+
     def updateClicked(self):
         plugin_name = str(self.pluginList.currentItem().text())
         PluginManager.updatePlugin(plugin_name)
