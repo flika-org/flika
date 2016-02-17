@@ -355,8 +355,9 @@ class ROI_line(ROI):
                 self.path.translate(difference)
         
         self.pathitem.setPath(self.path)
+        pts=self.getPoints()
         for roi in self.linkedROIs:
-            roi.draw_from_points(self.getPoints())
+            roi.draw_from_points(pts)
             roi.translated.emit()
         self.translated.emit()
 

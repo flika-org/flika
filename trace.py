@@ -17,7 +17,6 @@ default_trace_color='w' #'k' is black and 'w' is white
 
 class TraceFig(QWidget):
     indexChanged=Signal(int)
-    redrawROIsPartialSlot=Signal()
     finishedDrawingSignal=Signal()
     keyPressSignal=Signal(QEvent)
     name = "Trace Widget"
@@ -63,7 +62,6 @@ class TraceFig(QWidget):
         self.region.sigRegionChanged.connect(self.update)
         self.p1.plotItem.sigRangeChanged.connect(self.updateRegion)
         self.region.setRegion([0, 200])
-        self.redrawROIsPartialSlot.connect(self.redrawROIsPartial)
         #self.proxy2= pg.SignalProxy(self.redrawROIsPartialSlot,rateLimit=60, slot=self.redrawROIsPartial)
         self.redrawPartialThread=None
         from process.measure import measure
@@ -141,13 +139,24 @@ class TraceFig(QWidget):
     
     def get_roi_index(self,roi):
         return [r['roi'] for r in self.rois].index(roi)
+        
+    def alert(self,msg):
+        pass #print(msg)
+        
+        
     def translated(self,roi):
         index=self.get_roi_index(roi)
         self.rois[index]['toBeRedrawn']=True
-        self.redrawROIsPartialSlot.emit()
+        if self.redrawPartialThread is None or self.redrawPartialThread.isFinished():
+            self.alert('Launching redrawPartialThread')
+            self.redrawPartialThread=RedrawPartialThread(self)
+            self.redrawPartialThread.alert.connect(self.alert)
+            self.redrawPartialThread.start()
+            
     def translate_done(self,roi):
-        roi_index=self.get_roi_index(roi)        
+        roi_index=self.get_roi_index(roi)  
         if self.redrawPartialThread is not None and self.redrawPartialThread.isRunning():
+            self.redrawPartialThread.finished_sig.emit() #tell the thread to finish
             loop = QEventLoop()
             self.redrawPartialThread.finished.connect(loop.quit)
             loop.exec_()# This blocks until the "finished" signal is emitted
@@ -155,31 +164,14 @@ class TraceFig(QWidget):
         roi.getPoints()
         trace=roi.getTrace()
         self.update_trace_full(roi_index,trace)
-                
-    def redrawROIsPartial(self):
-        if self.redrawPartialThread is None or self.redrawPartialThread.isFinished():
-            self.redrawPartialThread=RedrawPartialThread(self)
-            self.redrawPartialThread.start()
-            
-    def printtoc(self,toc):
-        print(toc)
-        
+
+
     def update_trace_full(self,roi_index,trace):
         pen=QPen(self.rois[roi_index]['roi'].color)
         self.rois[roi_index]['p1trace'].setData(trace,pen=pen)
         self.rois[roi_index]['p2trace'].setData(trace,pen=pen)
         self.finishedDrawingSignal.emit()
-    def update_trace_partial(self,roi_index,trace):
-        pen=QPen(self.rois[roi_index]['roi'].color)
-        bounds=self.getBounds()
-        newtrace=self.rois[roi_index]['p1trace'].getData()[1]
-        if bounds[0]<0: bounds[0]=0
-        if bounds[1]>len(newtrace): bounds[1]=len(newtrace)
-        if bounds[1]<0 or bounds[0]>len(newtrace):
-            return
-        newtrace[bounds[0]:bounds[1]]=trace
-        self.rois[roi_index]['p1trace'].setData(newtrace,pen=pen)
-        self.finishedDrawingSignal.emit()
+
         
         
     def addROI(self,roi):
@@ -250,34 +242,56 @@ def roiPlot(roi):
     g.m.currentTrace.addROI(roi)
     
 class RedrawPartialThread(QThread):
-    finished=Signal(float)
+    finished=Signal() #this announces that the thread has finished
+    finished_sig=Signal() #This tells the thread to finish
+    alert = Signal(str)
     def __init__(self,tracefig):
         QThread.__init__(self)
         self.tracefig=tracefig
+        self.redrawCompleted=True
+        
     def run(self):
-        #tic=time.time()
-        idxs=[]
-        for i in np.arange(len(self.tracefig.rois)):
-            if self.tracefig.rois[i]['toBeRedrawn']:
-                self.tracefig.rois[i]['toBeRedrawn']=False
-                idxs.append(i)
-        traces=[]
-        bounds=self.tracefig.getBounds()
-        #for i in idxs:
-            #roi=self.tracefig.rois[i]['roi']
-            #roi.getPoints()
-            
-        for i in idxs:
-            roi=self.tracefig.rois[i]['roi']
-            trace=roi.getTrace(bounds)
-            traces.append(trace)
-        for i, idx in enumerate(idxs):
-            self.tracefig.update_trace_partial(idx,traces[i]) #This function can sometimes take a long time.  
-        #toc=time.time()-tic
-        #self.finished.emit(toc)
-        return
-
-
+        self.timer=QTimer()
+        self.timer.timeout.connect(self.redraw)
+        self.timer.start(50)
+        self.loop = QEventLoop()
+        self.finished_sig.connect(self.loop.quit)
+        self.loop.exec_() # This blocks until the "finished" signal is emitted
+        self.finished.emit()
+        
+    def redraw(self):
+        
+        if self.redrawCompleted is False:
+            self.alert.emit("Redraw hasn't finished")
+            pass
+        else:
+            self.alert.emit("Redrawing")
+            self.redrawCompleted=False
+            idxs=[]
+            for i in np.arange(len(self.tracefig.rois)):
+                if self.tracefig.rois[i]['toBeRedrawn']:
+                    self.tracefig.rois[i]['toBeRedrawn']=False
+                    idxs.append(i)
+            traces=[]
+            bounds=self.tracefig.getBounds()
+            for i in idxs:
+                roi=self.tracefig.rois[i]['roi']
+                trace=roi.getTrace(bounds)
+                traces.append(trace)
+            for i, roi_index in enumerate(idxs):
+                trace=traces[i] #This function can sometimes take a long time.  
+                pen=QPen(self.tracefig.rois[roi_index]['roi'].color)
+                bb=self.tracefig.getBounds()
+                curve=self.tracefig.rois[roi_index]['p1trace']
+                newtrace=curve.getData()[1]
+                if bb[0]<0: bb[0]=0
+                if bb[1]>len(newtrace): bb[1]=len(newtrace)
+                if bb[1]<0 or bb[0]>len(newtrace):
+                    return
+                newtrace[bb[0]:bb[1]]=trace
+                curve.setData(newtrace,pen=pen)
+            QApplication.processEvents()
+            self.redrawCompleted=True
 
 
 
