@@ -134,7 +134,7 @@ def open_file(filename=None):
             metadata = txt2dict(metadata)
         except AttributeError:
             metadata=dict()
-        A=Tiff.asarray().astype(g.m.settings['internal_data_type'])
+        A=Tiff.asarray()#.astype(g.m.settings['internal_data_type'])
         Tiff.close()
         axes=[tifffile.AXES_LABELS[ax] for ax in Tiff.pages[0].axes]
         #print("Original Axes = {}".format(axes)) #sample means RBGA, plane means frame, width means X, height means Y
@@ -202,7 +202,7 @@ def save_file(filename):
         directory=os.path.normpath(os.path.dirname(g.m.settings['filename']))
         filename=os.path.join(directory,filename)
     g.m.statusBar().showMessage('Saving {}'.format(os.path.basename(filename)))
-    A=g.m.currentWindow.image.astype(g.m.settings['internal_data_type'])
+    A=g.m.currentWindow.image#.astype(g.m.settings['internal_data_type'])
     metadata=g.m.currentWindow.metadata
     metadata=json.dumps(metadata,default=JSONhandler)
     if len(A.shape)==3:
@@ -223,7 +223,7 @@ def save_current_frame(filename):
         directory=os.path.normpath(os.path.dirname(g.m.settings['filename']))
         filename=os.path.join(directory,filename)
     g.m.statusBar().showMessage('Saving {}'.format(os.path.basename(filename)))
-    A=np.average(g.m.currentWindow.image, 0).astype(g.m.settings['internal_data_type'])
+    A=np.average(g.m.currentWindow.image, 0)#.astype(g.m.settings['internal_data_type'])
     metadata=json.dumps(g.m.currentWindow.metadata)
     if len(A.shape)==3:
         A = A[g.m.currentWindow.currentIndex]

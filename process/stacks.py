@@ -331,11 +331,11 @@ class Image_calculator(BaseProcess):
             self.newtif[np.isnan(self.newtif)]=0
             self.newtif[np.isinf(self.newtif)]=0
         if operation=='AND':
-            self.newtif=np.logical_and(window1.image,window2.image).astype('float64')
+            self.newtif=np.logical_and(window1.image,window2.image).astype(np.uint8)
         elif operation=='OR':
-            self.newtif=np.logical_or(window1.image,window2.image).astype('float64')
+            self.newtif=np.logical_or(window1.image,window2.image).astype(np.uint8)
         elif operation=='XOR':
-            self.newtif=np.logical_xor(window1.image,window2.image).astype('float64')
+            self.newtif=np.logical_xor(window1.image,window2.image).astype(np.uint8)
         elif operation=='Min':
             self.newtif=np.minimum(A,B)
         elif operation=='Max':

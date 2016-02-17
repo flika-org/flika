@@ -126,7 +126,7 @@ class SetCurrentWindowSignal(QWidget):
         self.hide()
 
 
-def init(filename, title='Flika'):
+def init(filename):
     global m, mainGuiInitialized
     mainGuiInitialized=True
     m=uic.loadUi(filename)

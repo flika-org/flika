@@ -132,7 +132,7 @@ class MainWindowEventEater(QObject):
                 event.ignore()
         return False # lets the event continue to the edit
 mainWindowEventEater = MainWindowEventEater()
-    
+
 if __name__ == '__main__':
     
     initializeMainGui()
@@ -146,5 +146,4 @@ if __name__ == '__main__':
     if not insideSpyder: #if we are running outside of Spyder
         sys.exit(g.app.exec_()) #This is required to run outside of Spyder
 
-    
     

@@ -143,7 +143,7 @@ class Adaptive_threshold(BaseProcess):
                 newtif[i] = threshold_adaptive(newtif[i],block_size,offset=value)
         if darkBackground:
                 newtif=np.logical_not(newtif)
-        self.newtif=newtif.astype(g.m.settings['internal_data_type'])
+        self.newtif=newtif.astype(np.uint8)
         self.newname=self.oldname+' - Thresholded '+str(value)
         return self.end()
     def preview(self):
@@ -160,7 +160,7 @@ class Adaptive_threshold(BaseProcess):
             testimage = threshold_adaptive(testimage,block_size,offset=value)
             if darkBackground:
                 testimage=np.logical_not(testimage)
-            testimage=testimage.astype(g.m.settings['internal_data_type'])
+            testimage=testimage.astype(np.uint8)
             g.m.currentWindow.imageview.setImage(testimage,autoLevels=False)
             g.m.currentWindow.imageview.setLevels(-.1,1.1)
         else:
@@ -175,7 +175,6 @@ adaptive_threshold=Adaptive_threshold()
 
 class Canny_edge_detector(BaseProcess):
     """canny_edge_detector(sigma, keepSourceWindow=False)
-    
     
     Parameters:
         | sigma (float) -- 
@@ -204,7 +203,7 @@ class Canny_edge_detector(BaseProcess):
         else:
             for i in np.arange(len(newtif)):
                 newtif[i] = feature.canny(self.tif[i],sigma)
-        self.newtif=newtif.astype(g.m.settings['internal_data_type'])
+        self.newtif=newtif.astype(np.uint8)
         self.newname=self.oldname+' - Canny '
         return self.end()
     def preview(self):
@@ -314,7 +313,7 @@ class Remove_small_blobs(BaseProcess):
                 B[pos]=0
         lbls = np.arange(1, num_features+1)
         scipy.ndimage.labeled_comprehension(self.tif, labeled_array, lbls, fn, float, 0, True)
-        self.newtif=np.reshape(B,oldshape).astype(g.m.settings['internal_data_type'])
+        self.newtif=np.reshape(B,oldshape).astype(np.uint8)
         self.newname=self.oldname+' - Removed Blobs '+str(value)
         return self.end()
 remove_small_blobs=Remove_small_blobs()
@@ -359,7 +358,7 @@ class Binary_Dilation(BaseProcess):
         else:
             s=scipy.ndimage.generate_binary_structure(rank,connectivity)
         self.newtif=scipy.ndimage.morphology.binary_dilation(self.tif,s,iterations)
-        self.newtif=self.newtif.astype(g.m.settings['internal_data_type'])
+        self.newtif=self.newtif.astype(np.uint8)
         self.newname=self.oldname+' - Dilated '
         return self.end()
 binary_dilation=Binary_Dilation()
@@ -402,7 +401,7 @@ class Binary_Erosion(BaseProcess):
         else:
             s=scipy.ndimage.generate_binary_structure(rank,connectivity)
         self.newtif=scipy.ndimage.morphology.binary_erosion(self.tif,s,iterations)
-        self.newtif=self.newtif.astype(g.m.settings['internal_data_type'])
+        self.newtif=self.newtif.astype(np.uint8)
         self.newname=self.oldname+' - Dilated '
         return self.end()
 binary_erosion=Binary_Erosion()
