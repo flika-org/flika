@@ -19,7 +19,7 @@ import numpy as np
 from pyqtgraph.dockarea import *
 from process.BaseProcess import BaseDialog
 import pyqtgraph as pg
-from plugin_manager import PluginManager, load_plugin_menu
+from plugins.plugin_manager import PluginManager, load_plugin_menu
 from script_editor.ScriptEditor import ScriptEditor
 from multiprocessing import cpu_count
 
