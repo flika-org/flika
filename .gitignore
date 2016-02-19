@@ -70,5 +70,6 @@ pip-log.txt
 plugins/**
 !/plugins/__init__.py
 !/plugins/plugin_data.py
+!/plugins/plugin_manager.py
 !/plugins/xmltodict.py
 analyze/**
