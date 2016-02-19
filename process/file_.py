@@ -70,7 +70,7 @@ def open_file_gui(func, filetypes, prompt='Open File', kargs={}):
     filename=str(filename)
     if filename != '':
         save_recent_file(filename)
-        func(filename, **kargs)
+        return func(filename, **kargs)
     else:
         g.m.statusBar().showMessage('No File Selected')
 
