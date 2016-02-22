@@ -45,7 +45,10 @@ def initializeMainGui():
         return 0 
     g.app = QApplication(sys.argv)
     g.init('gui/main.ui')
-    g.m.setGeometry(QRect(15, 33, 326, 80))
+    desktop=QApplication.desktop()
+    width_px=int(desktop.logicalDpiX()*3.4)
+    height_px=int(desktop.logicalDpiY()*.9)
+    g.m.setGeometry(QRect(15, 33, width_px, height_px))
     g.m.setFixedSize(326, 80)
     g.m.setWindowIcon(QIcon('images/favicon.png'))
 
