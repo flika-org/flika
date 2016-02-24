@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri Jul 18 12:46:47 2014
-
-@author: Kyle Ellefsen
+@author: Brett Settle
 """
 from __future__ import (absolute_import, division,print_function, unicode_literals)
 from future.builtins import (bytes, dict, int, list, object, range, str, ascii, chr, hex, input, next, oct, open, pow, round, super, filter, map, zip)

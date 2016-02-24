@@ -1,3 +1,6 @@
+'''
+@author: Brett Settle
+'''
 from dependency_check import *
 from glob import glob
 import global_vars as g

@@ -1,10 +1,6 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Jul 01 11:28:38 2014
-
-@author: Kyle Ellefsen
-"""
-
+'''
+Commit Date: 2016.02.23
+'''
 from PyQt4 import uic
 from PyQt4.QtCore import * # Qt is Nokias GUI rendering code written in C++.  PyQt4 is a library in python which binds to Qt
 from PyQt4.QtGui import *
@@ -12,8 +8,10 @@ from PyQt4.QtCore import pyqtSignal as Signal
 import sys, os
 if sys.version_info.major==2:
     import cPickle as pickle # pickle serializes python objects so they can be saved persistantly.  It converts a python object into a savable data structure
+    from urllib2 import urlopen
 else:
     import pickle
+    from urllib.request import urlopen
 from os.path import expanduser
 import numpy as np
 from pyqtgraph.dockarea import *
@@ -22,6 +20,7 @@ import pyqtgraph as pg
 from plugins.plugin_manager import PluginManager, load_plugin_menu
 from script_editor.ScriptEditor import ScriptEditor
 from multiprocessing import cpu_count
+import re, time, datetime, zipfile, shutil
 
 
 data_types = ['uint8', 'uint16', 'uint32', 'uint64', 'int8', 'int16', 'int32', 'int64', 'float16', 'float32', 'float64']
@@ -112,6 +111,58 @@ def mainguiClose(event):
     m.settings.save()
     event.accept() # let the window close
 
+def checkUpdates():
+    try:
+        data = urlopen('https://raw.githubusercontent.com/flika-org/flika/master/global_vars.py').read()
+    except Exception as e:
+        QMessageBox.information(None, "Connection Failed", "Cannot connect to Flika Repository. Connect to the internet to check for updates.")
+        return
+    latest_date = re.findall(r'Commit Date: (\d{4}\.\d{2}\.\d{2})', str(data))
+    date = re.findall(r'Commit Date: (\d{4}\.\d{2}\.\d{2})', __doc__)
+    message = "Current Version Date: "
+    if len(date) == 0:
+        date = datetime.fromtimestamp(os.path.getctime(__file__))
+        message += "Not found. Using download date %s." % time.strftime('%x',date)
+        # Unknown current date
+    else:
+        date = time.strptime(date[0], "%Y.%m.%d")
+        message += time.strftime('%x',date)
+    message += '\nLatest Version Date: '
+    if len(latest_date) == 0:
+        latest_date = time.gmtime()
+        message += 'Unknown. Check Github Page'
+        # Unknown latest commit date
+    else:
+        latest_date = time.strptime(latest_date[0], "%Y.%m.%d")
+        message += time.strftime('%x', latest_date)
+    if latest_date > date and QMessageBox.question(None, "Update Recommended", message + '\n\nWould you like to update Flika?', QMessageBox.Yes | QMessageBox.No) == QMessageBox.Yes:
+        updateFlika()
+
+def updateFlika():
+    folder = os.path.dirname(__file__)
+    parent_dir = os.path.dirname(folder)
+    new_folder = folder + '-new'
+    url = 'https://github.com/flika-org/flika/archive/master.zip'
+    data = urlopen(url).read()
+    output = open("flika.zip", "wb")
+    output.write(data)
+    output.close()
+
+
+    with zipfile.ZipFile('flika.zip', "r") as z:
+        folder_name = os.path.dirname(z.namelist()[0])
+        z.extractall(parent_dir)
+    os.remove('flika.zip')
+    try:
+        os.rename(os.path.join(parent_dir, folder_name), os.path.join(parent_dir, new_folder))
+        shutil.rmtree(new_folder)
+    except Exception as e:
+        print("Failed to remove and replace old Flika. %s" % e)
+
+def uninstallFlika():
+    shutil.rmtree()
+    
+
 def setConsoleVisible(v):
     from ctypes import windll
     GetConsoleWindow = windll.kernel32.GetConsoleWindow
@@ -142,3 +193,4 @@ def init(filename):
     m.clipboard = None
     m.setAcceptDrops(True)
     m.closeEvent = mainguiClose
+

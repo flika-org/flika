@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
 """
 Created on Thu Jun 26 14:17:38 2014
-updated 2015.01.27
-@author: Kyle Ellefsen
+Latest Update: 2016.02.23
+@author: Kyle Ellefsen and Brett Settle
 """
 from __future__ import (absolute_import, division,print_function, unicode_literals)
 from dependency_check import check_dependencies
@@ -108,6 +107,8 @@ def initializeMainGui():
     g.m.actionBackground.triggered.connect(background.gui)
     g.m.actionMeasure.triggered.connect(measure.gui)
     make_recent_menu()
+
+    g.m.actionCheck_For_Updates.triggered.connect(g.checkUpdates)
     
     g.m.installEventFilter(mainWindowEventEater)
     g.m.show()

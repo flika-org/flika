@@ -255,6 +255,7 @@
     <property name="title">
      <string>Help</string>
     </property>
+    <addaction name="actionCheck_For_Updates"/>
     <addaction name="actionDocs"/>
    </widget>
    <widget class="QMenu" name="menuPlugins">
@@ -563,6 +564,11 @@
   <action name="actionBilateral_Filter">
    <property name="text">
     <string>Bilateral Filter</string>
+   </property>
+  </action>
+  <action name="actionCheck_For_Updates">
+   <property name="text">
+    <string>Check For Updates</string>
    </property>
   </action>
  </widget>
