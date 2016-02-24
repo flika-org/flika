@@ -172,8 +172,17 @@ def updateFlika():
         z.extractall(parent_dir)
     os.remove('flika.zip')
     try:
-        Popen([executable, 'replace_version.py', folder, folder_name], creationflags=CREATE_NEW_CONSOLE)
-        exit(0)
+        import os, sys
+        d = os.path.dirname(__file__)
+        for path, subs, fs in os.walk(d):
+            for f in fs:
+                if f.endswith(('.py', '.ui', '.png', '.txt', '.xml')):
+                    old, new = os.path.join(folder, f), os.path.join(new_folder, f)
+                    if os.path.exists(old) and os.path.exists(new):
+                        shutil.copy(new, old)
+                    #print(os.path.join(path[len(d):], f))
+
+        #Popen([executable, 'replace_version.py', folder, folder_name], creationflags=CREATE_NEW_CONSOLE)
     except Exception as e:
         print("Failed to remove and replace old Flika. %s" % e)
     
