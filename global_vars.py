@@ -169,7 +169,7 @@ def updateFlika():
         exit(0)
     except Exception as e:
         print("Failed to remove and replace old Flika. %s" % e)
-    shutil.rmtree(folder_name)
+    shutil.rmtree(os.path.join(os.path.dirname(d), folder_name))
     
 
 def setConsoleVisible(v):
