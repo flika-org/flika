@@ -114,15 +114,6 @@ def mainguiClose(event):
 
 def checkUpdates():
     try:
-        subprocess.call(['git', '--version'])
-        if os.path.exists('.git'):
-            if QMessageBox.question(None, "Upversion Recommended", 'A new version of Flika is available\nWould you like to update?', QMessageBox.Yes | QMessageBox.No) == QMessageBox.Yes:
-                updateFlika_git()
-            return
-    except:
-        pass
-
-    try:
         data = urlopen('https://raw.githubusercontent.com/flika-org/flika/master/flika.py').read()[:100]
     except Exception as e:
         QMessageBox.information(None, "Connection Failed", "Cannot connect to Flika Repository. Connect to the internet to check for updates.")
@@ -149,12 +140,6 @@ def checkUpdates():
     else:
         QMessageBox.information(None, "Up to date", "Your version of Flika is up to date")
 
-def updateFlika_git():
-    check_dependencies('GitPython')
-    from git import Repo
-    repo = Repo(os.path.dirname(__file__))
-    repo.submodule_update()
-
 def updateFlika():
     folder = os.path.dirname(__file__)
     parent_dir = os.path.dirname(folder)
@@ -177,15 +162,14 @@ def updateFlika():
             for f in fs:
                 if f.endswith(('.py', '.ui', '.png', '.txt', '.xml')):
                     old, new = os.path.join(d, 'flika', f), os.path.join(d, 'flika-master', f)
-                    print(old, new)
                     if os.path.exists(old) and os.path.exists(new):
-                        print('replacing %s' % f)
+                        g.m.statusBar().showMessage('replacing %s' % f)
                         shutil.copy(new, old)
-                    #print(os.path.join(path[len(d):], f))
-
-        #Popen([executable, 'replace_version.py', folder, folder_name], creationflags=CREATE_NEW_CONSOLE)
+        Popen([executable, 'flika.py'], creationflags=CREATE_NEW_CONSOLE)
+        exit(0)
     except Exception as e:
         print("Failed to remove and replace old Flika. %s" % e)
+    shutil.rmtree(folder_name)
     
 
 def setConsoleVisible(v):
