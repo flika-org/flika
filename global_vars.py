@@ -1,5 +1,5 @@
 '''
-Commit Date: 2016.02.23
+Commit Date: 2016.02.22
 '''
 from PyQt4 import uic
 from PyQt4.QtCore import * # Qt is Nokias GUI rendering code written in C++.  PyQt4 is a library in python which binds to Qt
@@ -20,7 +20,7 @@ import pyqtgraph as pg
 from plugins.plugin_manager import PluginManager, load_plugin_menu
 from script_editor.ScriptEditor import ScriptEditor
 from multiprocessing import cpu_count
-import re, time, datetime, zipfile, shutil
+import re, time, datetime, zipfile, shutil, subprocess
 
 
 data_types = ['uint8', 'uint16', 'uint32', 'uint64', 'int8', 'int16', 'int32', 'int64', 'float16', 'float32', 'float64']
@@ -135,8 +135,9 @@ def checkUpdates():
     else:
         latest_date = time.strptime(latest_date[0], "%Y.%m.%d")
         message += time.strftime('%x', latest_date)
-    if latest_date > date and QMessageBox.question(None, "Update Recommended", message + '\n\nWould you like to update Flika?', QMessageBox.Yes | QMessageBox.No) == QMessageBox.Yes:
-        updateFlika()
+    if latest_date > date:
+        if QMessageBox.question(None, "Update Recommended", message + '\n\nWould you like to update Flika?', QMessageBox.Yes | QMessageBox.No) == QMessageBox.Yes:
+            updateFlika()
     else:
         QMessageBox.information(None, "Up to date", "Your version of Flika is up to date")
 
@@ -151,16 +152,20 @@ def updateFlika():
     output.close()
 
     def remove_replace(remove, replace_with):
-        shutil.rmtree(remove)
+        os.rename(remove,remove + '-old')
         os.rename(replace_with,remove)
+        shutil.rmtree(remove + '-old')
+        subprocess.call(['python', 'flika.py'])
 
     with zipfile.ZipFile('flika.zip', "r") as z:
         folder_name = os.path.dirname(z.namelist()[0])
+        if os.path.exists(os.path.join(parent_dir, folder_name)):
+            shutil.rmtree(os.path.join(parent_dir, folder_name))
         z.extractall(parent_dir)
     os.remove('flika.zip')
     try:
-        atexit.register(remove_replace(folder, folder_name))
-        sys.exit(0)
+        atexit.register(remove_replace, (folder, folder_name))
+        #sys.exit(0)
     except Exception as e:
         print("Failed to remove and replace old Flika. %s" % e)
     
