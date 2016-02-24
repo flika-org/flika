@@ -157,11 +157,11 @@ def updateFlika():
         z.extractall(parent_dir)
     os.remove('flika.zip')
     try:
-        d = os.path.dirname(os.path.dirname(__file__))
+        d = os.path.dirname(__file__)
         for path, subs, fs in os.walk(d):
             for f in fs:
                 if f.endswith(('.py', '.ui', '.png', '.txt', '.xml')):
-                    old, new = os.path.join(d, 'flika', f), os.path.join(d, 'flika-master', f)
+                    old, new = os.path.join(os.path.dirname(d), 'flika', f), os.path.join(os.path.dirname(d), 'flika-master', f)
                     if os.path.exists(old) and os.path.exists(new):
                         g.m.statusBar().showMessage('replacing %s' % f)
                         shutil.copy(new, old)
