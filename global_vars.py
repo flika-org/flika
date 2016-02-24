@@ -113,10 +113,14 @@ def mainguiClose(event):
     event.accept() # let the window close
 
 def checkUpdates():
-    if os.path.exists('.git'):
-        if QMessageBox.question(None, "Upversion Recommended", 'A new version of Flika is available\nWould you like to update?', QMessageBox.Yes | QMessageBox.No) == QMessageBox.Yes:
-            updateFlika_git()
-        return
+    try:
+        subprocess.call(['git', '--version'])
+        if os.path.exists('.git'):
+            if QMessageBox.question(None, "Upversion Recommended", 'A new version of Flika is available\nWould you like to update?', QMessageBox.Yes | QMessageBox.No) == QMessageBox.Yes:
+                updateFlika_git()
+            return
+    except:
+        pass
 
     try:
         data = urlopen('https://raw.githubusercontent.com/flika-org/flika/master/flika.py').read()[:100]
@@ -149,7 +153,7 @@ def updateFlika_git():
     check_dependencies('GitPython')
     from git import Repo
     repo = Repo(os.path.dirname(__file__))
-    repo.submodule_update(recursive=True)
+    repo.submodule_update()
 
 def updateFlika():
     folder = os.path.dirname(__file__)
