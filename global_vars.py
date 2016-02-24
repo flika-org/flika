@@ -1,6 +1,3 @@
-'''
-Commit Date: 2016.02.23
-'''
 from PyQt4 import uic
 from PyQt4.QtCore import * # Qt is Nokias GUI rendering code written in C++.  PyQt4 is a library in python which binds to Qt
 from PyQt4.QtGui import *
@@ -21,6 +18,8 @@ from plugins.plugin_manager import PluginManager, load_plugin_menu
 from script_editor.ScriptEditor import ScriptEditor
 from multiprocessing import cpu_count
 import re, time, datetime, zipfile, shutil, subprocess
+from sys import executable
+from subprocess import Popen, CREATE_NEW_CONSOLE
 
 
 data_types = ['uint8', 'uint16', 'uint32', 'uint64', 'int8', 'int16', 'int32', 'int64', 'float16', 'float32', 'float64']
@@ -113,30 +112,28 @@ def mainguiClose(event):
 
 def checkUpdates():
     try:
-        data = urlopen('https://raw.githubusercontent.com/flika-org/flika/master/global_vars.py').read()
+        data = urlopen('https://raw.githubusercontent.com/flika-org/flika/master/flika.py').read()[:100]
     except Exception as e:
         QMessageBox.information(None, "Connection Failed", "Cannot connect to Flika Repository. Connect to the internet to check for updates.")
         return
-    latest_date = re.findall(r'Commit Date: (\d{4}\.\d{2}\.\d{2})', str(data))
-    date = re.findall(r'Commit Date: (\d{4}\.\d{2}\.\d{2})', __doc__)
-    message = "Current Version Date: "
-    if len(date) == 0:
-        date = datetime.fromtimestamp(os.path.getctime(__file__))
-        message += "Not found. Using download date %s." % time.strftime('%x',date)
-        # Unknown current date
+    latest_version = re.findall(r'version=[\d\.]*', str(data))
+    version = re.findall(r'version=[\d\.]*', open('flika.py', 'r').read()[:100])
+    message = "Current Version: "
+    if len(version) == 0:
+        version = datetime.fromtimestamp(os.path.getctime(__file__))
+        message += "Unknown"
     else:
-        date = time.strptime(date[0], "%Y.%m.%d")
-        message += time.strftime('%x',date)
-    message += '\nLatest Version Date: '
-    if len(latest_date) == 0:
-        latest_date = time.gmtime()
+        version = version[0]
+        message += version
+    message += '\nLatest Version: '
+    if len(latest_version) == 0:
+        latest_version = "Unknown"
         message += 'Unknown. Check Github Page'
-        # Unknown latest commit date
     else:
-        latest_date = time.strptime(latest_date[0], "%Y.%m.%d")
-        message += time.strftime('%x', latest_date)
-    if latest_date > date:
-        if QMessageBox.question(None, "Update Recommended", message + '\n\nWould you like to update Flika?', QMessageBox.Yes | QMessageBox.No) == QMessageBox.Yes:
+        latest_version = latest_version[0]
+        message += latest_version
+    if any([j > i for i, j in zip(version.split('.'), latest_version.split('.'))]):
+        if QMessageBox.question(None, "Upversion Recommended", message + '\n\nWould you like to upversion Flika?', QMessageBox.Yes | QMessageBox.No) == QMessageBox.Yes:
             updateFlika()
     else:
         QMessageBox.information(None, "Up to date", "Your version of Flika is up to date")
@@ -151,12 +148,6 @@ def updateFlika():
     output.write(data)
     output.close()
 
-    def remove_replace(remove, replace_with):
-        os.rename(remove,remove + '-old')
-        os.rename(replace_with,remove)
-        shutil.rmtree(remove + '-old')
-        subprocess.call(['python', 'flika.py'])
-
     with zipfile.ZipFile('flika.zip', "r") as z:
         folder_name = os.path.dirname(z.namelist()[0])
         if os.path.exists(os.path.join(parent_dir, folder_name)):
@@ -164,8 +155,8 @@ def updateFlika():
         z.extractall(parent_dir)
     os.remove('flika.zip')
     try:
-        atexit.register(remove_replace, folder, folder_name)
-        #sys.exit(0)
+        Popen([executable, 'replace_version.py', folder, folder_name], creationflags=CREATE_NEW_CONSOLE)
+        exit(0)
     except Exception as e:
         print("Failed to remove and replace old Flika. %s" % e)
     
