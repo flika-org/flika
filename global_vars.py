@@ -166,10 +166,10 @@ def updateFlika():
                         m.statusBar().showMessage('replacing %s' % f)
                         shutil.copy(new, old)
         Popen([executable, 'flika.py'], creationflags=CREATE_NEW_CONSOLE)
+        shutil.rmtree(os.path.join(os.path.dirname(d), folder_name))
         exit(0)
     except Exception as e:
         print("Failed to remove and replace old Flika. %s" % e)
-    shutil.rmtree(os.path.join(os.path.dirname(d), folder_name))
     
 
 def setConsoleVisible(v):
