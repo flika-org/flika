@@ -20,6 +20,8 @@ from multiprocessing import cpu_count
 import re, time, datetime, zipfile, shutil, subprocess
 from sys import executable
 from subprocess import Popen, CREATE_NEW_CONSOLE
+from dependency_check import check_dependencies
+
 
 
 data_types = ['uint8', 'uint16', 'uint32', 'uint64', 'int8', 'int16', 'int32', 'int64', 'float16', 'float32', 'float64']
@@ -111,13 +113,18 @@ def mainguiClose(event):
     event.accept() # let the window close
 
 def checkUpdates():
+    if os.path.exists('.git'):
+        if QMessageBox.question(None, "Upversion Recommended", 'A new version of Flika is available\nWould you like to update?', QMessageBox.Yes | QMessageBox.No) == QMessageBox.Yes:
+            updateFlika_git()
+        return
+
     try:
         data = urlopen('https://raw.githubusercontent.com/flika-org/flika/master/flika.py').read()[:100]
     except Exception as e:
         QMessageBox.information(None, "Connection Failed", "Cannot connect to Flika Repository. Connect to the internet to check for updates.")
         return
-    latest_version = re.findall(r'version=[\d\.]*', str(data))
-    version = re.findall(r'version=[\d\.]*', open('flika.py', 'r').read()[:100])
+    latest_version = re.findall(r'version=([\d\.]*)', str(data))
+    version = re.findall(r'version=([\d\.]*)', open('flika.py', 'r').read()[:100])
     message = "Current Version: "
     if len(version) == 0:
         version = datetime.fromtimestamp(os.path.getctime(__file__))
@@ -132,11 +139,17 @@ def checkUpdates():
     else:
         latest_version = latest_version[0]
         message += latest_version
-    if any([j > i for i, j in zip(version.split('.'), latest_version.split('.'))]):
-        if QMessageBox.question(None, "Upversion Recommended", message + '\n\nWould you like to upversion Flika?', QMessageBox.Yes | QMessageBox.No) == QMessageBox.Yes:
+    if any([int(j) > int(i) for i, j in zip(version.split('.'), latest_version.split('.'))]):
+        if QMessageBox.question(None, "Upversion Recommended", message + '\n\nWould you like to update?', QMessageBox.Yes | QMessageBox.No) == QMessageBox.Yes:
             updateFlika()
     else:
         QMessageBox.information(None, "Up to date", "Your version of Flika is up to date")
+
+def updateFlika_git():
+    check_dependencies('GitPython')
+    from git import Repo
+    repo = Repo(os.path.dirname(__file__))
+    repo.submodule_update(recursive=True)
 
 def updateFlika():
     folder = os.path.dirname(__file__)
