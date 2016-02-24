@@ -19,7 +19,7 @@ from script_editor.ScriptEditor import ScriptEditor
 from multiprocessing import cpu_count
 import re, time, datetime, zipfile, shutil, subprocess, os
 from sys import executable
-from subprocess import Popen, CREATE_NEW_CONSOLE
+from subprocess import Popen
 from dependency_check import check_dependencies
 
 
@@ -165,7 +165,7 @@ def updateFlika():
                     if os.path.exists(old) and os.path.exists(new):
                         m.statusBar().showMessage('replacing %s' % f)
                         shutil.copy(new, old)
-        Popen([executable, 'flika.py'], creationflags=CREATE_NEW_CONSOLE)
+        Popen('python flika.py', shell=True)
         shutil.rmtree(os.path.join(os.path.dirname(d), folder_name))
         exit(0)
     except Exception as e:

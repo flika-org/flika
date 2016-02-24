@@ -17,7 +17,6 @@ if is_64bits:
 else:
     fnames_suffix="-cp"+pyversion+"-none-win32.whl"
     
-
 base_url='http://www.lfd.uci.edu/~gohlke/pythonlibs/'
 
 def get_url(ml,mi):
@@ -81,6 +80,8 @@ def download_file(download_url):
 def is_installed(dep):
     for dist in pip.get_installed_distributions(local_only=False):
         if dep.lower() == dist.project_name.lower():
+            return True
+        if dep.lower() in ('scikit_image', 'skimage') and dist.project_name.lower() == 'scikit-image': # skimage problems
             return True
         egg_info=dist._provider.egg_info
         if egg_info is not None:
