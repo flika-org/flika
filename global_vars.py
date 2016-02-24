@@ -131,7 +131,7 @@ def checkUpdates():
     version = re.findall(r'version=([\d\.]*)', open('flika.py', 'r').read()[:100])
     message = "Current Version: "
     if len(version) == 0:
-        version = datetime.fromtimestamp(os.path.getctime(__file__))
+        version = "Unknown"
         message += "Unknown"
     else:
         version = version[0]
