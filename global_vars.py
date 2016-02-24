@@ -5,7 +5,7 @@ from PyQt4 import uic
 from PyQt4.QtCore import * # Qt is Nokias GUI rendering code written in C++.  PyQt4 is a library in python which binds to Qt
 from PyQt4.QtGui import *
 from PyQt4.QtCore import pyqtSignal as Signal
-import sys, os
+import sys, os, atexit
 if sys.version_info.major==2:
     import cPickle as pickle # pickle serializes python objects so they can be saved persistantly.  It converts a python object into a savable data structure
     from urllib2 import urlopen
@@ -137,6 +137,8 @@ def checkUpdates():
         message += time.strftime('%x', latest_date)
     if latest_date > date and QMessageBox.question(None, "Update Recommended", message + '\n\nWould you like to update Flika?', QMessageBox.Yes | QMessageBox.No) == QMessageBox.Yes:
         updateFlika()
+    else:
+        QMessageBox.information(None, "Up to date", "Your version of Flika is up to date")
 
 def updateFlika():
     folder = os.path.dirname(__file__)
@@ -148,19 +150,19 @@ def updateFlika():
     output.write(data)
     output.close()
 
+    def remove_replace(remove, replace_with):
+        shutil.rmtree(remove)
+        os.rename(replace_with,remove)
 
     with zipfile.ZipFile('flika.zip', "r") as z:
         folder_name = os.path.dirname(z.namelist()[0])
         z.extractall(parent_dir)
     os.remove('flika.zip')
     try:
-        os.rename(os.path.join(parent_dir, folder_name), os.path.join(parent_dir, new_folder))
-        shutil.rmtree(new_folder)
+        atexit.register(remove_replace(folder, folder_name))
+        sys.exit(0)
     except Exception as e:
         print("Failed to remove and replace old Flika. %s" % e)
-
-def uninstallFlika():
-    shutil.rmtree()
     
 
 def setConsoleVisible(v):
