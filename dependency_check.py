@@ -102,6 +102,8 @@ class NotOnGohlkeError(Exception):
     pass
 
 def install(dep):
+    if dep == 'skimage':
+        dep = 'scikit_image'
     if is_installed(dep):
         return
     old_cwd=os.getcwd()

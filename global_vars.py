@@ -150,23 +150,25 @@ def updateFlika():
     output.write(data)
     output.close()
 
+    extract_location = os.path.join(parent_dir, "temp_flika")
+
     with zipfile.ZipFile('flika.zip', "r") as z:
         folder_name = os.path.dirname(z.namelist()[0])
-        if os.path.exists(os.path.join(parent_dir, folder_name)):
-            shutil.rmtree(os.path.join(parent_dir, folder_name))
-        z.extractall(parent_dir)
+        if os.path.exists(extract_location):
+            shutil.rmtree(extract_location)
+        z.extractall(extract_location)
     os.remove('flika.zip')
     try:
         d = os.path.dirname(__file__)
         for path, subs, fs in os.walk(d):
             for f in fs:
                 if f.endswith(('.py', '.ui', '.png', '.txt', '.xml')):
-                    old, new = os.path.join(os.path.dirname(d), 'flika', f), os.path.join(os.path.dirname(d), 'flika-master', f)
+                    old, new = os.path.join(os.path.dirname(d), 'flika', f), os.path.join(extract_location, 'flika-master', f)
                     if os.path.exists(old) and os.path.exists(new):
                         m.statusBar().showMessage('replacing %s' % f)
                         shutil.copy(new, old)
         Popen('python flika.py', shell=True)
-        shutil.rmtree(os.path.join(os.path.dirname(d), folder_name))
+        shutil.rmtree(extract_location)
         exit(0)
     except Exception as e:
         print("Failed to remove and replace old Flika. %s" % e)
