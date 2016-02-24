@@ -163,7 +163,7 @@ def updateFlika():
                 if f.endswith(('.py', '.ui', '.png', '.txt', '.xml')):
                     old, new = os.path.join(os.path.dirname(d), 'flika', f), os.path.join(os.path.dirname(d), 'flika-master', f)
                     if os.path.exists(old) and os.path.exists(new):
-                        g.m.statusBar().showMessage('replacing %s' % f)
+                        m.statusBar().showMessage('replacing %s' % f)
                         shutil.copy(new, old)
         Popen([executable, 'flika.py'], creationflags=CREATE_NEW_CONSOLE)
         exit(0)
