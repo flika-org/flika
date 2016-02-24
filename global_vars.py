@@ -17,7 +17,7 @@ import pyqtgraph as pg
 from plugins.plugin_manager import PluginManager, load_plugin_menu
 from script_editor.ScriptEditor import ScriptEditor
 from multiprocessing import cpu_count
-import re, time, datetime, zipfile, shutil, subprocess
+import re, time, datetime, zipfile, shutil, subprocess, os
 from sys import executable
 from subprocess import Popen, CREATE_NEW_CONSOLE
 from dependency_check import check_dependencies
@@ -172,13 +172,14 @@ def updateFlika():
         z.extractall(parent_dir)
     os.remove('flika.zip')
     try:
-        import os, sys
-        d = os.path.dirname(__file__)
+        d = os.path.dirname(os.path.dirname(__file__))
         for path, subs, fs in os.walk(d):
             for f in fs:
                 if f.endswith(('.py', '.ui', '.png', '.txt', '.xml')):
-                    old, new = os.path.join(folder, f), os.path.join(new_folder, f)
+                    old, new = os.path.join(d, 'flika', f), os.path.join(d, 'flika-master', f)
+                    print(old, new)
                     if os.path.exists(old) and os.path.exists(new):
+                        print('replacing %s' % f)
                         shutil.copy(new, old)
                     #print(os.path.join(path[len(d):], f))
 
