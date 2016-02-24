@@ -163,7 +163,7 @@ def updateFlika():
         for path, subs, fs in os.walk(d):
             for f in fs:
                 if f.endswith(('.py', '.ui', '.png', '.txt', '.xml')):
-                    old, new = os.path.join(os.path.dirname(d), 'flika', f), os.path.join(extract_location, 'flika-master', f)
+                    old, new = os.path.join(folder, f), os.path.join(extract_location, 'flika-master', f)
                     if os.path.exists(old) and os.path.exists(new):
                         m.statusBar().showMessage('replacing %s' % f)
                         shutil.copy(new, old)
