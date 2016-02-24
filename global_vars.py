@@ -1,5 +1,5 @@
 '''
-Commit Date: 2016.02.22
+Commit Date: 2016.02.23
 '''
 from PyQt4 import uic
 from PyQt4.QtCore import * # Qt is Nokias GUI rendering code written in C++.  PyQt4 is a library in python which binds to Qt
@@ -164,7 +164,7 @@ def updateFlika():
         z.extractall(parent_dir)
     os.remove('flika.zip')
     try:
-        atexit.register(remove_replace, (folder, folder_name))
+        atexit.register(remove_replace, folder, folder_name)
         #sys.exit(0)
     except Exception as e:
         print("Failed to remove and replace old Flika. %s" % e)
