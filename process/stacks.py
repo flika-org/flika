@@ -203,7 +203,7 @@ class Trim(BaseProcess):
         increment.setMinimum(1)
         self.items.append({'name':'increment','string':'Increment','object':increment})
         super().gui()
-    def __call__(self,firstFrame,lastFrame,increment,keepSourceWindow=False):
+    def __call__(self,firstFrame,lastFrame,increment=1,keepSourceWindow=False):
         self.start(keepSourceWindow)
         self.newtif=self.tif[firstFrame:lastFrame+1:increment]
         self.newname=self.oldname+' - Kept Stack'
