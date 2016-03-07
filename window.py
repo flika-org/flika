@@ -63,7 +63,11 @@ class Window(QWidget):
         """ Here we set the initial range of the look up table.  """
         nDims=len(np.shape(self.image))
         if nDims==3:
-            mt,mx,my=tif.shape
+            if metadata['is_rgb']:
+                mx,my,mc=tif.shape
+                mt=1
+            else:
+                mt,mx,my=tif.shape
             if np.all(self.image[0]==0): #if the first frame is all zeros
                 r=(np.min(self.image),np.max(self.image)) #set the levels to be just above and below the min and max of the entire tif
                 r=(r[0]-(r[1]-r[0])/100,r[1]+(r[1]-r[0])/100)

@@ -157,5 +157,3 @@ if __name__ == '__main__':
     insideSpyder='SPYDER_SHELL_ID' in os.environ
     if not insideSpyder: #if we are running outside of Spyder
         sys.exit(g.app.exec_()) #This is required to run outside of Spyder
-
-    

@@ -503,7 +503,7 @@ def load_roi(filename):
             kind=None
             pts=None
         else:
-            pts.append(tuple(int(i) for i in line.split()))      
+            pts.append(tuple(int(float(i)) for i in line.split()))      
     
     
     
