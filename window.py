@@ -96,7 +96,9 @@ class Window(QWidget):
         self.currentROI=None
         self.currentROIs={}
         self.creatingROI=False
-        self.scatterPlot=pg.ScatterPlotItem(size=5, pen=pg.mkPen([0,0,0,255]), brush=pg.mkBrush(255, 0, 0, 255))  #this is the plot that all the red points will be drawn on
+        pointSize=g.m.settings['point_size']
+        pointColor = QColor(g.m.settings['point_color'])
+        self.scatterPlot=pg.ScatterPlotItem(size=pointSize, pen=pg.mkPen([0,0,0,255]), brush=pg.mkBrush(*pointColor.getRgb()))  #this is the plot that all the red points will be drawn on
         self.scatterPoints=[[] for _ in np.arange(mt)]
         self.scatterPlot.sigClicked.connect(self.clickedScatter)
         self.imageview.addItem(self.scatterPlot)
@@ -229,7 +231,11 @@ class Window(QWidget):
                         t=self.currentIndex
                         position=[self.x,self.y]
                         self.scatterPoints[t].append(position)
-                        self.scatterPlot.addPoints(pos=[[self.x,self.y]], brush=pg.mkBrush('r'))
+                        pointSize=g.m.settings['point_size']
+                        pointColor = QColor(g.m.settings['point_color'])
+                        self.scatterPlot.addPoints(pos=[[self.x,self.y]], size=pointSize, brush=pg.mkBrush(*pointColor.getRgb()))
+                        
+                                
                     elif g.m.clipboard is not None:
                         self.menu = QMenu(self)
                         self.menu.addAction(self.pasteAct)

@@ -36,6 +36,9 @@ from process.overlay import time_stamp,background, scale_bar
 from script_editor.ScriptEditor import ScriptEditor
 from plugins.plugin_manager import PluginManager
 
+
+
+    
 try:
     os.chdir(os.path.split(os.path.realpath(__file__))[0])
 except NameError:
@@ -65,7 +68,11 @@ def initializeMainGui():
     g.m.line.clicked.connect(lambda: g.m.settings.setmousemode('line'))
     g.m.rectangle.clicked.connect(lambda: g.m.settings.setmousemode('rectangle'))
     g.m.point.clicked.connect(lambda: g.m.settings.setmousemode('point'))
+    
+    g.m.point.setContextMenuPolicy(Qt.CustomContextMenu)
+    g.m.point.customContextMenuRequested.connect(g.pointSettings)
 
+    
     g.m.actionScript_Editor.triggered.connect(ScriptEditor.show)
     g.m.actionPlugin_Manager.triggered.connect(PluginManager.show)
 

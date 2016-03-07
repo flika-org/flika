@@ -96,6 +96,37 @@ class FileSelector(QWidget):
     def value(self):
         return self.filename
         
+class ColorSelector(QWidget):
+    """
+    This widget is a button with a label.  Once you click the button, the widget waits for you to select a color.  Once you do, it sets self.color and it sets the label.
+    """
+    valueChanged=Signal()
+    def __init__(self):
+        QWidget.__init__(self)
+        self.button=QPushButton('Select Color')
+        self.label=QLabel('None')
+        self.window=None
+        self.layout=QHBoxLayout()
+        self.layout.addWidget(self.button)
+        self.layout.addWidget(self.label)
+        self.setLayout(self.layout)
+        self.button.clicked.connect(self.buttonclicked)
+        self.color=''
+        self.colorDialog=QColorDialog()
+        self.colorDialog.colorSelected.connect(self.colorSelected)
+        
+    def buttonclicked(self):
+        self.colorDialog.open()
+
+    def value(self):
+        return self.color
+        
+    def colorSelected(self, color):
+        if color.isValid():
+            self.color=color.name()
+            self.label.setText(color.name())
+            self.valueChanged.emit()
+        
 class SliderLabel(QWidget):
     changeSignal=Signal(int)
     def __init__(self,decimals=0): #decimals specifies the resolution of the slider.  0 means only integers,  1 means the tens place, etc.

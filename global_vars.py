@@ -12,7 +12,7 @@ else:
 from os.path import expanduser
 import numpy as np
 from pyqtgraph.dockarea import *
-from process.BaseProcess import BaseDialog
+from process.BaseProcess import BaseDialog, ColorSelector
 import pyqtgraph as pg
 from plugins.plugin_manager import PluginManager, load_plugin_menu
 from script_editor.ScriptEditor import ScriptEditor
@@ -38,7 +38,9 @@ class Settings:
                         'recent_scripts': [],
                         'recent_files': [],
                         'nCores':cpu_count(),
-                        'debug_mode': False}
+                        'debug_mode': False,
+                        'point_color': '#ff0000',
+                        'point_size': 5}
     def __init__(self):
         self.config_file=os.path.join(expanduser("~"),'.FLIKA','config.p' )
         try:
@@ -102,6 +104,43 @@ class Settings:
         self.bd.accepted.connect(update)
         self.bd.changeSignal.connect(update)
         self.bd.show()
+        
+def pointSettings(pointButton):
+    '''
+    default points color
+    default points size
+    currentWindow points color
+    currentWindow points size
+    clear current points
+
+    '''
+    point_color = ColorSelector()
+    point_color.color=m.settings['point_color']
+    point_color.label.setText(point_color.color)
+    point_size = QSpinBox()
+    point_size.setRange(1,50)
+    point_size.setValue(m.settings['point_size'])
+    
+    update_current_points_check = QCheckBox()
+    update_current_points_check.setChecked(True)
+    
+    items = []
+    items.append({'name': 'point_color', 'string': 'Default Point Color', 'object': point_color})
+    items.append({'name': 'point_size', 'string': 'Default Point Size', 'object': point_size})
+    items.append({'name': 'update_current_points_check', 'string': 'Update already plotted points', 'object': update_current_points_check})
+    def update():
+        m.settings['point_color'] = point_color.value()
+        m.settings['point_size'] = point_size.value()
+        if m.currentWindow is not None and update_current_points_check.isChecked()==True:
+            color = QColor(point_color.value())
+            m.currentWindow.scatterPlot.setBrush(pg.mkBrush(*color.getRgb()))
+            m.currentWindow.scatterPlot.setSize(point_size.value())
+    m.dialog = BaseDialog(items, 'Points Settings', '')
+    m.dialog.accepted.connect(update)
+    m.dialog.changeSignal.connect(update)
+    m.dialog.show()
+    
+        
         
 def mainguiClose(event):
     global m
