@@ -172,9 +172,17 @@ class PluginManager(QMainWindow):
 
     @staticmethod
     def applyUpdates():
+        count = 0
         for plugin in PluginManager.plugins:
-            if PluginManager.update_available(plugin):
+            if PluginManager.update_available(plugin) and g.messageBox("Update Available", "There is an update available for %s" % plugin, buttons=QtGui.QMessageBox.No | QtGui.QMessageBox.Yes, icon=QtGui.QMessageBox.Question) == QtGui.QMessageBox.Yes:
+                count += 1                
                 PluginManager.updatePlugin(plugin)
+                
+        if count > 0:
+            g.messageBox("Update Completed", "Successfully updated %d plugins" % count)
+        else:
+            g.messageBox("Update Completed", "No Plugins have been updated")
+        
 
     def search(self, search_str):
         search_str = str(search_str)
@@ -292,7 +300,7 @@ class PluginManager(QMainWindow):
             PluginManager.gui.statusBar.showMessage('%s successfully uninstalled' % plugin_name)
         except Exception as e:
             print("Failed to uninstall plugin %s: %s" % (plugin_name, e))
-            QtGui.QMessageBox.warning(PluginManager.gui, "Plugin Uninstall Failed", "Unable to remove the folder at %s\n%s\nDelete the folder manually to uninstall the plugin" % (plugin_name, e))
+            g.messageBox("Plugin Uninstall Failed", "Unable to remove the folder at %s\n%s\nDelete the folder manually to uninstall the plugin" % (plugin_name, e), icon=QtGui.QMessageBox.Warning)
 
 
     def downloadClicked(self):
