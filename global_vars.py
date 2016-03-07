@@ -155,7 +155,7 @@ def mainguiClose(event):
 def messageBox(title, text, buttons=QMessageBox.Ok, icon=QMessageBox.Information):
     m.messagebox = QMessageBox(icon, title, text, buttons)
     m.messagebox.setWindowIcon(m.windowIcon())
-    return m.exec()
+    return m.messagebox.exec()
 
 def checkUpdates():
     try:
