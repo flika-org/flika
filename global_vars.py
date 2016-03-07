@@ -152,11 +152,16 @@ def mainguiClose(event):
     m.settings.save()
     event.accept() # let the window close
 
+def messageBox(title, text, buttons=QMessageBox.Ok, icon=QMessageBox.Information):
+    m.messagebox = QMessageBox(icon, title, text, buttons)
+    m.messagebox.setWindowIcon(m.windowIcon())
+    return m.exec()
+
 def checkUpdates():
     try:
         data = urlopen('https://raw.githubusercontent.com/flika-org/flika/master/flika.py').read()[:100]
     except Exception as e:
-        QMessageBox.information(None, "Connection Failed", "Cannot connect to Flika Repository. Connect to the internet to check for updates.")
+        messageBox("Connection Failed", "Cannot connect to Flika Repository. Connect to the internet to check for updates.")
         return
     latest_version = re.findall(r'version=([\d\.]*)', str(data))
     version = re.findall(r'version=([\d\.]*)', open('flika.py', 'r').read()[:100])
@@ -175,10 +180,10 @@ def checkUpdates():
         latest_version = latest_version[0]
         message += latest_version
     if any([int(j) > int(i) for i, j in zip(version.split('.'), latest_version.split('.'))]):
-        if QMessageBox.question(None, "Upversion Recommended", message + '\n\nWould you like to update?', QMessageBox.Yes | QMessageBox.No) == QMessageBox.Yes:
+        if messageBox("Update Recommended", message + '\n\nWould you like to update?', QMessageBox.Yes | QMessageBox.No, QMessageBox.Question) == QMessageBox.Yes:
             updateFlika()
     else:
-        QMessageBox.information(None, "Up to date", "Your version of Flika is up to date")
+        messageBox("Up to date", "Your version of Flika is up to date")
 
 def updateFlika():
     folder = os.path.dirname(__file__)
