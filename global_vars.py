@@ -201,10 +201,10 @@ def updateFlika():
     try:
         d = os.path.dirname(__file__)
         for path, subs, fs in os.walk(d):
-            extract_location = path.replace(os.path.basename(d), os.path.join('temp_flika', 'flika-master'))
+            extract_path = path.replace(os.path.basename(d), os.path.join('temp_flika', 'flika-master'))
             for f in fs:
                 if f.endswith(('.py', '.ui', '.png', '.txt', '.xml')):
-                    old, new = os.path.join(path, f), os.path.join(extract_location, f)
+                    old, new = os.path.join(path, f), os.path.join(extract_path, f)
                     if os.path.exists(old) and os.path.exists(new):
                         m.statusBar().showMessage('replacing %s' % f)
                         shutil.copy(new, old)
