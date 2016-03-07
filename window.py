@@ -146,14 +146,16 @@ class Window(QWidget):
     def updateindex(self):
         (idx, t) = self.imageview.timeIndex(self.imageview.timeLine)
         t=int(np.ceil(t))
-        self.currentIndex = t
-        self.scatterPlot.setPoints(pos=self.scatterPoints[t])
-        self.sigTimeChanged.emit(t)
+        if t>=0 and t<self.mt:
+            self.currentIndex = t
+            self.scatterPlot.setPoints(pos=self.scatterPoints[t])
+            self.sigTimeChanged.emit(t)
     def setIndex(self,index):
         if index>=0 and index<len(self.image):
             self.imageview.setCurrentIndex(index)
     def showFrame(self,index):
-        g.m.statusBar().showMessage('frame {}'.format(index))
+        if index>=0 and index<self.mt:
+            g.m.statusBar().showMessage('frame {}'.format(index))
     def setName(self,name):
         name=str(name)
         self.name=name

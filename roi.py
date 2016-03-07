@@ -216,7 +216,10 @@ class ROI(QWidget):
             tif=np.mean(tif,3)
             mask=np.zeros(tif[0,:,:].shape,np.bool)
         elif nDims==3:
-            mask=np.zeros(tif[0,:,:].shape,np.bool)
+            if self.window.metadata['is_rgb']:  # [x, y, colors]
+                mask=np.zeros(tif[:,:,0].shape,np.bool)
+            else:                               # [t, x, y]
+                mask=np.zeros(tif[0,:,:].shape,np.bool)  
         if nDims==2: #if this is a static image
             mask=np.zeros(tif.shape,np.bool)
             
@@ -233,9 +236,21 @@ class ROI(QWidget):
     def getTrace(self,bounds=None,pts=None):
         ''' bounds are two points in time.  If bounds is not None, we only calculate values between the bounds '''
         tif=self.window.image
-        if len(tif.shape)==4: #if this is an RGB image stack
+        nDims=len(tif.shape)
+        if nDims==4: #if this is an RGB image stack  #[t, x, y, colors]
             tif=np.mean(tif,3)
-        mx,my=tif[0,:,:].shape
+            mx,my=tif[0,:,:].shape
+        elif nDims==3:
+            if self.window.metadata['is_rgb']:  # [x, y, colors]
+                tif=np.mean(tif,2)
+                mx,my=tif.shape
+                tif=tif[np.newaxis]
+            else: 
+                mx,my=tif[0,:,:].shape
+        elif nDims==2:
+            mx,my=tif.shape
+            tif=tif[np.newaxis]
+        
         pts=self.mask+self.minn
         pts=pts[(pts[:,0]>=0)*(pts[:,0]<mx)*(pts[:,1]>=0)*(pts[:,1]<my)]
         xx=pts[:,0]; yy=pts[:,1]

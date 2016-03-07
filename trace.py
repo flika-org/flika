@@ -179,8 +179,13 @@ class TraceFig(QWidget):
             return
         trace=roi.getTrace()
         pen=QPen(roi.color)
-        p1trace=self.p1.plot(trace, pen=pen)
-        p2trace=self.p2.plot(trace, pen=pen) 
+        if len(trace)==1:
+            p1trace=self.p1.plot(trace, pen=None, symbol='o')
+            p2trace=self.p2.plot(trace, pen=None, symbol='o') 
+        else:
+            p1trace=self.p1.plot(trace, pen=pen)
+            p2trace=self.p2.plot(trace, pen=pen) 
+        
         roi.translated.connect(lambda: self.translated(roi))
         roi.translate_done.connect(lambda: self.translate_done(roi))
         #proxy= pg.SignalProxy(roi.translated,rateLimit=60, slot=self.redrawROIs)
