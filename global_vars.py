@@ -12,6 +12,7 @@ else:
 from os.path import expanduser
 import numpy as np
 from pyqtgraph.dockarea import *
+
 from process.BaseProcess import BaseDialog, ColorSelector
 import pyqtgraph as pg
 from plugins.plugin_manager import PluginManager, load_plugin_menu
@@ -198,19 +199,20 @@ def updateFlika():
         z.extractall(extract_location)
     os.remove('flika.zip')
     try:
-        d = os.path.dirname(__file__)
-        for path, subs, fs in os.walk(d):
-            for f in fs:
-                if f.endswith(('.py', '.ui', '.png', '.txt', '.xml')):
-                    old, new = os.path.join(folder, f), os.path.join(extract_location, 'flika-master', f)
-                    if os.path.exists(old) and os.path.exists(new):
-                        m.statusBar().showMessage('replacing %s' % f)
-                        shutil.copy(new, old)
-        Popen('python flika.py', shell=True)
-        shutil.rmtree(extract_location)
-        exit(0)
-    except Exception as e:
-        print("Failed to remove and replace old Flika. %s" % e)
+    d = os.path.dirname(__file__)
+    for path, subs, fs in os.walk(d):
+        extract_location = path.replace(os.path.basename(d), os.path.join('temp_flika', 'flika-master'))
+        for f in fs:
+            if f.endswith(('.py', '.ui', '.png', '.txt', '.xml')):
+                old, new = os.path.join(path, f), os.path.join(extract_location, f)
+                if os.path.exists(old) and os.path.exists(new):
+                    m.statusBar().showMessage('replacing %s' % f)
+                    shutil.copy(new, old)
+    Popen('python flika.py', shell=True)
+    shutil.rmtree(extract_location)
+    exit(0)
+except Exception as e:
+    print("Failed to remove and replace old Flika. %s" % e)
     
 
 def setConsoleVisible(v):

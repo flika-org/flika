@@ -31,7 +31,7 @@ class Subtract(BaseProcess):
         self.gui_reset()
         value=QDoubleSpinBox()
         if g.m.currentWindow is not None:
-            value.setRange(-np.max(g.m.currentWindow.image),np.max(g.m.currentWindow.image))
+            value.setRange(-1 * np.max(g.m.currentWindow.image),np.max(g.m.currentWindow.image)) # -np.max sometimes returns abnormal large value
             value.setValue(np.min(g.m.currentWindow.image))
         self.items.append({'name':'value','string':'Value','object':value})
         self.items.append({'name':'preview','string':'Preview','object':QCheckBox()})
