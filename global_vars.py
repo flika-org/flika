@@ -215,7 +215,8 @@ def updateFlika():
                     if os.path.exists(old) and os.path.exists(new):
                         m.statusBar().showMessage('replacing %s' % f)
                         shutil.copy(new, old)
-        Popen('python flika.py', shell=True)
+        if 'SPYDER_SHELL_ID' in os.environ:
+            Popen('python flika.py', shell=True)
         shutil.rmtree(extract_location)
         exit(0)
     except Exception as e:
