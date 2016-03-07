@@ -34,7 +34,7 @@ def get_url(ml,mi):
 def get_wheel_url(plugin):
     req = Request(base_url, headers={'User-Agent':"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.132 Safari/537.36"})
     resp = urlopen(req)
-    regex = re.compile('javascript:dl(\([^\)]*\))[^>]*>(%s[^<]*)<' % plugin, re.IGNORECASE | re.DOTALL)
+    regex = re.compile('javascript:dl(\([^\)]*\))[^>]*>(%s-[^<]*)<' % plugin, re.IGNORECASE | re.DOTALL)
     fnames = {}
     for line in resp.readlines():
         line = line.decode('utf-8').replace('&#8209;', '-')
@@ -55,7 +55,7 @@ def get_newest_version(fnames):
     version = ['0']
     regex = re.compile('[^-]*-([a-zA-Z0-9\.]*)')
     for f in fnames:
-        v = re.findall(regex, f)[0].split('.')
+        v = [n for n in re.findall(regex, f)[0].split('.') if n.isdigit()]
         i = 0
         if fname == '' or int(v[0]) > int(version[0]):
             fname = f

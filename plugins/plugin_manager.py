@@ -259,9 +259,10 @@ class PluginManager(QMainWindow):
         os.rename(os.path.join('plugins', folder_name), os.path.join('plugins', plugin['base_dir']))
         add_plugin_menu(plugin_name)
         PluginManager.plugins[plugin_name]['install_date'] = plugin['date']
-        deps = PluginManager.plugins[plugin_name]['dependencies']['dependency']
-        deps = [dep['@name'] for dep in deps]
-        check_dependencies(*deps)
+        if 'dependencies' in PluginManager.plugins[plugin_name]:
+            deps = PluginManager.plugins[plugin_name]['dependencies']['dependency']
+            deps = [dep['@name'] for dep in deps]
+            check_dependencies(*deps)
         PluginManager.gui.statusBar.showMessage('Successfully installed %s and it\'s plugins' % plugin_name)
         PluginManager.gui.pluginSelected(PluginManager.gui.pluginList.selectedItems()[0])
 
@@ -280,13 +281,19 @@ class PluginManager(QMainWindow):
     @staticmethod
     def uninstallPlugin(plugin_name):
         base_dir = PluginManager.plugins[plugin_name]['base_dir']
-        for act in g.m.menuPlugins.actions():
-            if str(act.text()) == plugin_name:
-                g.m.menuPlugins.removeAction(act)
-        shutil.rmtree(os.path.join('plugins', base_dir))
-        PluginManager.plugins[plugin_name].pop('install_date')
-        PluginManager.gui.pluginSelected(PluginManager.gui.pluginList.selectedItems()[0])
-        PluginManager.gui.statusBar.showMessage('%s successfully uninstalled' % plugin_name)
+        try:
+            shutil.rmtree(os.path.join('plugins', base_dir))
+            for act in g.m.menuPlugins.actions():
+                if str(act.text()) == plugin_name:
+                    g.m.menuPlugins.removeAction(act)
+            
+            PluginManager.plugins[plugin_name].pop('install_date')
+            PluginManager.gui.pluginSelected(PluginManager.gui.pluginList.selectedItems()[0])
+            PluginManager.gui.statusBar.showMessage('%s successfully uninstalled' % plugin_name)
+        except Exception as e:
+            print("Failed to uninstall plugin %s: %s" % (plugin_name, e))
+            QtGui.QMessageBox.warning(PluginManager.gui, "Plugin Uninstall Failed", "Unable to remove the folder at %s\n%s\nDelete the folder manually to uninstall the plugin" % (plugin_name, e))
+
 
     def downloadClicked(self):
         plugin_name = str(self.pluginList.currentItem().text())
