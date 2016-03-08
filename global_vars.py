@@ -155,7 +155,7 @@ def mainguiClose(event):
 def messageBox(title, text, buttons=QMessageBox.Ok, icon=QMessageBox.Information):
     m.messagebox = QMessageBox(icon, title, text, buttons)
     m.messagebox.setWindowIcon(m.windowIcon())
-    m.messagebox.exec()
+    #m.messagebox.exec()
     while m.messagebox.isVisible(): QApplication.instance().processEvents()
     return m.messagebox.result()
 
