@@ -155,6 +155,7 @@ def mainguiClose(event):
 def messageBox(title, text, buttons=QMessageBox.Ok, icon=QMessageBox.Information):
     m.messagebox = QMessageBox(icon, title, text, buttons)
     m.messagebox.setWindowIcon(m.windowIcon())
+    m.messagebox.show()
     #m.messagebox.exec()
     while m.messagebox.isVisible(): QApplication.instance().processEvents()
     return m.messagebox.result()
@@ -220,7 +221,7 @@ def updateFlika():
         shutil.rmtree(extract_location)
         exit(0)
     except Exception as e:
-        print("Failed to remove and replace old Flika. %s" % e)
+        messageBox("Update Error", "Failed to remove and replace old Flika. %s" % e, icon=QMessageBox.Warning)
     
 
 def setConsoleVisible(v):
