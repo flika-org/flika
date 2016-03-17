@@ -178,7 +178,7 @@ def butterworth_filter_multi(filter_order,low,high,tif):
     if progress.results is None or any(r is None for r in progress.results):
         result=None
     else:
-        result=np.concatenate(progress.results,axis=1)
+        result=np.concatenate(progress.results,axis=1).astype(g.m.settings['internal_data_type'])
     return result
     
 
