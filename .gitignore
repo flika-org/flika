@@ -63,3 +63,4 @@ plugins/**
 !/plugins/plugin_manager.py
 !/plugins/xmltodict.py
 analyze/**
+unit_test.py

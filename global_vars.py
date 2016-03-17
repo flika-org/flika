@@ -152,11 +152,19 @@ def mainguiClose(event):
     m.settings.save()
     event.accept() # let the window close
 
+def messageBox(title, text, buttons=QMessageBox.Ok, icon=QMessageBox.Information):
+    m.messagebox = QMessageBox(icon, title, text, buttons)
+    m.messagebox.setWindowIcon(m.windowIcon())
+    m.messagebox.show()
+    #m.messagebox.exec()
+    while m.messagebox.isVisible(): QApplication.instance().processEvents()
+    return m.messagebox.result()
+
 def checkUpdates():
     try:
         data = urlopen('https://raw.githubusercontent.com/flika-org/flika/master/flika.py').read()[:100]
     except Exception as e:
-        QMessageBox.information(None, "Connection Failed", "Cannot connect to Flika Repository. Connect to the internet to check for updates.")
+        messageBox("Connection Failed", "Cannot connect to Flika Repository. Connect to the internet to check for updates.")
         return
     latest_version = re.findall(r'version=([\d\.]*)', str(data))
     version = re.findall(r'version=([\d\.]*)', open('flika.py', 'r').read()[:100])
@@ -175,10 +183,10 @@ def checkUpdates():
         latest_version = latest_version[0]
         message += latest_version
     if any([int(j) > int(i) for i, j in zip(version.split('.'), latest_version.split('.'))]):
-        if QMessageBox.question(None, "Upversion Recommended", message + '\n\nWould you like to update?', QMessageBox.Yes | QMessageBox.No) == QMessageBox.Yes:
+        if messageBox("Update Recommended", message + '\n\nWould you like to update?', QMessageBox.Yes | QMessageBox.No, QMessageBox.Question) == QMessageBox.Yes:
             updateFlika()
     else:
-        QMessageBox.information(None, "Up to date", "Your version of Flika is up to date")
+        messageBox("Up to date", "Your version of Flika is up to date")
 
 def updateFlika():
     folder = os.path.dirname(__file__)
@@ -201,18 +209,19 @@ def updateFlika():
     try:
         d = os.path.dirname(__file__)
         for path, subs, fs in os.walk(d):
-            extract_location = path.replace(os.path.basename(d), os.path.join('temp_flika', 'flika-master'))
+            extract_path = path.replace(os.path.basename(d), os.path.join('temp_flika', 'flika-master'))
             for f in fs:
                 if f.endswith(('.py', '.ui', '.png', '.txt', '.xml')):
-                    old, new = os.path.join(path, f), os.path.join(extract_location, f)
+                    old, new = os.path.join(path, f), os.path.join(extract_path, f)
                     if os.path.exists(old) and os.path.exists(new):
                         m.statusBar().showMessage('replacing %s' % f)
                         shutil.copy(new, old)
-        Popen('python flika.py', shell=True)
+        if not 'SPYDER_SHELL_ID' in os.environ:
+            Popen('python flika.py', shell=True)
         shutil.rmtree(extract_location)
         exit(0)
     except Exception as e:
-        print("Failed to remove and replace old Flika. %s" % e)
+        messageBox("Update Error", "Failed to remove and replace old Flika. %s" % e, icon=QMessageBox.Warning)
     
 
 def setConsoleVisible(v):

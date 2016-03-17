@@ -79,7 +79,7 @@ def load_plugin_menu():
         try:
             add_plugin_menu(plugin)
         except Exception as e:
-            print("Counld not load %s. %s" % (plugin, traceback.format_exc()))
+            g.messageBox("Menu Creation Error", "Could not load %s. %s" % (plugin, traceback.format_exc()))
 
 
 class PluginManager(QMainWindow):
@@ -110,7 +110,7 @@ class PluginManager(QMainWindow):
         try:
             PluginManager.load_online_plugins()
         except IOError as e:
-            print("Could no connect to the internet. %s" % traceback.format_exc())
+            g.messageBox("Failed to connect", "Could no connect to the internet to get plugin library. %s" % traceback.format_exc())
         PluginManager.gui.updateList()
 
     @staticmethod
@@ -172,9 +172,18 @@ class PluginManager(QMainWindow):
 
     @staticmethod
     def applyUpdates():
+        count = 0
         for plugin in PluginManager.plugins:
-            if PluginManager.update_available(plugin):
+            if PluginManager.update_available(plugin) and g.messageBox("Update Available", "There is an update available for %s.\n\nWould you like to download the latest version?" % plugin, buttons=QMessageBox.No | QMessageBox.Yes, icon=QMessageBox.Question) == QMessageBox.Yes:
+                count += 1                
                 PluginManager.updatePlugin(plugin)
+                PluginManager.gui.updateList()
+                
+        if count > 0:
+            g.messageBox("Update Completed", "Successfully updated %d plugin(s)" % count)
+        else:
+            g.messageBox("Update Completed", "No updates")
+        
 
     def search(self, search_str):
         search_str = str(search_str)
@@ -241,7 +250,11 @@ class PluginManager(QMainWindow):
     @staticmethod
     def downloadPlugin(plugin_name):
         PluginManager.gui.statusBar.showMessage('Opening %s' % PluginManager.gui.link)
-        data = urlopen(PluginManager.gui.link).read()
+        try:
+            data = urlopen(PluginManager.gui.link).read()
+        except:
+            g.messageBox("Download Error", "Failed to connect to %s to install the %s Flika Plugin. Check your internet connection and try again, or download the plugin manually." % (PluginManager.gui.link, plugin_name), icon=QMessageBox.Warning)
+            return
         output = open("install.zip", "wb")
         output.write(data)
         output.close()
@@ -256,7 +269,10 @@ class PluginManager(QMainWindow):
 
         os.remove("install.zip")
         plugin = PluginManager.plugins[plugin_name]
-        os.rename(os.path.join('plugins', folder_name), os.path.join('plugins', plugin['base_dir']))
+        base_dir = os.path.join('plugins', plugin['base_dir'])
+        if os.path.exists(base_dir):
+            shutil.rmtree(base_dir)
+        os.rename(os.path.join('plugins', folder_name), base_dir)
         add_plugin_menu(plugin_name)
         PluginManager.plugins[plugin_name]['install_date'] = plugin['date']
         if 'dependencies' in PluginManager.plugins[plugin_name]:
@@ -292,7 +308,7 @@ class PluginManager(QMainWindow):
             PluginManager.gui.statusBar.showMessage('%s successfully uninstalled' % plugin_name)
         except Exception as e:
             print("Failed to uninstall plugin %s: %s" % (plugin_name, e))
-            QtGui.QMessageBox.warning(PluginManager.gui, "Plugin Uninstall Failed", "Unable to remove the folder at %s\n%s\nDelete the folder manually to uninstall the plugin" % (plugin_name, e))
+            g.messageBox("Plugin Uninstall Failed", "Unable to remove the folder at %s\n%s\nDelete the folder manually to uninstall the plugin" % (plugin_name, e), icon=QMessageBox.Warning)
 
 
     def downloadClicked(self):

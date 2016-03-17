@@ -1,5 +1,5 @@
 """
-version=0.0.3
+version=0.0.5
 Created on Thu Jun 26 14:17:38 2014
 Latest Update: 2016.02.23
 @author: Kyle Ellefsen and Brett Settle

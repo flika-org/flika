@@ -136,6 +136,9 @@ class ScriptEditor(QMainWindow):
             self.menuRecentScripts.addAction(action)
         else:
             for filename in g.m.settings['recent_scripts']:
+                if not os.path.exists(filename):
+                    g.m.settings['recent_scripts'].remove(filename)
+                    continue
                 action = QAction(filename, g.m, triggered=makeFun(filename))
                 self.menuRecentScripts.addAction(action)
 
@@ -158,6 +161,8 @@ class ScriptEditor(QMainWindow):
 
     @staticmethod
     def add_recent_file(filename):
+        if not os.path.exists(filename):
+            return
         if filename in g.m.settings['recent_scripts']:
             g.m.settings['recent_scripts'].remove(filename)
         g.m.settings['recent_scripts'].insert(0, filename)
