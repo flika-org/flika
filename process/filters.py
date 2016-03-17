@@ -123,7 +123,7 @@ class Butterworth_filter(BaseProcess):
         if g.m.settings['multiprocessing']:
             self.newtif=butterworth_filter_multi(filter_order,low,high,g.m.currentWindow.image)
         else:
-            self.newtif=np.zeros(self.tif.shape)
+            self.newtif=np.zeros(self.tif.shape,dtype=g.m.settings.d['internal_data_type'])
             mt,mx,my=self.tif.shape
             b,a,padlen=self.makeButterFilter(filter_order,low,high)
             for i in np.arange(mx):
@@ -207,7 +207,7 @@ def butterworth_filter_multi_inner(q_results, q_progress, q_status, child_conn, 
     filter_order,low,high = args
     b,a,padlen=makeButterFilter(filter_order,low,high)
     mt,mx,my=data.shape
-    result=np.zeros(data.shape)
+    result=np.zeros(data.shape,g.m.settings['internal_data_type'])
     nPixels=mx*my
     pixel=0
     percent=0
