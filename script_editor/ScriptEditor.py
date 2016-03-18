@@ -130,14 +130,14 @@ class ScriptEditor(QMainWindow):
         self.menuRecentScripts.clear()
         def makeFun(script):
             return lambda: ScriptEditor.importScript(script)
-        if len(g.m.settings['recent_scripts']) == 0:
+        if len(g.settings['recent_scripts']) == 0:
             action = QAction("No Recent Scripts", g.m)
             action.setEnabled(False)
             self.menuRecentScripts.addAction(action)
         else:
-            for filename in g.m.settings['recent_scripts']:
+            for filename in g.settings['recent_scripts']:
                 if not os.path.exists(filename):
-                    g.m.settings['recent_scripts'].remove(filename)
+                    g.settings['recent_scripts'].remove(filename)
                     continue
                 action = QAction(filename, g.m, triggered=makeFun(filename))
                 self.menuRecentScripts.addAction(action)
@@ -157,17 +157,17 @@ class ScriptEditor(QMainWindow):
 
     @staticmethod
     def most_recent_script():
-        return g.m.settings['recent_scripts'][-1] if len(g.m.settings['recent_scripts']) > 0 else ''
+        return g.settings['recent_scripts'][-1] if len(g.settings['recent_scripts']) > 0 else ''
 
     @staticmethod
     def add_recent_file(filename):
         if not os.path.exists(filename):
             return
-        if filename in g.m.settings['recent_scripts']:
-            g.m.settings['recent_scripts'].remove(filename)
-        g.m.settings['recent_scripts'].insert(0, filename)
-        if len(g.m.settings['recent_scripts']) > 8:
-            g.m.settings['recent_scripts'] = g.m.settings['recent_scripts'][:-1]
+        if filename in g.settings['recent_scripts']:
+            g.settings['recent_scripts'].remove(filename)
+        g.settings['recent_scripts'].insert(0, filename)
+        if len(g.settings['recent_scripts']) > 8:
+            g.settings['recent_scripts'] = g.settings['recent_scripts'][:-1]
 
     @staticmethod
     def importScript(scriptfile = ''):

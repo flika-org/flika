@@ -130,7 +130,7 @@ class Measure(BaseProcess):
         return np.array([x,y])
     
     def export_gui(self):
-        filename=g.m.settings['filename']
+        filename=g.settings['filename']
         directory=os.path.dirname(filename)
         if filename is not None:
             filename= QFileDialog.getSaveFileName(g.m, 'Save Measurements', directory, '*.txt')

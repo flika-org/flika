@@ -238,7 +238,7 @@ class Ratio(BaseProcess):
             baseline=self.tif[first_frame:first_frame+nFrames].std(0)
             baseline[baseline==0]=np.min(np.abs(baseline[baseline!=0]))
         self.newtif=self.tif/baseline
-        self.newtif=self.newtif.astype(g.m.settings['internal_data_type'])
+        self.newtif=self.newtif.astype(g.settings['internal_data_type'])
         self.newname=self.oldname+' - Ratioed by '+str(ratio_type)
         return self.end()
 ratio=Ratio()

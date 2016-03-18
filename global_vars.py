@@ -237,6 +237,7 @@ class SetCurrentWindowSignal(QWidget):
         QWidget.__init__(self,parent)
         self.hide()
 
+settings=Settings()
 
 def init(filename):
     global m, mainGuiInitialized
@@ -244,7 +245,7 @@ def init(filename):
     m=uic.loadUi(filename)
     load_plugin_menu()
     m.setCurrentWindowSignal=SetCurrentWindowSignal(m)
-    m.settings = Settings()
+    m.settings = settings
     m.windows = []
     m.traceWindows = []
     m.dialogs = []

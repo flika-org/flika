@@ -156,7 +156,7 @@ class ROI(QWidget):
             self.translate_done.emit()
 
     def save_gui(self):
-        filename=g.m.settings['filename']
+        filename=g.settings['filename']
         if filename is not None and os.path.isfile(filename):
             filename= QFileDialog.getSaveFileName(g.m, 'Save ROI', filename, "*.txt")
         else:

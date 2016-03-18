@@ -79,7 +79,7 @@ class FileSelector(QWidget):
         self.filename=''
         
     def buttonclicked(self):
-        filename=g.m.settings['filename']
+        filename=g.settings['filename']
         try:
             directory=os.path.dirname(filename)
         except:

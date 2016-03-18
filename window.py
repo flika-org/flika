@@ -112,14 +112,14 @@ class Window(QWidget):
         self.currentROI=None
         self.currentROIs={}
         self.creatingROI=False
-        pointSize=g.m.settings['point_size']
-        pointColor = QColor(g.m.settings['point_color'])
+        pointSize=g.settings['point_size']
+        pointColor = QColor(g.settings['point_color'])
         self.scatterPlot=pg.ScatterPlotItem(size=pointSize, pen=pg.mkPen([0,0,0,255]), brush=pg.mkBrush(*pointColor.getRgb()))  #this is the plot that all the red points will be drawn on
         self.scatterPoints=[[] for _ in np.arange(mt)]
         self.scatterPlot.sigClicked.connect(self.clickedScatter)
         self.imageview.addItem(self.scatterPlot)
         self.pasteAct = QAction("&Paste", self, triggered=self.paste)
-        if g.m.settings['show_windows']:
+        if g.settings['show_windows']:
             self.show()
             qApp.processEvents()
         self.sigTimeChanged.connect(self.showFrame)
@@ -244,13 +244,13 @@ class Window(QWidget):
                     self.x=None
                     self.y=None
                 else:
-                    mm=g.m.settings['mousemode']
+                    mm=g.settings['mousemode']
                     if mm=='point':
                         t=self.currentIndex
                         position=[self.x,self.y]
                         self.scatterPoints[t].append(position)
-                        pointSize=g.m.settings['point_size']
-                        pointColor = QColor(g.m.settings['point_color'])
+                        pointSize=g.settings['point_size']
+                        pointColor = QColor(g.settings['point_color'])
                         self.scatterPlot.addPoints(pos=[[self.x,self.y]], size=pointSize, brush=pg.mkBrush(*pointColor.getRgb()))
                         
                                 
@@ -295,7 +295,7 @@ class Window(QWidget):
             self.imageview.view.translateBy(difference)
         if ev.button() == Qt.RightButton:
             ev.accept()
-            mm=g.m.settings['mousemode']
+            mm=g.settings['mousemode']
             if mm=='freehand' or mm=='line' or mm=='rectangle':
                 if ev.isStart():
                     self.ev=ev
@@ -310,11 +310,11 @@ class Window(QWidget):
                         self.creatingROI=False
                     else:
                         self.creatingROI=True
-                        if g.m.settings['mousemode']=='freehand':
+                        if g.settings['mousemode']=='freehand':
                             self.currentROI=ROI(self,self.x,self.y)
-                        if g.m.settings['mousemode']=='line':
+                        if g.settings['mousemode']=='line':
                             self.currentROI=ROI_line(self,self.x,self.y)
-                        if g.m.settings['mousemode']=='rectangle':
+                        if g.settings['mousemode']=='rectangle':
                             self.currentROI=ROI_rectangle(self,self.x,self.y)
                 if ev.isFinish():
                     if self.creatingROI:
