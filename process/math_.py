@@ -58,12 +58,15 @@ class Subtract(BaseProcess):
         super().gui()
     def __call__(self,value,keepSourceWindow=False):
         self.start(keepSourceWindow)
-        if value.is_integer():
+        if hasattr(value,'is_integer') and value.is_integer():
             value=int(value)
-        ddtype=np.iinfo(self.tif.dtype)
-        while np.min(self.tif)-value<ddtype.min or np.max(self.tif)-value>ddtype.max: # if we exceed the bounds of the datatype
-            ddtype=np.iinfo(upgrade_dtype(ddtype.dtype))
-        self.newtif=self.tif.astype(ddtype.dtype)-value
+        if np.issubdtype(self.tif.dtype,np.integer):
+            ddtype=np.iinfo(self.tif.dtype)
+            while np.min(self.tif)-value<ddtype.min or np.max(self.tif)-value>ddtype.max: # if we exceed the bounds of the datatype
+                ddtype=np.iinfo(upgrade_dtype(ddtype.dtype))
+            self.newtif=self.tif.astype(ddtype.dtype)-value
+        else:
+            self.newtif=self.tif-value
         self.newname=self.oldname+' - Subtracted '+str(value)
         return self.end()
     def preview(self):
