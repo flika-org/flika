@@ -156,8 +156,6 @@ if __name__ == '__main__':
     args=[arg for arg in args[1:] if 'FLIKA.PY' not in arg.upper()]
     if len(args)>0:
         open_file(args[0])
-    
-    w = open_file()
 
     insideSpyder='SPYDER_SHELL_ID' in os.environ
     if not insideSpyder: #if we are running outside of Spyder

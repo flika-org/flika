@@ -13,6 +13,8 @@ import numpy as np
 from trace import roiPlot
 import os
 
+ROI_COLOR = QColor(255, 255, 255)
+
 class ROI_Drawing(pg.GraphicsObject):
     def __init__(self, window, x, y, type):
         pg.GraphicsObject.__init__(self)
@@ -51,7 +53,7 @@ class ROI_Drawing(pg.GraphicsObject):
         self.update()
 
     def paint(self, p, *args):
-        p.setPen(QPen(QColor(255,255,255)))
+        p.setPen(QPen(ROI_COLOR))
         if self.type == 'freehand':
             p.drawPolyline(*self.pts)
         elif self.type == 'rectangle':
@@ -61,7 +63,7 @@ class ROI_Drawing(pg.GraphicsObject):
 
     def drawFinished(self):
         self.window.imageview.removeItem(self)
-        args = {'removable': True, 'translateSnap': True}
+        args = {'removable': True, 'translateSnap': True, 'pen':ROI_COLOR}
         if self.type == 'freehand':
             r = ROI_Polygon(self.window, self.pts, **args)
         elif self.type == 'rectangle':
@@ -125,7 +127,11 @@ class ROI_Wrapper():
 
     def unplot(self):
         self.plotAct.setText("Plot")
-        self.traceWindow.indexChanged.disconnect(self.window.setIndex)
+        try:
+            self.traceWindow.indexChanged.disconnect(self.window.setIndex)
+        except:
+            # sometimes errors, says signals not connected
+            pass
         self.traceWindow.removeROI(self)
         self.traceWindow = None
 
@@ -245,10 +251,10 @@ class ROI_Line(ROI_Wrapper, pg.LineSegmentROI):
 class ROI_Rect_Line(ROI_Wrapper, pg.MultiRectROI):
     kind = 'rect_line'
     plotSignal = Signal()
-    def __init__(self, window, pts, width=.5, pen=QPen(QColor(255, 255, 255)), *args, **kargs):
+    def __init__(self, window, pts, width=.5, *args, **kargs):
         self.window = window
         self.width = width
-        pg.MultiRectROI.__init__(self, pts, width, pen=pen, *args, **kargs)
+        pg.MultiRectROI.__init__(self, pts, width, *args, **kargs)
         self.kymographAct = QAction("&Kymograph", self, triggered=self.update_kymograph)
         ROI_Wrapper.__init__(self)
         self.extending = False
@@ -262,7 +268,7 @@ class ROI_Rect_Line(ROI_Wrapper, pg.MultiRectROI):
         if ev.enter:
             l.currentPen = QPen(QColor(255, 255, 0))
         elif ev.exit:
-            l.currentPen = QPen(QColor(255, 255, 255))
+            l.currentPen = l.pen
         l.update()
         pg.ROI.hoverEvent(l, ev)
 
