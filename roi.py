@@ -19,8 +19,15 @@ class ROI_Drawing(pg.GraphicsObject):
     def __init__(self, window, x, y, type):
         pg.GraphicsObject.__init__(self)
         window.imageview.addItem(self)
+        self.window = window
         self.pts = [pg.Point(int(x), int(y))]
-        for roi in window.rois:
+        if self.extendRectLine():
+            return
+        self.type = type
+        self.state = {'pos': pg.Point(x, y), 'size': pg.Point(0, 0)}
+
+    def extendRectLine(self):
+        for roi in self.window.rois:
             if isinstance(roi, ROI_Rect_Line):
                 a = roi.getNearestHandle(self.pts[0])
                 if a:
@@ -29,10 +36,8 @@ class ROI_Drawing(pg.GraphicsObject):
                     self.drawFinished = roi.drawFinished
                     #self.__dict__.update(roi.__dict__)
                     self.boundingRect = roi.boundingRect
-                    return
-        self.type = type
-        self.window = window
-        self.state = {'pos': pg.Point(x, y), 'size': pg.Point(0, 0)}
+                    return True
+        return False
 
     def extend(self, x, y):
         new_pt = pg.Point(int(x), int(y))
@@ -93,11 +98,10 @@ class ROI_Wrapper():
         self.colorDialog=QColorDialog()
         self.colorDialog.colorSelected.connect(self.colorSelected)
         self.window.closeSignal.connect(self.delete)
+        ##self.sigRegionChanged.connect(self.getMask) # SLOWS
         self.traceWindow = None
+        self.mask=None
         self.linkedROIs = set()
-        #self.proxy = pg.SignalProxy(self.sigRegionChanged, rateLimit=3, slot=self.getMask)
-        #self.sigRegionChanged.connect(self.getMask)
-        #self.getMask()
 
     def plot(self):
         self.plotAct.setText("Unplot")
@@ -175,6 +179,12 @@ class ROI_Wrapper():
         self.window.imageview.removeItem(self)
         self.window.closeSignal.disconnect(self.delete)
 
+    def getMask(self):
+        raise NotImplementedError(None)
+
+    def getTrace(self):
+        raise NotImplementedError(None)
+
 class ROI_Line(ROI_Wrapper, pg.LineSegmentROI):
     kind = 'line'
     plotSignal = Signal()
@@ -190,7 +200,7 @@ class ROI_Line(ROI_Wrapper, pg.LineSegmentROI):
         ROI_Wrapper.getMenu(self)
         self.menu.addAction(self.kymographAct)
 
-    def getPoints(self):
+    def getMask(self):
         self.pts = [h['item'].pos() + self.pos() for h in self.handles]
         x=np.array([p[0] for p in self.pts], dtype=int)
         y=np.array([p[1] for p in self.pts], dtype=int)
@@ -200,10 +210,13 @@ class ROI_Line(ROI_Wrapper, pg.LineSegmentROI):
         w, h = np.shape(self.window.image[0])
         rect = QRect(0, 0 ,w, h)
         ids = np.where([rect.contains(x, y) for x, y in zip(xx, yy)])
-        return np.array([pg.Point(p) for p in np.transpose([xx[ids], yy[ids]])], dtype=int)
+        self.mask = np.array([pg.Point(p) for p in np.transpose([xx[ids], yy[ids]])], dtype=int)
+        self.minn = np.min(self.mask, 0)
 
     def getTrace(self, bounds=None, pts=None):
-        pts = self.getPoints()
+        #self.getMask()
+        if pts == None:
+            pts = self.mask
         if len(pts) == 0:
             vals = np.zeros(len(self.window.image))
         else:
@@ -219,7 +232,7 @@ class ROI_Line(ROI_Wrapper, pg.LineSegmentROI):
     def update_kymograph(self):
         
         tif=self.window.image
-        xx, yy = self.getPoints().T
+        xx, yy = self.getMask().T
         mt = len(tif)
         if len(xx) == 0:
             return
@@ -327,7 +340,7 @@ class ROI_Rect_Line(ROI_Wrapper, pg.MultiRectROI):
         l = self.lines[-1]
         self.lines[-1].hoverEvent = lambda ev: self.hoverEvent(l, ev)
 
-    def getTracePoints(self):
+    def getMask(self):
         if self.lines[0].handles[1]['item'].pos()[1] <= 1:
             xx = []
             yy = []
@@ -345,17 +358,19 @@ class ROI_Rect_Line(ROI_Wrapper, pg.MultiRectROI):
             vals, coords = self.getArrayRegion(self.window.image, self.window.imageview.getImageItem(), axes=(1, 2), returnMappedCoords=True)
             # vals includes outside coordinates. Recalculate
             xx, yy = coords.T.astype(int)
-        return xx, yy
-
-    def getTrace(self, bounds=None, pts=None):
-        xx, yy = self.getTracePoints()
-
-        pts = [pg.Point(p) for p in np.transpose([xx, yy])]
+        
         w, h = np.shape(self.window.image[0])
         rect = QRect(0, 0 ,w, h)
-        ids = np.where([rect.contains(p[0], p[1]) for p in pts])
+        ids = np.where([rect.contains(xx[i], yy[i]) for i in range(len(xx))])
         xx = xx[ids]
         yy = yy[ids]
+
+        self.mask = np.transpose([xx, yy])
+        self.minn = np.min(self.mask, 0)
+
+    def getTrace(self, bounds=None, pts=None):
+        #self.getMask()
+        xx, yy = self.mask.T
         vals = self.window.image[:, xx, yy]
 
         if len(vals) == 0:
@@ -396,7 +411,7 @@ class ROI_Rect_Line(ROI_Wrapper, pg.MultiRectROI):
     def update_kymograph(self):
         tif=self.window.image
         mt=tif.shape[0]
-        xx, yy = self.getTracePoints()
+        xx, yy = self.getMask()
         mn=np.zeros((mt,len(xx)))
         for t in np.arange(mt):
             mn[t]=tif[t,xx,yy]
@@ -504,6 +519,7 @@ class ROI_Rect(ROI_Wrapper, pg.ROI):
 
         mask[x:x+w, y:y+h] = True
         self.mask=np.array(np.where(mask)).T
+        self.minn = np.min(self.mask, 0)
 
 class ROI_Polygon(ROI_Wrapper, pg.ROI):
     kind = 'freehand'
@@ -511,10 +527,15 @@ class ROI_Polygon(ROI_Wrapper, pg.ROI):
     def __init__(self, window, pts, *args, **kargs):
         self.window = window
         self.pts = pts
-        pg.ROI.__init__(self, (0, 0), np.max(pts, 0), *args, **kargs)
+        w, h = np.ptp(self.pts, 0)
+        pg.ROI.__init__(self, (0, 0), (w, h), *args, **kargs)
         ROI_Wrapper.__init__(self)
-        self.sigRegionChanged.connect(self.getMask)
         self.getMask()
+
+    def boundingRect(self):
+        r = pg.ROI.boundingRect(self)
+        r.translate(*np.min(self.pts, 0))
+        return r
 
     def contains(self, *pos):
         if len(pos) == 2:
@@ -532,53 +553,35 @@ class ROI_Polygon(ROI_Wrapper, pg.ROI):
             p.drawLine(self.pts[i], self.pts[i-1])
 
     def getMask(self):
-        if hasattr(self, 'mask'):
-            d = self.state['pos'] - self.lastState['pos']
-            self.mask += np.array([d[0], d[1]], dtype=int)
-            return
-        pts=self.pts
-        tif=self.window.image
-        x=np.array([p[0] for p in pts])
-        y=np.array([p[1] for p in pts])
-        nDims=len(tif.shape)
-        if nDims==4: #if this is an RGB image stack
-            tif=np.mean(tif,3)
-            mask=np.zeros(tif[0,:,:].shape,np.bool)
-        elif nDims==3:
-            if self.window.metadata['is_rgb']:  # [x, y, colors]
-                mask=np.zeros(tif[:,:,0].shape,np.bool)
-            else:                               # [t, x, y]
-                mask=np.zeros(tif[0,:,:].shape,np.bool)  
-        if nDims==2: #if this is a static image
-            mask=np.zeros(tif.shape,np.bool)
+        if self.mask is not None:
+            xx, yy = np.transpose(self._mask)
+        else:
+            self.minn = np.min(self.pts, 0)
+            x, y = np.transpose(self.pts - self.minn)
+            mask=np.zeros(self.window.imageDimensions())
             
-        xx,yy=polygon(x,y,shape=mask.shape)
-        mask[xx,yy]=True
-        pts_plus=np.array(np.where(mask)).T
-        for pt in pts_plus:
-            if not self.contains(QPointF(pt[0],pt[1])):
-                mask[pt[0],pt[1]]=0
-        self.mask=np.array(np.where(mask)).T
+            xx,yy=polygon(x,y,shape=mask.shape)
+            self._mask = np.transpose([xx, yy])
+
+        w, h = self.window.imageDimensions()
+        rect = QRect(0, 0, w, h)
+        self.minn = self.state['pos'] + np.min(self.pts, 0)
+        self.mask = np.array([p for p in np.transpose([xx, yy]) + self.minn if rect.contains(p[0], p[1])], dtype=int)
+
+        #img = np.zeros(self.window.imageDimensions())
+        #if len(self.mask) > 0:
+        #    xx, yy = self.mask.T.astype(int)
+        #    img[xx, yy] = 1
+        #self.window.imageview.setImage(img)
 
     def getTrace(self,bounds=None,pts=None):
         ''' bounds are two points in time.  If bounds is not None, we only calculate values between the bounds '''
-        tif=self.window.image
-        nDims=len(tif.shape)
-        if nDims==4: #if this is an RGB image stack  #[t, x, y, colors]
-            tif=np.mean(tif,3)
-            mx,my=tif[0,:,:].shape
-        elif nDims==3:
-            if self.window.metadata['is_rgb']:  # [x, y, colors]
-                tif=np.mean(tif,2)
-                mx,my=tif.shape
-                tif=tif[np.newaxis]
-            else: 
-                mx,my=tif[0,:,:].shape
-        elif nDims==2:
-            mx,my=tif.shape
-            tif=tif[np.newaxis]
-        
+        tif=self.window.imageArray()
+        mt, mx, my = tif.shape
         pts=self.mask
+        if len(pts) == 0:
+            return np.zeros([bounds[1]-bounds[0]])
+
         pts=pts[(pts[:,0]>=0)*(pts[:,0]<mx)*(pts[:,1]>=0)*(pts[:,1]<my)]
         xx=pts[:,0]; yy=pts[:,1]
         if bounds is None:
@@ -590,6 +593,8 @@ class ROI_Polygon(ROI_Wrapper, pg.ROI):
             if bounds[0]>len(tif) or bounds[1]<0:
                 return np.array([])
 
+        if len(xx) == 0:
+            return np.zeros([bounds[1]-bounds[0]])
         trace=np.mean(tif[bounds[0]:bounds[1],xx,yy], 1) 
         if np.isnan(np.sum(trace)):
             return np.zeros(len(trace))

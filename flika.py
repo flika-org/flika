@@ -36,8 +36,6 @@ from process.overlay import time_stamp,background, scale_bar
 from script_editor.ScriptEditor import ScriptEditor
 from plugins.plugin_manager import PluginManager
 
-
-
     
 try:
     os.chdir(os.path.split(os.path.realpath(__file__))[0])

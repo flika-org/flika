@@ -197,6 +197,40 @@ class Window(QWidget):
             self.closed=True
             event.accept() # let the window close
 
+    def imageArray(self):
+        '''
+        returns image as a 3d array, correcting for color or 2d image
+        '''
+        tif=self.image
+        nDims=len(tif.shape)
+        if nDims==4: #if this is an RGB image stack  #[t, x, y, colors]
+            tif=np.mean(tif,3)
+            mx,my=tif[0,:,:].shape
+        elif nDims==3:
+            if self.metadata['is_rgb']:  # [x, y, colors]
+                tif=np.mean(tif,2)
+                mx,my=tif.shape
+                tif=tif[np.newaxis]
+            else: 
+                mx,my=tif[0,:,:].shape
+        elif nDims==2:
+            mx,my=tif.shape
+            tif=tif[np.newaxis]
+        return tif
+
+    def imageDimensions(self):
+        nDims=self.image.shape
+        if len(nDims)==4: #if this is an RGB image stack
+            return nDims[1:3]
+        elif len(nDims)==3:
+            if self.metadata['is_rgb']:  # [x, y, colors]
+                return nDims[:2]
+            else:                               # [t, x, y]
+                return nDims[1:]
+        if len(nDims)==2: #if this is a static image
+            return nDims
+        return nDims
+
             
     def resizeEvent(self, event):
         event.accept()
