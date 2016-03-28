@@ -98,6 +98,7 @@ class ROI_Wrapper():
         #self.getMask()
 
     def plot(self):
+        self.plotAct.setText("Unplot")
         self.traceWindow = roiPlot(self)
         self.traceWindow.indexChanged.connect(self.window.setIndex)
         self.plotSignal.emit()
@@ -123,6 +124,7 @@ class ROI_Wrapper():
             g.m.statusBar().showMessage('No File Selected')
 
     def unplot(self):
+        self.plotAct.setText("Plot")
         self.traceWindow.indexChanged.disconnect(self.window.setIndex)
         self.traceWindow.removeROI(self)
         self.traceWindow = None
@@ -140,7 +142,7 @@ class ROI_Wrapper():
         self.menu.popup(QPoint(pos.x(), pos.y()))
     
     def getMenu(self):
-        self.plotAct = QAction("&Plot", self, triggered=self.togglePlot)
+        self.plotAct = QAction("&Plot", self, triggered=lambda : self.plot() if self.traceWindow == None else self.unplot())
         self.plotAllAct = QAction('&Plot All', self, triggered=lambda : [roi.plot() for roi in self.window.rois])
         self.colorAct = QAction("&Change Color",self,triggered=self.changeColor)
         self.copyAct = QAction("&Copy", self, triggered=self.copy)
@@ -166,16 +168,6 @@ class ROI_Wrapper():
         self.window.currentROI=None
         self.window.imageview.removeItem(self)
         self.window.closeSignal.disconnect(self.delete)
-        
-    def togglePlot(self):
-        if self.traceWindow != None:
-            self.plotAct.setText("Plot")
-            self.unplot()
-            self.plotted = False
-        else:
-            self.plotAct.setText("Unplot")
-            self.plot()
-            self.plotted = True
 
 class ROI_Line(ROI_Wrapper, pg.LineSegmentROI):
     kind = 'line'
@@ -268,12 +260,20 @@ class ROI_Rect_Line(ROI_Wrapper, pg.MultiRectROI):
     def hoverEvent(self, l, ev):
         self.currentLine = l
         if ev.enter:
-            self.currentPen = QPen(QColor(255, 255, 0))
+            l.currentPen = QPen(QColor(255, 255, 0))
         elif ev.exit:
-            self.currentPen = QPen(QColor(255, 255, 255))
+            l.currentPen = QPen(QColor(255, 255, 255))
+        l.update()
+        pg.ROI.hoverEvent(l, ev)
 
     def removeLink(self):
-        self.removeSegment(self.lines.index(self.currentLine))
+        ind = self.lines.index(self.currentLine)
+        if ind == 0:
+            self.delete()
+            return
+        for i in range(len(self.lines)-1, ind-1, -1):
+            self.removeSegment(i)
+
 
     def getMenu(self):
         ROI_Wrapper.getMenu(self)
