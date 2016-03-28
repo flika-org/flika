@@ -50,6 +50,9 @@ class Window(QWidget):
         self.imageview.setMouseTracking(True)
         self.imageview.installEventFilter(self)
         self.imageview.ui.menuBtn.setParent(None)
+        
+
+
         #self.imageview.ui.normBtn.setParent(None) # gets rid of 'norm' button that comes with ImageView
         self.imageview.ui.roiBtn.setParent(None) # gets rid of 'roi' button that comes with ImageView
 
@@ -65,8 +68,10 @@ class Window(QWidget):
             if metadata['is_rgb']:
                 mx,my,mc=tif.shape
                 mt=1
+                dimensions_txt="{}x{} pixels; {} colors; ".format(mx,my,mc)
             else:
                 mt,mx,my=tif.shape
+                dimensions_txt="{} frames; {}x{} pixels; ".format(mt,mx,my)
             if np.all(self.image[0]==0): #if the first frame is all zeros
                 r=(np.min(self.image),np.max(self.image)) #set the levels to be just above and below the min and max of the entire tif
                 r=(r[0]-(r[1]-r[0])/100,r[1]+(r[1]-r[0])/100)
@@ -77,15 +82,22 @@ class Window(QWidget):
                 self.imageview.setLevels(r[0],r[1])
         elif nDims==4:
             mt,mx,my,mc=tif.shape
+            dimensions_txt="{} frames; {}x{} pixels; {} colors; ".format(mt,mx,my,mc)
             if np.min(self.image)==0 and (np.max(self.image)==0 or np.max(self.image)==1): #if the image is binary (either all 0s or 0s and 1s)
                 self.imageview.setLevels(-.01,1.01) #set levels from slightly below 0 to 1
         elif nDims==2:
             mt=1
             mx,my=tif.shape
+            dimensions_txt="{}x{} pixels; ".format(mx,my)
         if np.min(self.image)==0 and (np.max(self.image)==0 or np.max(self.image)==1): #if the image is binary (either all 0s or 0s and 1s)
             self.imageview.setLevels(-.01,1.01) #set levels from slightly below 0 to 1
             
         self.mx=mx; self.my=my; self.mt=mt
+        dtype=self.image.dtype
+
+        self.top_left_label = pg.LabelItem(dimensions_txt+'dtype='+str(dtype), justify='right')
+        self.imageview.ui.graphicsView.addItem(self.top_left_label)
+        
         self.imageview.timeLine.sigPositionChanged.connect(self.updateindex)
         self.currentIndex=self.imageview.currentIndex
         self.layout = QVBoxLayout(self)
@@ -99,14 +111,14 @@ class Window(QWidget):
         self.currentROI=None
         self.currentROIs={}
         self.creatingROI=False
-        pointSize=g.m.settings['point_size']
-        pointColor = QColor(g.m.settings['point_color'])
+        pointSize=g.settings['point_size']
+        pointColor = QColor(g.settings['point_color'])
         self.scatterPlot=pg.ScatterPlotItem(size=pointSize, pen=pg.mkPen([0,0,0,255]), brush=pg.mkBrush(*pointColor.getRgb()))  #this is the plot that all the red points will be drawn on
         self.scatterPoints=[[] for _ in np.arange(mt)]
         self.scatterPlot.sigClicked.connect(self.clickedScatter)
         self.imageview.addItem(self.scatterPlot)
         self.pasteAct = QAction("&Paste", self, triggered=self.paste)
-        if g.m.settings['show_windows']:
+        if g.settings['show_windows']:
             self.show()
             qApp.processEvents()
         self.sigTimeChanged.connect(self.showFrame)
@@ -240,6 +252,7 @@ class Window(QWidget):
                     self.menu = QMenu(self)
                     self.menu.addAction(self.pasteAct)
                     self.menu.exec_(ev.screenPos().toQPoint())
+
                         
     
     def keyPressEvent(self,ev):
@@ -279,9 +292,7 @@ class Window(QWidget):
                     pt=self.imageview.getImageItem().mapFromScene(ev.buttonDownScenePos())
                     self.x=pt.x() # this sets x and y to the button down position, not the current position
                     self.y=pt.y()
-                    #print("Drag start x={},y={}".format(self.x,self.y))
                     self.creatingROI=True
-
                     self.currentROI=ROI_Drawing(self,self.x,self.y, mm)
                 if ev.isFinish():
                     if self.creatingROI:
@@ -301,22 +312,24 @@ class Window(QWidget):
                         for r in self.currentROIs:
                             r.translate(difference,self.imageview.getImageItem().mapFromScene(ev.lastScenePos()))
     def updateTimeStampLabel(self,frame):
+        label=self.timeStampLabel
         if self.framerate==0:
             label.setHtml("<span style='font-size: 12pt;color:white;background-color:None;'>Frame rate is 0 Hz</span>" )
-        time=frame/self.framerate
-        label=self.timeStampLabel
-        if time<1:
-            time=time*1000
-            label.setHtml("<span style='font-size: 12pt;color:white;background-color:None;'>{:.0f} ms</span>".format(time))
-        elif time<60:
-            label.setHtml("<span style='font-size: 12pt;color:white;background-color:None;'>{:.3f} s</span>".format(time))
-        elif time<3600:
-            minutes=int(np.floor(time/60))
-            seconds=time % 60
+            return False
+        ttime=frame/self.framerate
+        
+        if ttime<1:
+            ttime=ttime*1000
+            label.setHtml("<span style='font-size: 12pt;color:white;background-color:None;'>{:.0f} ms</span>".format(ttime))
+        elif ttime<60:
+            label.setHtml("<span style='font-size: 12pt;color:white;background-color:None;'>{:.3f} s</span>".format(ttime))
+        elif ttime<3600:
+            minutes=int(np.floor(ttime/60))
+            seconds=ttime % 60
             label.setHtml("<span style='font-size: 12pt;color:white;background-color:None;'>{}m {:.3f} s</span>".format(minutes,seconds))
         else:
-            hours=int(np.floor(time/3600))
-            mminutes=time-hours*3600
+            hours=int(np.floor(ttime/3600))
+            mminutes=ttime-hours*3600
             minutes=int(np.floor(mminutes/60))
             seconds=mminutes-minutes*60
             label.setHtml("<span style='font-size: 12pt;color:white;background-color:None;'>{}h {}m {:.3f} s</span>".format(hours,minutes,seconds))

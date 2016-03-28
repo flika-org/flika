@@ -58,7 +58,7 @@ def initializeMainGui():
     g.m.actionOpen.triggered.connect(lambda : open_file_gui(open_file, prompt='Open File', filetypes='Image Files (*.tif *.stk *.tiff *.nd2);;All Files (*.*)'))
     g.m.actionSaveAs.triggered.connect(lambda : save_file_gui(save_file, prompt='Save File As Tif', filetypes='*.tif'))
     g.m.actionExport_Movie.triggered.connect(save_movie_gui)
-    g.m.actionSettings.triggered.connect(g.m.settings.gui)
+    g.m.actionSettings.triggered.connect(g.settings.gui)
     
     g.m.actionExport_Points.triggered.connect(lambda : save_file_gui(save_points, prompt='Save Points', filetypes='*.txt'))
     g.m.actionImport_Points.triggered.connect(lambda : open_file_gui(load_points, prompt='Load Points', filetypes='*.txt'))
@@ -69,7 +69,6 @@ def initializeMainGui():
     g.m.rect_line.clicked.connect(lambda: g.m.settings.setmousemode('rect_line'))
     g.m.rectangle.clicked.connect(lambda: g.m.settings.setmousemode('rectangle'))
     g.m.point.clicked.connect(lambda: g.m.settings.setmousemode('point'))
-
     
     g.m.point.setContextMenuPolicy(Qt.CustomContextMenu)
     g.m.point.customContextMenuRequested.connect(g.pointSettings)
@@ -153,7 +152,7 @@ if __name__ == '__main__':
     initializeMainGui()
     args=sys.argv[1:]
     if os.name =='nt':
-        g.setConsoleVisible(g.m.settings['debug_mode'])
+        g.setConsoleVisible(g.settings['debug_mode'])
     args=[arg for arg in args[1:] if 'FLIKA.PY' not in arg.upper()]
     if len(args)>0:
         open_file(args[0])

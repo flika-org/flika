@@ -111,7 +111,7 @@ class ROI_Wrapper():
             self.sigRegionChangeFinished.emit(self)
 
     def save_gui(self):
-        filename=g.m.settings['filename']
+        filename=g.settings['filename']
         if filename is not None and os.path.isfile(filename):
             filename= QFileDialog.getSaveFileName(g.m, 'Save ROI', filename, "*.txt")
         else:
@@ -268,9 +268,9 @@ class ROI_Rect_Line(ROI_Wrapper, pg.MultiRectROI):
     def hoverEvent(self, l, ev):
         self.currentLine = l
         if ev.enter:
-            self.setPen(QPen(QColor(255, 255, 0)))
+            self.currentPen = QPen(QColor(255, 255, 0))
         elif ev.exit:
-            self.setPen(QPen(QColor(255, 255, 255)))
+            self.currentPen = QPen(QColor(255, 255, 255))
 
     def removeLink(self):
         self.removeSegment(self.lines.index(self.currentLine))

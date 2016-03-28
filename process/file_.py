@@ -32,24 +32,24 @@ from process.BaseProcess import BaseDialog
 __all__ = ['open_file_gui','open_file','save_file_gui','save_file','save_movie', 'save_movie_gui', 'load_metadata','save_metadata','close', 'load_points', 'save_points', 'save_current_frame']
 
 def save_recent_file(fname):
-    while fname in g.m.settings['recent_files']:
-        g.m.settings['recent_files'].remove(fname)
-    g.m.settings['recent_files'].insert(0, fname)
-    if len(g.m.settings['recent_files']) > 10:
-        g.m.settings['recent_files'] = g.m.settings['recent_files'][:10]
+    while fname in g.settings['recent_files']:
+        g.settings['recent_files'].remove(fname)
+    g.settings['recent_files'].insert(0, fname)
+    if len(g.settings['recent_files']) > 10:
+        g.settings['recent_files'] = g.settings['recent_files'][:10]
     make_recent_menu()
     return fname
 
 def make_recent_menu():
     g.m.menuRecent_Files.clear()
-    if len(g.m.settings['recent_files']) == 0:
+    if len(g.settings['recent_files']) == 0:
         no_recent = QAction("No Recent Files", g.m)
         no_recent.setEnabled(False)
         g.m.menuRecent_Files.addAction(no_recent)
         return
     def openFun(f):
         return lambda : open_file(save_recent_file(f))
-    for fname in g.m.settings['recent_files'][:10]:
+    for fname in g.settings['recent_files'][:10]:
         if os.path.exists(fname):
             g.m.menuRecent_Files.addAction(QAction(fname, g.m, triggered=openFun(fname)))
 
@@ -63,7 +63,7 @@ def open_file_gui(func, filetypes, prompt='Open File', kargs={}):
         | prompt (str) -- prompt shown at the top of the dialog
         | kargs (dict) -- any excess arguments to be passed to func
     '''
-    filename=g.m.settings['filename']
+    filename=g.settings['filename']
     if filename is not None and os.path.isfile(filename):
         filename= QFileDialog.getOpenFileName(g.m, prompt, filename, filetypes)
     else:
@@ -85,7 +85,7 @@ def save_file_gui(func, filetypes, prompt = 'Save File', kargs={}):
         | prompt (str) -- prompt shown at the top of the dialog
         | kargs (dict) -- any excess arguments to be passed to func
     '''
-    filename=g.m.settings['filename']
+    filename=g.settings['filename']
     try:
         directory=os.path.dirname(filename)
     except:
@@ -104,7 +104,7 @@ def save_roi_traces(filename):
     g.m.statusBar().showMessage('Saving traces to {}'.format(os.path.basename(filename)))
     to_save = [roi.getTrace() for roi in g.m.currentWindow.rois]
     np.savetxt(filename, np.transpose(to_save), header='\t'.join(['ROI %d' % i for i in range(len(to_save))]), fmt='%.4f', delimiter='\t', comments='')
-    g.m.settings['filename'] = filename
+    g.settings['filename'] = filename
     g.m.statusBar().showMessage('Successfully saved traces to {}'.format(os.path.basename(filename)))
 
             
@@ -118,11 +118,11 @@ def open_file(filename=None):
         newWindow
     """
     if filename is None:
-        filename=g.m.settings['filename']
+        filename=g.settings['filename']
         if filename is None:
             print('No filename selected')
             return
-    if filename not in g.m.settings['recent_files']:
+    if filename not in g.settings['recent_files']:
         save_recent_file(filename)
     g.m.statusBar().showMessage('Loading {}'.format(os.path.basename(filename)))
     t=time.time()
@@ -135,7 +135,7 @@ def open_file(filename=None):
             metadata = txt2dict(metadata)
         except AttributeError:
             metadata=dict()
-        A=Tiff.asarray()#.astype(g.m.settings['internal_data_type'])
+        A=Tiff.asarray()#.astype(g.settings['internal_data_type'])
         Tiff.close()
         axes=[tifffile.AXES_LABELS[ax] for ax in Tiff.pages[0].axes]
         #print("Original Axes = {}".format(axes)) #sample means RBGA, plane means frame, width means X, height means Y
@@ -177,11 +177,11 @@ def open_file(filename=None):
         return
     else:
         print('Could not open %s' % filename)
-        g.m.settings['recent_files'].remove(filename)
+        g.settings['recent_files'].remove(filename)
         make_recent_menu()
         return
     g.m.statusBar().showMessage('{} successfully loaded ({} s)'.format(os.path.basename(filename), time.time()-t))
-    g.m.settings['filename']=filename
+    g.settings['filename']=filename
     commands = ["open_file('{}')".format(filename)]
     newWindow=Window(A,os.path.basename(filename),filename,commands,metadata)
     return newWindow
@@ -200,10 +200,10 @@ def save_file(filename):
         | filename (str) -- Address to save the video to.
     """
     if os.path.dirname(filename)=='': #if the user didn't specify a directory
-        directory=os.path.normpath(os.path.dirname(g.m.settings['filename']))
+        directory=os.path.normpath(os.path.dirname(g.settings['filename']))
         filename=os.path.join(directory,filename)
     g.m.statusBar().showMessage('Saving {}'.format(os.path.basename(filename)))
-    A=g.m.currentWindow.image#.astype(g.m.settings['internal_data_type'])
+    A=g.m.currentWindow.image#.astype(g.settings['internal_data_type'])
     metadata=g.m.currentWindow.metadata
     metadata=json.dumps(metadata,default=JSONhandler)
     if len(A.shape)==3:
@@ -221,10 +221,10 @@ def save_current_frame(filename):
         | filename (str) -- Address to save the frame to.
     """
     if os.path.dirname(filename)=='': #if the user didn't specify a directory
-        directory=os.path.normpath(os.path.dirname(g.m.settings['filename']))
+        directory=os.path.normpath(os.path.dirname(g.settings['filename']))
         filename=os.path.join(directory,filename)
     g.m.statusBar().showMessage('Saving {}'.format(os.path.basename(filename)))
-    A=np.average(g.m.currentWindow.image, 0)#.astype(g.m.settings['internal_data_type'])
+    A=np.average(g.m.currentWindow.image, 0)#.astype(g.settings['internal_data_type'])
     metadata=json.dumps(g.m.currentWindow.metadata)
     if len(A.shape)==3:
         A = A[g.m.currentWindow.currentIndex]
@@ -289,7 +289,7 @@ def save_movie(filename, rate):
         exporter = pg.exporters.ImageExporter.ImageExporter(g.m.currentWindow.imageview.view)
         
     nFrames=len(A)
-    tmpdir=os.path.join(os.path.dirname(g.m.settings.config_file),'tmp')
+    tmpdir=os.path.join(os.path.dirname(g.settings.config_file),'tmp')
     if os.path.isdir(tmpdir):
         shutil.rmtree(tmpdir)
     os.mkdir(tmpdir)
@@ -323,7 +323,7 @@ def load_metadata(filename=None):
     The .txt is a file which includes database connection information'''
     meta=dict()
     if filename is None:
-        filename=os.path.splitext(g.m.settings['filename'])[0]+'.txt'
+        filename=os.path.splitext(g.settings['filename'])[0]+'.txt'
     BOM = codecs.BOM_UTF8.decode('utf8')
     if not os.path.isfile(filename):
         print("'"+filename+"' is not a file.")
@@ -344,7 +344,7 @@ def load_metadata(filename=None):
     return meta
     
 def save_metadata(meta):
-    filename=os.path.splitext(g.m.settings['filename'])[0]+'.txt'
+    filename=os.path.splitext(g.settings['filename'])[0]+'.txt'
     f=open(filename, 'w')
     text=''
     for item in meta.items():

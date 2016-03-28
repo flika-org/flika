@@ -25,8 +25,8 @@ class TraceFig(QWidget):
         g.m.traceWindows.append(self)
         self.setCurrentTraceWindow()
         #roi.translated.connect(lambda: self.translated(roi))
-        if 'tracefig_settings' in g.m.settings.d.keys() and 'coords' in g.m.settings['tracefig_settings']:
-            self.setGeometry(QRect(*g.m.settings['tracefig_settings']['coords']))
+        if 'tracefig_settings' in g.settings.d.keys() and 'coords' in g.settings['tracefig_settings']:
+            self.setGeometry(QRect(*g.settings['tracefig_settings']['coords']))
         self.setWindowTitle('Flika')
         self.setWindowIcon(QIcon('images/favicon.png'))
         #self.label = pg.LabelItem(justify='right')
@@ -68,18 +68,18 @@ class TraceFig(QWidget):
         self.resizeEvent = self.onResize
         self.moveEvent = self.onMove
         
-        if 'tracefig_settings' not in g.m.settings.d.keys():
-            g.m.settings['tracefig_settings']=dict()
+        if 'tracefig_settings' not in g.settings.d.keys():
+            g.settings['tracefig_settings']=dict()
             try:
-                g.m.settings['tracefig_settings']['coords']=self.geometry().getRect()
+                g.settings['tracefig_settings']['coords']=self.geometry().getRect()
             except Exception as e:
                 print(e)        
         self.show()
         
     def onResize(self,event):
-        g.m.settings['tracefig_settings']['coords']=self.geometry().getRect()
+        g.settings['tracefig_settings']['coords']=self.geometry().getRect()
     def onMove(self,event):
-        g.m.settings['tracefig_settings']['coords']=self.geometry().getRect()
+        g.settings['tracefig_settings']['coords']=self.geometry().getRect()
         
     def setCurrentTraceWindow(self):
         if g.m.currentTrace is not None:
@@ -201,7 +201,7 @@ class TraceFig(QWidget):
     def hasROI(self,roi):
         return roi in [r['roi'] for r in self.rois] #return True if roi is plotted
     def export_gui(self):
-        filename=g.m.settings['filename']
+        filename=g.settings['filename']
         directory=os.path.dirname(filename)
         if filename is not None:
             filename= QFileDialog.getSaveFileName(g.m, 'Save Traces', directory, '*.txt')

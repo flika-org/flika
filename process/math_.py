@@ -15,6 +15,26 @@ from PyQt4.QtCore import *
 
 __all__ = ['subtract','multiply','power','ratio','absolute_value','subtract_trace','divide_trace']
 
+def upgrade_dtype(dtype):
+    if dtype==np.uint8:
+        return np.uint16
+    elif dtype==np.uint16:
+        return np.uint32
+    elif dtype==np.uint32:
+        return np.uint64
+    elif dtype==np.uint64:
+        return np.int8
+    elif dtype==np.int8:
+        return np.int16
+    elif dtype==np.int16:
+        return np.int32
+    elif dtype==np.int32:
+        return np.int64
+    elif dtype==np.float16:
+        return np.float32
+    elif dtype==np.float32:
+        return np.float64
+
 class Subtract(BaseProcess):
     """ subtract(value, keepSourceWindow=False)
     This takes a value and subtracts it from the current window's image.
@@ -38,7 +58,15 @@ class Subtract(BaseProcess):
         super().gui()
     def __call__(self,value,keepSourceWindow=False):
         self.start(keepSourceWindow)
-        self.newtif=self.tif-value
+        if hasattr(value,'is_integer') and value.is_integer():
+            value=int(value)
+        if np.issubdtype(self.tif.dtype,np.integer):
+            ddtype=np.iinfo(self.tif.dtype)
+            while np.min(self.tif)-value<ddtype.min or np.max(self.tif)-value>ddtype.max: # if we exceed the bounds of the datatype
+                ddtype=np.iinfo(upgrade_dtype(ddtype.dtype))
+            self.newtif=self.tif.astype(ddtype.dtype)-value
+        else:
+            self.newtif=self.tif-value
         self.newname=self.oldname+' - Subtracted '+str(value)
         return self.end()
     def preview(self):
@@ -213,7 +241,7 @@ class Ratio(BaseProcess):
             baseline=self.tif[first_frame:first_frame+nFrames].std(0)
             baseline[baseline==0]=np.min(np.abs(baseline[baseline!=0]))
         self.newtif=self.tif/baseline
-        self.newtif=self.newtif.astype(g.m.settings['internal_data_type'])
+        self.newtif=self.newtif.astype(g.settings['internal_data_type'])
         self.newname=self.oldname+' - Ratioed by '+str(ratio_type)
         return self.end()
 ratio=Ratio()

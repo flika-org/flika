@@ -120,10 +120,10 @@ class Butterworth_filter(BaseProcess):
         if low==0 and high==1:
             return
         self.start(keepSourceWindow)
-        if g.m.settings['multiprocessing']:
+        if g.settings['multiprocessing']:
             self.newtif=butterworth_filter_multi(filter_order,low,high,g.m.currentWindow.image)
         else:
-            self.newtif=np.zeros(self.tif.shape, dtype=g.m.settings['internal_data_type'])
+            self.newtif=np.zeros(self.tif.shape,dtype=g.settings.d['internal_data_type'])
             mt,mx,my=self.tif.shape
             b,a,padlen=self.makeButterFilter(filter_order,low,high)
             for i in np.arange(mx):
@@ -169,7 +169,7 @@ butterworth_filter=Butterworth_filter()
 
         
 def butterworth_filter_multi(filter_order,low,high,tif):
-    nThreads= g.m.settings['nCores']
+    nThreads= g.settings['nCores']
     mt,mx,my=tif.shape
     block_ends=np.linspace(0,mx,nThreads+1).astype(np.int)
     data=[tif[:, block_ends[i]:block_ends[i+1],:] for i in np.arange(nThreads)] #split up data along x axis. each thread will get one.
@@ -178,7 +178,7 @@ def butterworth_filter_multi(filter_order,low,high,tif):
     if progress.results is None or any(r is None for r in progress.results):
         result=None
     else:
-        result=np.concatenate(progress.results,axis=1).astype(g.m.settings['internal_data_type'])
+        result=np.concatenate(progress.results,axis=1).astype(g.settings['internal_data_type'])
     return result
     
 
@@ -207,7 +207,7 @@ def butterworth_filter_multi_inner(q_results, q_progress, q_status, child_conn, 
     filter_order,low,high = args
     b,a,padlen=makeButterFilter(filter_order,low,high)
     mt,mx,my=data.shape
-    result=np.zeros(data.shape)
+    result=np.zeros(data.shape,g.settings['internal_data_type'])
     nPixels=mx*my
     pixel=0
     percent=0
@@ -668,7 +668,7 @@ class Bilateral_filter(BaseProcess):
     def __call__(self,soft, beta, width, stoptol, maxiter, keepSourceWindow=False):
         
         self.start(keepSourceWindow)
-        if g.m.settings['multiprocessing']:
+        if g.settings['multiprocessing']:
             self.newtif=bilateral_filter_multi(soft,beta,width,stoptol,maxiter,g.m.currentWindow.image)
         else:
             self.newtif=np.zeros(self.tif.shape)
@@ -698,7 +698,7 @@ class Bilateral_filter(BaseProcess):
         
 
 def bilateral_filter_multi(soft,beta,width,stoptol,maxiter,tif):
-    nThreads= g.m.settings['nCores']
+    nThreads= g.settings['nCores']
     mt,mx,my=tif.shape
     block_ends=np.linspace(0,mx,nThreads+1).astype(np.int)
     data=[tif[:, block_ends[i]:block_ends[i+1],:] for i in np.arange(nThreads)] #split up data along x axis. each thread will get one.

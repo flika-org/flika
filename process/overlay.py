@@ -37,8 +37,8 @@ class Time_Stamp(BaseProcess):
         framerate=QDoubleSpinBox()
         if hasattr(g.m.currentWindow,'framerate'):
             framerate.setValue(g.m.currentWindow.framerate)
-        elif 'framerate' in g.m.settings.d.keys():
-            framerate.setValue(g.m.settings['framerate'])
+        elif 'framerate' in g.settings.d.keys():
+            framerate.setValue(g.settings['framerate'])
         framerate.setRange(0,1000000)
         show=QCheckBox(); show.setChecked(True)
         self.items.append({'name':'framerate','string':'Frame Rate (Hz)','object':framerate})
@@ -48,7 +48,7 @@ class Time_Stamp(BaseProcess):
         w=g.m.currentWindow
         if show:
             w.framerate=framerate
-            g.m.settings['framerate']=framerate
+            g.settings['framerate']=framerate
             if hasattr(w,'timeStampLabel') and w.timeStampLabel is not None:
                 return
             w.timeStampLabel= pg.TextItem(html="<span style='font-size: 12pt;color:white;background-color:None;'>0 ms</span>")
