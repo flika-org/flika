@@ -22,9 +22,6 @@ class TraceFig(QWidget):
     name = "Trace Widget"
     def __init__(self):
         super(TraceFig,self).__init__()
-        
-                
-                
         g.m.traceWindows.append(self)
         self.setCurrentTraceWindow()
         #roi.translated.connect(lambda: self.translated(roi))
@@ -161,24 +158,21 @@ class TraceFig(QWidget):
             self.redrawPartialThread.finished.connect(loop.quit)
             loop.exec_()# This blocks until the "finished" signal is emitted
             
-        roi.getPoints()
         trace=roi.getTrace()
         self.update_trace_full(roi_index,trace)
 
 
     def update_trace_full(self,roi_index,trace):
-        pen=QPen(self.rois[roi_index]['roi'].color)
+        pen=QPen(self.rois[roi_index]['roi'].pen)
         self.rois[roi_index]['p1trace'].setData(trace,pen=pen)
         self.rois[roi_index]['p2trace'].setData(trace,pen=pen)
         self.finishedDrawingSignal.emit()
-
-        
         
     def addROI(self,roi):
         if self.hasROI(roi):
             return
         trace=roi.getTrace()
-        pen=QPen(roi.color)
+        pen=QPen(roi.pen)
         if len(trace)==1:
             p1trace=self.p1.plot(trace, pen=None, symbol='o')
             p2trace=self.p2.plot(trace, pen=None, symbol='o') 
@@ -186,8 +180,8 @@ class TraceFig(QWidget):
             p1trace=self.p1.plot(trace, pen=pen)
             p2trace=self.p2.plot(trace, pen=pen) 
         
-        roi.translated.connect(lambda: self.translated(roi))
-        roi.translate_done.connect(lambda: self.translate_done(roi))
+        roi.sigRegionChanged.connect(lambda: self.translated(roi))
+        roi.sigRegionChangeFinished.connect(lambda: self.translate_done(roi))
         #proxy= pg.SignalProxy(roi.translated,rateLimit=60, slot=self.redrawROIs)
         if len(self.rois)==0:
             self.region.setRegion([0, len(trace)-1])
@@ -198,8 +192,8 @@ class TraceFig(QWidget):
         index=[r['roi'] for r in self.rois].index(roi) #this is the index of the roi in self.rois
         self.p1.removeItem(self.rois[index]['p1trace'])
         self.p2.removeItem(self.rois[index]['p2trace'])
-        self.rois[index]['roi'].translated.disconnect()
-        self.rois[index]['roi'].translate_done.disconnect()
+        self.rois[index]['roi'].sigRegionChanged.disconnect()
+        self.rois[index]['roi'].sigRegionChangeFinished.disconnect()
         del self.rois[index]
         if len(self.rois)==0:
             self.close()
@@ -234,9 +228,15 @@ class TraceFig(QWidget):
         g.m.statusBar().showMessage('Successfully saved {}'.format(os.path.basename(filename)))
         
 def roiPlot(roi):
+    '''
+    returns tracefig that is used to plot roi
+    '''
     if g.m.settings['multipleTraceWindows'] or g.m.currentTrace is None:
-        TraceFig()
-    g.m.currentTrace.addROI(roi)
+        win = TraceFig()
+    else:
+        win = g.m.currentTrace
+    win.addROI(roi)
+    return win
     
 class RedrawPartialThread(QThread):
     finished=Signal() #this announces that the thread has finished
@@ -259,7 +259,6 @@ class RedrawPartialThread(QThread):
         self.quit_loop=True
         
     def redraw(self):
-        
         if self.redrawCompleted is False:
             self.alert.emit("Redraw hasn't finished")
             pass
@@ -279,7 +278,7 @@ class RedrawPartialThread(QThread):
                 traces.append(trace)
             for i, roi_index in enumerate(idxs):
                 trace=traces[i] #This function can sometimes take a long time.  
-                pen=QPen(self.tracefig.rois[roi_index]['roi'].color)
+                pen=QPen(self.tracefig.rois[roi_index]['roi'].pen)
                 bb=self.tracefig.getBounds()
                 curve=self.tracefig.rois[roi_index]['p1trace']
                 newtrace=curve.getData()[1]

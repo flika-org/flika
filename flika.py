@@ -66,8 +66,10 @@ def initializeMainGui():
 
     g.m.freehand.clicked.connect(lambda: g.m.settings.setmousemode('freehand'))
     g.m.line.clicked.connect(lambda: g.m.settings.setmousemode('line'))
+    g.m.rect_line.clicked.connect(lambda: g.m.settings.setmousemode('rect_line'))
     g.m.rectangle.clicked.connect(lambda: g.m.settings.setmousemode('rectangle'))
     g.m.point.clicked.connect(lambda: g.m.settings.setmousemode('point'))
+
     
     g.m.point.setContextMenuPolicy(Qt.CustomContextMenu)
     g.m.point.customContextMenuRequested.connect(g.pointSettings)
@@ -145,6 +147,7 @@ class MainWindowEventEater(QObject):
         return False # lets the event continue to the edit
 mainWindowEventEater = MainWindowEventEater()
 
+
 if __name__ == '__main__':
     
     initializeMainGui()
@@ -154,6 +157,12 @@ if __name__ == '__main__':
     args=[arg for arg in args[1:] if 'FLIKA.PY' not in arg.upper()]
     if len(args)>0:
         open_file(args[0])
+    
+    w = open_file()
+
     insideSpyder='SPYDER_SHELL_ID' in os.environ
     if not insideSpyder: #if we are running outside of Spyder
-        sys.exit(g.app.exec_()) #This is required to run outside of Spyder
+        try:
+            sys.exit(g.app.exec_()) #This is required to run outside of Spyder
+        except Exception as e:
+            print(e)

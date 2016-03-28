@@ -21,7 +21,6 @@ from roi import *
 class Window(QWidget):
     closeSignal=Signal()
     keyPressSignal=Signal(QEvent)
-    deleteButtonSignal=Signal()
     sigTimeChanged=Signal(int)
     def __init__(self,tif,name='Flika',filename='',commands=[],metadata=dict()):
         QWidget.__init__(self)
@@ -179,13 +178,13 @@ class Window(QWidget):
             self.imageview.setImage(np.zeros((2,2))) #clear the memory
             #self.imageview.close()
             del self.imageview
-            g.m.setWindowTitle("FLIKA")
             if g.m.currentWindow==self:
                 g.m.currentWindow=None
             if self in g.m.windows:
                 g.m.windows.remove(self)
             self.closed=True
             event.accept() # let the window close
+
             
     def resizeEvent(self, event):
         event.accept()
@@ -227,32 +226,26 @@ class Window(QWidget):
         self.EEEE=ev
         if self.x is not None and self.y is not None and ev.button()==2:
             if self.creatingROI is False:
-                if self.currentROI is not None and self.currentROI.contains(self.x,self.y):
-                    self.currentROI.contextMenuEvent(ev)
-                    self.x=None
-                    self.y=None
-                else:
-                    mm=g.m.settings['mousemode']
-                    if mm=='point':
-                        t=self.currentIndex
-                        position=[self.x,self.y]
-                        self.scatterPoints[t].append(position)
-                        pointSize=g.m.settings['point_size']
-                        pointColor = QColor(g.m.settings['point_color'])
-                        self.scatterPlot.addPoints(pos=[[self.x,self.y]], size=pointSize, brush=pg.mkBrush(*pointColor.getRgb()))
+                mm=g.m.settings['mousemode']
+                if mm=='point':
+                    t=self.currentIndex
+                    position=[self.x,self.y]
+                    self.scatterPoints[t].append(position)
+                    pointSize=g.m.settings['point_size']
+                    pointColor = QColor(g.m.settings['point_color'])
+                    self.scatterPlot.addPoints(pos=[[self.x,self.y]], size=pointSize, brush=pg.mkBrush(*pointColor.getRgb()))
+                    
+                            
+                elif g.m.clipboard is not None:
+                    self.menu = QMenu(self)
+                    self.menu.addAction(self.pasteAct)
+                    self.menu.exec_(ev.screenPos().toQPoint())
                         
-                                
-                    elif g.m.clipboard is not None:
-                        self.menu = QMenu(self)
-                        self.menu.addAction(self.pasteAct)
-                        self.menu.exec_(ev.screenPos().toQPoint())
-                        
-
     
     def keyPressEvent(self,ev):
         if ev.key() == Qt.Key_Delete:
             if self.currentROI is not None:
-                self.deleteButtonSignal.emit()
+                self.currentROI.delete()
         self.keyPressSignal.emit(ev)
         
     def mouseMoved(self,point):
@@ -267,11 +260,7 @@ class Window(QWidget):
             z=self.imageview.currentIndex
             value=image[int(self.x),int(self.y)]
             g.m.statusBar().showMessage('x={}, y={}, z={}, value={}'.format(int(self.x),int(self.y),z,value))
-        for roi in self.rois:
-            roi.mouseOver(self.x,self.y)
-            if self.creatingROI is False:
-                if roi.contains(self.x,self.y):
-                    self.currentROI=roi
+        
 
     def mouseDragEvent(self, ev):
         modifiers = QApplication.keyboardModifiers()
@@ -284,29 +273,19 @@ class Window(QWidget):
         if ev.button() == Qt.RightButton:
             ev.accept()
             mm=g.m.settings['mousemode']
-            if mm=='freehand' or mm=='line' or mm=='rectangle':
+            if mm in ('freehand', 'line', 'rectangle', 'rect_line'):
                 if ev.isStart():
                     self.ev=ev
                     pt=self.imageview.getImageItem().mapFromScene(ev.buttonDownScenePos())
                     self.x=pt.x() # this sets x and y to the button down position, not the current position
                     self.y=pt.y()
                     #print("Drag start x={},y={}".format(self.x,self.y))
-                    for roi in self.rois:
-                        roi.mouseOver(self.x,self.y)
-                    if any([r.mouseIsOver for r in self.rois]): #if any roi is moused over
-                        self.currentROIs=[r for r in self.rois if r.mouseIsOver]
-                        self.creatingROI=False
-                    else:
-                        self.creatingROI=True
-                        if g.m.settings['mousemode']=='freehand':
-                            self.currentROI=ROI(self,self.x,self.y)
-                        if g.m.settings['mousemode']=='line':
-                            self.currentROI=ROI_line(self,self.x,self.y)
-                        if g.m.settings['mousemode']=='rectangle':
-                            self.currentROI=ROI_rectangle(self,self.x,self.y)
+                    self.creatingROI=True
+
+                    self.currentROI=ROI_Drawing(self,self.x,self.y, mm)
                 if ev.isFinish():
                     if self.creatingROI:
-                        self.currentROI.drawFinished()
+                        r = self.currentROI.drawFinished()
                         self.creatingROI=False
                     else: 
                         for r in self.currentROIs:
