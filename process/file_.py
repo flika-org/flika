@@ -129,7 +129,11 @@ def open_file(filename=None):
     metadata=dict()
     ext=os.path.splitext(filename)[1]
     if ext in ['.tif', '.stk', '.tiff']:
-        Tiff=tifffile.TiffFile(filename)
+        try:
+            Tiff=tifffile.TiffFile(filename)
+        except Exception as s:
+            g.m.statusBar().showMessage("Unable to open %s. %s" % (filename, s))
+            return None
         try:
             metadata=Tiff[0].image_description
             metadata = txt2dict(metadata)
