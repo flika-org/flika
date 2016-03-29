@@ -263,7 +263,6 @@ class ROI_Line(ROI_Wrapper, pg.LineSegmentROI):
         oldwindow=g.m.currentWindow
         name=oldwindow.name+' - Kymograph'
         self.kymograph=Window(mn,name,metadata=self.window.metadata)
-        self.kymograph.imageview.
         #self.kymographproxy = pg.SignalProxy(self.sigRegionChanged, rateLimit=3, slot=self.update_kymograph) #This will only update 3 Hz
         self.sigRegionChanged.connect(self.update_kymograph)
         self.kymograph.closeSignal.connect(self.deleteKymograph)
@@ -293,7 +292,8 @@ class ROI_Rect_Line(ROI_Wrapper, pg.MultiRectROI):
 
     def drawFinished(self):
         ROI_Wrapper.drawFinished(self)
-        self.lines[0].handles[2]['item'].setVisible(False)
+        self.lines[0].removeHandle(2)
+        #self.lines[0].handles[2]['item'].setVisible(False)
 
     def hoverEvent(self, l, ev):
         self.currentLine = l
