@@ -12,6 +12,7 @@ from skimage.draw import polygon, line
 import numpy as np
 from trace import roiPlot
 import os
+import threading
 
 ROI_COLOR = QColor(255, 255, 255)
 
@@ -98,7 +99,7 @@ class ROI_Wrapper():
         self.colorDialog=QColorDialog()
         self.colorDialog.colorSelected.connect(self.colorSelected)
         self.window.closeSignal.connect(self.delete)
-        ##self.sigRegionChanged.connect(self.getMask) # SLOWS
+        self.sigRegionChanged.connect(self.getMask)
         self.traceWindow = None
         self.mask=None
         self.linkedROIs = set()
@@ -275,6 +276,7 @@ class ROI_Rect_Line(ROI_Wrapper, pg.MultiRectROI):
         self.extendHandle = None
         w, h = self.lines[-1].size()
         self.lines[-1].scale([1.0, width/5.0], center=[0.5,0.5])
+        self.width = width
         self.currentLine = None
 
     def hoverEvent(self, l, ev):
@@ -294,13 +296,19 @@ class ROI_Rect_Line(ROI_Wrapper, pg.MultiRectROI):
         for i in range(len(self.lines)-1, ind-1, -1):
             self.removeSegment(i)
 
-
     def getMenu(self):
         ROI_Wrapper.getMenu(self)
         removeLinkAction = QAction('Remove Link', self, triggered=self.removeLink)
+        setWidthAction = QAction("Set Width", self, triggered=self.setWidth)
         self.menu.addAction(removeLinkAction)
+        self.menu.addAction(setWidthAction)
         self.menu.removeAction(self.copyAct)
         self.menu.addAction(self.kymographAct)
+
+    def setWidth(self):
+        newWidth = QInputDialog.getInt(None, "Enter a width value", 'Float Value')
+        print(newWidth)
+        self.lines[0].scale([1.0, newWidth/self.width], center=[0.5,0.5])
 
     def setPen(self, pen):
         self.pen = pen
@@ -341,32 +349,40 @@ class ROI_Rect_Line(ROI_Wrapper, pg.MultiRectROI):
         self.lines[-1].hoverEvent = lambda ev: self.hoverEvent(l, ev)
 
     def getMask(self):
-        if self.lines[0].handles[1]['item'].pos()[1] <= 1:
-            xx = []
-            yy = []
-            for l in self.lines:
-                pts=[self.window.imageview.getImageItem().mapFromScene(l.getSceneHandlePositions(i)[1]) for i in range(2)]
-                x=np.array([p.x() for p in pts], dtype=int)
-                y=np.array([p.y() for p in pts], dtype=int)
-                xs,ys=line(x[0],y[0],x[1],y[1])
-                xx.append(xs)
-                yy.append(ys)
-            xx = np.concatenate(xx)
-            yy = np.concatenate(yy)
+        def threadMask():
+            if self.lines[0].handles[1]['item'].pos()[1] <= 1:
+                xx = []
+                yy = []
+                for l in self.lines:
+                    pts=[self.window.imageview.getImageItem().mapFromScene(l.getSceneHandlePositions(i)[1]) for i in range(2)]
+                    x=np.array([p.x() for p in pts], dtype=int)
+                    y=np.array([p.y() for p in pts], dtype=int)
+                    xs,ys=line(x[0],y[0],x[1],y[1])
+                    xx.append(xs)
+                    yy.append(ys)
+                xx = np.concatenate(xx)
+                yy = np.concatenate(yy)
 
-        else:
-            vals, coords = self.getArrayRegion(self.window.image, self.window.imageview.getImageItem(), axes=(1, 2), returnMappedCoords=True)
-            # vals includes outside coordinates. Recalculate
-            xx, yy = coords.T.astype(int)
-        
-        w, h = np.shape(self.window.image[0])
-        rect = QRect(0, 0 ,w, h)
-        ids = np.where([rect.contains(xx[i], yy[i]) for i in range(len(xx))])
-        xx = xx[ids]
-        yy = yy[ids]
+            else:
+                vals, coords = self.getArrayRegion(self.window.image, self.window.imageview.getImageItem(), axes=(1, 2), returnMappedCoords=True)
+                # vals includes outside coordinates. Recalculate
+                xx, yy = coords.T.astype(int)
+            
+            w, h = np.shape(self.window.image[0])
+            rect = QRect(0, 0 ,w, h)
+            ids = np.where([rect.contains(xx[i], yy[i]) for i in range(len(xx))])
+            xx = xx[ids]
+            yy = yy[ids]
 
-        self.mask = np.transpose([xx, yy])
-        self.minn = np.min(self.mask, 0)
+            self.mask = np.transpose([xx, yy])
+            self.minn = np.min(self.mask, 0)
+
+        t = threading.Thread(None, threadMask)
+        t.start()
+        xx, yy = np.transpose(self.mask)
+        img = np.zeros(self.window.imageDimensions())
+        img[xx, yy] = 1
+        self.window.imageview.setImage(img)
 
     def getTrace(self, bounds=None, pts=None):
         #self.getMask()
@@ -520,6 +536,7 @@ class ROI_Rect(ROI_Wrapper, pg.ROI):
         mask[x:x+w, y:y+h] = True
         self.mask=np.array(np.where(mask)).T
         self.minn = np.min(self.mask, 0)
+        self.window.imageview.setImage(mask)
 
 class ROI_Polygon(ROI_Wrapper, pg.ROI):
     kind = 'freehand'
@@ -568,11 +585,11 @@ class ROI_Polygon(ROI_Wrapper, pg.ROI):
         self.minn = self.state['pos'] + np.min(self.pts, 0)
         self.mask = np.array([p for p in np.transpose([xx, yy]) + self.minn if rect.contains(p[0], p[1])], dtype=int)
 
-        #img = np.zeros(self.window.imageDimensions())
-        #if len(self.mask) > 0:
-        #    xx, yy = self.mask.T.astype(int)
-        #    img[xx, yy] = 1
-        #self.window.imageview.setImage(img)
+        img = np.zeros(self.window.imageDimensions())
+        if len(self.mask) > 0:
+           xx, yy = self.mask.T.astype(int)
+           img[xx, yy] = 1
+        self.window.imageview.setImage(img)
 
     def getTrace(self,bounds=None,pts=None):
         ''' bounds are two points in time.  If bounds is not None, we only calculate values between the bounds '''
