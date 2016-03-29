@@ -330,7 +330,7 @@ class Window(QWidget):
                     self.currentROI=ROI_Drawing(self,self.x,self.y, mm)
                 if ev.isFinish():
                     if self.creatingROI:
-                        r = self.currentROI.drawFinished()
+                        self.currentROI = self.currentROI.drawFinished()
                         self.creatingROI=False
                     else: 
                         for r in self.currentROIs:

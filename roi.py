@@ -25,6 +25,7 @@ class ROI_Drawing(pg.GraphicsObject):
         self.window = window
         self.pts = [pg.Point(int(x), int(y))]
         if self.extendRectLine():
+            window.imageview.removeItem(self)
             return
         self.type = type
         self.state = {'pos': pg.Point(x, y), 'size': pg.Point(0, 0)}
@@ -185,7 +186,7 @@ class ROI_Wrapper():
     def drawFinished(self):
         self.window.imageview.addItem(self)
         self.window.rois.append(self)
-        self.window.currentROI = None
+        self.window.currentROI = self
         self.getMask()
 
     def getMask(self):
@@ -285,10 +286,11 @@ class ROI_Rect_Line(ROI_Wrapper, pg.MultiRectROI):
         self.kymograph = None
         self.extending = False
         self.extendHandle = None
-        w, h = self.lines[-1].size()
+        w, h = self.lines[0].size()
         self.lines[0].scale([1.0, width/5.0], center=[0.5,0.5])
         self.width = width
         self.currentLine = None
+
 
     def drawFinished(self):
         ROI_Wrapper.drawFinished(self)
@@ -405,6 +407,24 @@ class ROI_Rect_Line(ROI_Wrapper, pg.MultiRectROI):
     def getTrace(self, bounds=None, pts=None):
         xx, yy = self.mask.T
         vals = self.window.image[:, xx, yy]
+
+        # lines = []
+        # for l in self.lines:
+        #     dX, dY = round(np.sin(np.radians(l.angle()+90))), round(np.cos(np.radians(l.angle()+90)))
+        #     p1, p2=[self.window.imageview.getImageItem().mapFromScene(l.getSceneHandlePositions(i)[1]).toPoint() for i in range(2)]
+        #     pts = np.round([p1.x(), p1.y(), p2.x(), p2.y()]).astype(int)
+        #     for i in range(-self.width//2, self.width//2+1):
+        #         dP = np.array([dX, dY, dX, dY], dtype=int) * i
+        #         ps = np.transpose(line(*(pts + dP)))
+        #         lines.append(ps)
+
+        #img = np.zeros_like(g.m.currentWindow.imageview.image)
+        #for i, l in enumerate(lines):
+        #    img[:, l.T[0], l.T[1]] = 5 * i
+        #from window import Window
+        #Window(img)
+
+        print(np.average(lines, 0))
 
         if len(vals) == 0:
             return np.zeros(len(self.window.image))
