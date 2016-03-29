@@ -99,7 +99,8 @@ class ROI_Wrapper():
         self.colorDialog=QColorDialog()
         self.colorDialog.colorSelected.connect(self.colorSelected)
         self.window.closeSignal.connect(self.delete)
-        self.sigRegionChanged.connect(self.getMask)
+        self.maskProxy = pg.SignalProxy(self.sigRegionChanged, rateLimit=3, slot=self.getMask) #This will only update 3 Hz
+        #self.sigRegionChanged.connect(self.getMask)
         self.traceWindow = None
         self.mask=None
         self.linkedROIs = set()
@@ -265,14 +266,14 @@ class ROI_Line(ROI_Wrapper, pg.LineSegmentROI):
 class ROI_Rect_Line(ROI_Wrapper, pg.MultiRectROI):
     kind = 'rect_line'
     plotSignal = Signal()
-    def __init__(self, window, pts, width=.5, *args, **kargs):
+    def __init__(self, window, pts, width=1, *args, **kargs):
         self.window = window
         self.width = width
         pg.MultiRectROI.__init__(self, pts, width, *args, **kargs)
         self.kymographAct = QAction("&Kymograph", self, triggered=self.update_kymograph)
         ROI_Wrapper.__init__(self)
-        self.sigRegionChanged.disconnect(self.getMask) #speed up
-        self.sigRegionChangeFinished.connect(self.getMask)
+        #self.sigRegionChanged.disconnect(self.getMask) #speed up
+        #self.sigRegionChangeFinished.connect(self.getMask)
         self.kymograph = None
         self.extending = False
         self.extendHandle = None
@@ -308,9 +309,10 @@ class ROI_Rect_Line(ROI_Wrapper, pg.MultiRectROI):
         self.menu.addAction(self.kymographAct)
 
     def setWidth(self):
-        newWidth = QInputDialog.getInt(None, "Enter a width value", 'Float Value')
-        print(newWidth)
+        newWidth, s = QInputDialog.getInt(None, "Enter a width value", 'Float Value', value = self.width)
+        print(s)
         self.lines[0].scale([1.0, newWidth/self.width], center=[0.5,0.5])
+        self.width = newWidth
 
     def setPen(self, pen):
         self.pen = pen
@@ -351,36 +353,34 @@ class ROI_Rect_Line(ROI_Wrapper, pg.MultiRectROI):
         self.lines[-1].hoverEvent = lambda ev: self.hoverEvent(l, ev)
 
     def getMask(self):
-        def threadMask():
-            if self.lines[0].handles[1]['item'].pos()[1] <= 1:
-                xx = []
-                yy = []
-                for l in self.lines:
-                    pts=[self.window.imageview.getImageItem().mapFromScene(l.getSceneHandlePositions(i)[1]) for i in range(2)]
-                    x=np.array([p.x() for p in pts], dtype=int)
-                    y=np.array([p.y() for p in pts], dtype=int)
-                    xs,ys=line(x[0],y[0],x[1],y[1])
-                    xx.append(xs)
-                    yy.append(ys)
-                xx = np.concatenate(xx)
-                yy = np.concatenate(yy)
+        if self.lines[0].handles[1]['item'].pos()[1] <= 1:
+            xx = []
+            yy = []
+            for i, l in enumerate(self.lines):
+                pts=[l.getSceneHandlePositions(i)[1] for i in range(2)]
+                pts = [self.window.imageview.getImageItem().mapFromScene(p) for p in pts]
+                x=np.array([p.x() for p in pts], dtype=int)
+                y=np.array([p.y() for p in pts], dtype=int)
+                xs,ys=line(x[0],y[0],x[1],y[1])
+                xx.append(xs)
+                yy.append(ys)
+            xx = np.concatenate(xx)
+            yy = np.concatenate(yy)
 
-            else:
-                vals, coords = self.getArrayRegion(self.window.image, self.window.imageview.getImageItem(), axes=(1, 2), returnMappedCoords=True)
-                # vals includes outside coordinates. Recalculate
-                xx, yy = coords.T.astype(int)
-            
-            w, h = np.shape(self.window.image[0])
-            rect = QRect(0, 0 ,w, h)
-            ids = np.where([rect.contains(xx[i], yy[i]) for i in range(len(xx))])
-            xx = xx[ids]
-            yy = yy[ids]
+        else:
+            vals, coords = self.getArrayRegion(self.window.image, self.window.imageview.getImageItem(), axes=(1, 2), returnMappedCoords=True)
+            # vals includes outside coordinates. Recalculate
+            xx, yy = coords.T.astype(int)
+        
+        w, h = np.shape(self.window.image[0])
+        rect = QRect(0, 0 ,w, h)
+        ids = np.where([rect.contains(xx[i], yy[i]) for i in range(len(xx))])
+        xx = xx[ids]
+        yy = yy[ids]
 
-            self.mask = np.transpose([xx, yy])
-            self.minn = np.min(self.mask, 0)
+        self.mask = np.transpose([xx, yy])
+        self.minn = np.min(self.mask, 0)
 
-        t = threading.Thread(None, threadMask)
-        t.start()
         xx, yy = np.transpose(self.mask)
         img = np.zeros(self.window.imageDimensions())
         img[xx, yy] = 1
