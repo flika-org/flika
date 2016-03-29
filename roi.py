@@ -271,6 +271,8 @@ class ROI_Rect_Line(ROI_Wrapper, pg.MultiRectROI):
         pg.MultiRectROI.__init__(self, pts, width, *args, **kargs)
         self.kymographAct = QAction("&Kymograph", self, triggered=self.update_kymograph)
         ROI_Wrapper.__init__(self)
+        self.sigRegionChanged.disconnect(self.getMask) #speed up
+        self.sigRegionChangeFinished.connect(self.getMask)
         self.kymograph = None
         self.extending = False
         self.extendHandle = None
