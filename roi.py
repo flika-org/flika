@@ -317,14 +317,16 @@ class ROI_Rect_Line(ROI_Wrapper, pg.MultiRectROI):
     def getMenu(self):
         ROI_Wrapper.getMenu(self)
         removeLinkAction = QAction('Remove Link', self, triggered=self.removeLink)
-        setWidthAction = QAction("Set Width", self, triggered=self.setWidth)
+        setWidthAction = QAction("Set Width", self, triggered=lambda: self.setWidth())
         self.menu.addAction(removeLinkAction)
         self.menu.addAction(setWidthAction)
         self.menu.removeAction(self.copyAct)
         self.menu.addAction(self.kymographAct)
 
-    def setWidth(self):
-        newWidth, s = QInputDialog.getInt(None, "Enter a width value", 'Float Value', value = self.width)
+    def setWidth(self, newWidth=None):
+        s = True
+        if newWidth == None:
+            newWidth, s = QInputDialog.getInt(None, "Enter a width value", 'Float Value', value = self.width)
         if not s:
             return
         self.lines[0].scale([1.0, newWidth/self.width], center=[0.5,0.5])
@@ -407,25 +409,6 @@ class ROI_Rect_Line(ROI_Wrapper, pg.MultiRectROI):
     def getTrace(self, bounds=None, pts=None):
         xx, yy = self.mask.T
         vals = self.window.image[:, xx, yy]
-
-        # lines = []
-        # for l in self.lines:
-        #     dX, dY = round(np.cos(np.radians(l.angle()+90))), round(np.sin(np.radians(l.angle()+90)))
-        #     p1, p2=[self.window.imageview.getImageItem().mapFromScene(l.getSceneHandlePositions(i)[1]).toPoint() for i in range(2)]
-        #     pts = np.round([p1.x(), p1.y(), p2.x(), p2.y()]).astype(int)
-        #     for i in range(-self.width//2, self.width//2+1):
-        #         dP = np.array([dX, dY, dX, dY], dtype=int) * i
-        #         ps = np.transpose(line(*(pts + dP)))
-        #         lines.append(ps)
-
-        # img = np.zeros_like(self.window.imageview.image)
-        # vals = []
-        # for i, l in enumerate(lines):
-        #     vals.append(self.window.imageview.image[:, l.T[0], l.T[1]])
-        #     img[:, l.T[0], l.T[1]] = 5 * i
-        # self.window.imageview.setImage(img)
-        # print(np.shape(vals))
-        # print(np.average(vals, 0))
 
         if len(vals) == 0:
             return np.zeros(len(self.window.image))
