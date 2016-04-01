@@ -180,8 +180,8 @@ class TraceFig(QWidget):
             p1trace=self.p1.plot(trace, pen=pen)
             p2trace=self.p2.plot(trace, pen=pen) 
         
-        roi.sigRegionChanged.connect(lambda: self.translated(roi))
-        roi.sigRegionChangeFinished.connect(lambda: self.translate_done(roi))
+        roi.translated.connect(lambda: self.translated(roi))
+        roi.translateFinished.connect(lambda: self.translate_done(roi))
         #proxy= pg.SignalProxy(roi.translated,rateLimit=60, slot=self.redrawROIs)
         if len(self.rois)==0:
             self.region.setRegion([0, len(trace)-1])
@@ -192,8 +192,8 @@ class TraceFig(QWidget):
         index=[r['roi'] for r in self.rois].index(roi) #this is the index of the roi in self.rois
         self.p1.removeItem(self.rois[index]['p1trace'])
         self.p2.removeItem(self.rois[index]['p2trace'])
-        self.rois[index]['roi'].sigRegionChanged.disconnect()
-        self.rois[index]['roi'].sigRegionChangeFinished.disconnect()
+        self.rois[index]['roi'].translated.disconnect()
+        self.rois[index]['roi'].translateFinished.disconnect()
         del self.rois[index]
         if len(self.rois)==0:
             self.close()

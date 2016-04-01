@@ -14,7 +14,7 @@ from trace import roiPlot
 import os
 import threading
 
-SHOW_MASK = False
+SHOW_MASK = True
 
 ROI_COLOR = QColor(255, 255, 255)
 
@@ -95,6 +95,7 @@ class ROI_Drawing(pg.GraphicsObject):
 
 class ROI_Wrapper():
     init_args = {'removable': True, 'translateSnap': True, 'pen':ROI_COLOR}
+    moved = []
     def __init__(self):
         self.getMenu()
         self.colorDialog=QColorDialog()
@@ -104,20 +105,18 @@ class ROI_Wrapper():
         self.mask=None
         self.linkedROIs = set()
         self.sigRegionChanged.connect(self.onRegionChange)
+        self.sigRegionChangeFinished.connect(self.translateFinished.emit)
+        self.translateFinished.connect(lambda : setattr(ROI_Wrapper, 'moved', []))
 
     def onRegionChange(self):
         self.getMask()
-        to_move = self.linkedROIs.copy()
-        rois = self.linkedROIs.copy()
-        while rois:
-            roi = rois.pop()
-            to_move = to_move | roi.linkedROIs
-            rois = rois | (roi.linkedROIs - to_move) - {self}
-
-        for roi in to_move:
-            roi.sigRegionChanged.disconnect(roi.onRegionChange)
-            roi.setPoints(self.pts)  
-            roi.sigRegionChanged.connect(roi.onRegionChange)
+        ROI_Wrapper.moved.append(self)
+        for roi in self.linkedROIs:
+            if roi not in ROI_Wrapper.moved:
+                roi.setPoints(self.pts)
+        if len(ROI_Wrapper.moved) > 0 and self == ROI_Wrapper.moved[0]:
+            ROI_Wrapper.moved = []
+        self.translated.emit()
 
     def plot(self):
         self.plotAct.setText("Unplot")
@@ -131,7 +130,7 @@ class ROI_Wrapper():
     def colorSelected(self, color):
         if color.isValid():
             self.setPen(QColor(color.name()))
-            self.sigRegionChangeFinished.emit(self)
+            self.translateFinished.emit()
 
     def save_gui(self):
         filename=g.settings['filename'].split('.')[0]
@@ -203,11 +202,25 @@ class ROI_Wrapper():
         self.window.currentROI = self
         self.getMask()
 
-    def getMask(self):
-        raise NotImplementedError(None)
-
-    def getTrace(self):
-        raise NotImplementedError(None)
+    def getTrace(self, bounds=None, pts=None):
+        tif = self.window.imageArray()
+        t, w, h = np.shape(tif)
+        pts_in = [[x, y] for x, y in self.mask if x >= 0 and y >= 0 and x < w and y < h]
+        if len(pts_in) == 0:
+            vals = np.zeros(t)
+        else:
+            xx, yy = np.transpose(pts_in)
+            self.minn = np.min(self.mask, 0)
+            vals = np.average(tif[:, xx, yy], 1)
+            
+            if SHOW_MASK:
+                img = np.zeros((w, h))
+                img[xx, yy] = 1
+                self.window.imageview.setImage(img, autoRange=False)
+        
+        if bounds:
+            vals = vals[bounds[0]:bounds[1]]
+        return vals
 
     def __repr__(self):
         s = self.kind + '\n'
@@ -218,6 +231,8 @@ class ROI_Wrapper():
 class ROI_Line(ROI_Wrapper, pg.LineSegmentROI):
     kind = 'line'
     plotSignal = Signal()
+    translated = Signal()
+    translateFinished = Signal()
     def __init__(self, window, pos, *args, **kargs):
         self.init_args.update(kargs)
         self.window = window
@@ -236,33 +251,13 @@ class ROI_Line(ROI_Wrapper, pg.LineSegmentROI):
         x=np.array([p[0] for p in self.pts], dtype=int)
         y=np.array([p[1] for p in self.pts], dtype=int)
         xx,yy=line(x[0],y[0],x[1],y[1])
-        
-        #exclude points outside bounds
-        w, h = np.shape(self.window.image[0])
-        rect = QRect(0, 0 ,w, h)
-        ids = np.where([rect.contains(x, y) for x, y in zip(xx, yy)])
-        self.mask = np.array([pg.Point(p) for p in np.transpose([xx[ids], yy[ids]])], dtype=int)
-        if len(self.mask) > 0:
-            self.minn = np.min(self.mask, 0)
-
-    def getTrace(self, bounds=None, pts=None):
-        if pts == None:
-            pts = self.mask
-        if len(pts) == 0:
-            vals = np.zeros(len(self.window.image))
-        else:
-            xx, yy = pts.T
-            vals = self.window.image[:, xx, yy]
-            vals = np.average(vals, np.arange(np.ndim(vals)-1, 0, -1))
-        
-        if bounds:
-            vals = vals[bounds[0]:bounds[1]]
-
-        return vals
+        self.mask = np.transpose([xx, yy])
+        self.minn = np.min(self.mask)
 
     def setPoints(self, pts):
-        self.movePoint(self.handles[0]['item'], pts[0])
-        self.movePoint(self.handles[1]['item'], pts[1])
+        self.movePoint(self.handles[0]['item'], pts[0], finish=False)
+        self.movePoint(self.handles[1]['item'], pts[1], finish=False)
+        self.translateFinished.emit(True)
 
     def update_kymograph(self):
         tif=self.window.image
@@ -285,8 +280,7 @@ class ROI_Line(ROI_Wrapper, pg.LineSegmentROI):
         oldwindow=g.m.currentWindow
         name=oldwindow.name+' - Kymograph'
         self.kymograph=Window(mn,name,metadata=self.window.metadata)
-        #self.kymographproxy = pg.SignalProxy(self.sigRegionChanged, rateLimit=3, slot=self.update_kymograph) #This will only update 3 Hz
-        self.sigRegionChanged.connect(self.update_kymograph)
+        self.translateChanged.connect(self.update_kymograph)
         self.kymograph.closeSignal.connect(self.deleteKymograph)
 
     def deleteKymograph(self):
@@ -297,6 +291,8 @@ class ROI_Line(ROI_Wrapper, pg.LineSegmentROI):
 class ROI_Rect_Line(ROI_Wrapper, pg.MultiRectROI):
     kind = 'rect_line'
     plotSignal = Signal()
+    translated = Signal()
+    translateFinished = Signal()
     def __init__(self, window, pts, width=1, *args, **kargs):
         self.init_args.update(kargs)
         self.window = window
@@ -305,7 +301,7 @@ class ROI_Rect_Line(ROI_Wrapper, pg.MultiRectROI):
         pg.MultiRectROI.__init__(self, pts, width, *args, **self.init_args)
         self.kymographAct = QAction("&Kymograph", self, triggered=self.update_kymograph)
         ROI_Wrapper.__init__(self)
-        self.maskProxy = pg.SignalProxy(self.sigRegionChanged, rateLimit=5, slot=self.getMask) #This will only update 3 Hz
+        self.maskProxy = pg.SignalProxy(self.sigRegionChanged, rateLimit=5, slot=self.onRegionChange) #This will only update 3 Hz
         self.kymograph = None
         self.extending = False
         self.extendHandle = None
@@ -319,13 +315,13 @@ class ROI_Rect_Line(ROI_Wrapper, pg.MultiRectROI):
         self.lines[0].removeHandle(2)
     
     def setPoints(self, pts):
-        self.lines[0].movePoint(self.lines[0].handles[0]['item'], pts[0])
+        self.lines[0].movePoint(self.lines[0].handles[0]['item'], pts[0], finish=False)
         for i in range(1, len(self.lines)):
-            self.lines[i-1].movePoint(self.lines[i-1].handles[1]['item'], pts[i])
-            self.lines[i].movePoint(self.lines[i].handles[0]['item'], pts[i])
+            self.lines[i-1].movePoint(self.lines[i-1].handles[1]['item'], pts[i], finish=False)
+            self.lines[i].movePoint(self.lines[i].handles[0]['item'], pts[i], finish=False)
         self.lines[-1].movePoint(self.lines[-1].handles[-1]['item'], pts[-1])
-        self.maskProxy = pg.SignalProxy(self.sigRegionChanged, rateLimit=5, slot=self.getMask)
-
+        self.translateFinished.emit()
+        
     def setCurrentPen(self, pen):
         for l in self.lines:
             l.currentPen = pen
@@ -337,7 +333,6 @@ class ROI_Rect_Line(ROI_Wrapper, pg.MultiRectROI):
             self.setCurrentPen(QPen(QColor(255, 255, 0)))
         elif ev.exit:
             self.setCurrentPen(l.pen)
-        pg.ROI.hoverEvent(l, ev)
 
     def removeLink(self):
         ind = self.lines.index(self.currentLine)
@@ -346,6 +341,7 @@ class ROI_Rect_Line(ROI_Wrapper, pg.MultiRectROI):
             return
         for i in range(len(self.lines)-1, ind-1, -1):
             self.removeSegment(i)
+        self.translateFinished.emit()
 
     def getMenu(self):
         ROI_Wrapper.getMenu(self)
@@ -363,6 +359,7 @@ class ROI_Rect_Line(ROI_Wrapper, pg.MultiRectROI):
             return
         self.lines[0].scale([1.0, newWidth/self.width], center=[0.5,0.5])
         self.width = newWidth
+        self.translateFinished.emit()
 
     def setPen(self, pen):
         self.pen = pen
@@ -396,57 +393,36 @@ class ROI_Rect_Line(ROI_Wrapper, pg.MultiRectROI):
     def addSegment(self, *arg, **args):
         pg.MultiRectROI.addSegment(self, *arg, **args)
         l = self.lines[-1]
-        self.lines[-1].raiseContextMenu = self.raiseContextMenu
-        self.lines[-1].getMenu = self.getMenu
-        self.lines[-1].hoverEvent = lambda ev: self.hoverEvent(l, ev)
+        l.raiseContextMenu = self.raiseContextMenu
+        l.getMenu = self.getMenu
+        l.hoverEvent = lambda ev: self.hoverEvent(l, ev)
+        def boundingRect():
+            w = max(8, self.width)
+            return QRectF(0, -w / 2, l.state['size'][0], w)
+        def contains(pos):
+            return l.boundingRect().contains(pos)
+        l.boundingRect = boundingRect
+        l.contains = contains
 
     def getMask(self):
         self.pts = [pg.Point(self.window.imageview.getImageItem().mapFromScene(self.lines[0].getSceneHandlePositions(0)[1]))]
         for l in self.lines:
             self.pts.append(pg.Point(self.window.imageview.getImageItem().mapFromScene(l.getSceneHandlePositions(1)[1])))
 
-        if self.lines[0].handles[1]['item'].pos()[1] <= 1:
-            xx = []
-            yy = []
-            for i in range(1, len(self.pts)):
-                p1, p2=[self.pts[i-1], self.pts[i]]
-                xs,ys=line(*[int(a) for a in (p1.x(),p1.y(),p2.x(),p2.y())])
-                xx.append(xs)
-                yy.append(ys)
-            xx = np.concatenate(xx)
-            yy = np.concatenate(yy)
-
-        else:
-            vals, coords = self.getArrayRegion(self.window.image, self.window.imageview.getImageItem(), axes=(1, 2), returnMappedCoords=True)
-            # vals includes outside coordinates. Recalculate
-            xx, yy = coords.T.astype(int)
-        
-        w, h = np.shape(self.window.image[0])
-        rect = QRect(0, 0 ,w, h)
-        ids = np.where([rect.contains(xx[i], yy[i]) for i in range(len(xx))])
-        xx = xx[ids]
-        yy = yy[ids]
+        xx = []
+        yy = []
+        for i in range(1, len(self.pts)):
+            p1, p2=[self.pts[i-1], self.pts[i]]
+            xs,ys=line(*[int(a) for a in (p1.x(),p1.y(),p2.x(),p2.y())])
+            xx.append(xs)
+            yy.append(ys)
+        xx = np.concatenate(xx)
+        yy = np.concatenate(yy)
 
         self.mask = np.transpose([xx, yy])
         if self.mask.size != 0:
             self.minn = np.min(self.mask, 0)
 
-            if SHOW_MASK:
-                xx, yy = np.transpose(self.mask)
-                img = np.zeros(self.window.imageDimensions())
-                img[xx, yy] = 1
-                self.window.imageview.setImage(img)
-
-    def getTrace(self, bounds=None, pts=None):
-        xx, yy = self.mask.T
-        vals = self.window.image[:, xx, yy]
-
-        if len(vals) == 0:
-            return np.zeros(len(self.window.image))
-        vals = np.average(vals, np.arange(np.ndim(vals)-1, 0, -1))
-        if bounds:
-            vals = vals[bounds[0]:bounds[1]]
-        return vals
 
     def getNearestHandle(self, pos, distance=3):
         for l in self.lines:
@@ -460,11 +436,13 @@ class ROI_Rect_Line(ROI_Wrapper, pg.MultiRectROI):
             self.extending = True
             self.addSegment(pg.Point(int(x), int(y)), connectTo=self.lines[-1].handles[1]['item'])
         else:
-            self.lines[-1].handles[-1]['item'].movePoint(self.window.imageview.getImageItem().mapToScene(pg.Point(x, y))) 
+            self.lines[-1].handles[-1]['item'].movePoint(self.window.imageview.getImageItem().mapToScene(pg.Point(x, y)))
+        self.translated.emit()
 
     def extendFinished(self):
         self.extending = False
         self.extendHandle = None
+        self.translateFinished.emit()
 
     def getHandleTuples(self):
         pos = []
@@ -496,7 +474,7 @@ class ROI_Rect_Line(ROI_Wrapper, pg.MultiRectROI):
         newWindow=Window(mn,name,metadata=self.window.metadata)
         self.kymograph=newWindow
         self.kymographproxy = pg.SignalProxy(self.sigRegionChanged, rateLimit=3, slot=self.update_kymograph) #This will only update 3 Hz
-        self.sigRegionChanged.connect(self.update_kymograph)
+        self.translated.connect(self.update_kymograph)
         self.kymograph.closeSignal.connect(self.deleteKymograph)
 
     def deleteKymograph(self):
@@ -507,6 +485,8 @@ class ROI_Rect_Line(ROI_Wrapper, pg.MultiRectROI):
 class ROI_Rect(ROI_Wrapper, pg.ROI):
     kind = 'rectangle'
     plotSignal = Signal()
+    translated = Signal()
+    translateFinished = Signal()
     def __init__(self, window, pos, size, *args, **kargs):
         self.init_args.update(kargs)
         self.window = window
@@ -521,6 +501,7 @@ class ROI_Rect(ROI_Wrapper, pg.ROI):
     def setPoints(self, pts):
         self.setPos(pts[0], finish=False)
         self.setSize(pts[1], finish=False)
+        self.translateFinished.emit()
 
     def getMenu(self):
         ROI_Wrapper.getMenu(self)
@@ -552,37 +533,14 @@ class ROI_Rect(ROI_Wrapper, pg.ROI):
             newtif=tif[x1:x2+1,y1:y2+1]
         return Window(newtif,self.window.name+' Cropped',metadata=self.window.metadata)
 
-    def getTrace(self, bounds=None, pts=None):
-        x, y = self.state['pos']
-        w, h = self.state['size']
-        if x < 0:
-            w = max(0, w + x)
-            x = 0
-        if y < 0:
-            h = max(0, h + y)
-            y = 0
-        trace = np.average(self.window.image[:, x:x+w, y:y+h], (2, 1))
-        if bounds:
-            trace = trace[bounds[0]:bounds[1]]
-        return trace
-
     def getMask(self):
-        tif=self.window.image
-        nDims=len(tif.shape)
-        if nDims==4: #if this is an RGB image stack
-            tif=np.mean(tif,3)
-            mask=np.zeros(tif[0,:,:].shape,np.bool)
-        elif nDims==3:
-            if self.window.metadata['is_rgb']:  # [x, y, colors]
-                mask=np.zeros(tif[:,:,0].shape,np.bool)
-            else:                               # [t, x, y]
-                mask=np.zeros(tif[0,:,:].shape,np.bool)
-        if nDims==2: #if this is a static image
-            mask=np.zeros(tif.shape,np.bool)
-
-        self.pts = [[self.state['pos'].x(), self.state['pos'].y()], [self.state['size'].x(), self.state['size'].y()]]
+        w, h = self.window.imageDimensions()
+        mask = np.zeros((w, h))
+        
         x, y = self.state['pos']
         w, h = self.state['size']
+        self.pts = [self.state['pos'], self.state['size']]
+
         if x < 0:
             w = max(0, w + x)
             x = 0
@@ -594,8 +552,6 @@ class ROI_Rect(ROI_Wrapper, pg.ROI):
         self.mask=np.array(np.where(mask)).T
         if len(self.mask) > 0:
             self.minn = np.min(self.mask, 0)
-            if SHOW_MASK:
-                self.window.imageview.setImage(mask)
 
     def __repr__(self):
         s = self.kind + '\n'
@@ -606,6 +562,8 @@ class ROI_Rect(ROI_Wrapper, pg.ROI):
 class ROI_Polygon(ROI_Wrapper, pg.ROI):
     kind = 'freehand'
     plotSignal = Signal()
+    translated = Signal()
+    translateFinished = Signal()
     def __init__(self, window, pts, *args, **kargs):
         self.init_args.update(kargs)
         self.window = window
@@ -617,6 +575,7 @@ class ROI_Polygon(ROI_Wrapper, pg.ROI):
     def setPoints(self, pts):
         self.pts = pts
         self.getMask()
+        self.translateFinished.emit()
 
     def boundingRect(self):
         r = pg.ROI.boundingRect(self)
@@ -646,52 +605,18 @@ class ROI_Polygon(ROI_Wrapper, pg.ROI):
 
     def getMask(self):
         if self.mask is not None:
-            xx, yy = np.transpose(self._mask)
+            xx, yy = np.transpose(self._mask + self.state['pos'])
         else:
             self.minn = np.min(self.pts, 0)
-            x, y = np.transpose(self.pts - self.minn)
+            x, y = np.transpose(self.pts)
             mask=np.zeros(self.window.imageDimensions())
             
             xx,yy=polygon(x,y,shape=mask.shape)
             self._mask = np.transpose([xx, yy])
-
-        w, h = self.window.imageDimensions()
-        rect = QRect(0, 0, w, h)
-        self.minn = self.state['pos'] + np.min(self.pts, 0)
-        self.mask = np.array([p for p in np.transpose([xx, yy]) + self.minn if rect.contains(p[0], p[1])], dtype=int)
-
-        img = np.zeros(self.window.imageDimensions())
+        
+        self.mask = np.transpose([xx, yy]).astype(int)
         if len(self.mask) > 0:
-            xx, yy = self.mask.T.astype(int)
-            img[xx, yy] = 1
-            if SHOW_MASK:
-                self.window.imageview.setImage(img)
-
-    def getTrace(self,bounds=None,pts=None):
-        ''' bounds are two points in time.  If bounds is not None, we only calculate values between the bounds '''
-        tif=self.window.imageArray()
-        mt, mx, my = tif.shape
-        pts=self.mask
-        if len(pts) == 0:
-            return np.zeros([bounds[1]-bounds[0]])
-
-        pts=pts[(pts[:,0]>=0)*(pts[:,0]<mx)*(pts[:,1]>=0)*(pts[:,1]<my)]
-        xx=pts[:,0]; yy=pts[:,1]
-        if bounds is None:
-            bounds=[0,len(tif)]
-        else:
-            bounds=list(bounds)
-            if bounds[0]<0: bounds[0]=0
-            if bounds[1]>len(tif): bounds[1]=len(tif)
-            if bounds[0]>len(tif) or bounds[1]<0:
-                return np.array([])
-
-        if len(xx) == 0:
-            return np.zeros([bounds[1]-bounds[0]])
-        trace=np.mean(tif[bounds[0]:bounds[1],xx,yy], 1) 
-        if np.isnan(np.sum(trace)):
-            return np.zeros(len(trace))
-        return trace
+            self.minn = np.min(self.mask, 0)
     
 def makeROI(kind,pts,window=None):
     if window is None:
