@@ -112,10 +112,11 @@ class ROI_Wrapper():
         while rois:
             roi = rois.pop()
             to_move = to_move | roi.linkedROIs
-            rois = rois | (roi.linkedROIs - to_move - {self})
+            rois = rois | (roi.linkedROIs - to_move) - {self}
+
         for roi in to_move:
             roi.sigRegionChanged.disconnect(roi.onRegionChange)
-            roi.setPoints(self.pts)
+            roi.setPoints(self.pts)  
             roi.sigRegionChanged.connect(roi.onRegionChange)
 
     def plot(self):
