@@ -243,9 +243,6 @@ class Window(QWidget):
         if g.m.clipboard in self.rois:
             return False
         self.currentROI=makeROI(g.m.clipboard.kind,g.m.clipboard.pts,self)
-        #self.currentROI=type(g.m.clipboard)(self,0,0) #self.press=np.array([np.array([np.array([x,y])])])
-        #self.currentROI.draw_from_points(g.m.clipboard.getPoints())
-        #self.rois.append(self.currentROI)
         self.currentROI.link(g.m.clipboard)
         
     def mousePressEvent(self,ev):

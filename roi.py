@@ -23,7 +23,7 @@ class ROI_Drawing(pg.GraphicsObject):
         pg.GraphicsObject.__init__(self)
         window.imageview.addItem(self)
         self.window = window
-        self.pts = [pg.Point(int(x), int(y))]
+        self.pts = [pg.Point(round(x), round(y))]
         if self.extendRectLine():
             window.imageview.removeItem(self)
             return
@@ -44,7 +44,7 @@ class ROI_Drawing(pg.GraphicsObject):
         return False
 
     def extend(self, x, y):
-        new_pt = pg.Point(int(x), int(y))
+        new_pt = pg.Point(round(x), round(y))
         if self.type == 'freehand':
             self.pts.append(new_pt)
         elif self.type in ('line', 'rectangle', 'rect_line'):
@@ -72,19 +72,17 @@ class ROI_Drawing(pg.GraphicsObject):
 
     def drawFinished(self):
         self.window.imageview.removeItem(self)
-        args = {'removable': True, 'translateSnap': True, 'pen':ROI_COLOR}
         if self.type == 'freehand':
-            r = ROI_Polygon(self.window, self.pts, **args)
+            r = ROI_Polygon(self.window, self.pts)
         elif self.type == 'rectangle':
-            r = ROI_Rect(self.window, self.state['pos'], self.state['size'], **args)
+            r = ROI_Rect(self.window, self.state['pos'], self.state['size'])
         elif self.type == 'line':
-            r = ROI_Line(self.window, self.pts, **args)
+            r = ROI_Line(self.window, self.pts)
         elif self.type == 'rect_line':
-            r = ROI_Rect_Line(self.window, self.pts, **args)
+            r = ROI_Rect_Line(self.window, self.pts)
 
         r.drawFinished()
         
-
         return r
 
     def contains(self, *args):
@@ -96,16 +94,29 @@ class ROI_Drawing(pg.GraphicsObject):
         return QRectF(self.state['pos'].x(), self.state['pos'].y(), self.state['size'].x(), self.state['size'].y())
 
 class ROI_Wrapper():
+    init_args = {'removable': True, 'translateSnap': True, 'pen':ROI_COLOR}
     def __init__(self):
         self.getMenu()
         self.colorDialog=QColorDialog()
         self.colorDialog.colorSelected.connect(self.colorSelected)
         self.window.closeSignal.connect(self.delete)
-        #self.maskProxy = pg.SignalProxy(self.sigRegionChanged, rateLimit=5, slot=self.getMask) #This will only update 3 Hz
-        self.sigRegionChanged.connect(self.getMask)
         self.traceWindow = None
         self.mask=None
         self.linkedROIs = set()
+        self.sigRegionChanged.connect(self.onRegionChange)
+
+    def onRegionChange(self):
+        self.getMask()
+        to_move = self.linkedROIs.copy()
+        rois = self.linkedROIs.copy()
+        while rois:
+            roi = rois.pop()
+            to_move = to_move | roi.linkedROIs
+            rois = rois | (roi.linkedROIs - to_move - {self})
+        for roi in to_move:
+            roi.sigRegionChanged.disconnect(roi.onRegionChange)
+            roi.setPoints(self.pts)
+            roi.sigRegionChanged.connect(roi.onRegionChange)
 
     def plot(self):
         self.plotAct.setText("Unplot")
@@ -122,14 +133,16 @@ class ROI_Wrapper():
             self.sigRegionChangeFinished.emit(self)
 
     def save_gui(self):
-        filename=g.settings['filename']
+        filename=g.settings['filename'].split('.')[0]
         if filename is not None and os.path.isfile(filename):
-            filename= QFileDialog.getSaveFileName(g.m, 'Save ROI', filename, "*.txt")
+            filename= QFileDialog.getSaveFileName(g.m, 'Save ROI', filename, "Text Files (*.txt);;All Files (*.*)")
         else:
-            filename= QFileDialog.getSaveFileName(g.m, 'Save ROI', '', '*.txt')
+            filename= QFileDialog.getSaveFileName(g.m, 'Save ROI', '', "Text Files (*.txt);;All Files (*.*)")
         filename=str(filename)
         if filename != '':
-            self.save(filename)
+            reprs = [repr(roi) for roi in self.window.rois]
+            reprs = '\n'.join(reprs)
+            open(filename, 'w').write(reprs)
         else:
             g.m.statusBar().showMessage('No File Selected')
 
@@ -195,13 +208,20 @@ class ROI_Wrapper():
     def getTrace(self):
         raise NotImplementedError(None)
 
+    def __repr__(self):
+        s = self.kind + '\n'
+        for x, y in self.pts:
+            s += '%d %d\n' % (x, y)
+        return s
+
 class ROI_Line(ROI_Wrapper, pg.LineSegmentROI):
     kind = 'line'
     plotSignal = Signal()
     def __init__(self, window, pos, *args, **kargs):
+        self.init_args.update(kargs)
         self.window = window
         self.pts = pos
-        pg.LineSegmentROI.__init__(self, positions=pos, *args, **kargs)
+        pg.LineSegmentROI.__init__(self, positions=pos, *args, **self.init_args)
         self.kymographAct = QAction("&Kymograph", self, triggered=self.update_kymograph)
         self.kymograph = None
         ROI_Wrapper.__init__(self)
@@ -224,10 +244,7 @@ class ROI_Line(ROI_Wrapper, pg.LineSegmentROI):
         if len(self.mask) > 0:
             self.minn = np.min(self.mask, 0)
 
-
-
     def getTrace(self, bounds=None, pts=None):
-        #self.getMask()
         if pts == None:
             pts = self.mask
         if len(pts) == 0:
@@ -242,8 +259,11 @@ class ROI_Line(ROI_Wrapper, pg.LineSegmentROI):
 
         return vals
 
+    def setPoints(self, pts):
+        self.movePoint(self.handles[0]['item'], pts[0])
+        self.movePoint(self.handles[1]['item'], pts[1])
+
     def update_kymograph(self):
-        
         tif=self.window.image
         xx, yy = self.mask.T
         mt = len(tif)
@@ -277,9 +297,11 @@ class ROI_Rect_Line(ROI_Wrapper, pg.MultiRectROI):
     kind = 'rect_line'
     plotSignal = Signal()
     def __init__(self, window, pts, width=1, *args, **kargs):
+        self.init_args.update(kargs)
         self.window = window
         self.width = width
-        pg.MultiRectROI.__init__(self, pts, width, *args, **kargs)
+        self.pts = pts
+        pg.MultiRectROI.__init__(self, pts, width, *args, **self.init_args)
         self.kymographAct = QAction("&Kymograph", self, triggered=self.update_kymograph)
         ROI_Wrapper.__init__(self)
         self.maskProxy = pg.SignalProxy(self.sigRegionChanged, rateLimit=5, slot=self.getMask) #This will only update 3 Hz
@@ -291,19 +313,29 @@ class ROI_Rect_Line(ROI_Wrapper, pg.MultiRectROI):
         self.width = width
         self.currentLine = None
 
-
     def drawFinished(self):
         ROI_Wrapper.drawFinished(self)
         self.lines[0].removeHandle(2)
-        #self.lines[0].handles[2]['item'].setVisible(False)
+    
+    def setPoints(self, pts):
+        self.lines[0].movePoint(self.lines[0].handles[0]['item'], pts[0])
+        for i in range(1, len(self.lines)):
+            self.lines[i-1].movePoint(self.lines[i-1].handles[1]['item'], pts[i])
+            self.lines[i].movePoint(self.lines[i].handles[0]['item'], pts[i])
+        self.lines[-1].movePoint(self.lines[-1].handles[-1]['item'], pts[-1])
+        self.maskProxy = pg.SignalProxy(self.sigRegionChanged, rateLimit=5, slot=self.getMask)
+
+    def setCurrentPen(self, pen):
+        for l in self.lines:
+            l.currentPen = pen
+            l.update()
 
     def hoverEvent(self, l, ev):
         self.currentLine = l
         if ev.enter:
-            l.currentPen = QPen(QColor(255, 255, 0))
+            self.setCurrentPen(QPen(QColor(255, 255, 0)))
         elif ev.exit:
-            l.currentPen = l.pen
-        l.update()
+            self.setCurrentPen(l.pen)
         pg.ROI.hoverEvent(l, ev)
 
     def removeLink(self):
@@ -320,7 +352,6 @@ class ROI_Rect_Line(ROI_Wrapper, pg.MultiRectROI):
         setWidthAction = QAction("Set Width", self, triggered=lambda: self.setWidth())
         self.menu.addAction(removeLinkAction)
         self.menu.addAction(setWidthAction)
-        self.menu.removeAction(self.copyAct)
         self.menu.addAction(self.kymographAct)
 
     def setWidth(self, newWidth=None):
@@ -344,12 +375,10 @@ class ROI_Rect_Line(ROI_Wrapper, pg.MultiRectROI):
             rgn = l.getArrayRegion(arr, img, axes=axes, returnMappedCoords=returnMappedCoords)
             if rgn is None:
                 continue
-                #return None
             if returnMappedCoords:
                 rgn, coord = rgn
                 coords.append(np.concatenate(coord.T))
             rgns.append(rgn)
-            #print l.state['size']
             
         ## make sure orthogonal axis is the same size
         ## (sometimes fp errors cause differences)
@@ -365,21 +394,22 @@ class ROI_Rect_Line(ROI_Wrapper, pg.MultiRectROI):
 
     def addSegment(self, *arg, **args):
         pg.MultiRectROI.addSegment(self, *arg, **args)
+        l = self.lines[-1]
         self.lines[-1].raiseContextMenu = self.raiseContextMenu
         self.lines[-1].getMenu = self.getMenu
-        l = self.lines[-1]
         self.lines[-1].hoverEvent = lambda ev: self.hoverEvent(l, ev)
 
     def getMask(self):
+        self.pts = [pg.Point(self.window.imageview.getImageItem().mapFromScene(self.lines[0].getSceneHandlePositions(0)[1]))]
+        for l in self.lines:
+            self.pts.append(pg.Point(self.window.imageview.getImageItem().mapFromScene(l.getSceneHandlePositions(1)[1])))
+
         if self.lines[0].handles[1]['item'].pos()[1] <= 1:
             xx = []
             yy = []
-            for i, l in enumerate(self.lines):
-                pts=[l.getSceneHandlePositions(i)[1] for i in range(2)]
-                pts = [self.window.imageview.getImageItem().mapFromScene(p) for p in pts]
-                x=np.array([p.x() for p in pts], dtype=int)
-                y=np.array([p.y() for p in pts], dtype=int)
-                xs,ys=line(x[0],y[0],x[1],y[1])
+            for i in range(1, len(self.pts)):
+                p1, p2=[self.pts[i-1], self.pts[i]]
+                xs,ys=line(*[int(a) for a in (p1.x(),p1.y(),p2.x(),p2.y())])
                 xx.append(xs)
                 yy.append(ys)
             xx = np.concatenate(xx)
@@ -415,7 +445,6 @@ class ROI_Rect_Line(ROI_Wrapper, pg.MultiRectROI):
         vals = np.average(vals, np.arange(np.ndim(vals)-1, 0, -1))
         if bounds:
             vals = vals[bounds[0]:bounds[1]]
-
         return vals
 
     def getNearestHandle(self, pos, distance=3):
@@ -428,7 +457,7 @@ class ROI_Rect_Line(ROI_Wrapper, pg.MultiRectROI):
     def extend(self, x, y):
         if not self.extending:
             self.extending = True
-            self.addSegment(pg.Point(int(x), int(y)), connectTo=self.extendHandle)
+            self.addSegment(pg.Point(int(x), int(y)), connectTo=self.lines[-1].handles[1]['item'])
         else:
             self.lines[-1].handles[-1]['item'].movePoint(self.window.imageview.getImageItem().mapToScene(pg.Point(x, y))) 
 
@@ -440,9 +469,9 @@ class ROI_Rect_Line(ROI_Wrapper, pg.MultiRectROI):
         pos = []
         for l in self.lines:
             pts=[self.window.imageview.getImageItem().mapFromScene(l.getSceneHandlePositions(i)[1]) for i in range(2)]
-            for handle in lineRect.handles:
+            for handle in l.handles:
                 if handle['type'] == 'sr':
-                    pos.append((lineRect, handle['item'], lineRect.mapToParent(handle['item'].pos())))
+                    pos.append((l, handle['item'], l.mapToParent(handle['item'].pos())))
         return pos
 
     def update_kymograph(self):
@@ -477,15 +506,20 @@ class ROI_Rect_Line(ROI_Wrapper, pg.MultiRectROI):
 class ROI_Rect(ROI_Wrapper, pg.ROI):
     kind = 'rectangle'
     plotSignal = Signal()
-    def __init__(self, window, *args, **kargs):
+    def __init__(self, window, pos, size, *args, **kargs):
+        self.init_args.update(kargs)
         self.window = window
-        pg.ROI.__init__(self, *args, **kargs)
+        pg.ROI.__init__(self, pos, size, *args, **self.init_args)
         self.addScaleHandle([0, 1], [1, 0])
         self.addScaleHandle([1, 0], [0, 1])
         self.addScaleHandle([0, 0], [1, 1])
         self.addScaleHandle([1, 1], [0, 0])
         self.cropAction = QAction('&Crop', self, triggered=self.crop)
         ROI_Wrapper.__init__(self)
+
+    def setPoints(self, pts):
+        self.setPos(pts[0], finish=False)
+        self.setSize(pts[1], finish=False)
 
     def getMenu(self):
         ROI_Wrapper.getMenu(self)
@@ -541,10 +575,11 @@ class ROI_Rect(ROI_Wrapper, pg.ROI):
             if self.window.metadata['is_rgb']:  # [x, y, colors]
                 mask=np.zeros(tif[:,:,0].shape,np.bool)
             else:                               # [t, x, y]
-                mask=np.zeros(tif[0,:,:].shape,np.bool)  
+                mask=np.zeros(tif[0,:,:].shape,np.bool)
         if nDims==2: #if this is a static image
             mask=np.zeros(tif.shape,np.bool)
 
+        self.pts = [[self.state['pos'].x(), self.state['pos'].y()], [self.state['size'].x(), self.state['size'].y()]]
         x, y = self.state['pos']
         w, h = self.state['size']
         if x < 0:
@@ -561,15 +596,26 @@ class ROI_Rect(ROI_Wrapper, pg.ROI):
             if SHOW_MASK:
                 self.window.imageview.setImage(mask)
 
+    def __repr__(self):
+        s = self.kind + '\n'
+        s += '%d %d\n' % (self.state['pos'][0], self.state['pos'][1])
+        s += '%d %d\n' % (self.state['size'][0], self.state['size'][1])
+        return s
+
 class ROI_Polygon(ROI_Wrapper, pg.ROI):
     kind = 'freehand'
     plotSignal = Signal()
     def __init__(self, window, pts, *args, **kargs):
+        self.init_args.update(kargs)
         self.window = window
-        self.pts = pts
+        self.pts = [pg.Point(pt[0], pt[1]) for pt in pts]
         w, h = np.ptp(self.pts, 0)
-        pg.ROI.__init__(self, (0, 0), (w, h), *args, **kargs)
+        pg.ROI.__init__(self, (0, 0), (w, h), *args, **self.init_args)
         ROI_Wrapper.__init__(self)
+
+    def setPoints(self, pts):
+        self.pts = pts
+        self.getMask()
 
     def boundingRect(self):
         r = pg.ROI.boundingRect(self)
@@ -585,6 +631,12 @@ class ROI_Polygon(ROI_Wrapper, pg.ROI):
         for i in range(len(self.pts)):
             p.lineTo(self.pts[i])
         return p.contains(*pos)
+
+    def __repr__(self):
+        s = self.kind + '\n'
+        for x, y in self.pts:
+            s += '%d %d\n' % (x, y)
+        return s
 
     def paint(self, p, *args):
         p.setPen(self.currentPen)
@@ -647,18 +699,22 @@ def makeROI(kind,pts,window=None):
     if kind=='freehand':
         roi=ROI_Polygon(window, pts)
     elif kind=='rectangle':
-        roi=ROI_Rectangle(window,pts[0], pts[1])
+        roi=ROI_Rect(window,pts[0], pts[1])
     elif kind=='line':
-        roi=ROI_Line(window, pts[0], pts[1])
+        roi=ROI_Line(window, pos=(pts))
     elif kind == 'rect_line':
         roi = ROI_Rect_Line(window, pts)
+        #for p in pts[3:]:
+        #    roi.extend(p[0], p[1])
+        #    roi.extendFinished()
+
     else:
         print("ERROR: THIS TYPE OF ROI COULD NOT BE FOUND: {}".format(kind))
         return None
 
-    #roi.draw_from_points(pts)
-    #roi.drawFinished()
+    roi.drawFinished()    
     return roi
+
 def load_roi(filename):
     f = open(filename, 'r')
     text=f.read()
@@ -669,9 +725,9 @@ def load_roi(filename):
         if kind is None:
             kind=text_line
             pts=[]
-        elif line=='':
+        elif text_line=='':
             makeROI(kind,pts)
             kind=None
             pts=None
         else:
-            pts.append(tuple(int(float(i)) for i in line.split()))
+            pts.append(tuple(int(float(i)) for i in text_line.split()))
