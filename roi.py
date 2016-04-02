@@ -14,7 +14,7 @@ from trace import roiPlot
 import os
 import threading
 
-SHOW_MASK = True
+SHOW_MASK = False
 
 ROI_COLOR = QColor(255, 255, 255)
 
@@ -32,7 +32,7 @@ class ROI_Drawing(pg.GraphicsObject):
 
     def extendRectLine(self):
         for roi in self.window.rois:
-            if isinstance(roi, ROI_Rect_Line):
+            if isinstance(roi, ROI_rect_line):
                 a = roi.getNearestHandle(self.pts[0])
                 if a:
                     roi.extendHandle = a[1]
@@ -73,13 +73,13 @@ class ROI_Drawing(pg.GraphicsObject):
     def drawFinished(self):
         self.window.imageview.removeItem(self)
         if self.type == 'freehand':
-            r = ROI_Polygon(self.window, self.pts)
+            r = ROI(self.window, self.pts)
         elif self.type == 'rectangle':
-            r = ROI_Rect(self.window, self.state['pos'], self.state['size'])
+            r = ROI_rectangle(self.window, self.state['pos'], self.state['size'])
         elif self.type == 'line':
-            r = ROI_Line(self.window, self.pts)
+            r = ROI_line(self.window, self.pts)
         elif self.type == 'rect_line':
-            r = ROI_Rect_Line(self.window, self.pts)
+            r = ROI_rect_line(self.window, self.pts)
 
         r.drawFinished()
         
@@ -95,7 +95,6 @@ class ROI_Drawing(pg.GraphicsObject):
 
 class ROI_Wrapper():
     init_args = {'removable': True, 'translateSnap': True, 'pen':ROI_COLOR}
-    moved = []
     def __init__(self):
         self.getMenu()
         self.colorDialog=QColorDialog()
@@ -103,19 +102,18 @@ class ROI_Wrapper():
         self.window.closeSignal.connect(self.delete)
         self.traceWindow = None
         self.mask=None
+        self.linkMoved = False
         self.linkedROIs = set()
         self.sigRegionChanged.connect(self.onRegionChange)
         self.sigRegionChangeFinished.connect(self.translateFinished.emit)
-        self.translateFinished.connect(lambda : setattr(ROI_Wrapper, 'moved', []))
-
+        
     def onRegionChange(self):
         self.getMask()
-        ROI_Wrapper.moved.append(self)
-        for roi in self.linkedROIs:
-            if roi not in ROI_Wrapper.moved:
-                roi.setPoints(self.pts)
-        if len(ROI_Wrapper.moved) > 0 and self == ROI_Wrapper.moved[0]:
-            ROI_Wrapper.moved = []
+        if not self.linkMoved:
+            for roi in self.linkedROIs:
+                roi.linkMoved = True
+                roi.setPoints(self.pts,)
+        self.linkMoved = False
         self.translated.emit()
 
     def plot(self):
@@ -161,8 +159,9 @@ class ROI_Wrapper():
 
     def link(self,roi):
         '''This function links this roi to another, so a translation of one will cause a translation of the other'''
-        self.linkedROIs.add(roi)
-        roi.linkedROIs.add(self)
+        join = self.linkedROIs | roi.linkedROIs | {self, roi}
+        self.linkedROIs = join - {self}
+        roi.linkedROIs = join - {roi}
 
     def raiseContextMenu(self, ev):
         pos = ev.screenPos()
@@ -228,7 +227,7 @@ class ROI_Wrapper():
             s += '%d %d\n' % (x, y)
         return s
 
-class ROI_Line(ROI_Wrapper, pg.LineSegmentROI):
+class ROI_line(ROI_Wrapper, pg.LineSegmentROI):
     kind = 'line'
     plotSignal = Signal()
     translated = Signal()
@@ -255,9 +254,11 @@ class ROI_Line(ROI_Wrapper, pg.LineSegmentROI):
         self.minn = np.min(self.mask)
 
     def setPoints(self, pts):
+        if all([(self.pts[i][0] == pts[i][0] and self.pts[i][1] == pts[i][1]) for i in range(len(self.pts))]):
+            return
         self.movePoint(self.handles[0]['item'], pts[0], finish=False)
         self.movePoint(self.handles[1]['item'], pts[1], finish=False)
-        self.translateFinished.emit(True)
+        #self.translateFinished.emit(True)
 
     def update_kymograph(self):
         tif=self.window.image
@@ -288,7 +289,7 @@ class ROI_Line(ROI_Wrapper, pg.LineSegmentROI):
         self.kymograph.closeSignal.disconnect(self.deleteKymograph)
         self.kymograph=None
 
-class ROI_Rect_Line(ROI_Wrapper, pg.MultiRectROI):
+class ROI_rect_line(ROI_Wrapper, pg.MultiRectROI):
     kind = 'rect_line'
     plotSignal = Signal()
     translated = Signal()
@@ -482,7 +483,7 @@ class ROI_Rect_Line(ROI_Wrapper, pg.MultiRectROI):
         self.kymograph.closeSignal.disconnect(self.deleteKymograph)
         self.kymograph=None
         
-class ROI_Rect(ROI_Wrapper, pg.ROI):
+class ROI_rectangle(ROI_Wrapper, pg.ROI):
     kind = 'rectangle'
     plotSignal = Signal()
     translated = Signal()
@@ -559,7 +560,7 @@ class ROI_Rect(ROI_Wrapper, pg.ROI):
         s += '%d %d\n' % (self.state['size'][0], self.state['size'][1])
         return s
 
-class ROI_Polygon(ROI_Wrapper, pg.ROI):
+class ROI(ROI_Wrapper, pg.ROI):
     kind = 'freehand'
     plotSignal = Signal()
     translated = Signal()
@@ -623,13 +624,13 @@ def makeROI(kind,pts,window=None):
         window=g.m.currentWindow
 
     if kind=='freehand':
-        roi=ROI_Polygon(window, pts)
+        roi=ROI(window, pts)
     elif kind=='rectangle':
-        roi=ROI_Rect(window,pts[0], pts[1])
+        roi=ROI_rectangle(window,pts[0], pts[1])
     elif kind=='line':
-        roi=ROI_Line(window, pos=(pts))
+        roi=ROI_line(window, pos=(pts))
     elif kind == 'rect_line':
-        roi = ROI_Rect_Line(window, pts)
+        roi = ROI_rect_line(window, pts)
         #for p in pts[3:]:
         #    roi.extend(p[0], p[1])
         #    roi.extendFinished()
