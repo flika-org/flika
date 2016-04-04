@@ -13,6 +13,7 @@ import numpy as np
 from trace import roiPlot
 import os
 import threading
+from scipy.ndimage.interpolation import rotate
 
 SHOW_MASK = False
 
@@ -106,7 +107,10 @@ class ROI_Wrapper():
         self.linkedROIs = set()
         self.sigRegionChanged.connect(self.onRegionChange)
         self.sigRegionChangeFinished.connect(self.translateFinished.emit)
-        self.color = self.pen.color()
+        if isinstance(self.pen, QColor):
+            self.color = self.pen
+        else:
+            self.color = self.pen.color()
         
     def onRegionChange(self):
         self.getMask()
@@ -260,7 +264,7 @@ class ROI_line(ROI_Wrapper, pg.LineSegmentROI):
             return
         self.movePoint(self.handles[0]['item'], pts[0], finish=False)
         self.movePoint(self.handles[1]['item'], pts[1], finish=False)
-        self.translateFinished.emit(True)
+        self.translateFinished.emit()
 
     def update_kymograph(self):
         tif=self.window.image
@@ -283,11 +287,11 @@ class ROI_line(ROI_Wrapper, pg.LineSegmentROI):
         oldwindow=g.m.currentWindow
         name=oldwindow.name+' - Kymograph'
         self.kymograph=Window(mn,name,metadata=self.window.metadata)
-        self.translateChanged.connect(self.update_kymograph)
+        self.translated.connect(self.update_kymograph)
         self.kymograph.closeSignal.connect(self.deleteKymograph)
+        self.sigRemoveRequested.connect(self.deleteKymograph)
 
     def deleteKymograph(self):
-        self.kymographproxy.disconnect()
         self.kymograph.closeSignal.disconnect(self.deleteKymograph)
         self.kymograph=None
 
@@ -312,7 +316,6 @@ class ROI_rect_line(ROI_Wrapper, pg.MultiRectROI):
         self.lines[0].scale([1.0, width/5.0], center=[0.5,0.5])
         self.width = width
         self.currentLine = None
-        self.draw_from_points = self.setPoints
 
     def drawFinished(self):
         ROI_Wrapper.drawFinished(self)
@@ -459,12 +462,24 @@ class ROI_rect_line(ROI_Wrapper, pg.MultiRectROI):
 
     def update_kymograph(self):
         tif=self.window.image
-        mt=tif.shape[0]
-        xx, yy = self.mask.T
-        mn=np.zeros((mt,len(xx)))
-        for t in np.arange(mt):
-            mn[t]=tif[t,xx,yy]
-        mn=mn.T
+        from window import Window
+        if self.width == 1:
+            w, h = self.window.imageDimensions()
+            r = QRect(0, 0, w, h)
+            xx, yy = np.transpose([p for p in self.mask if r.contains(p[0], p[1])])
+            mn = tif[:, xx, yy].T
+        else:
+            kyms = []
+            for i in range(len(self.pts)-1):
+                pts = self.pts[i:i+2]
+                x, y = np.min(pts, 0)
+                x2, y2 = np.max(pts, 0)
+                rect = rotate(tif[:, x-self.width:x2+self.width, y-self.width:y2+self.width], -self.lines[i].angle(), (2, 1), reshape=False)
+                t, w, h = np.shape(rect)
+                h = h // 2  - self.width // 2
+                rect = rect[:, :, h:h+self.width]
+                kyms.append(np.mean(rect, 2))
+            mn = np.hstack(kyms).T
         if self.kymograph is None:
             self.createKymograph(mn)
         else:
@@ -475,9 +490,8 @@ class ROI_rect_line(ROI_Wrapper, pg.MultiRectROI):
         from window import Window
         oldwindow=g.m.currentWindow
         name=oldwindow.name+' - Kymograph'
-        newWindow=Window(mn,name,metadata=self.window.metadata)
-        self.kymograph=newWindow
-        self.kymographproxy = pg.SignalProxy(self.sigRegionChanged, rateLimit=3, slot=self.update_kymograph) #This will only update 3 Hz
+        self.kymograph=Window(mn,name,metadata=self.window.metadata)
+        self.kymographproxy = pg.SignalProxy(self.sigRegionChanged, rateLimit=1, slot=self.update_kymograph) #This will only update 3 Hz
         self.translated.connect(self.update_kymograph)
         self.kymograph.closeSignal.connect(self.deleteKymograph)
 
