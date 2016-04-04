@@ -106,13 +106,14 @@ class ROI_Wrapper():
         self.linkedROIs = set()
         self.sigRegionChanged.connect(self.onRegionChange)
         self.sigRegionChangeFinished.connect(self.translateFinished.emit)
+        self.color = self.pen.color()
         
     def onRegionChange(self):
         self.getMask()
         if not self.linkMoved:
             for roi in self.linkedROIs:
                 roi.linkMoved = True
-                roi.setPoints(self.pts,)
+                roi.draw_from_points(self.pts)
         self.linkMoved = False
         self.translated.emit()
 
@@ -129,6 +130,7 @@ class ROI_Wrapper():
         if color.isValid():
             self.setPen(QColor(color.name()))
             self.translateFinished.emit()
+        self.color = color
 
     def save_gui(self):
         filename=g.settings['filename'].split('.')[0]
@@ -138,7 +140,7 @@ class ROI_Wrapper():
             filename= QFileDialog.getSaveFileName(g.m, 'Save ROI', '', "Text Files (*.txt);;All Files (*.*)")
         filename=str(filename)
         if filename != '':
-            reprs = [repr(roi) for roi in self.window.rois]
+            reprs = [str(roi) for roi in self.window.rois]
             reprs = '\n'.join(reprs)
             open(filename, 'w').write(reprs)
         else:
@@ -221,7 +223,7 @@ class ROI_Wrapper():
             vals = vals[bounds[0]:bounds[1]]
         return vals
 
-    def __repr__(self):
+    def __str__(self):
         s = self.kind + '\n'
         for x, y in self.pts:
             s += '%d %d\n' % (x, y)
@@ -253,12 +255,12 @@ class ROI_line(ROI_Wrapper, pg.LineSegmentROI):
         self.mask = np.transpose([xx, yy])
         self.minn = np.min(self.mask)
 
-    def setPoints(self, pts):
+    def draw_from_points(self, pts):
         if all([(self.pts[i][0] == pts[i][0] and self.pts[i][1] == pts[i][1]) for i in range(len(self.pts))]):
             return
         self.movePoint(self.handles[0]['item'], pts[0], finish=False)
         self.movePoint(self.handles[1]['item'], pts[1], finish=False)
-        #self.translateFinished.emit(True)
+        self.translateFinished.emit(True)
 
     def update_kymograph(self):
         tif=self.window.image
@@ -310,12 +312,13 @@ class ROI_rect_line(ROI_Wrapper, pg.MultiRectROI):
         self.lines[0].scale([1.0, width/5.0], center=[0.5,0.5])
         self.width = width
         self.currentLine = None
+        self.draw_from_points = self.setPoints
 
     def drawFinished(self):
         ROI_Wrapper.drawFinished(self)
         self.lines[0].removeHandle(2)
     
-    def setPoints(self, pts):
+    def draw_from_points(self, pts):
         self.lines[0].movePoint(self.lines[0].handles[0]['item'], pts[0], finish=False)
         for i in range(1, len(self.lines)):
             self.lines[i-1].movePoint(self.lines[i-1].handles[1]['item'], pts[i], finish=False)
@@ -499,7 +502,7 @@ class ROI_rectangle(ROI_Wrapper, pg.ROI):
         self.cropAction = QAction('&Crop', self, triggered=self.crop)
         ROI_Wrapper.__init__(self)
 
-    def setPoints(self, pts):
+    def draw_from_points(self, pts):
         self.setPos(pts[0], finish=False)
         self.setSize(pts[1], finish=False)
         self.translateFinished.emit()
@@ -573,7 +576,7 @@ class ROI(ROI_Wrapper, pg.ROI):
         pg.ROI.__init__(self, (0, 0), (w, h), *args, **self.init_args)
         ROI_Wrapper.__init__(self)
 
-    def setPoints(self, pts):
+    def draw_from_points(self, pts):
         self.pts = pts
         self.getMask()
         self.translateFinished.emit()
