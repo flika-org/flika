@@ -73,7 +73,7 @@ class TraceFig(QWidget):
             try:
                 g.settings['tracefig_settings']['coords']=self.geometry().getRect()
             except Exception as e:
-                print(e)        
+                print(e)
         self.show()
         
     def onResize(self,event):
@@ -94,8 +94,8 @@ class TraceFig(QWidget):
     def keyPressEvent(self,ev):
         self.keyPressSignal.emit(ev)
     def closeEvent(self, event):
-        for roi in self.rois:
-            self.removeROI(roi['roi'])
+        while len(self.rois) > 0:
+            self.removeROI(0)
         try:
             self.p1.scene().sigMouseClicked.disconnect(self.measure.pointclicked)
             self.p1.scene().sigMouseClicked.disconnect(self.setCurrentTraceWindow)
@@ -189,7 +189,10 @@ class TraceFig(QWidget):
         #self.rois.append([roi,p1data,p2data,proxy])
 
     def removeROI(self,roi):
-        index=[r['roi'] for r in self.rois].index(roi) #this is the index of the roi in self.rois
+        if isinstance(roi, pg.ROI):
+            index=[r['roi'] for r in self.rois].index(roi) #this is the index of the roi in self.rois
+        elif isinstance(roi, int):
+            index = roi
         self.p1.removeItem(self.rois[index]['p1trace'])
         self.p2.removeItem(self.rois[index]['p2trace'])
         self.rois[index]['roi'].translated.disconnect()

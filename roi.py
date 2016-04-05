@@ -14,6 +14,7 @@ from trace import roiPlot
 import os
 import threading
 from scipy.ndimage.interpolation import rotate
+import process
 
 SHOW_MASK = False
 
@@ -281,12 +282,16 @@ class ROI_line(ROI_Wrapper, pg.LineSegmentROI):
         else:
             self.kymograph.imageview.setImage(mn,autoLevels=False,autoRange=False)
             #self.kymograph.imageview.view.setAspectLocked(lock=True,ratio=mn.shape[1]/mn.shape[0])
+
+    def kymographClicked(self, ev):
+        process.measure.measure.pointclicked(ev, self.kymograph)
     
     def createKymograph(self,mn):
         from window import Window
         oldwindow=g.m.currentWindow
         name=oldwindow.name+' - Kymograph'
         self.kymograph=Window(mn,name,metadata=self.window.metadata)
+        self.kymograph.imageview.scene.sigMouseClicked.connect(self.kymographClicked)
         self.translated.connect(self.update_kymograph)
         self.kymograph.closeSignal.connect(self.deleteKymograph)
         self.sigRemoveRequested.connect(self.deleteKymograph)
@@ -486,11 +491,15 @@ class ROI_rect_line(ROI_Wrapper, pg.MultiRectROI):
             self.kymograph.imageview.setImage(mn,autoLevels=False,autoRange=False)
             #self.kymograph.imageview.view.setAspectLocked(lock=True,ratio=mn.shape[1]/mn.shape[0])
     
+    def kymographClicked(self, ev):
+        process.measure.measure.pointclicked(ev, self.kymograph)
+
     def createKymograph(self,mn):
         from window import Window
         oldwindow=g.m.currentWindow
         name=oldwindow.name+' - Kymograph'
         self.kymograph=Window(mn,name,metadata=self.window.metadata)
+        self.kymograph.imageview.scene.sigMouseClicked.connect(self.kymographClicked)
         self.kymographproxy = pg.SignalProxy(self.sigRegionChanged, rateLimit=1, slot=self.update_kymograph) #This will only update 3 Hz
         self.translated.connect(self.update_kymograph)
         self.kymograph.closeSignal.connect(self.deleteKymograph)

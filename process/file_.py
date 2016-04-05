@@ -32,6 +32,8 @@ from process.BaseProcess import BaseDialog
 __all__ = ['open_file_gui','open_file','save_file_gui','save_file','save_movie', 'save_movie_gui', 'load_metadata','save_metadata','close', 'load_points', 'save_points', 'save_current_frame']
 
 def save_recent_file(fname):
+    if not fname.endswith(('.py', '.tif', '.nd2', '.stk')):
+        return
     while fname in g.settings['recent_files']:
         g.settings['recent_files'].remove(fname)
     g.settings['recent_files'].insert(0, fname)
