@@ -657,9 +657,6 @@ def makeROI(kind,pts,window=None):
         roi=ROI_line(window, pos=(pts))
     elif kind == 'rect_line':
         roi = ROI_rect_line(window, pts)
-        #for p in pts[3:]:
-        #    roi.extend(p[0], p[1])
-        #    roi.extendFinished()
 
     else:
         print("ERROR: THIS TYPE OF ROI COULD NOT BE FOUND: {}".format(kind))
