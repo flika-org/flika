@@ -86,6 +86,7 @@ class Measure(BaseProcess):
                 self.pathitem.setPen(QPen(Qt.red))
                 self.viewbox.addItem(self.pathitem,ignoreBounds=True)
             mousePoint = self.fig.imageview.getImageItem().mapFromScene(pos)
+            point = np.array([mousePoint.y(),mousePoint.x()])
         else:
             if self.fig is not g.m.currentTrace: #if we created a new tracefig
                 self.clear()
@@ -97,7 +98,7 @@ class Measure(BaseProcess):
                 self.pathitem.setPen(QPen(Qt.red))
                 self.viewbox.addItem(self.pathitem,ignoreBounds=True)
             mousePoint = self.viewbox.mapSceneToView(pos)
-        point = np.array([mousePoint.x(),mousePoint.y()])
+            point = np.array([mousePoint.x(),mousePoint.y()])
 
         modifiers = QApplication.keyboardModifiers()
         if modifiers == Qt.ShiftModifier:
