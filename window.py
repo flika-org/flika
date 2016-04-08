@@ -157,7 +157,7 @@ class Window(QWidget):
         
     def updateindex(self):
         (idx, t) = self.imageview.timeIndex(self.imageview.timeLine)
-        t=int(np.ceil(t))
+        t=int(np.floor(t))
         if t>=0 and t<self.mt:
             self.currentIndex = t
             self.scatterPlot.setPoints(pos=self.scatterPoints[t])
