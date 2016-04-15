@@ -106,17 +106,10 @@ def install(dep):
         dep = 'scikit_image'
     if is_installed(dep):
         return
-    old_cwd=os.getcwd()
-    flika_dir=os.path.join(expanduser("~"),'.FLIKA')
-    if not os.path.exists(flika_dir):
-        os.makedirs(flika_dir)
-    
-    os.chdir(flika_dir)
 
     if _platform == 'win32':
         try:
             install_wheel(dep)
-            os.chdir(old_cwd)
             return
         except IOError:
             print('Must have internet and administrator privileges. Also, make sure that all other Python programs are closed.')
@@ -128,8 +121,6 @@ def install(dep):
     if not is_installed(dep):
         if pip.main(['install', dep, '--no-deps']) != 0:
             print('Could not install %s: %s' % (dep, e))
-
-    os.chdir(old_cwd)  
         
 def install_wheel(dep):
     if _platform != 'win32':

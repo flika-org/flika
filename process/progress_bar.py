@@ -76,6 +76,7 @@ class ProgressBar(QtGui.QWidget):
         # GUI
         self.setWindowIcon(QtGui.QIcon('images/favicon.png'))
         self.label=QtGui.QLabel(msg)
+        #self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         self.progress_bars=[]
         self.button = QtGui.QPushButton('Stop')
         self.button.clicked.connect(self.handleButton)
@@ -127,6 +128,7 @@ class ProgressBar(QtGui.QWidget):
                     percent=self.q_progress[i].get()
                 self.progress_bars[i].setValue(percent)
             if not self.q_results[i].empty():
+                self.progress_bars[i].setValue(100)
                 self.results[i]=self.q_results[i].get()
                 self.process_finished[i]=True
                 self.processes[i].join(1)
@@ -157,6 +159,38 @@ class ProgressBar(QtGui.QWidget):
                 delattr(self, attr)
             except Exception:
                 pass
+        
+    def clear_memory(self):
+        for child in self.children():
+            child.deleteLater()
+        for attr in dir(self):
+            try:
+                delattr(self, attr)
+            except Exception:
+                pass
+        
+#    def closeEvent(self, event):
+#        for child in self.findChildren(QtGui.QDialog):
+#            if child is not widget:
+#                child.deleteLater()
+#                    
+#        if self.closed:
+#            print('This window was already closed')
+#            event.accept()
+#        else:
+#            self.closeSignal.emit()
+#            if hasattr(self,'image'):
+#                del self.image
+#            self.imageview.setImage(np.zeros((2,2))) #clear the memory
+#            self.imageview.close()
+#            del self.imageview
+#            g.m.setWindowTitle("FLIKA")
+#            if g.m.currentWindow==self:
+#                g.m.currentWindow=None
+#            if self in g.m.windows:
+#                g.m.windows.remove(self)
+#            self.closed=True
+#            event.accept() # let the window close
         
         
         
