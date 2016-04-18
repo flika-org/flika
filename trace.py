@@ -195,6 +195,7 @@ class TraceFig(QWidget):
             index = roi
         self.p1.removeItem(self.rois[index]['p1trace'])
         self.p2.removeItem(self.rois[index]['p2trace'])
+        self.rois[index]['roi'].traceWindow = None
         self.rois[index]['roi'].translated.disconnect()
         self.rois[index]['roi'].translateFinished.disconnect()
         del self.rois[index]

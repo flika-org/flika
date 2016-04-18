@@ -158,8 +158,9 @@ class ROI_Wrapper():
         except:
             # sometimes errors, says signals not connected
             pass
-        self.traceWindow.removeROI(self)
-        self.traceWindow = None
+        if self.traceWindow != None:
+            self.traceWindow.removeROI(self)
+            self.traceWindow = None
 
     def copy(self):
         g.m.clipboard=self
@@ -172,6 +173,7 @@ class ROI_Wrapper():
 
     def raiseContextMenu(self, ev):
         pos = ev.screenPos()
+        self.plotAct.setText("&Plot" if self.traceWindow == None else "&Unplot")
         self.menu.popup(QPoint(pos.x(), pos.y()))
     
     def getMenu(self):
@@ -191,8 +193,7 @@ class ROI_Wrapper():
         self.menu.addAction(self.saveAct)
     
     def delete(self):
-        if self.traceWindow != None:
-            self.unplot()
+        self.unplot()
         for roi in self.linkedROIs:
             if self in roi.linkedROIs:
                 roi.linkedROIs.remove(self)
@@ -477,8 +478,8 @@ class ROI_rect_line(ROI_Wrapper, pg.MultiRectROI):
             kyms = []
             for i in range(len(self.pts)-1):
                 pts = self.pts[i:i+2]
-                x, y = np.min(pts, 0)
-                x2, y2 = np.max(pts, 0)
+                x, y = np.min(pts, 0, dtype=int)
+                x2, y2 = np.max(pts, 0, dtype=int)
                 rect = rotate(tif[:, x-self.width:x2+self.width, y-self.width:y2+self.width], -self.lines[i].angle(), (2, 1), reshape=False)
                 t, w, h = np.shape(rect)
                 h = h // 2  - self.width // 2
@@ -564,8 +565,8 @@ class ROI_rectangle(ROI_Wrapper, pg.ROI):
         w, h = self.window.imageDimensions()
         mask = np.zeros((w, h))
         
-        x, y = self.state['pos']
-        w, h = self.state['size']
+        x, y = np.array(self.state['pos'], dtype=int)
+        w, h = np.array(self.state['size'], dtype=int)
         self.pts = [self.state['pos'], self.state['size']]
 
         if x < 0:
@@ -574,7 +575,6 @@ class ROI_rectangle(ROI_Wrapper, pg.ROI):
         if y < 0:
             h = max(0, h + y)
             y = 0
-
         mask[x:x+w, y:y+h] = True
         self.mask=np.array(np.where(mask)).T
         if len(self.mask) > 0:
