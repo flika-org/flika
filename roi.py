@@ -1,9 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Jul 18 18:10:04 2014
 
-@author: Kyle Ellefsen
-"""
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 import global_vars as g
@@ -219,7 +214,7 @@ class ROI_Wrapper():
             xx, yy = np.transpose(pts_in)
             self.minn = np.min(self.mask, 0)
             vals = np.average(tif[:, xx, yy], 1)
-            
+
             if SHOW_MASK:
                 img = np.zeros((w, h))
                 img[xx, yy] = 1

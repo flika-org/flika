@@ -10,6 +10,8 @@ elif sys.version_info.major==3:
     from urllib.request import Request, urlopen
 import traceback
 
+
+
 pyversion=str(sys.version_info.major)+str(sys.version_info.minor)
 is_64bits = sys.maxsize > 2**32
 if is_64bits:
@@ -18,6 +20,11 @@ else:
     fnames_suffix="-cp"+pyversion+"-none-win32.whl"
     
 base_url='http://www.lfd.uci.edu/~gohlke/pythonlibs/'
+
+def _matches_python_bit(fname):
+    python_v = ("-cp%s" % pyversion in fname)
+    bit_match = fname.endswith("-win%s.whl" % ("_amd64" if is_64bits else '32'))
+    return python_v and bit_match
 
 def get_url(ml,mi):
     mi = mi.replace('&lt;', '<')
@@ -43,9 +50,8 @@ def get_wheel_url(plugin):
         if len(fname) > 0:
             res, fname = fname[0]
             res = eval(res)
-            if fname.endswith(fnames_suffix):
+            if _matches_python_bit(fname):
                 fnames[fname] = res
-
     return get_newest_version(fnames)
 
 def get_newest_version(fnames):
@@ -114,6 +120,7 @@ def install(dep):
         except IOError:
             print('Must have internet and administrator privileges. Also, make sure that all other Python programs are closed.')
         except NotOnGohlkeError:
+            print("Not on Gohlke")
             pass
         except Exception as e:
             print("Could not install %s from Gohlke's website. %s" % (dep, traceback.format_exc()))
