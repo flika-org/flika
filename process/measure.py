@@ -52,6 +52,7 @@ class Measure(BaseProcess):
         
         super().gui()
         self.fig=None
+        self.overwrite = False
         
         self.ui.accepted.disconnect()
         self.ui.closeSignal.connect(self.close)
@@ -73,11 +74,14 @@ class Measure(BaseProcess):
         except:
             pass
 
-    def pointclicked(self,evt, window=None):
+    def pointclicked(self,evt, window=None, overwrite=False):
         if self.ON is False:
             return
         pos=evt.pos()
-        if window != None:
+        if self.overwrite:
+            self.overwrite = overwrite
+            return
+        elif window != None:
             if window != self.fig:
                 self.clear()
                 self.fig = window
@@ -88,18 +92,25 @@ class Measure(BaseProcess):
             mousePoint = self.fig.imageview.getImageItem().mapFromScene(pos)
             point = np.array([mousePoint.y(),mousePoint.x()])
         else:
+            print("ORIG:", pos)
             if self.fig is not g.m.currentTrace: #if we created a new tracefig
                 self.clear()
                 self.fig=g.m.currentTrace
-                self.viewbox=self.fig.p1.getPlotItem().vb
+                self.viewbox=self.fig.vb
                 if not g.m.currentTrace.p1.plotItem.sceneBoundingRect().contains(pos):
                     return
                 self.pathitem=QGraphicsPathItem(self.viewbox)
                 self.pathitem.setPen(QPen(Qt.red))
                 self.viewbox.addItem(self.pathitem,ignoreBounds=True)
-            mousePoint = self.viewbox.mapSceneToView(pos)
-            point = np.array([mousePoint.x(),mousePoint.y()])
+            mousePoint = self.viewbox.mapSceneToView(pos) if not overwrite else pos
+            pos = np.array([mousePoint.x(),mousePoint.y()])
+            print(pos)
 
+        self.overwrite = overwrite
+        self.update(pos)
+
+    def update(self, point):
+        
         modifiers = QApplication.keyboardModifiers()
         if modifiers == Qt.ShiftModifier:
             point=self.getNearestPoint(point)
@@ -126,14 +137,16 @@ class Measure(BaseProcess):
             self.draw([self.firstPoint,self.secondPoint])
                     
     def draw(self,points):
+        if type(self.fig) != type(g.m.currentTrace):
+            points = [p[::-1] for p in points]
         path=QPainterPath(QPointF(*points[0]))
         for i in np.arange(1,len(points)):
             path.lineTo(QPointF(*points[i]))
         self.pathitem.setPath(path)
         
     def close(self):
-        if self.pathitem in self.viewbox.addedItems:
-            self.viewbox.removeItem(self.pathitem)
+        if self.pathitem.parentWidget() != None:
+            self.pathitem.parentWidget().removeItem(self.pathitem) 
         self.ON=False
     def getNearestPoint(self,point):
         if hasattr(self.fig, 'imageview'):

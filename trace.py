@@ -193,6 +193,8 @@ class TraceFig(QWidget):
             index=[r['roi'] for r in self.rois].index(roi) #this is the index of the roi in self.rois
         elif isinstance(roi, int):
             index = roi
+        else:
+            return
         self.p1.removeItem(self.rois[index]['p1trace'])
         self.p2.removeItem(self.rois[index]['p2trace'])
         self.rois[index]['roi'].traceWindow = None
