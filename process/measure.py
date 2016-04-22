@@ -90,7 +90,7 @@ class Measure(BaseProcess):
                 self.pathitem.setPen(QPen(Qt.red))
                 self.viewbox.addItem(self.pathitem,ignoreBounds=True)
             mousePoint = self.fig.imageview.getImageItem().mapFromScene(pos)
-            point = np.array([mousePoint.y(),mousePoint.x()])
+            pos = np.array([mousePoint.y(),mousePoint.x()])
         else:
             if self.fig is not g.m.currentTrace: #if we created a new tracefig
                 self.clear()
