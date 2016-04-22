@@ -92,7 +92,6 @@ class Measure(BaseProcess):
             mousePoint = self.fig.imageview.getImageItem().mapFromScene(pos)
             point = np.array([mousePoint.y(),mousePoint.x()])
         else:
-            print("ORIG:", pos)
             if self.fig is not g.m.currentTrace: #if we created a new tracefig
                 self.clear()
                 self.fig=g.m.currentTrace
@@ -104,7 +103,6 @@ class Measure(BaseProcess):
                 self.viewbox.addItem(self.pathitem,ignoreBounds=True)
             mousePoint = self.viewbox.mapSceneToView(pos) if not overwrite else pos
             pos = np.array([mousePoint.x(),mousePoint.y()])
-            print(pos)
 
         self.overwrite = overwrite
         self.update(pos)
