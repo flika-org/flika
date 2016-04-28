@@ -5,11 +5,9 @@ Latest Update: 2016.02.23
 @author: Kyle Ellefsen and Brett Settle
 """
 from __future__ import (absolute_import, division,print_function, unicode_literals)
-from dependency_check import check_dependencies
-check_dependencies('future', 'PyQt4', 'numpy', 'scipy', 'pyqtgraph','openpyxl', 'scikit_image','nd2reader', 'xmltodict')
+import dependency_check
 from future.builtins import (bytes, dict, int, list, object, range, str, ascii, chr, hex, input, next, oct, open, pow, round, super, filter, map, zip)
 import time
-tic=time.time()
 import os, sys
 if sys.version_info.major == 2:
     reload(sys)
@@ -151,6 +149,7 @@ if __name__ == '__main__':
     args=sys.argv[1:]
     if os.name =='nt':
         g.setConsoleVisible(g.settings['debug_mode'])
+
     args=[arg for arg in args if 'FLIKA.PY' not in arg.upper() and arg != 'python']
     for a in args:
         w = open_file(a)
