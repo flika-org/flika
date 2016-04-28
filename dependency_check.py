@@ -224,7 +224,7 @@ def main():
     for name in ('future', 'PIL', 'pyqtgraph', 'xmltodict', 'openpyxl', 'nd2reader'):
         test_dependency(name, installers=['pip', 'gohlke'])
 
-if __name_- == '__main__' or INSTALL_DEPENDENCIES:
+if __name__ == '__main__' or INSTALL_DEPENDENCIES:
     pyversion=str(sys.version_info.major)+str(sys.version_info.minor)
     is_64bits = sys.maxsize > 2**32
     is_anaconda = 'Anaconda' in sys.version
