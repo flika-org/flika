@@ -219,7 +219,7 @@ def main():
     test_dependency('PyQt4', installers=['gohlke'], fromlist=['QtCore', 'QtGui', 'uic'], conda=True)
     test_dependency('numpy', installers=['gohlke'], conda=True)
     test_dependency('scipy', fromlist=['special', 'ndimage'], conda=True)
-    test_dependency('matplotlib', fromlist=['pytplot', 'cbook'], conda=True)
+    test_dependency('matplotlib', fromlist=['pyplot', 'cbook'], conda=True)
     test_dependency('skimage', fromlist=['draw'])
     for name in ('future', 'PIL', 'pyqtgraph', 'xmltodict', 'openpyxl', 'nd2reader'):
         test_dependency(name, installers=['pip', 'gohlke'])
