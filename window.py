@@ -28,7 +28,7 @@ class Window(QWidget):
         self.metadata=metadata
         if 'is_rgb' not in metadata.keys():
             metadata['is_rgb']=False
-        self.image=tif
+
         if g.m.currentWindow is None:
             width=684
             height=585
@@ -50,8 +50,6 @@ class Window(QWidget):
         self.imageview.setMouseTracking(True)
         self.imageview.installEventFilter(self)
         self.imageview.ui.menuBtn.setParent(None)
-        
-
 
         #self.imageview.ui.normBtn.setParent(None) # gets rid of 'norm' button that comes with ImageView
         self.imageview.ui.roiBtn.setParent(None) # gets rid of 'roi' button that comes with ImageView
@@ -60,8 +58,9 @@ class Window(QWidget):
         self.linkMenu = QMenu("Link frame")
         rp.ctrlMenu = self.linkMenu
         self.linkMenu.aboutToShow.connect(self.make_link_menu)
-
         self.imageview.setImage(tif)
+
+        self.image=tif
         """ Here we set the initial range of the look up table.  """
         nDims=len(np.shape(self.image))
         if nDims==3:

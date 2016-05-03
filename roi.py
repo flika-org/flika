@@ -473,8 +473,10 @@ class ROI_rect_line(ROI_Wrapper, pg.MultiRectROI):
             kyms = []
             for i in range(len(self.pts)-1):
                 pts = self.pts[i:i+2]
-                x, y = np.min(pts, 0, dtype=int)
-                x2, y2 = np.max(pts, 0, dtype=int)
+                x, y = np.min(pts, 0)
+                x, y = int(x), int(y)
+                x2, y2 = np.max(pts, 0)
+                x2, y2 = int(x2), int(y2)
                 rect = rotate(tif[:, x-self.width:x2+self.width, y-self.width:y2+self.width], -self.lines[i].angle(), (2, 1), reshape=False)
                 t, w, h = np.shape(rect)
                 h = h // 2  - self.width // 2

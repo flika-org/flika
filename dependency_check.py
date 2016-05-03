@@ -8,7 +8,7 @@ if sys.version_info.major==2:
     from urllib2 import Request, urlopen
 elif sys.version_info.major==3:
     from urllib.request import Request, urlopen
-import traceback, webbrowser, zipfile, shutil, subprocess
+import traceback, zipfile, shutil, subprocess
 
 def _matches_python_bit(fname):
     python_v = ("-cp%s" % pyversion in fname)
@@ -194,9 +194,9 @@ def test(name, fromlist=[], conda=False):
     return False
 
 def check_dependencies(*deps):
-    for d in deps:
+    for dep in deps:
         if not test(dep):
-            install(d)
+            install(dep)
 
 def main():
     DEPENDENCIES = ['numpy', 'scipy', 'pyqtgraph', 'skimage', "PIL", 'xmltodict', 'future', 'matplotlib', 'openpyxl', 'nd2reader']
