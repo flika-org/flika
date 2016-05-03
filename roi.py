@@ -140,7 +140,7 @@ class ROI_Wrapper():
             filename= QFileDialog.getSaveFileName(g.m, 'Save ROI', '', "Text Files (*.txt);;All Files (*.*)")
         filename=str(filename)
         if filename != '':
-            reprs = [str(roi) for roi in self.window.rois]
+            reprs = [roi.str() for roi in self.window.rois]
             reprs = '\n'.join(reprs)
             open(filename, 'w').write(reprs)
         else:
@@ -172,7 +172,7 @@ class ROI_Wrapper():
         self.menu.popup(QPoint(pos.x(), pos.y()))
     
     def getMenu(self):
-        self.plotAct = QAction("&Plot", self, triggered=lambda : self.plot() if self.traceWindow == None else self.unplot())
+        self.plotAct = QAction("&Plot", self, triggered=lambda : self.plot() if self.plotAct.text() == "&Plot" else self.unplot())
         self.plotAllAct = QAction('&Plot All', self, triggered=lambda : [roi.plot() for roi in self.window.rois])
         self.colorAct = QAction("&Change Color",self,triggered=self.changeColor)
         self.copyAct = QAction("&Copy", self, triggered=self.copy)
@@ -224,7 +224,7 @@ class ROI_Wrapper():
             vals = vals[bounds[0]:bounds[1]]
         return vals
 
-    def __str__(self):
+    def str(self):
         s = self.kind + '\n'
         for x, y in self.pts:
             s += '%d %d\n' % (x, y)

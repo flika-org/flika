@@ -189,7 +189,7 @@ class TraceFig(QWidget):
         #self.rois.append([roi,p1data,p2data,proxy])
 
     def removeROI(self,roi):
-        if isinstance(roi, pg.ROI):
+        if isinstance(roi, (pg.ROI, pg.MultiRectROI)):
             index=[r['roi'] for r in self.rois].index(roi) #this is the index of the roi in self.rois
         elif isinstance(roi, int):
             index = roi
