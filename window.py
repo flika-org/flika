@@ -263,6 +263,15 @@ class Window(QWidget):
         self.scatterPlot.setPoints(pos=self.scatterPoints[t])
         print('clicked')
         
+    def getScatterPts(self):
+        p_out=[]
+        p_in=self.scatterPoints
+        for t in np.arange(len(p_in)):
+            for p in p_in[t]:
+                p_out.append(np.array([t,p[0],p[1]]))
+        p_out=np.array(p_out)
+        return p_out
+        
         
     def mouseClickEvent(self,ev):
         self.EEEE=ev
