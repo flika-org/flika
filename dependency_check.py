@@ -184,7 +184,10 @@ def test(name, fromlist=[], conda=False):
         return test_numpy()
     if conda and is_anaconda:
         return True
-    if os.path.join(pip.locations.site_packages, name):
+    package_dict = [open(f, 'r').readline().strip() for f in glob(os.path.join(pip.locations.site_packages, '%s-*'%name, 'top_level.txt'))]
+    if len(package_dict) == 1:
+        name = package_dict[0]
+    if name in package_dict or os.path.exists(os.path.join(pip.locations.site_packages, name)):
         try:
             __import__(name, fromlist=fromlist)
             return True
@@ -199,8 +202,6 @@ def check_dependencies(*deps):
             install(dep)
 
 def main():
-    DEPENDENCIES = ['numpy', 'scipy', 'pyqtgraph', 'skimage', "PIL", 'xmltodict', 'future', 'matplotlib', 'openpyxl', 'nd2reader']
-
     version = sys.version_info.major, sys.version_info.minor, sys.version_info.micro
     if version[0] == 2 and version[1] <= 7 and version[2] <= 8:
         print('\n' + "=" * 20)
