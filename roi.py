@@ -11,7 +11,7 @@ import threading
 from scipy.ndimage.interpolation import rotate
 import process
 
-SHOW_MASK = False
+SHOW_MASK = True
 
 ROI_COLOR = QColor(255, 255, 255)
 
@@ -99,7 +99,6 @@ class ROI_Wrapper():
         self.window.closeSignal.connect(self.delete)
         self.traceWindow = None
         self.mask=None
-        self.linkMoved = False
         self.linkedROIs = set()
         self.sigRegionChanged.connect(self.onRegionChange)
         self.sigRegionChangeFinished.connect(self.translateFinished.emit)
@@ -110,11 +109,14 @@ class ROI_Wrapper():
         
     def onRegionChange(self):
         self.getMask()
-        if not self.linkMoved:
-            for roi in self.linkedROIs:
-                roi.linkMoved = True
-                roi.draw_from_points(self.pts)
-        self.linkMoved = False
+        for roi in self.linkedROIs:
+            roi.blockSignals(True)
+            roi.draw_from_points(self.pts)
+            roi.getMask()
+            roi.blockSignals(False)
+            if roi.traceWindow != None:
+                roi.traceWindow.translate_done(roi)
+
         self.translated.emit()
 
     def plot(self):
