@@ -11,7 +11,7 @@ import threading
 from scipy.ndimage.interpolation import rotate
 import process
 
-SHOW_MASK = True
+SHOW_MASK = False
 
 ROI_COLOR = QColor(255, 255, 255)
 
@@ -115,7 +115,7 @@ class ROI_Wrapper():
             roi.getMask()
             roi.blockSignals(False)
             if roi.traceWindow != None:
-                roi.traceWindow.translate_done(roi)
+                roi.traceWindow.translate(roi)
 
         self.translated.emit()
 
