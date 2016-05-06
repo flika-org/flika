@@ -106,6 +106,9 @@ class ROI_Wrapper():
             self.color = self.pen
         else:
             self.color = self.pen.color()
+
+    def finish_translate(self):
+        self.sigRegionChangeFinished.emit()
         
     def onRegionChange(self):
         self.getMask()
@@ -115,7 +118,7 @@ class ROI_Wrapper():
             roi.getMask()
             roi.blockSignals(False)
             if roi.traceWindow != None:
-                roi.traceWindow.translate(roi)
+                roi.traceWindow.translated(roi)
 
         self.translated.emit()
 
@@ -263,7 +266,7 @@ class ROI_line(ROI_Wrapper, pg.LineSegmentROI):
             return
         self.movePoint(self.handles[0]['item'], pts[0], finish=False)
         self.movePoint(self.handles[1]['item'], pts[1], finish=False)
-        self.translateFinished.emit()
+        #self.translateFinished.emit()
 
     def update_kymograph(self):
         tif=self.window.image
@@ -330,7 +333,7 @@ class ROI_rect_line(ROI_Wrapper, pg.MultiRectROI):
             self.lines[i-1].movePoint(self.lines[i-1].handles[1]['item'], pts[i], finish=False)
             self.lines[i].movePoint(self.lines[i].handles[0]['item'], pts[i], finish=False)
         self.lines[-1].movePoint(self.lines[-1].handles[-1]['item'], pts[-1])
-        self.translateFinished.emit()
+        #self.translateFinished.emit()
         
     def setCurrentPen(self, pen):
         for l in self.lines:
@@ -526,9 +529,14 @@ class ROI_rectangle(ROI_Wrapper, pg.ROI):
         ROI_Wrapper.__init__(self)
 
     def draw_from_points(self, pts):
-        self.setPos(pts[0], finish=False)
-        self.setSize(pts[1], finish=False)
-        self.translateFinished.emit()
+        print(pts)
+        if len(pts) == 2:
+            self.setPos(pts[0], finish=False)
+            self.setSize(pts[1], finish=False)
+        else:
+            self.setPos(pts[0], finish=False)
+            self.setSize(pts[2]-pts[0], finish=False)
+        #self.translateFinished.emit()
 
     def getMenu(self):
         ROI_Wrapper.getMenu(self)
@@ -560,6 +568,11 @@ class ROI_rectangle(ROI_Wrapper, pg.ROI):
             newtif=tif[x1:x2+1,y1:y2+1]
         return Window(newtif,self.window.name+' Cropped',metadata=self.window.metadata)
 
+    def getPoints(self):
+        x, y = np.array(self.state['pos'], dtype=int)
+        w, h = np.array(self.state['size'], dtype=int)
+        return [self.state['pos'], pg.Point(x+w, y), pg.Point(x+w, y+h), pg.Point(x, y+h)] 
+
     def getMask(self):
         w, h = self.window.imageDimensions()
         mask = np.zeros((w, h))
@@ -585,6 +598,13 @@ class ROI_rectangle(ROI_Wrapper, pg.ROI):
         s += '%d %d\n' % (self.state['size'][0], self.state['size'][1])
         return s
 
+    def contains(self, *pos):
+        if isinstance(pos[0], QPointF):
+            pos = pos[0]
+        elif len(pos) == 2:
+            pos = QPointF(pos[0], pos[1])
+        return pg.ROI.contains(self, pos)
+
 class ROI(ROI_Wrapper, pg.ROI):
     kind = 'freehand'
     plotSignal = Signal()
@@ -601,7 +621,7 @@ class ROI(ROI_Wrapper, pg.ROI):
     def draw_from_points(self, pts):
         self.pts = pts
         self.getMask()
-        self.translateFinished.emit()
+        #self.translateFinished.emit()
 
     def boundingRect(self):
         r = pg.ROI.boundingRect(self)
