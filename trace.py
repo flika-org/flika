@@ -278,6 +278,7 @@ class RedrawPartialThread(QThread):
                     idxs.append(i)
             traces=[]
             bounds=self.tracefig.getBounds()
+            bounds = [max(0, bounds[0]), bounds[1]]
             for i in idxs:
                 roi=self.tracefig.rois[i]['roi']
                 trace=roi.getTrace(bounds)
@@ -288,12 +289,10 @@ class RedrawPartialThread(QThread):
                 bb=self.tracefig.getBounds()
                 curve=self.tracefig.rois[roi_index]['p1trace']
                 newtrace=curve.getData()[1]
-                print(np.shape(newtrace), np.shape(trace), bb)
                 if bb[0]<0: bb[0]=0
                 if bb[1]>len(newtrace): bb[1]=len(newtrace)
                 if bb[1]<0 or bb[0]>len(newtrace):
                     return
-                print(np.shape(newtrace), np.shape(trace), bb)
                 newtrace[bb[0]:bb[1]]=trace
                 curve.setData(newtrace,pen=pen)
             QApplication.processEvents()

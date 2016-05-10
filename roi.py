@@ -97,6 +97,7 @@ class ROI_Wrapper():
         self.colorDialog=QColorDialog()
         self.colorDialog.colorSelected.connect(self.colorSelected)
         self.window.closeSignal.connect(self.delete)
+        self.window.currentROI = self
         self.traceWindow = None
         self.mask=None
         self.linkedROIs = set()
@@ -517,25 +518,24 @@ class ROI_rectangle(ROI_Wrapper, pg.ROI):
     plotSignal = Signal()
     translated = Signal()
     translateFinished = Signal()
-    def __init__(self, window, pos, size, *args, **kargs):
+    def __init__(self, window, pos, size=(1, 1), resizable=True, *args, **kargs):
         self.init_args.update(kargs)
         self.window = window
         pg.ROI.__init__(self, pos, size, *args, **self.init_args)
-        self.addScaleHandle([0, 1], [1, 0])
-        self.addScaleHandle([1, 0], [0, 1])
-        self.addScaleHandle([0, 0], [1, 1])
-        self.addScaleHandle([1, 1], [0, 0])
+        if resizable:
+            self.addScaleHandle([0, 1], [1, 0])
+            self.addScaleHandle([1, 0], [0, 1])
+            self.addScaleHandle([0, 0], [1, 1])
+            self.addScaleHandle([1, 1], [0, 0])
         self.cropAction = QAction('&Crop', self, triggered=self.crop)
         ROI_Wrapper.__init__(self)
 
     def draw_from_points(self, pts):
-        print(pts)
         if len(pts) == 2:
             self.setPos(pts[0], finish=False)
             self.setSize(pts[1], finish=False)
         else:
-            self.setPos(pts[0], finish=False)
-            self.setSize(pts[2]-pts[0], finish=False)
+            print("PTS", pts)
         #self.translateFinished.emit()
 
     def getMenu(self):
@@ -664,18 +664,19 @@ class ROI(ROI_Wrapper, pg.ROI):
         if len(self.mask) > 0:
             self.minn = np.min(self.mask, 0)
     
-def makeROI(kind,pts,window=None):
+def makeROI(kind,pts,window=None, **kargs):
     if window is None:
         window=g.m.currentWindow
 
     if kind=='freehand':
-        roi=ROI(window, pts)
+        roi=ROI(window, pts, **kargs)
     elif kind=='rectangle':
-        roi=ROI_rectangle(window,pts[0], pts[1])
+        size = [pts[2][0] - pts[0][0], pts[2][1] - pts[0][1]]
+        roi=ROI_rectangle(window,pts[0], size, **kargs)
     elif kind=='line':
-        roi=ROI_line(window, pos=(pts))
+        roi=ROI_line(window, pos=(pts), **kargs)
     elif kind == 'rect_line':
-        roi = ROI_rect_line(window, pts)
+        roi = ROI_rect_line(window, pts, **kargs)
 
     else:
         print("ERROR: THIS TYPE OF ROI COULD NOT BE FOUND: {}".format(kind))
