@@ -13,7 +13,8 @@ import process
 
 SHOW_MASK = False
 
-ROI_COLOR = QColor(255, 255, 255)
+ROI_COLOR = QColor(255, 255, 0)
+HOVER_COLOR = QColor(255, 0, 0)
 
 class ROI_Drawing(pg.GraphicsObject):
     def __init__(self, window, x, y, type):
@@ -107,7 +108,9 @@ class ROI_Wrapper():
         if isinstance(self.pen, QColor):
             self.color = self.pen
         else:
+            #self.pen.setWidth(2)
             self.color = self.pen.color()
+
 
     def finish_translate(self):
         pts=self.getPoints()
@@ -116,6 +119,18 @@ class ROI_Wrapper():
             roi.translate_done.emit()
         self.draw_from_points(pts)
         self.translate_done.emit()
+
+    def setMouseHover(self, hover):
+        ## Inform the ROI that the mouse is(not) hovering over it
+        if self.mouseHovering == hover:
+            return
+        self.mouseHovering = hover
+        if hover:
+            self.currentPen = pg.mkPen(*HOVER_COLOR)
+        else:
+            self.currentPen = self.pen
+
+        self.update()
         
     def onRegionChange(self):
         pts = self.getPoints()
@@ -357,7 +372,7 @@ class ROI_rect_line(ROI_Wrapper, pg.MultiRectROI):
     def hoverEvent(self, l, ev):
         self.currentLine = l
         if ev.enter:
-            self.setCurrentPen(QPen(QColor(255, 255, 0)))
+            self.setCurrentPen(QPen(HOVER_COLOR))
         elif ev.exit:
             self.setCurrentPen(l.pen)
 
@@ -610,7 +625,7 @@ class ROI_rectangle(ROI_Wrapper, pg.ROI):
         if len(self.mask) > 0:
             self.minn = np.min(self.mask, 0)
 
-    def contains(self, *pos, corrected=True):
+    def contains(self, *pos, corrected=True):  # pyqtgraph ROI uses this function for mouse interaction. Set corrected=True to use
         if isinstance(pos[0], QPointF):
             pos = pos[0]
         elif len(pos) == 2:
