@@ -32,6 +32,8 @@ from process.BaseProcess import BaseDialog
 __all__ = ['open_file_gui','open_file','save_file_gui','save_file','save_movie', 'save_movie_gui', 'load_metadata','save_metadata','close', 'load_points', 'save_points', 'save_current_frame']
 
 def save_recent_file(fname):
+    if not fname.endswith(('.py', '.tif', '.nd2', '.stk')):
+        return
     while fname in g.settings['recent_files']:
         g.settings['recent_files'].remove(fname)
     g.settings['recent_files'].insert(0, fname)
@@ -129,7 +131,11 @@ def open_file(filename=None):
     metadata=dict()
     ext=os.path.splitext(filename)[1]
     if ext in ['.tif', '.stk', '.tiff']:
-        Tiff=tifffile.TiffFile(filename)
+        try:
+            Tiff=tifffile.TiffFile(filename)
+        except Exception as s:
+            g.m.statusBar().showMessage("Unable to open %s. %s" % (filename, s))
+            return None
         try:
             metadata=Tiff[0].image_description
             metadata = txt2dict(metadata)

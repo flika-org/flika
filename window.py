@@ -21,7 +21,6 @@ from roi import *
 class Window(QWidget):
     closeSignal=Signal()
     keyPressSignal=Signal(QEvent)
-    deleteButtonSignal=Signal()
     sigTimeChanged=Signal(int)
     def __init__(self,tif,name='Flika',filename='',commands=[],metadata=dict()):
         QWidget.__init__(self)
@@ -29,7 +28,7 @@ class Window(QWidget):
         self.metadata=metadata
         if 'is_rgb' not in metadata.keys():
             metadata['is_rgb']=False
-        self.image=tif
+
         if g.m.currentWindow is None:
             width=684
             height=585
@@ -51,8 +50,6 @@ class Window(QWidget):
         self.imageview.setMouseTracking(True)
         self.imageview.installEventFilter(self)
         self.imageview.ui.menuBtn.setParent(None)
-        
-
 
         #self.imageview.ui.normBtn.setParent(None) # gets rid of 'norm' button that comes with ImageView
         self.imageview.ui.roiBtn.setParent(None) # gets rid of 'roi' button that comes with ImageView
@@ -61,8 +58,9 @@ class Window(QWidget):
         self.linkMenu = QMenu("Link frame")
         rp.ctrlMenu = self.linkMenu
         self.linkMenu.aboutToShow.connect(self.make_link_menu)
-
         self.imageview.setImage(tif)
+
+        self.image=tif
         """ Here we set the initial range of the look up table.  """
         nDims=len(np.shape(self.image))
         if nDims==3:
@@ -191,13 +189,47 @@ class Window(QWidget):
             self.imageview.setImage(np.zeros((2,2))) #clear the memory
             #self.imageview.close()
             del self.imageview
-            g.m.setWindowTitle("FLIKA")
             if g.m.currentWindow==self:
                 g.m.currentWindow=None
             if self in g.m.windows:
                 g.m.windows.remove(self)
             self.closed=True
             event.accept() # let the window close
+
+    def imageArray(self):
+        '''
+        returns image as a 3d array, correcting for color or 2d image
+        '''
+        tif=self.image
+        nDims=len(tif.shape)
+        if nDims==4: #if this is an RGB image stack  #[t, x, y, colors]
+            tif=np.mean(tif,3)
+            mx,my=tif[0,:,:].shape
+        elif nDims==3:
+            if self.metadata['is_rgb']:  # [x, y, colors]
+                tif=np.mean(tif,2)
+                mx,my=tif.shape
+                tif=tif[np.newaxis]
+            else: 
+                mx,my=tif[0,:,:].shape
+        elif nDims==2:
+            mx,my=tif.shape
+            tif=tif[np.newaxis]
+        return tif
+
+    def imageDimensions(self):
+        nDims=self.image.shape
+        if len(nDims)==4: #if this is an RGB image stack
+            return nDims[1:3]
+        elif len(nDims)==3:
+            if self.metadata['is_rgb']:  # [x, y, colors]
+                return nDims[:2]
+            else:                               # [t, x, y]
+                return nDims[1:]
+        if len(nDims)==2: #if this is a static image
+            return nDims
+        return nDims
+
             
     def resizeEvent(self, event):
         event.accept()
@@ -210,9 +242,6 @@ class Window(QWidget):
         if g.m.clipboard in self.rois:
             return False
         self.currentROI=makeROI(g.m.clipboard.kind,g.m.clipboard.pts,self)
-        #self.currentROI=type(g.m.clipboard)(self,0,0) #self.press=np.array([np.array([np.array([x,y])])])
-        #self.currentROI.draw_from_points(g.m.clipboard.getPoints())
-        #self.rois.append(self.currentROI)
         self.currentROI.link(g.m.clipboard)
         
     def mousePressEvent(self,ev):
@@ -248,32 +277,27 @@ class Window(QWidget):
         self.EEEE=ev
         if self.x is not None and self.y is not None and ev.button()==2:
             if self.creatingROI is False:
-                if self.currentROI is not None and self.currentROI.contains(self.x,self.y):
-                    self.currentROI.contextMenuEvent(ev)
-                    self.x=None
-                    self.y=None
-                else:
-                    mm=g.settings['mousemode']
-                    if mm=='point':
-                        t=self.currentIndex
-                        position=[self.x,self.y]
-                        self.scatterPoints[t].append(position)
-                        pointSize=g.settings['point_size']
-                        pointColor = QColor(g.settings['point_color'])
-                        self.scatterPlot.addPoints(pos=[[self.x,self.y]], size=pointSize, brush=pg.mkBrush(*pointColor.getRgb()))
-                        
-                                
-                    elif g.m.clipboard is not None:
-                        self.menu = QMenu(self)
-                        self.menu.addAction(self.pasteAct)
-                        self.menu.exec_(ev.screenPos().toQPoint())
-                        
+                mm=g.m.settings['mousemode']
+                if mm=='point':
+                    t=self.currentIndex
+                    position=[self.x,self.y]
+                    self.scatterPoints[t].append(position)
+                    pointSize=g.m.settings['point_size']
+                    pointColor = QColor(g.m.settings['point_color'])
+                    self.scatterPlot.addPoints(pos=[[self.x,self.y]], size=pointSize, brush=pg.mkBrush(*pointColor.getRgb()))
+                    self.imageview.view.__class__.mouseClickEvent(self.imageview.view, ev)
+                            
+                elif g.m.clipboard is not None:
+                    self.menu = QMenu(self)
+                    self.menu.addAction(self.pasteAct)
+                    self.menu.exec_(ev.screenPos().toQPoint())
 
+                        
     
     def keyPressEvent(self,ev):
         if ev.key() == Qt.Key_Delete:
             if self.currentROI is not None:
-                self.deleteButtonSignal.emit()
+                self.currentROI.delete()
         self.keyPressSignal.emit(ev)
         
     def mouseMoved(self,point):
@@ -288,11 +312,7 @@ class Window(QWidget):
             z=self.imageview.currentIndex
             value=image[int(self.x),int(self.y)]
             g.m.statusBar().showMessage('x={}, y={}, z={}, value={}'.format(int(self.x),int(self.y),z,value))
-        for roi in self.rois:
-            roi.mouseOver(self.x,self.y)
-            if self.creatingROI is False:
-                if roi.contains(self.x,self.y):
-                    self.currentROI=roi
+        
 
     def mouseDragEvent(self, ev):
         modifiers = QApplication.keyboardModifiers()
@@ -304,30 +324,18 @@ class Window(QWidget):
             self.imageview.view.translateBy(difference)
         if ev.button() == Qt.RightButton:
             ev.accept()
-            mm=g.settings['mousemode']
-            if mm=='freehand' or mm=='line' or mm=='rectangle':
+            mm=g.m.settings['mousemode']
+            if mm in ('freehand', 'line', 'rectangle', 'rect_line'):
                 if ev.isStart():
                     self.ev=ev
                     pt=self.imageview.getImageItem().mapFromScene(ev.buttonDownScenePos())
                     self.x=pt.x() # this sets x and y to the button down position, not the current position
                     self.y=pt.y()
-                    #print("Drag start x={},y={}".format(self.x,self.y))
-                    for roi in self.rois:
-                        roi.mouseOver(self.x,self.y)
-                    if any([r.mouseIsOver for r in self.rois]): #if any roi is moused over
-                        self.currentROIs=[r for r in self.rois if r.mouseIsOver]
-                        self.creatingROI=False
-                    else:
-                        self.creatingROI=True
-                        if g.settings['mousemode']=='freehand':
-                            self.currentROI=ROI(self,self.x,self.y)
-                        if g.settings['mousemode']=='line':
-                            self.currentROI=ROI_line(self,self.x,self.y)
-                        if g.settings['mousemode']=='rectangle':
-                            self.currentROI=ROI_rectangle(self,self.x,self.y)
+                    self.creatingROI=True
+                    self.currentROI=ROI_Drawing(self,self.x,self.y, mm)
                 if ev.isFinish():
                     if self.creatingROI:
-                        self.currentROI.drawFinished()
+                        self.currentROI = self.currentROI.drawFinished()
                         self.creatingROI=False
                     else: 
                         for r in self.currentROIs:

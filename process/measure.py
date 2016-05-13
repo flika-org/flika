@@ -51,8 +51,8 @@ class Measure(BaseProcess):
         self.items.append({'name':'newcol','string':'','object':newcol})
         
         super().gui()
-        
-        self.tracefig=None
+        self.fig=None
+        self.overwrite = False
         
         self.ui.accepted.disconnect()
         self.ui.closeSignal.connect(self.close)
@@ -66,21 +66,49 @@ class Measure(BaseProcess):
         self.data[len(self.data)-1].append(point)
     def newcol(self):
         self.data.append([])
-    def pointclicked(self,evt):
+
+    def clear(self):
+        self.currentPoint = 0
+        try:
+            self.viewbox.removeItem(self.pathitem)
+        except:
+            pass
+
+    def pointclicked(self,evt, window=None, overwrite=False):
         if self.ON is False:
             return
         pos=evt.pos()
-        if self.tracefig is not g.m.currentTrace: #if we created a new tracefig
-            self.tracefig=g.m.currentTrace
-            self.viewbox=self.tracefig.p1.getPlotItem().vb
-            self.pathitem=QGraphicsPathItem(self.viewbox)
-            self.pathitem.setPen(QPen(Qt.red))
-            self.viewbox.addItem(self.pathitem,ignoreBounds=True)
-        if not g.m.currentTrace.p1.plotItem.sceneBoundingRect().contains(pos):
+        if self.overwrite:
+            self.overwrite = overwrite
             return
-        mousePoint = g.m.currentTrace.vb.mapSceneToView(pos)
-        point = np.array([mousePoint.x(),mousePoint.y()])
+        elif window != None:
+            if window != self.fig:
+                self.clear()
+                self.fig = window
+                self.viewbox = self.fig.imageview.view
+                self.pathitem=QGraphicsPathItem(self.viewbox)
+                self.pathitem.setPen(QPen(Qt.red))
+                self.viewbox.addItem(self.pathitem,ignoreBounds=True)
+            mousePoint = self.fig.imageview.getImageItem().mapFromScene(pos)
+            pos = np.array([mousePoint.y(),mousePoint.x()])
+        else:
+            if self.fig is not g.m.currentTrace: #if we created a new tracefig
+                self.clear()
+                self.fig=g.m.currentTrace
+                self.viewbox=self.fig.vb
+                if not g.m.currentTrace.p1.plotItem.sceneBoundingRect().contains(pos):
+                    return
+                self.pathitem=QGraphicsPathItem(self.viewbox)
+                self.pathitem.setPen(QPen(Qt.red))
+                self.viewbox.addItem(self.pathitem,ignoreBounds=True)
+            mousePoint = self.viewbox.mapSceneToView(pos) if not overwrite else pos
+            pos = np.array([mousePoint.x(),mousePoint.y()])
 
+        self.overwrite = overwrite
+        self.update(pos)
+
+    def update(self, point):
+        
         modifiers = QApplication.keyboardModifiers()
         if modifiers == Qt.ShiftModifier:
             point=self.getNearestPoint(point)
@@ -107,16 +135,20 @@ class Measure(BaseProcess):
             self.draw([self.firstPoint,self.secondPoint])
                     
     def draw(self,points):
+        if type(self.fig) != type(g.m.currentTrace):
+            points = [p[::-1] for p in points]
         path=QPainterPath(QPointF(*points[0]))
         for i in np.arange(1,len(points)):
             path.lineTo(QPointF(*points[i]))
         self.pathitem.setPath(path)
         
     def close(self):
-        self.viewbox.removeItem(self.pathitem)
+        if self.pathitem.parentWidget() != None:
+            self.pathitem.parentWidget().removeItem(self.pathitem) 
         self.ON=False
     def getNearestPoint(self,point):
-        
+        if hasattr(self.fig, 'imageview'):
+            return point
         roi=g.m.currentTrace.rois[0]
         d=roi['p2trace'].getData()
         index=np.abs(d[0]-point[0]).argmin()

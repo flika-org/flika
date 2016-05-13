@@ -1,9 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Jul 18 18:10:04 2014
 
-@author: Kyle Ellefsen
-"""
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 import global_vars as g
@@ -12,298 +7,299 @@ from skimage.draw import polygon, line
 import numpy as np
 from trace import roiPlot
 import os
-import time
+import threading
+from scipy.ndimage.interpolation import rotate
+import process
 
+SHOW_MASK = False
 
-class ROI(QWidget):
-    " This is an ROI.  I need to document it better."
-    translated=Signal()
-    translate_done=Signal()
-    deleteSignal=Signal()
-    plotSignal=Signal()
-    kind='freehand'
-    def __init__(self,window,x,y):
-        QWidget.__init__(self)
-        self.window=window
-        self.window.currentROI=self
-        self.view=self.window.imageview.view
-        self.path=QPainterPath(QPointF(x,y))
-        self.pathitem=QGraphicsPathItem(self.view)
-        self.color=Qt.yellow
-        self.pathitem.setPen(QPen(self.color))
-        self.pathitem.setPath(self.path)
-        self.view.addItem(self.pathitem)
-        self.mouseIsOver=False
-        self.createActions()
-        self.linkedROIs=[]
-        self.beingDragged=False
-        self.window.deleteButtonSignal.connect(self.deleteCurrentROI)
-        self.window.closeSignal.connect(self.delete)
-        self.colorDialog=QColorDialog()
-        self.colorDialog.colorSelected.connect(self.colorSelected)
+ROI_COLOR = QColor(255, 255, 0)
+HOVER_COLOR = QColor(255, 0, 0)
 
-    def extend(self,x,y):
-        self.path.lineTo(QPointF(x,y))
-        self.pathitem.setPath(self.path)
+class ROI_Drawing(pg.GraphicsObject):
+    def __init__(self, window, x, y, type):
+        pg.GraphicsObject.__init__(self)
+        window.imageview.addItem(self)
+        self.window = window
+        self.pts = [pg.Point(round(x), round(y))]
+        if self.extendRectLine():
+            window.imageview.removeItem(self)
+            return
+        self.type = type
+        self.state = {'pos': pg.Point(x, y), 'size': pg.Point(0, 0)}
 
-    def deleteCurrentROI(self):
-        if self.window.currentROI is self:
-            self.delete()
-
-    def getTraceWindow(self):
-        trace_with_roi = [t for t in g.m.traceWindows if t.hasROI(self)]
-        if len(trace_with_roi) == 1:
-            return trace_with_roi[0]
+    def extendRectLine(self):
+        for roi in self.window.rois:
+            if isinstance(roi, ROI_rect_line):
+                a = roi.getNearestHandle(self.pts[0])
+                if a:
+                    roi.extendHandle = a[1]
+                    self.extend = roi.extend
+                    self.drawFinished = roi.extendFinished
+                    #self.__dict__.update(roi.__dict__)
+                    self.boundingRect = roi.boundingRect
+                    return True
         return False
 
+    def extend(self, x, y):
+        new_pt = pg.Point(round(x), round(y))
+        if self.type == 'freehand':
+            if self.pts[-1] != new_pt:
+                self.pts.append(new_pt)
+        elif self.type in ('line', 'rectangle', 'rect_line'):
+            if len(self.pts) == 1:
+                self.pts.append(new_pt)
+            else:
+                self.pts[1] = new_pt
+
+            #self.pts = sorted(self.pts, key=lambda a: a.x()/a.y())
+
+        self.state['pos'] = pg.Point(*np.min(self.pts, 0))
+        self.state['size'] = pg.Point(*np.ptp(self.pts, 0))
+
+        self.prepareGeometryChange()
+        self.update()
+
+    def paint(self, p, *args):
+        p.setPen(QPen(ROI_COLOR))
+        if self.type == 'freehand':
+            p.drawPolyline(*self.pts)
+        elif self.type == 'rectangle':
+            p.drawRect(self.boundingRect())
+        elif self.type in ('rect_line', 'line'):
+            p.drawLine(*self.pts)
+
+    def drawFinished(self):
+        self.window.imageview.removeItem(self)
+        if self.type == 'freehand':
+            r = ROI(self.window, self.pts)
+        elif self.type == 'rectangle':
+            r = ROI_rectangle(self.window, self.state['pos'], self.state['size'])
+        elif self.type == 'line':
+            r = ROI_line(self.window, self.pts)
+        elif self.type == 'rect_line':
+            r = ROI_rect_line(self.window, self.pts)
+
+        r.drawFinished()
+        
+        return r
+
+    def contains(self, *args):
+        if len(args) == 2:
+            args = [pg.Point(*args)]
+        return pg.GraphicsObject.contains(self, *args)
+
+    def boundingRect(self):
+        return QRectF(self.state['pos'].x(), self.state['pos'].y(), self.state['size'].x(), self.state['size'].y())
+
+class ROI_Wrapper():
+    init_args = {'removable': True, 'translateSnap': True, 'pen':ROI_COLOR}
+    def __init__(self):
+        self.getMenu()
+        self.colorDialog=QColorDialog()
+        self.colorDialog.colorSelected.connect(self.colorSelected)
+        self.window.closeSignal.connect(self.delete)
+        self.window.currentROI = self
+        self.traceWindow = None
+        self.mask=None
+        self.linkedROIs = set()
+        self.sigRegionChanged.connect(self.onRegionChange)
+        self.sigRegionChangeFinished.connect(self.finish_translate)
+        if isinstance(self.pen, QColor):
+            self.color = self.pen
+        else:
+            #self.pen.setWidth(2)
+            self.color = self.pen.color()
+
+
+    def finish_translate(self):
+        pts=self.getPoints()
+        for roi in self.linkedROIs:
+            roi.draw_from_points(pts)
+            roi.translate_done.emit()
+        self.draw_from_points(pts)
+        self.translate_done.emit()
+
+    def setMouseHover(self, hover):
+        ## Inform the ROI that the mouse is(not) hovering over it
+        if self.mouseHovering == hover:
+            return
+        self.mouseHovering = hover
+        if hover:
+            self.currentPen = pg.mkPen(*HOVER_COLOR)
+        else:
+            self.currentPen = self.pen
+
+        self.update()
+        
+    def onRegionChange(self):
+        pts = self.getPoints()
+        for roi in self.linkedROIs:
+            roi.blockSignals(True)
+            roi.draw_from_points(pts)
+            if isinstance(roi, ROI):
+                roi.state['pos'] = self.state['pos']
+            roi.blockSignals(False)
+            if roi.traceWindow != None:
+                roi.traceWindow.translated(roi)
+            roi.getMask()
+        self.getMask()
+        self.translated.emit()
+
+    def plot(self):
+        self.plotAct.setText("Unplot")
+        self.traceWindow = roiPlot(self)
+        self.traceWindow.indexChanged.connect(self.window.setIndex)
+        self.plotSignal.emit()
+
+    def changeColor(self):
+        self.colorDialog.open()
+        
+    def colorSelected(self, color):
+        if color.isValid():
+            self.setPen(QColor(color.name()))
+            self.translate_done.emit()
+        self.color = color
+
+    def save_gui(self):
+        filename=g.settings['filename'].split('.')[0]
+        if filename is not None and os.path.isfile(filename):
+            filename= QFileDialog.getSaveFileName(g.m, 'Save ROI', filename, "Text Files (*.txt);;All Files (*.*)")
+        else:
+            filename= QFileDialog.getSaveFileName(g.m, 'Save ROI', '', "Text Files (*.txt);;All Files (*.*)")
+        filename=str(filename)
+        if filename != '':
+            reprs = [roi.str() for roi in self.window.rois]
+            reprs = '\n'.join(reprs)
+            open(filename, 'w').write(reprs)
+        else:
+            g.m.statusBar().showMessage('No File Selected')
+
+    def unplot(self):
+        self.plotAct.setText("Plot")
+        try:
+            self.traceWindow.indexChanged.disconnect(self.window.setIndex)
+        except:
+            # sometimes errors, says signals not connected
+            pass
+        if self.traceWindow != None:
+            self.traceWindow.removeROI(self)
+            self.traceWindow = None
+
+    def copy(self):
+        g.m.clipboard=self
+
+    def link(self,roi):
+        '''This function links this roi to another, so a translation of one will cause a translation of the other'''
+        join = self.linkedROIs | roi.linkedROIs | {self, roi}
+        self.linkedROIs = join - {self}
+        roi.linkedROIs = join - {roi}
+
+    def raiseContextMenu(self, ev):
+        pos = ev.screenPos()
+        self.plotAct.setText("&Plot" if self.traceWindow == None else "&Unplot")
+        self.menu.popup(QPoint(pos.x(), pos.y()))
+    
+    def getMenu(self):
+        self.plotAct = QAction("&Plot", self, triggered=lambda : self.plot() if self.plotAct.text() == "&Plot" else self.unplot())
+        self.plotAllAct = QAction('&Plot All', self, triggered=lambda : [roi.plot() for roi in self.window.rois])
+        self.colorAct = QAction("&Change Color",self,triggered=self.changeColor)
+        self.copyAct = QAction("&Copy", self, triggered=self.copy)
+        self.remAct = QAction("&Delete", self, triggered=self.delete)
+        self.saveAct = QAction("&Save ROIs",self,triggered=self.save_gui)        
+        self.menu = QMenu("ROI Menu")
+        
+        self.menu.addAction(self.plotAct)
+        self.menu.addAction(self.plotAllAct)
+        self.menu.addAction(self.colorAct)
+        self.menu.addAction(self.copyAct)
+        self.menu.addAction(self.remAct)
+        self.menu.addAction(self.saveAct)
+    
     def delete(self):
+        self.unplot()
         for roi in self.linkedROIs:
             if self in roi.linkedROIs:
                 roi.linkedROIs.remove(self)
         if self in self.window.rois:
             self.window.rois.remove(self)
         self.window.currentROI=None
-        if self.pathitem in self.view.addedItems:
-            self.view.removeItem(self.pathitem)
-        trace = self.getTraceWindow()
-        if trace:
-            a=set([r['roi'] for r in trace.rois])
-            b=set(self.window.rois)
-            if len(a.intersection(b))==0:
-                trace.indexChanged.disconnect(self.window.setIndex)
-            trace.removeROI(self)
+        self.window.imageview.removeItem(self)
+        self.window.closeSignal.disconnect(self.delete)
+
+    def drawFinished(self):
+        self.window.imageview.addItem(self)
+        self.window.rois.append(self)
+        self.window.currentROI = self
+        self.getMask()
+
+    def getTrace(self, bounds=None, pts=None):
+        tif = self.window.imageArray()
+        t, w, h = np.shape(tif)
+        pts_in = [[x, y] for x, y in self.mask if x >= 0 and y >= 0 and x < w and y < h]
+        if len(pts_in) == 0:
+            vals = np.zeros(t)
+        else:
+            xx, yy = np.transpose(pts_in)
+            self.minn = np.min(self.mask, 0)
+            vals = np.average(tif[:, xx, yy], 1)
+
+            if SHOW_MASK:
+                img = np.zeros((w, h))
+                img[xx, yy] = 1
+                self.window.imageview.setImage(img, autoRange=False)
+        
+        if bounds:
+            vals = vals[bounds[0]:bounds[1]]
+        return vals
+
+    def str(self):
+        s = self.kind + '\n'
+        for x, y in self.pts:
+            s += '%d %d\n' % (x, y)
+        return s
+
+class ROI_line(ROI_Wrapper, pg.LineSegmentROI):
+    kind = 'line'
+    plotSignal = Signal()
+    translated = Signal()
+    translate_done = Signal()
+    def __init__(self, window, pos, *args, **kargs):
+        self.init_args.update(kargs)
+        self.window = window
+        self.pts = pos
+        pg.LineSegmentROI.__init__(self, positions=pos, *args, **self.init_args)
+        self.kymographAct = QAction("&Kymograph", self, triggered=self.update_kymograph)
+        self.kymograph = None
+        ROI_Wrapper.__init__(self)
+
+    def getMenu(self):
+        ROI_Wrapper.getMenu(self)
+        self.menu.addAction(self.kymographAct)
 
     def getPoints(self):
-        
-        points=[]
-        for i in np.arange(self.path.elementCount()):
-            e=self.path.elementAt(i)
-            x=int(np.round(e.x)); y=int(np.round(e.y))
-            if len(points)==0 or points[-1]!=(x,y):
-                points.append((x,y))
-        self.pts=points
-        self.minn=np.min(np.array( [np.array([p[0],p[1]]) for p in self.pts]),0)
         return self.pts
-    def getArea(self):
-        self.getMask()
-        return len(self.mask)
-        #cnt=np.array([np.array([np.array([p[1],p[0]])]) for p in self.pts ])
-        #area = cv2.contourArea(cnt)
-        #return area
-    def drawFinished(self):
-        self.path.closeSubpath()
-        self.draw_from_points(self.getPoints()) #this rounds all the numbers down
-        if self.getArea()<1:
-            self.delete()
-            self.window.currentROI=None
-        else:
-            self.window.rois.append(self)
-            self.getMask()
 
-    def mouseOver(self,x,y):
-        if self.mouseIsOver is False and self.contains(x,y):
-            self.mouseIsOver=True
-            self.pathitem.setPen(QPen(Qt.red))
-        elif self.mouseIsOver and self.contains(x,y) is False:
-            self.mouseIsOver=False
-            self.pathitem.setPen(QPen(self.color))
-
-    def contextMenuEvent(self, event):
-        self.menu = QMenu(self)
-        trace = self.getTraceWindow()
-        if trace:
-            self.menu.addAction(self.unplotAct)
-        else:
-            self.menu.addAction(self.plotAct)
-        self.menu.addAction(self.plotAllAct)
-        self.menu.addAction(self.colorAct)
-        self.menu.addAction(self.copyAct)
-        self.menu.addAction(self.deleteAct)
-        self.menu.addAction(self.saveAct)
-        self.menu.exec_(event.screenPos().toQPoint())
-
-    def plot(self):
-        roiPlot(self)
-        g.m.currentTrace.indexChanged.connect(self.window.setIndex)
-        self.plotSignal.emit()
-
-    def unplot(self):
-        trace = self.getTraceWindow()
-        trace.indexChanged.disconnect(self.window.setIndex)
-        trace.removeROI(self)
-
-    def copy(self):
-        g.m.clipboard=self
-
-    def save(self,filename):
-        text=''
-        for roi in g.m.currentWindow.rois:
-            pts=roi.getPoints()
-            text+=type(roi).kind+'\n'
-            for pt in pts:
-                text+="{0:<4} {1:<4}\n".format(pt[0],pt[1])
-            text+='\n'
-        f=open(filename,'w')
-        f.write(text)
-        f.close()
-    def changeColor(self):
-        self.colorDialog.open()
-        
-    def colorSelected(self, color):
-        if color.isValid():
-            self.color=QColor(color.name())
-            self.pathitem.setPen(QPen(self.color))
-            self.translate_done.emit()
-
-    def save_gui(self):
-        filename=g.settings['filename']
-        if filename is not None and os.path.isfile(filename):
-            filename= QFileDialog.getSaveFileName(g.m, 'Save ROI', filename, "*.txt")
-        else:
-            filename= QFileDialog.getSaveFileName(g.m, 'Save ROI', '', '*.txt')
-        filename=str(filename)
-        if filename != '':
-            self.save(filename)
-        else:
-            g.m.statusBar().showMessage('No File Selected')
-            
-    def createActions(self):
-        self.plotAct = QAction("&Plot", self, triggered=self.plot)
-        self.plotAllAct = QAction('&Plot All', self, triggered=lambda : [roi.plot() for roi in self.window.rois])
-        self.colorAct = QAction("&Change Color",self,triggered=self.changeColor)
-        self.unplotAct = QAction("&un-Plot", self, triggered=self.unplot)
-        self.copyAct = QAction("&Copy", self, triggered=self.copy)
-        self.deleteAct = QAction("&Delete", self, triggered=self.delete)
-        self.saveAct = QAction("&Save ROIs",self,triggered=self.save_gui)
-
-    def contains(self,x,y):
-        return self.path.contains(QPointF(x,y))
-    def translate(self,difference,startpt):
-        self.path.translate(difference)
-        self.pathitem.setPath(self.path)
-        pts=self.getPoints()
-        self.minn=np.min(np.array( [np.array([p[0],p[1]]) for p in self.pts]),0)
-        for roi in self.linkedROIs:
-            roi.draw_from_points(pts)
-            roi.minn=self.minn
-            roi.translated.emit()
-        self.translated.emit()
-        
-    def finish_translate(self):
-        pts=self.getPoints()
-        for roi in self.linkedROIs:
-            roi.draw_from_points(pts)
-            roi.translate_done.emit()
-            roi.beingDragged=False
-        self.draw_from_points(pts)
-        #self.getMask()
-        self.translate_done.emit()
-        self.beingDragged=False
-    def draw_from_points(self,pts):
-        self.pts=pts
-        self.path=QPainterPath(QPointF(pts[0][0],pts[0][1]))
-        for i in np.arange(len(pts)-1)+1:        
-            self.path.lineTo(QPointF(pts[i][0],pts[i][1]))
-        self.pathitem.setPath(self.path)
-        
     def getMask(self):
-        pts=self.pts
-        tif=self.window.image
-        x=np.array([p[0] for p in pts])
-        y=np.array([p[1] for p in pts])
-        nDims=len(tif.shape)
-        if nDims==4: #if this is an RGB image stack
-            tif=np.mean(tif,3)
-            mask=np.zeros(tif[0,:,:].shape,np.bool)
-        elif nDims==3:
-            if self.window.metadata['is_rgb']:  # [x, y, colors]
-                mask=np.zeros(tif[:,:,0].shape,np.bool)
-            else:                               # [t, x, y]
-                mask=np.zeros(tif[0,:,:].shape,np.bool)  
-        if nDims==2: #if this is a static image
-            mask=np.zeros(tif.shape,np.bool)
-            
-        xx,yy=polygon(x,y,shape=mask.shape)
-        mask[xx,yy]=True
-        pts_plus=np.array(np.where(mask)).T
-        for pt in pts_plus:
-            if not self.path.contains(QPointF(pt[0],pt[1])):
-                mask[pt[0],pt[1]]=0
-        self.minn=np.min(np.array( [np.array([p[0],p[1]]) for p in self.pts]),0)
-        self.mask=np.array(np.where(mask)).T-self.minn
-
-        
-    def getTrace(self,bounds=None,pts=None):
-        ''' bounds are two points in time.  If bounds is not None, we only calculate values between the bounds '''
-        tif=self.window.image
-        nDims=len(tif.shape)
-        if nDims==4: #if this is an RGB image stack  #[t, x, y, colors]
-            tif=np.mean(tif,3)
-            mx,my=tif[0,:,:].shape
-        elif nDims==3:
-            if self.window.metadata['is_rgb']:  # [x, y, colors]
-                tif=np.mean(tif,2)
-                mx,my=tif.shape
-                tif=tif[np.newaxis]
-            else: 
-                mx,my=tif[0,:,:].shape
-        elif nDims==2:
-            mx,my=tif.shape
-            tif=tif[np.newaxis]
-        
-        pts=self.mask+self.minn
-        pts=pts[(pts[:,0]>=0)*(pts[:,0]<mx)*(pts[:,1]>=0)*(pts[:,1]<my)]
-        xx=pts[:,0]; yy=pts[:,1]
-        if bounds is None:
-            bounds=[0,len(tif)]
-        else:
-            bounds=list(bounds)
-            if bounds[0]<0: bounds[0]=0
-            if bounds[1]>len(tif): bounds[1]=len(tif)
-            if bounds[0]>len(tif) or bounds[1]<0:
-                return np.array([])
-        trace=np.mean(tif[bounds[0]:bounds[1],xx,yy], 1) 
-        if np.isnan(np.sum(trace)):
-            return np.zeros(len(trace))
-        return trace
-        
-    def link(self,roi):
-        '''This function links this roi to another, so a translation of one will cause a translation of the other'''
-        self.linkedROIs.append(roi)
-        roi.linkedROIs.append(self)
-
-class ROI_line(ROI):
-    kind='line'
-    def __init__(self,window,x,y):
-        ROI.__init__(self, window,x,y)
-        self.kymographAct = QAction("&Kymograph", self, triggered=self.update_kymograph)
-        self.kymograph=None
-        self.movingPoint=False #either False, 0 or 1
-        self.beingDragged=False #either True or False depending on if a translation has been started or not
-    def contextMenuEvent(self, event):
-        self.menu = QMenu(self)
-        if self.getTraceWindow():
-            self.menu.addAction(self.unplotAct)
-        else:
-            self.menu.addAction(self.plotAct)
-        self.menu.addAction(self.plotAllAct)
-        self.menu.addAction(self.colorAct)
-        self.menu.addAction(self.copyAct)
-        self.menu.addAction(self.kymographAct)
-        self.menu.addAction(self.deleteAct)
-        self.menu.addAction(self.saveAct)
-        self.menu.exec_(event.screenPos().toQPoint())
-    def delete(self):
-        ROI.delete(self)
-        if self.kymograph is not None:
-            self.kymograph.close()
-    def update_kymograph(self):
-        self.pts=self.getPoints()
-        tif=self.window.image
-        mt=tif.shape[0]
-        x=np.array([p[0] for p in self.pts])
-        y=np.array([p[1] for p in self.pts])
+        self.pts = [h['item'].pos() + self.pos() for h in self.handles]
+        x=np.array([p[0] for p in self.pts], dtype=int)
+        y=np.array([p[1] for p in self.pts], dtype=int)
         xx,yy=line(x[0],y[0],x[1],y[1])
+        self.mask = np.transpose([xx, yy])
+        self.minn = np.min(self.mask)
+
+    def draw_from_points(self, pts):
+        self.blockSignals(True)
+        self.movePoint(self.handles[0]['item'], pts[0], finish=False)
+        self.movePoint(self.handles[1]['item'], pts[1], finish=False)
+        self.blockSignals(False)
+
+    def update_kymograph(self):
+        tif=self.window.image
+        xx, yy = self.mask.T
+        mt = len(tif)
+        if len(xx) == 0:
+            return
         mn=np.zeros((mt,len(xx)))
         for t in np.arange(mt):
             mn[t]=tif[t,xx,yy]
@@ -313,107 +309,279 @@ class ROI_line(ROI):
         else:
             self.kymograph.imageview.setImage(mn,autoLevels=False,autoRange=False)
             #self.kymograph.imageview.view.setAspectLocked(lock=True,ratio=mn.shape[1]/mn.shape[0])
+
+    def kymographClicked(self, ev):
+        process.measure.measure.pointclicked(ev, self.kymograph)
+    
     def createKymograph(self,mn):
         from window import Window
         oldwindow=g.m.currentWindow
         name=oldwindow.name+' - Kymograph'
-        newWindow=Window(mn,name,metadata=self.window.metadata)
-        self.kymograph=newWindow
-        self.kymographproxy = pg.SignalProxy(self.translated, rateLimit=3, slot=self.update_kymograph) #This will only update 3 Hz
+        self.kymograph=Window(mn,name,metadata=self.window.metadata)
+        self.kymograph.imageview.scene.sigMouseClicked.connect(self.kymographClicked)
+        self.translated.connect(self.update_kymograph)
         self.kymograph.closeSignal.connect(self.deleteKymograph)
+        self.sigRemoveRequested.connect(self.deleteKymograph)
+
+    def deleteKymograph(self):
+        self.kymograph.closeSignal.disconnect(self.deleteKymograph)
+        self.kymograph=None
+
+class ROI_rect_line(ROI_Wrapper, pg.MultiRectROI):
+    kind = 'rect_line'
+    plotSignal = Signal()
+    translated = Signal()
+    translate_done = Signal()
+    def __init__(self, window, pts, width=1, *args, **kargs):
+        self.init_args.update(kargs)
+        self.window = window
+        self.width = width
+        self.pts = pts
+        pg.MultiRectROI.__init__(self, pts, width, *args, **self.init_args)
+        self.blockSignals(True)
+        self.kymographAct = QAction("&Kymograph", self, triggered=self.update_kymograph)
+        ROI_Wrapper.__init__(self)
+        self.maskProxy = pg.SignalProxy(self.sigRegionChanged, rateLimit=5, slot=self.onRegionChange) #This will only update 3 Hz
+        self.kymograph = None
+        self.extending = False
+        self.extendHandle = None
+        w, h = self.lines[0].size()
+        self.lines[0].scale([1.0, width/5.0], center=[0.5,0.5], finish=False)
+        self.width = width
+        self.currentLine = None
+        self.blockSignals(False)
+
+    def drawFinished(self):
+        ROI_Wrapper.drawFinished(self)
+        self.lines[0].removeHandle(2)
+    
+    def draw_from_points(self, pts):
+        self.blockSignals(True)
+        self.lines[0].movePoint(self.lines[0].handles[0]['item'], pts[0], finish=False)
+        for i in range(1, len(self.lines)):
+            self.lines[i-1].movePoint(self.lines[i-1].handles[1]['item'], pts[i], finish=False)
+            self.lines[i].movePoint(self.lines[i].handles[0]['item'], pts[i], finish=False)
+        self.lines[-1].movePoint(self.lines[-1].handles[-1]['item'], pts[-1])
+        self.blockSignals(False)
+        
+    def setCurrentPen(self, pen):
+        for l in self.lines:
+            l.currentPen = pen
+            l.update()
+
+    def hoverEvent(self, l, ev):
+        self.currentLine = l
+        if ev.enter:
+            self.setCurrentPen(QPen(HOVER_COLOR))
+        elif ev.exit:
+            self.setCurrentPen(l.pen)
+
+    def removeLink(self):
+        ind = self.lines.index(self.currentLine)
+        if ind == 0:
+            self.delete()
+            return
+        for i in range(len(self.lines)-1, ind-1, -1):
+            self.removeSegment(i)
+        self.translate_done.emit()
+
+    def getMenu(self):
+        ROI_Wrapper.getMenu(self)
+        removeLinkAction = QAction('Remove Link', self, triggered=self.removeLink)
+        setWidthAction = QAction("Set Width", self, triggered=lambda: self.setWidth())
+        self.menu.addAction(removeLinkAction)
+        self.menu.addAction(setWidthAction)
+        self.menu.addAction(self.kymographAct)
+
+    def setWidth(self, newWidth=None):
+        s = True
+        if newWidth == None:
+            newWidth, s = QInputDialog.getInt(None, "Enter a width value", 'Float Value', value = self.width)
+        if not s:
+            return
+        self.lines[0].scale([1.0, newWidth/self.width], center=[0.5,0.5])
+        self.width = newWidth
+        self.translate_done.emit()
+
+    def setPen(self, pen):
+        self.pen = pen
+        for l in self.lines:
+            l.setPen(pen)
+
+    def getArrayRegion(self, arr, img=None, axes=(0,1), returnMappedCoords=False):
+        rgns = []
+        coords = []
+        for l in self.lines:
+            rgn = l.getArrayRegion(arr, img, axes=axes, returnMappedCoords=returnMappedCoords)
+            if rgn is None:
+                continue
+            if returnMappedCoords:
+                rgn, coord = rgn
+                coords.append(np.concatenate(coord.T))
+            rgns.append(rgn)
+            
+        ## make sure orthogonal axis is the same size
+        ## (sometimes fp errors cause differences)
+        ms = min([r.shape[axes[1]] for r in rgns])
+        sl = [slice(None)] * rgns[0].ndim
+        sl[axes[1]] = slice(0,ms)
+        rgns = [r[sl] for r in rgns]
+        #print [r.shape for r in rgns], axes
+        if returnMappedCoords:
+            return np.concatenate(rgns, axis=axes[0]), np.concatenate(coords)
+
+        return np.concatenate(rgns, axis=axes[0])
+
+    def addSegment(self, *arg, **args):
+        pg.MultiRectROI.addSegment(self, *arg, **args)
+        l = self.lines[-1]
+        l.raiseContextMenu = self.raiseContextMenu
+        l.getMenu = self.getMenu
+        l.hoverEvent = lambda ev: self.hoverEvent(l, ev)
+        def boundingRect():
+            w = max(8, self.width)
+            return QRectF(0, -w / 2, l.state['size'][0], w)
+        def contains(pos):
+            return l.boundingRect().contains(pos)
+        l.boundingRect = boundingRect
+        l.contains = contains
+
+    def getPoints(self):
+        return self.pts
+
+    def getMask(self):
+        self.pts = [pg.Point(self.window.imageview.getImageItem().mapFromScene(self.lines[0].getSceneHandlePositions(0)[1]))]
+        for l in self.lines:
+            self.pts.append(pg.Point(self.window.imageview.getImageItem().mapFromScene(l.getSceneHandlePositions(1)[1])))
+
+        xx = []
+        yy = []
+        for i in range(1, len(self.pts)):
+            p1, p2=[self.pts[i-1], self.pts[i]]
+            xs,ys=line(*[int(a) for a in (p1.x(),p1.y(),p2.x(),p2.y())])
+            xx.append(xs)
+            yy.append(ys)
+        xx = np.concatenate(xx)
+        yy = np.concatenate(yy)
+
+        self.mask = np.transpose([xx, yy])
+        if self.mask.size != 0:
+            self.minn = np.min(self.mask, 0)
+
+
+    def getNearestHandle(self, pos, distance=3):
+        for l in self.lines:
+            for i in range(2):
+                p = self.window.imageview.getImageItem().mapFromScene(l.getSceneHandlePositions(i)[1])
+                if (p - pos).manhattanLength() <= distance:
+                    return l, l.handles[i]['item']
+
+    def extend(self, x, y):
+        if not self.extending:
+            self.extending = True
+            self.addSegment(pg.Point(int(x), int(y)), connectTo=self.lines[-1].handles[1]['item'])
+        else:
+            self.lines[-1].handles[-1]['item'].movePoint(self.window.imageview.getImageItem().mapToScene(pg.Point(x, y)))
+        self.translated.emit()
+
+    def extendFinished(self):
+        self.extending = False
+        self.extendHandle = None
+        self.translate_done.emit()
+
+    def getHandleTuples(self):
+        pos = []
+        for l in self.lines:
+            pts=[self.window.imageview.getImageItem().mapFromScene(l.getSceneHandlePositions(i)[1]) for i in range(2)]
+            for handle in l.handles:
+                if handle['type'] == 'sr':
+                    pos.append((l, handle['item'], l.mapToParent(handle['item'].pos())))
+        return pos
+
+    def update_kymograph(self):
+        tif=self.window.image
+        from window import Window
+        if self.width == 1:
+            w, h = self.window.imageDimensions()
+            r = QRect(0, 0, w, h)
+            xx, yy = np.transpose([p for p in self.mask if r.contains(p[0], p[1])])
+            mn = tif[:, xx, yy].T
+        else:
+            kyms = []
+            for i in range(len(self.pts)-1):
+                pts = self.pts[i:i+2]
+                x, y = np.min(pts, 0)
+                x, y = int(x), int(y)
+                x2, y2 = np.max(pts, 0)
+                x2, y2 = int(x2), int(y2)
+                rect = rotate(tif[:, x-self.width:x2+self.width, y-self.width:y2+self.width], -self.lines[i].angle(), (2, 1), reshape=False)
+                t, w, h = np.shape(rect)
+                h = h // 2  - self.width // 2
+                rect = rect[:, :, h:h+self.width]
+                kyms.append(np.mean(rect, 2))
+            mn = np.hstack(kyms).T
+        if self.kymograph is None:
+            self.createKymograph(mn)
+        else:
+            self.kymograph.imageview.setImage(mn,autoLevels=False,autoRange=False)
+            #self.kymograph.imageview.view.setAspectLocked(lock=True,ratio=mn.shape[1]/mn.shape[0])
+    
+    def kymographClicked(self, ev):
+        process.measure.measure.pointclicked(ev, self.kymograph)
+
+    def createKymograph(self,mn):
+        from window import Window
+        oldwindow=g.m.currentWindow
+        name=oldwindow.name+' - Kymograph'
+        self.kymograph=Window(mn,name,metadata=self.window.metadata)
+        self.kymograph.imageview.scene.sigMouseClicked.connect(self.kymographClicked)
+        self.kymographproxy = pg.SignalProxy(self.sigRegionChanged, rateLimit=1, slot=self.update_kymograph) #This will only update 3 Hz
+        self.translated.connect(self.update_kymograph)
+        self.kymograph.closeSignal.connect(self.deleteKymograph)
+
     def deleteKymograph(self):
         self.kymographproxy.disconnect()
         self.kymograph.closeSignal.disconnect(self.deleteKymograph)
         self.kymograph=None
-    def contains(self,x,y):
-        return self.path.intersects(QRectF(x-.5,y-.5,1,1)) #QRectF(x, y, width, height)
-    def extend(self,x,y):
-        e=self.path.elementAt(0)
-        x0=int(np.round(e.x)); y0=int(np.round(e.y))
-        self.path=QPainterPath(QPointF(x0,y0))
-        self.path.lineTo(QPointF(x,y))
-        self.pathitem.setPath(self.path)
-    def drawFinished(self):
-        self.draw_from_points(self.getPoints()) #this rounds all the numbers down
-        if self.path.length()<2:
-            self.delete()
-            self.window.currentROI=None
-        else:
-            self.window.rois.append(self)
-    def finish_translate(self):
-        ROI.finish_translate(self)
-        for roi in self.linkedROIs:
-            roi.movingPoint=False
-        self.movingPoint=False
-    def translate(self,difference,startpt):
-        ''' For an ROI_line object, this function must translate either one point, the other point, or the entire line, depending on where on the line we start.'''
-        pts=self.getPoints()        
-        if self.beingDragged==False:
-            self.beingDragged=True
-            d0=np.sqrt(difference.x()**2+difference.y()**2) #this is the difference we have dragged since the last move
-            d1=np.sqrt((self.window.x-pts[0][0])**2+(self.window.y-pts[0][1])**2)
-            d2=np.sqrt((self.window.x-pts[1][0])**2+(self.window.y-pts[1][1])**2)
-            if d1<d0+self.path.length()/10:  # if distance_from(mousepoint,end1)<self.path.length()/10
-                self.movingPoint=0
-            elif d2<d0+self.path.length()/10:
-                self.movingPoint=1
-        else:
-            if self.movingPoint is not False:
-                pts[self.movingPoint]=(self.window.x,self.window.y) # translate end1 
-                path=QPainterPath(QPointF(pts[0][0],pts[0][1]))
-                path.lineTo(QPointF(pts[1][0],pts[1][1]))
-                if path.length()<np.sqrt(2):
-                    return
-                else:
-                    self.path=path
-            else:
-                self.path.translate(difference)
         
-        self.pathitem.setPath(self.path)
-        pts=self.getPoints()
-        for roi in self.linkedROIs:
-            roi.draw_from_points(pts)
-            roi.translated.emit()
-        self.translated.emit()
+class ROI_rectangle(ROI_Wrapper, pg.ROI):
+    kind = 'rectangle'
+    plotSignal = Signal()
+    translated = Signal()
+    translate_done = Signal()
+    def __init__(self, window, pos, size=(1, 1), resizable=True, *args, **kargs):
+        self.init_args.update(kargs)
+        self.window = window
+        pg.ROI.__init__(self, pos, size, *args, **self.init_args)
+        if resizable:
+            self.addScaleHandle([0, 1], [1, 0])
+            self.addScaleHandle([1, 0], [0, 1])
+            self.addScaleHandle([0, 0], [1, 1])
+            self.addScaleHandle([1, 1], [0, 0])
+        self.cropAction = QAction('&Crop', self, triggered=self.crop)
+        ROI_Wrapper.__init__(self)
 
-class ROI_rectangle(ROI):
-    kind='rectangle'
-    def __init__(self,window,x,y):
-        ROI.__init__(self, window,x,y)
-        self.movingPoint=False #either False, 0,1,2,3
-        self.beingDragged=False #either True or False depending on if a translation has been started or not
-        self.cropAct = QAction("&Crop", self, triggered=self.crop)
-    def extend(self,x,y, staticPoint=0):
-        e=self.path.elementAt(staticPoint)
-        x0=int(np.round(e.x)); y0=int(np.round(e.y))
-        self.path=QPainterPath(QPointF(x0,y0))
-        self.path.lineTo(QPointF(x0,y))
-        self.path.lineTo(QPointF(x,y))
-        self.path.lineTo(QPointF(x,y0))
-        self.path.lineTo(QPointF(x0,y0))
-        self.pathitem.setPath(self.path)
+    def draw_from_points(self, pts):
+        self.blockSignals(True)
+        self.setPos(pts[0], finish=False)
+        if len(pts) == 2:
+            self.setSize(pts[1], finish=False)
+        elif len(pts) > 2:
+            self.setSize([pts[2][0] - pts[0][0], pts[2][1] - pts[0][1]], finish=False)
+        self.blockSignals(False)
 
-    def contextMenuEvent(self, event):
-        self.menu = QMenu(self)
-        if self.getTraceWindow():
-            self.menu.addAction(self.unplotAct)
-        else:
-            self.menu.addAction(self.plotAct)
-        self.menu.addAction(self.plotAllAct)
-        self.menu.addAction(self.colorAct)
-        self.menu.addAction(self.copyAct)
-        self.menu.addAction(self.deleteAct)
-        self.menu.addAction(self.saveAct)
-        self.menu.addAction(self.cropAct)
-        self.menu.exec_(event.screenPos().toQPoint())
-        
+    def getMenu(self):
+        ROI_Wrapper.getMenu(self)
+        self.menu.addAction(self.cropAction)
+
     def crop(self):
         from window import Window
-        self.pts=self.getPoints()
-        x1=np.min([self.pts[0][0],self.pts[2][0]])
-        x2=np.max([self.pts[0][0],self.pts[2][0]])
-        y1=np.min([self.pts[0][1],self.pts[2][1]])
-        y2=np.max([self.pts[0][1],self.pts[2][1]])
+        r = self.boundingRect()
+        p1 = r.topLeft() + self.state['pos']
+        p2 = r.bottomRight() + self.state['pos']
+        x1, y1 = p1.x(), p1.y()
+        x2, y2 = p2.x(), p2.y()
+
         tif=self.window.image
         if len(tif.shape)==3:
             mt,mx,my=tif.shape
@@ -431,100 +599,137 @@ class ROI_rectangle(ROI):
             mx,my=tif.shape
             newtif=tif[x1:x2+1,y1:y2+1]
         return Window(newtif,self.window.name+' Cropped',metadata=self.window.metadata)
+
+    def getPoints(self):
+        x, y = np.array(self.state['pos'], dtype=int)
+        w, h = np.array(self.state['size'], dtype=int)
+        self.pts = [self.state['pos'], pg.Point(x+w, y), pg.Point(x+w, y+h), pg.Point(x, y+h), self.state['pos']] 
+        return self.pts
+
+    def getMask(self):
+        w, h = self.window.imageDimensions()
+        mask = np.zeros((w, h))
         
-    def translate(self,difference,startpt):
-        ''' For an ROI_line object, this function must translate either one point, the other point, or the entire line, depending on where on the line we start.'''
-        pts=self.getPoints()        
-        if self.beingDragged==False:
-            self.beingDragged=True
-            distances=np.array([np.sqrt((startpt.x()-pts[i][0])**2+(startpt.y()-pts[i][1])**2) for i in np.arange(4)]) #distances away from each point in the rectangle
-            closestpt=np.argmin(distances)
-            if distances[closestpt]<self.path.length()/16.0: # this defines how close we must be to a corner
-                self.movingPoint=closestpt
-        else: 
-            if self.movingPoint is not False: #resizing the rectangle
-                staticPoint=np.mod(self.movingPoint+2,4)
-                self.movingPoint=2
-                x0,y0=pts[staticPoint]
-                self.extend(self.window.x,self.window.y, staticPoint=staticPoint)
-                if np.abs(self.window.x-x0)<1 or np.abs(self.window.y-y0)<1:
-                    return
-                else:
-                    self.getMask()
-            else:
-                self.path.translate(difference)
+        x, y = np.array(self.state['pos'], dtype=int)
+        w, h = np.array(self.state['size'], dtype=int)
+        self.pts = self.getPoints()
+
+        if x < 0:
+            w = max(0, w + x)
+            x = 0
+        if y < 0:
+            h = max(0, h + y)
+            y = 0
+        mask[x:x+w, y:y+h] = True
+        self.mask=np.array(np.where(mask)).T
+        if len(self.mask) > 0:
+            self.minn = np.min(self.mask, 0)
+
+    def contains(self, *pos, corrected=True):  # pyqtgraph ROI uses this function for mouse interaction. Set corrected=True to use
+        if isinstance(pos[0], QPointF):
+            pos = pos[0]
+        elif len(pos) == 2:
+            pos = QPointF(pos[0], pos[1])
+        if not corrected:
+            return QRectF(self.pts[0], self.pts[2]).contains(pos)
+        else:
+            return pg.ROI.contains(self, pos)
+
+class ROI(ROI_Wrapper, pg.ROI):
+    kind = 'freehand'
+    plotSignal = Signal()
+    translated = Signal()
+    translate_done = Signal()
+    def __init__(self, window, pts, *args, **kargs):
+        self.init_args.update(kargs)
+        self.window = window
+        self.pts = [pg.Point(pt[0], pt[1]) for pt in pts]
+        w, h = np.ptp(self.pts, 0)
+        pg.ROI.__init__(self, (0, 0), (w, h), *args, **self.init_args)
+        ROI_Wrapper.__init__(self)
+
+    def draw_from_points(self, pts):
+        self.blockSignals(True)
+        self.setPos(pts[0], finish=False)
+        self.pts = pts[1]
+        self.blockSignals(False)
+
+    def boundingRect(self):
+        r = pg.ROI.boundingRect(self)
+        r.translate(*np.min(self.pts, 0))
+        return r
+
+    def contains(self, *pos):
+        if len(pos) == 2:
+            pos = [pg.Point(*pos)]
+        p = QPainterPath()
+
+        p.moveTo(self.pts[0])
+        for i in range(len(self.pts)):
+            p.lineTo(self.pts[i])
+        return p.contains(*pos)
+
+    def paint(self, p, *args):
+        p.setPen(self.currentPen)
+        for i in range(len(self.pts)):
+            p.drawLine(self.pts[i], self.pts[i-1])
+
+    def getPoints(self):
+        return self.state['pos'], self.pts
+
+    def getMask(self):
+        if self.mask is not None:
+            xx, yy = np.transpose(self._mask + self.state['pos'])
+
+        else:
+            self.minn = np.min(self.pts, 0)
+            x, y = np.transpose(self.pts)
+            mask=np.zeros(self.window.imageDimensions())
+            
+            xx,yy=polygon(x,y,shape=mask.shape)
+            self._mask = np.transpose([xx, yy])
         
-        self.pathitem.setPath(self.path)
-        pts=self.getPoints()
-        if self.movingPoint is False: # if regular translation
-            self.minn=np.min(np.array( [np.array([p[0],p[1]]) for p in self.pts]),0)
-            for roi in self.linkedROIs:
-                roi.minn=self.minn
-                roi.draw_from_points(pts)
-                roi.translated.emit()
-        else: #if resizing rectangle
-            self.getMask()
-            for roi in self.linkedROIs:
-                roi.minn=self.minn
-                roi.mask=self.mask
-                roi.draw_from_points(pts)
-                roi.translated.emit()
-        
-        self.translated.emit()
-    def finish_translate(self):
-        pts=self.getPoints()
-        self.draw_from_points(pts)
-        self.getMask()
-        for roi in self.linkedROIs:
-            roi.minn=self.minn
-            roi.mask=self.mask
-            roi.draw_from_points(pts)
-            roi.translate_done.emit()
-            roi.beingDragged=False
-            roi.movingPoint=False
-        self.translate_done.emit()
-        self.beingDragged=False
-        self.movingPoint=False
-        
-        
+        self.mask = np.transpose([xx, yy]).astype(int)
+        if len(self.mask) > 0:
+            self.minn = np.min(self.mask, 0)
     
-def makeROI(kind,pts,window=None):
+def makeROI(kind,pts,window=None, **kargs):
     if window is None:
         window=g.m.currentWindow
+
     if kind=='freehand':
-        roi=ROI(window,0,0)
+        roi=ROI(window, pts, **kargs)
     elif kind=='rectangle':
-        roi=ROI_rectangle(window,0,0)
+        if len(pts) > 2:
+            size = [pts[2][0] - pts[0][0], pts[2][1] - pts[0][1]]
+        else:
+            size = pts[1]
+        roi=ROI_rectangle(window,pts[0], size, **kargs)
     elif kind=='line':
-        roi=ROI_line(window,0,0)
+        roi=ROI_line(window, pos=(pts), **kargs)
+    elif kind == 'rect_line':
+        roi = ROI_rect_line(window, pts, **kargs)
+
     else:
         print("ERROR: THIS TYPE OF ROI COULD NOT BE FOUND: {}".format(kind))
         return None
-    roi.draw_from_points(pts)
-    roi.drawFinished()
+
+    roi.drawFinished()    
     return roi
+
 def load_roi(filename):
     f = open(filename, 'r')
     text=f.read()
     f.close()
     kind=None
     pts=None
-    for line in text.split('\n'):
+    for text_line in text.split('\n'):
         if kind is None:
-            kind=line
+            kind=text_line
             pts=[]
-        elif line=='':
+        elif text_line=='':
             makeROI(kind,pts)
             kind=None
             pts=None
         else:
-            pts.append(tuple(int(float(i)) for i in line.split()))      
-    
-    
-    
-    
-    
-    
-    
-    
-    
+            pts.append(tuple(int(float(i)) for i in text_line.split()))

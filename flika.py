@@ -1,15 +1,13 @@
 """
-version=0.0.5
+version=0.0.7
 Created on Thu Jun 26 14:17:38 2014
 Latest Update: 2016.02.23
 @author: Kyle Ellefsen and Brett Settle
 """
 from __future__ import (absolute_import, division,print_function, unicode_literals)
-from dependency_check import check_dependencies
-check_dependencies('future', 'PyQt4', 'numpy', 'scipy', 'pyqtgraph','openpyxl', 'scikit_image','nd2reader', 'xmltodict')
+import dependency_check
 from future.builtins import (bytes, dict, int, list, object, range, str, ascii, chr, hex, input, next, oct, open, pow, round, super, filter, map, zip)
 import time
-tic=time.time()
 import os, sys
 if sys.version_info.major == 2:
     reload(sys)
@@ -35,8 +33,6 @@ from roi import load_roi, makeROI
 from process.overlay import time_stamp,background, scale_bar
 from script_editor.ScriptEditor import ScriptEditor
 from plugins.plugin_manager import PluginManager
-
-
 
     
 try:
@@ -64,10 +60,11 @@ def initializeMainGui():
     g.m.actionImport_Points.triggered.connect(lambda : open_file_gui(load_points, prompt='Load Points', filetypes='*.txt'))
     g.m.actionImport_ROIs.triggered.connect(lambda : open_file_gui(load_roi, prompt='Load ROIs from file', filetypes='*.txt'))
 
-    g.m.freehand.clicked.connect(lambda: g.settings.setmousemode('freehand'))
-    g.m.line.clicked.connect(lambda: g.settings.setmousemode('line'))
-    g.m.rectangle.clicked.connect(lambda: g.settings.setmousemode('rectangle'))
-    g.m.point.clicked.connect(lambda: g.settings.setmousemode('point'))
+    g.m.freehand.clicked.connect(lambda: g.m.settings.setmousemode('freehand'))
+    g.m.line.clicked.connect(lambda: g.m.settings.setmousemode('line'))
+    g.m.rect_line.clicked.connect(lambda: g.m.settings.setmousemode('rect_line'))
+    g.m.rectangle.clicked.connect(lambda: g.m.settings.setmousemode('rectangle'))
+    g.m.point.clicked.connect(lambda: g.m.settings.setmousemode('point'))
     
     g.m.point.setContextMenuPolicy(Qt.CustomContextMenu)
     g.m.point.customContextMenuRequested.connect(g.pointSettings)
@@ -145,15 +142,21 @@ class MainWindowEventEater(QObject):
         return False # lets the event continue to the edit
 mainWindowEventEater = MainWindowEventEater()
 
+
 if __name__ == '__main__':
     
     initializeMainGui()
     args=sys.argv[1:]
     if os.name =='nt':
         g.setConsoleVisible(g.settings['debug_mode'])
-    args=[arg for arg in args[1:] if 'FLIKA.PY' not in arg.upper()]
-    if len(args)>0:
-        open_file(args[0])
+
+    args=[arg for arg in args if 'FLIKA.PY' not in arg.upper() and arg != 'python']
+    for a in args:
+        w = open_file(a)
+
     insideSpyder='SPYDER_SHELL_ID' in os.environ
     if not insideSpyder: #if we are running outside of Spyder
-        sys.exit(g.app.exec_()) #This is required to run outside of Spyder
+        try:
+            sys.exit(g.app.exec_()) #This is required to run outside of Spyder
+        except Exception as e:
+            print(e)

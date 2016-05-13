@@ -22,11 +22,11 @@ import re, time, datetime, zipfile, shutil, subprocess, os
 from sys import executable
 from subprocess import Popen
 from dependency_check import check_dependencies
+import atexit
 
 
 
 data_types = ['uint8', 'uint16', 'uint32', 'uint64', 'int8', 'int16', 'int32', 'int64', 'float16', 'float32', 'float64']
-
 mainGuiInitialized=False
 
 class Settings:
@@ -140,8 +140,6 @@ def pointSettings(pointButton):
     m.dialog.accepted.connect(update)
     m.dialog.changeSignal.connect(update)
     m.dialog.show()
-    
-        
         
 def mainguiClose(event):
     global m
