@@ -126,7 +126,7 @@ class ROI_Wrapper():
             return
         self.mouseHovering = hover
         if hover:
-            self.currentPen = pg.mkPen(*HOVER_COLOR)
+            self.currentPen = pg.mkPen(HOVER_COLOR)
         else:
             self.currentPen = self.pen
 
