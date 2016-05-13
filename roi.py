@@ -43,7 +43,8 @@ class ROI_Drawing(pg.GraphicsObject):
     def extend(self, x, y):
         new_pt = pg.Point(round(x), round(y))
         if self.type == 'freehand':
-            self.pts.append(new_pt)
+            if self.pts[-1] != new_pt:
+                self.pts.append(new_pt)
         elif self.type in ('line', 'rectangle', 'rect_line'):
             if len(self.pts) == 1:
                 self.pts.append(new_pt)
@@ -102,25 +103,32 @@ class ROI_Wrapper():
         self.mask=None
         self.linkedROIs = set()
         self.sigRegionChanged.connect(self.onRegionChange)
-        self.sigRegionChangeFinished.connect(self.translateFinished.emit)
+        self.sigRegionChangeFinished.connect(self.finish_translate)
         if isinstance(self.pen, QColor):
             self.color = self.pen
         else:
             self.color = self.pen.color()
 
     def finish_translate(self):
-        self.sigRegionChangeFinished.emit()
+        pts=self.getPoints()
+        for roi in self.linkedROIs:
+            roi.draw_from_points(pts)
+            roi.translate_done.emit()
+        self.draw_from_points(pts)
+        self.translate_done.emit()
         
     def onRegionChange(self):
-        self.getMask()
+        pts = self.getPoints()
         for roi in self.linkedROIs:
             roi.blockSignals(True)
-            roi.draw_from_points(self.pts)
-            roi.getMask()
+            roi.draw_from_points(pts)
+            if isinstance(roi, ROI):
+                roi.state['pos'] = self.state['pos']
             roi.blockSignals(False)
             if roi.traceWindow != None:
                 roi.traceWindow.translated(roi)
-
+            roi.getMask()
+        self.getMask()
         self.translated.emit()
 
     def plot(self):
@@ -135,7 +143,7 @@ class ROI_Wrapper():
     def colorSelected(self, color):
         if color.isValid():
             self.setPen(QColor(color.name()))
-            self.translateFinished.emit()
+            self.translate_done.emit()
         self.color = color
 
     def save_gui(self):
@@ -240,7 +248,7 @@ class ROI_line(ROI_Wrapper, pg.LineSegmentROI):
     kind = 'line'
     plotSignal = Signal()
     translated = Signal()
-    translateFinished = Signal()
+    translate_done = Signal()
     def __init__(self, window, pos, *args, **kargs):
         self.init_args.update(kargs)
         self.window = window
@@ -254,6 +262,9 @@ class ROI_line(ROI_Wrapper, pg.LineSegmentROI):
         ROI_Wrapper.getMenu(self)
         self.menu.addAction(self.kymographAct)
 
+    def getPoints(self):
+        return self.pts
+
     def getMask(self):
         self.pts = [h['item'].pos() + self.pos() for h in self.handles]
         x=np.array([p[0] for p in self.pts], dtype=int)
@@ -263,11 +274,10 @@ class ROI_line(ROI_Wrapper, pg.LineSegmentROI):
         self.minn = np.min(self.mask)
 
     def draw_from_points(self, pts):
-        if all([(self.pts[i][0] == pts[i][0] and self.pts[i][1] == pts[i][1]) for i in range(len(self.pts))]):
-            return
+        self.blockSignals(True)
         self.movePoint(self.handles[0]['item'], pts[0], finish=False)
         self.movePoint(self.handles[1]['item'], pts[1], finish=False)
-        #self.translateFinished.emit()
+        self.blockSignals(False)
 
     def update_kymograph(self):
         tif=self.window.image
@@ -306,13 +316,14 @@ class ROI_rect_line(ROI_Wrapper, pg.MultiRectROI):
     kind = 'rect_line'
     plotSignal = Signal()
     translated = Signal()
-    translateFinished = Signal()
+    translate_done = Signal()
     def __init__(self, window, pts, width=1, *args, **kargs):
         self.init_args.update(kargs)
         self.window = window
         self.width = width
         self.pts = pts
         pg.MultiRectROI.__init__(self, pts, width, *args, **self.init_args)
+        self.blockSignals(True)
         self.kymographAct = QAction("&Kymograph", self, triggered=self.update_kymograph)
         ROI_Wrapper.__init__(self)
         self.maskProxy = pg.SignalProxy(self.sigRegionChanged, rateLimit=5, slot=self.onRegionChange) #This will only update 3 Hz
@@ -320,21 +331,23 @@ class ROI_rect_line(ROI_Wrapper, pg.MultiRectROI):
         self.extending = False
         self.extendHandle = None
         w, h = self.lines[0].size()
-        self.lines[0].scale([1.0, width/5.0], center=[0.5,0.5])
+        self.lines[0].scale([1.0, width/5.0], center=[0.5,0.5], finish=False)
         self.width = width
         self.currentLine = None
+        self.blockSignals(False)
 
     def drawFinished(self):
         ROI_Wrapper.drawFinished(self)
         self.lines[0].removeHandle(2)
     
     def draw_from_points(self, pts):
+        self.blockSignals(True)
         self.lines[0].movePoint(self.lines[0].handles[0]['item'], pts[0], finish=False)
         for i in range(1, len(self.lines)):
             self.lines[i-1].movePoint(self.lines[i-1].handles[1]['item'], pts[i], finish=False)
             self.lines[i].movePoint(self.lines[i].handles[0]['item'], pts[i], finish=False)
         self.lines[-1].movePoint(self.lines[-1].handles[-1]['item'], pts[-1])
-        #self.translateFinished.emit()
+        self.blockSignals(False)
         
     def setCurrentPen(self, pen):
         for l in self.lines:
@@ -355,7 +368,7 @@ class ROI_rect_line(ROI_Wrapper, pg.MultiRectROI):
             return
         for i in range(len(self.lines)-1, ind-1, -1):
             self.removeSegment(i)
-        self.translateFinished.emit()
+        self.translate_done.emit()
 
     def getMenu(self):
         ROI_Wrapper.getMenu(self)
@@ -373,7 +386,7 @@ class ROI_rect_line(ROI_Wrapper, pg.MultiRectROI):
             return
         self.lines[0].scale([1.0, newWidth/self.width], center=[0.5,0.5])
         self.width = newWidth
-        self.translateFinished.emit()
+        self.translate_done.emit()
 
     def setPen(self, pen):
         self.pen = pen
@@ -418,6 +431,9 @@ class ROI_rect_line(ROI_Wrapper, pg.MultiRectROI):
         l.boundingRect = boundingRect
         l.contains = contains
 
+    def getPoints(self):
+        return self.pts
+
     def getMask(self):
         self.pts = [pg.Point(self.window.imageview.getImageItem().mapFromScene(self.lines[0].getSceneHandlePositions(0)[1]))]
         for l in self.lines:
@@ -456,7 +472,7 @@ class ROI_rect_line(ROI_Wrapper, pg.MultiRectROI):
     def extendFinished(self):
         self.extending = False
         self.extendHandle = None
-        self.translateFinished.emit()
+        self.translate_done.emit()
 
     def getHandleTuples(self):
         pos = []
@@ -517,7 +533,7 @@ class ROI_rectangle(ROI_Wrapper, pg.ROI):
     kind = 'rectangle'
     plotSignal = Signal()
     translated = Signal()
-    translateFinished = Signal()
+    translate_done = Signal()
     def __init__(self, window, pos, size=(1, 1), resizable=True, *args, **kargs):
         self.init_args.update(kargs)
         self.window = window
@@ -531,12 +547,13 @@ class ROI_rectangle(ROI_Wrapper, pg.ROI):
         ROI_Wrapper.__init__(self)
 
     def draw_from_points(self, pts):
+        self.blockSignals(True)
+        self.setPos(pts[0], finish=False)
         if len(pts) == 2:
-            self.setPos(pts[0], finish=False)
             self.setSize(pts[1], finish=False)
-        else:
-            print("PTS", pts)
-        #self.translateFinished.emit()
+        elif len(pts) > 2:
+            self.setSize([pts[2][0] - pts[0][0], pts[2][1] - pts[0][1]], finish=False)
+        self.blockSignals(False)
 
     def getMenu(self):
         ROI_Wrapper.getMenu(self)
@@ -571,7 +588,8 @@ class ROI_rectangle(ROI_Wrapper, pg.ROI):
     def getPoints(self):
         x, y = np.array(self.state['pos'], dtype=int)
         w, h = np.array(self.state['size'], dtype=int)
-        return [self.state['pos'], pg.Point(x+w, y), pg.Point(x+w, y+h), pg.Point(x, y+h)] 
+        self.pts = [self.state['pos'], pg.Point(x+w, y), pg.Point(x+w, y+h), pg.Point(x, y+h), self.state['pos']] 
+        return self.pts
 
     def getMask(self):
         w, h = self.window.imageDimensions()
@@ -579,7 +597,7 @@ class ROI_rectangle(ROI_Wrapper, pg.ROI):
         
         x, y = np.array(self.state['pos'], dtype=int)
         w, h = np.array(self.state['size'], dtype=int)
-        self.pts = [self.state['pos'], self.state['size']]
+        self.pts = self.getPoints()
 
         if x < 0:
             w = max(0, w + x)
@@ -592,24 +610,21 @@ class ROI_rectangle(ROI_Wrapper, pg.ROI):
         if len(self.mask) > 0:
             self.minn = np.min(self.mask, 0)
 
-    def __repr__(self):
-        s = self.kind + '\n'
-        s += '%d %d\n' % (self.state['pos'][0], self.state['pos'][1])
-        s += '%d %d\n' % (self.state['size'][0], self.state['size'][1])
-        return s
-
-    def contains(self, *pos):
+    def contains(self, *pos, corrected=True):
         if isinstance(pos[0], QPointF):
             pos = pos[0]
         elif len(pos) == 2:
             pos = QPointF(pos[0], pos[1])
-        return pg.ROI.contains(self, pos)
+        if not corrected:
+            return QRectF(self.pts[0], self.pts[2]).contains(pos)
+        else:
+            return pg.ROI.contains(self, pos)
 
 class ROI(ROI_Wrapper, pg.ROI):
     kind = 'freehand'
     plotSignal = Signal()
     translated = Signal()
-    translateFinished = Signal()
+    translate_done = Signal()
     def __init__(self, window, pts, *args, **kargs):
         self.init_args.update(kargs)
         self.window = window
@@ -619,9 +634,10 @@ class ROI(ROI_Wrapper, pg.ROI):
         ROI_Wrapper.__init__(self)
 
     def draw_from_points(self, pts):
-        self.pts = pts
-        self.getMask()
-        #self.translateFinished.emit()
+        self.blockSignals(True)
+        self.setPos(pts[0], finish=False)
+        self.pts = pts[1]
+        self.blockSignals(False)
 
     def boundingRect(self):
         r = pg.ROI.boundingRect(self)
@@ -638,20 +654,18 @@ class ROI(ROI_Wrapper, pg.ROI):
             p.lineTo(self.pts[i])
         return p.contains(*pos)
 
-    def __repr__(self):
-        s = self.kind + '\n'
-        for x, y in self.pts:
-            s += '%d %d\n' % (x, y)
-        return s
-
     def paint(self, p, *args):
         p.setPen(self.currentPen)
         for i in range(len(self.pts)):
             p.drawLine(self.pts[i], self.pts[i-1])
 
+    def getPoints(self):
+        return self.state['pos'], self.pts
+
     def getMask(self):
         if self.mask is not None:
             xx, yy = np.transpose(self._mask + self.state['pos'])
+
         else:
             self.minn = np.min(self.pts, 0)
             x, y = np.transpose(self.pts)
@@ -671,7 +685,10 @@ def makeROI(kind,pts,window=None, **kargs):
     if kind=='freehand':
         roi=ROI(window, pts, **kargs)
     elif kind=='rectangle':
-        size = [pts[2][0] - pts[0][0], pts[2][1] - pts[0][1]]
+        if len(pts) > 2:
+            size = [pts[2][0] - pts[0][0], pts[2][1] - pts[0][1]]
+        else:
+            size = pts[1]
         roi=ROI_rectangle(window,pts[0], size, **kargs)
     elif kind=='line':
         roi=ROI_line(window, pos=(pts), **kargs)
