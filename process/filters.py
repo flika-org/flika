@@ -48,9 +48,9 @@ class Gaussian_blur(BaseProcess):
             self.newtif=np.zeros(self.tif.shape)
             if len(self.tif.shape)==3:
                 for i in np.arange(len(self.newtif)):
-                    self.newtif[i]=skimage.filters.gaussian_filter(self.tif[i].astype(np.float64),sigma)
+                    self.newtif[i]=skimage.filters.gaussian(self.tif[i].astype(np.float64),sigma)
             elif len(self.tif.shape)==2:
-                self.newtif=skimage.filters.gaussian_filter(self.tif.astype(np.float64),sigma)
+                self.newtif=skimage.filters.gaussian(self.tif.astype(np.float64),sigma)
             self.newtif=self.newtif.astype(g.settings['internal_data_type'])
         else:
             self.newtif=self.tif
@@ -65,7 +65,7 @@ class Gaussian_blur(BaseProcess):
             elif len(g.m.currentWindow.image.shape)==2:
                 testimage=g.m.currentWindow.image.astype(np.float64)
             if sigma>0:
-                testimage=skimage.filters.gaussian_filter(testimage,sigma)
+                testimage=skimage.filters.gaussian(testimage,sigma)
             g.m.currentWindow.imageview.setImage(testimage,autoLevels=False)            
         else:
             g.m.currentWindow.reset()
