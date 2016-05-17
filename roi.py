@@ -300,6 +300,11 @@ class ROI_line(ROI_Wrapper, pg.LineSegmentROI):
         mt = len(tif)
         if len(xx) == 0:
             return
+        idx_to_keep = np.logical_not( (xx>=self.window.mx) | (xx<0) | (yy>=self.window.my) | (yy<0))
+        xx = xx[idx_to_keep]
+        yy = yy[idx_to_keep]
+        if len(xx) == 0:
+            return
         mn=np.zeros((mt,len(xx)))
         for t in np.arange(mt):
             mn[t]=tif[t,xx,yy]
@@ -624,8 +629,9 @@ class ROI_rectangle(ROI_Wrapper, pg.ROI):
         self.mask=np.array(np.where(mask)).T
         if len(self.mask) > 0:
             self.minn = np.min(self.mask, 0)
-
-    def contains(self, *pos, corrected=True):  # pyqtgraph ROI uses this function for mouse interaction. Set corrected=True to use
+            
+    def contains(self, *pos, **kwargs):  # pyqtgraph ROI uses this function for mouse interaction. Set corrected=True to use
+        corrected = kwargs.pop('corrected',True)
         if isinstance(pos[0], QPointF):
             pos = pos[0]
         elif len(pos) == 2:
