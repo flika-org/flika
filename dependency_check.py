@@ -157,8 +157,8 @@ def test_numpy():
     if os.path.exists(loc):
         try:
             np = __import__('numpy')
-            v = np.array(map(eval, np.__version__.split('.')[:2]))
-            if not numpy_uninstalled and (any(v < [1, 11]) or np.__config__.blas_mkl_info == {} or np.__config__.lapack_mkl_info == {}):
+            version = [int(i) for i in np.__version__.split('.')][:2]
+            if not numpy_uninstalled and (version < [1, 11] or np.__config__.blas_mkl_info == {} or np.__config__.lapack_mkl_info == {}):
                 del np
                 if not uninstall_numpy():
                     raise InstallFailedException('numpy')
