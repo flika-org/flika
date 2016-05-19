@@ -13,7 +13,7 @@ import global_vars as g
 from process.BaseProcess import BaseProcess, WindowSelector, MissingWindowError
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
-from trace import TraceFig
+from tracefig import TraceFig
 
 __all__ = ['deinterleave','trim','zproject','image_calculator', 'pixel_binning', 'frame_binning', 'resize']
 

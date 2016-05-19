@@ -142,21 +142,35 @@ class MainWindowEventEater(QObject):
         return False # lets the event continue to the edit
 mainWindowEventEater = MainWindowEventEater()
 
-
-if __name__ == '__main__':
-    
+def start_flika():
     initializeMainGui()
-    args=sys.argv[1:]
-    if os.name =='nt':
+    args = sys.argv[1:]
+    if os.name == 'nt':
         g.setConsoleVisible(g.settings['debug_mode'])
 
-    args=[arg for arg in args if 'FLIKA.PY' not in arg.upper() and arg != 'python']
+    args = [arg for arg in args if 'FLIKA.PY' not in arg.upper() and arg != 'python']
     for a in args:
         w = open_file(a)
 
-    insideSpyder='SPYDER_SHELL_ID' in os.environ
-    if not insideSpyder: #if we are running outside of Spyder
+
+
+if __name__ == '__main__':
+    '''
+    If you would like to run Flika inside an IDE such as PyCharm, run the following commands:
+
+
+    import os, sys
+    flika_dir = os.path.join(os.path.expanduser('~'),'Documents', 'GitHub', 'flika')
+    os.chdir(flika_dir)
+    from flika import *
+    start_flika()
+
+    
+    '''
+    start_flika()
+    insideSpyder = 'SPYDER_SHELL_ID' in os.environ
+    if not insideSpyder:  # if we are running outside of Spyder
         try:
-            sys.exit(g.app.exec_()) #This is required to run outside of Spyder
+            sys.exit(g.app.exec_())  # This is required to run outside of Spyder
         except Exception as e:
             print(e)

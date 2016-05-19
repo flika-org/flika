@@ -14,7 +14,7 @@ import pyqtgraph as pg
 pg.setConfigOptions(useWeave=False)
 import os, time
 import numpy as np
-from trace import TraceFig
+from tracefig import TraceFig
 import global_vars as g
 from roi import *
 

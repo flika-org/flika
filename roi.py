@@ -5,7 +5,7 @@ import global_vars as g
 import pyqtgraph as pg
 from skimage.draw import polygon, line
 import numpy as np
-from trace import roiPlot
+from tracefig import roiPlot
 import os
 import threading
 from scipy.ndimage.interpolation import rotate
