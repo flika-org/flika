@@ -14,8 +14,7 @@ if sys.version_info.major == 2:
     sys.setdefaultencoding('utf8') #http://stackoverflow.com/questions/21129020/how-to-fix-unicodedecodeerror-ascii-codec-cant-decode-byte
     sys.path.insert(0, os.path.expanduser(r'~\Documents\Github\pyqtgraph'))
 import numpy as np
-from PyQt4.QtCore import * # Qt is Nokias GUI rendering code written in C++.  PyQt4 is a library in python which binds to Qt
-from PyQt4.QtGui import *
+from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import pyqtSignal as Signal
 from pyqtgraph import plot, show
 import pyqtgraph as pg
@@ -42,14 +41,14 @@ except NameError:
 def initializeMainGui():
     if g.mainGuiInitialized:
         return 0 
-    g.app = QApplication(sys.argv)
+    g.app = QtGui.QApplication(sys.argv)
     g.init('gui/main.ui')
-    desktop=QApplication.desktop()
+    desktop=QtGui.QApplication.desktop()
     width_px=int(desktop.logicalDpiX()*3.4)
     height_px=int(desktop.logicalDpiY()*.9)
-    g.m.setGeometry(QRect(15, 33, width_px, height_px))
+    g.m.setGeometry(QtCore.QRect(15, 33, width_px, height_px))
     g.m.setFixedSize(326, 80)
-    g.m.setWindowIcon(QIcon('images/favicon.png'))
+    g.m.setWindowIcon(QtGui.QIcon('images/favicon.png'))
 
     g.m.actionOpen.triggered.connect(lambda : open_file_gui(open_file, prompt='Open File', filetypes='Image Files (*.tif *.stk *.tiff *.nd2);;All Files (*.*)'))
     g.m.actionSaveAs.triggered.connect(lambda : save_file_gui(save_file, prompt='Save File As Tif', filetypes='*.tif'))
@@ -66,7 +65,7 @@ def initializeMainGui():
     g.m.rectangle.clicked.connect(lambda: g.m.settings.setmousemode('rectangle'))
     g.m.point.clicked.connect(lambda: g.m.settings.setmousemode('point'))
     
-    g.m.point.setContextMenuPolicy(Qt.CustomContextMenu)
+    g.m.point.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
     g.m.point.customContextMenuRequested.connect(g.pointSettings)
 
     
@@ -117,18 +116,18 @@ def initializeMainGui():
     
     g.m.installEventFilter(mainWindowEventEater)
     g.m.show()
-    qApp.processEvents()
+    QtGui.qApp.processEvents()
 
-class MainWindowEventEater(QObject):
+class MainWindowEventEater(QtCore.QObject):
     def __init__(self,parent=None):
-        QObject.__init__(self,parent)
+        QtCore.QObject.__init__(self,parent)
     def eventFilter(self,obj,event):
-        if (event.type()==QEvent.DragEnter):
+        if (event.type()==QtCore.QEvent.DragEnter):
             if event.mimeData().hasUrls():
                 event.accept()   # must accept the dragEnterEvent or else the dropEvent can't occur !!!
             else:
                 event.ignore()
-        if (event.type() == QEvent.Drop):
+        if (event.type() == QtCore.QEvent.Drop):
             if event.mimeData().hasUrls():   # if file or link is dropped
                 url = event.mimeData().urls()[0]   # get first url
                 filename=url.toString()
@@ -159,18 +158,15 @@ if __name__ == '__main__':
     If you would like to run Flika inside an IDE such as PyCharm, run the following commands:
 
 
-    import os, sys
-    flika_dir = os.path.join(os.path.expanduser('~'),'Documents', 'GitHub', 'flika')
-    os.chdir(flika_dir)
-    from flika import *
-    start_flika()
+import os, sys; flika_dir = os.path.join(os.path.expanduser('~'),'Documents', 'GitHub', 'flika'); os.chdir(flika_dir); from flika import *; start_flika()
 
-    
+
     '''
     start_flika()
     insideSpyder = 'SPYDER_SHELL_ID' in os.environ
     if not insideSpyder:  # if we are running outside of Spyder
         try:
+            pass
             sys.exit(g.app.exec_())  # This is required to run outside of Spyder
         except Exception as e:
             print(e)

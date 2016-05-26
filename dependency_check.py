@@ -222,6 +222,7 @@ def main():
     test_dependency('scipy', fromlist=['special', 'ndimage'], conda=True)
     test_dependency('matplotlib', fromlist=['pyplot', 'cbook'], conda=True)
     test_dependency('skimage', fromlist=['draw'])
+    test_dependency('PyOpenGL', installers=['pip','gohlke'])
     for name in ('future', 'PIL', 'pyqtgraph', 'xmltodict', 'openpyxl', 'nd2reader'):
         test_dependency(name, installers=['pip', 'gohlke'])
 

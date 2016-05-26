@@ -1,6 +1,5 @@
 from PyQt4 import uic
-from PyQt4.QtCore import * # Qt is Nokias GUI rendering code written in C++.  PyQt4 is a library in python which binds to Qt
-from PyQt4.QtGui import *
+from PyQt4 import QtGui
 from PyQt4.QtCore import pyqtSignal as Signal
 import sys, os, atexit
 if sys.version_info.major==2:
@@ -74,14 +73,14 @@ class Settings:
     def gui(self):
         old_dtype=str(np.dtype(self['internal_data_type']))
         dataDrop = pg.ComboBox(items=data_types, default=old_dtype)
-        showCheck = QCheckBox()
+        showCheck = QtGui.QCheckBox()
         showCheck.setChecked(self.d['show_windows'])
-        multipleTracesCheck = QCheckBox()
+        multipleTracesCheck = QtGui.QCheckBox()
         multipleTracesCheck.setChecked(self['multipleTraceWindows'])
-        multiprocessing = QCheckBox()
+        multiprocessing = QtGui.QCheckBox()
         multiprocessing.setChecked(self['multiprocessing'])
-        nCores = QComboBox()
-        debug_check = QCheckBox(checked=self['debug_mode'])
+        nCores = QtGui.QComboBox()
+        debug_check = QtGui.QCheckBox(checked=self['debug_mode'])
         debug_check.toggled.connect(setConsoleVisible)
         for i in np.arange(cpu_count())+1:
             nCores.addItem(str(i))
@@ -118,11 +117,11 @@ def pointSettings(pointButton):
     point_color = ColorSelector()
     point_color.color=m.settings['point_color']
     point_color.label.setText(point_color.color)
-    point_size = QSpinBox()
+    point_size = QtGui.QSpinBox()
     point_size.setRange(1,50)
     point_size.setValue(m.settings['point_size'])
     
-    update_current_points_check = QCheckBox()
+    update_current_points_check = QtGui.QCheckBox()
     update_current_points_check.setChecked(True)
     
     items = []
@@ -133,7 +132,7 @@ def pointSettings(pointButton):
         m.settings['point_color'] = point_color.value()
         m.settings['point_size'] = point_size.value()
         if m.currentWindow is not None and update_current_points_check.isChecked()==True:
-            color = QColor(point_color.value())
+            color = QtGui.QColor(point_color.value())
             m.currentWindow.scatterPlot.setBrush(pg.mkBrush(*color.getRgb()))
             m.currentWindow.scatterPlot.setSize(point_size.value())
     m.dialog = BaseDialog(items, 'Points Settings', '')
@@ -150,12 +149,12 @@ def mainguiClose(event):
     m.settings.save()
     event.accept() # let the window close
 
-def messageBox(title, text, buttons=QMessageBox.Ok, icon=QMessageBox.Information):
-    m.messagebox = QMessageBox(icon, title, text, buttons)
+def messageBox(title, text, buttons=QtGui.QMessageBox.Ok, icon=QtGui.QMessageBox.Information):
+    m.messagebox = QtGui.QMessageBox(icon, title, text, buttons)
     m.messagebox.setWindowIcon(m.windowIcon())
     m.messagebox.show()
     #m.messagebox.exec()
-    while m.messagebox.isVisible(): QApplication.instance().processEvents()
+    while m.messagebox.isVisible(): QtGui.QApplication.instance().processEvents()
     return m.messagebox.result()
 
 def checkUpdates():
@@ -181,7 +180,7 @@ def checkUpdates():
         latest_version = latest_version[0]
         message += latest_version
     if any([int(j) > int(i) for i, j in zip(version.split('.'), latest_version.split('.'))]):
-        if messageBox("Update Recommended", message + '\n\nWould you like to update?', QMessageBox.Yes | QMessageBox.No, QMessageBox.Question) == QMessageBox.Yes:
+        if messageBox("Update Recommended", message + '\n\nWould you like to update?', QtGui.QMessageBox.Yes | QtGui.QMessageBox.No, QtGui.QMessageBox.Question) == QtGui.QMessageBox.Yes:
             updateFlika()
     else:
         messageBox("Up to date", "Your version of Flika is up to date")
@@ -219,7 +218,7 @@ def updateFlika():
         shutil.rmtree(extract_location)
         exit(0)
     except Exception as e:
-        messageBox("Update Error", "Failed to remove and replace old Flika. %s" % e, icon=QMessageBox.Warning)
+        messageBox("Update Error", "Failed to remove and replace old Flika. %s" % e, icon=QtGui.QMessageBox.Warning)
     
 
 def setConsoleVisible(v):
@@ -229,10 +228,10 @@ def setConsoleVisible(v):
     ShowWindow = windll.user32.ShowWindow
     ShowWindow(console_window_handle, v)
 
-class SetCurrentWindowSignal(QWidget):
+class SetCurrentWindowSignal(QtGui.QWidget):
     sig=Signal()
     def __init__(self,parent):
-        QWidget.__init__(self,parent)
+        QtGui.QWidget.__init__(self,parent)
         self.hide()
 
 settings=Settings()
