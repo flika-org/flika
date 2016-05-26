@@ -12,9 +12,8 @@ PyInstaller fails to import skimage._shared.transform, and the gui and images di
 
     added_files=[
         ('gui','gui'),
-        ('images','images'),
-        ('C:\\Python34\\Lib\\site-packages\\skimage\\_shared\\transform.pyd','.')
-    ]
+        ('images','images')]
+
 Then replace the line
     datas=None,
 with
@@ -23,4 +22,6 @@ with
 Finally, run the following command
 pyinstaller flika.spec
 
-Then rename the file transform.pyd to skimage._shared.transform.pyd
+Then copy the skimage/_shared/transform.pyd to the dist/flika folder, renaming it skimage._shared.transform.pyd
+
+You should now be able to double click on the flika.exe file and launch flika.

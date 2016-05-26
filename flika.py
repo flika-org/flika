@@ -4,9 +4,10 @@ Created on Thu Jun 26 14:17:38 2014
 Latest Update: 2016.02.23
 @author: Kyle Ellefsen and Brett Settle
 """
-from __future__ import (absolute_import, division,print_function, unicode_literals)
+print('Launching Flika')
+#from __future__ import (absolute_import, division,print_function, unicode_literals)
 import dependency_check
-from future.builtins import (bytes, dict, int, list, object, range, str, ascii, chr, hex, input, next, oct, open, pow, round, super, filter, map, zip)
+#from future.builtins import (bytes, dict, int, list, object, range, str, ascii, chr, hex, input, next, oct, open, pow, round, super, filter, map, zip)
 import time
 import os, sys
 if sys.version_info.major == 2:

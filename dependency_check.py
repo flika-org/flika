@@ -1,5 +1,5 @@
 from __future__ import print_function
-INSTALL_DEPENDENCIES=True
+INSTALL_DEPENDENCIES=False
 from glob import glob
 import os, sys, time, re
 from sys import platform as _platform
