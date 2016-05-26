@@ -1,6 +1,6 @@
 **/config.p
 *.pyc
-.idea
+*.idea
 
 # Windows image file caches
 Thumbs.db
@@ -110,3 +110,11 @@ com_crashlytics_export_strings.xml
 crashlytics.properties
 crashlytics-build.properties
 fabric.properties
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+/dist
+/build
