@@ -237,7 +237,7 @@ class ROI_Wrapper():
         tif = self.window.imageArray()
         t, w, h = np.shape(tif)
         pts_in = [[x, y] for x, y in self.mask if x >= 0 and y >= 0 and x < w and y < h]
-        if len(pts_in) == 0:
+        if len(pts_in) == 0 or len(self.mask) == 0:
             vals = np.zeros(t)
         else:
             xx, yy = np.transpose(pts_in)

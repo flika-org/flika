@@ -1,12 +1,12 @@
 '''
 @author: Brett Settle
 '''
-from dependency_check import *
 from glob import glob
 import global_vars as g
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 from PyQt4 import uic
+import sys
 if sys.version_info.major==2:
     from urllib2 import urlopen
 elif sys.version_info.major==3:
@@ -278,7 +278,7 @@ class PluginManager(QMainWindow):
         if 'dependencies' in PluginManager.plugins[plugin_name]:
             deps = PluginManager.plugins[plugin_name]['dependencies']['dependency']
             deps = [dep['@name'] for dep in deps]
-            check_dependencies(*deps)
+            #check_dependencies(*deps)
         PluginManager.gui.statusBar.showMessage('Successfully installed %s and it\'s plugins' % plugin_name)
         PluginManager.gui.pluginSelected(PluginManager.gui.pluginList.selectedItems()[0])
 

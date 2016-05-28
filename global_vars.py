@@ -20,7 +20,6 @@ from multiprocessing import cpu_count
 import re, time, datetime, zipfile, shutil, subprocess, os
 from sys import executable
 from subprocess import Popen
-from dependency_check import check_dependencies
 import atexit
 
 

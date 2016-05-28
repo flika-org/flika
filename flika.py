@@ -6,7 +6,6 @@ Latest Update: 2016.02.23
 """
 print('Launching Flika')
 #from __future__ import (absolute_import, division,print_function, unicode_literals)
-import dependency_check
 #from future.builtins import (bytes, dict, int, list, object, range, str, ascii, chr, hex, input, next, oct, open, pow, round, super, filter, map, zip)
 import time
 import os, sys
@@ -74,7 +73,7 @@ def initializeMainGui():
     g.m.actionPlugin_Manager.triggered.connect(PluginManager.show)
 
     url='http://flika-org.github.io/documentation.html'
-    g.m.actionDocs.triggered.connect(lambda: QDesktopServices.openUrl(QUrl(url)))
+    g.m.actionDocs.triggered.connect(lambda: QtGui.QDesktopServices.openUrl(QUrl(url)))
     
     g.m.actionDeinterleave.triggered.connect(deinterleave.gui)
     g.m.actionZ_Project.triggered.connect(zproject.gui)
