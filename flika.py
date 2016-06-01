@@ -158,7 +158,7 @@ if __name__ == '__main__':
     If you would like to run Flika inside an IDE such as PyCharm, run the following commands:
 
 
-import os, sys; flika_dir = os.path.join(os.path.expanduser('~'),'Documents', 'GitHub', 'flika'); os.chdir(flika_dir); from flika import *; start_flika()
+import os, sys; flika_dir = os.path.join(os.path.expanduser('~'),'Documents', 'GitHub', 'flika'); sys.path.append(flika_dir); from flika import *; start_flika()
 
 
     '''
