@@ -4,6 +4,7 @@ install PyInstaller with:
 pip install pyinstaller
 
 Navigate to the Flika directory.  Run 
+pyi-makespec --icon=images/favicon.ico --additional-hooks-dir=. --hiddenimport leastsqbound flika.py
 
 Then, because PyInstaller fails to import the numpy-mkl dlls, you have to add the hook-numpy file.  It is inside flika (more info here: https://stackoverflow.com/questions/35478526/pyinstaller-numpy-intel-mkl-fatal-error-cannot-load-mkl-intel-thread-dll/36389023#36389023 given by j4n7). 
 
