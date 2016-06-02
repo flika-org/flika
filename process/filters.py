@@ -113,7 +113,7 @@ class Butterworth_filter(BaseProcess):
         self.roi=g.m.currentWindow.currentROI
         if self.roi is not None:
             self.ui.rejected.connect(self.roi.translate_done.emit)
-        else:
+        if self.roi is None or g.m.currentTrace is None:
             preview.setChecked(False)
             preview.setEnabled(False)
         
@@ -134,22 +134,23 @@ class Butterworth_filter(BaseProcess):
         return self.end()
         
     def preview(self):
-        filter_order=self.getValue('filter_order')
-        low=self.getValue('low')
-        high=self.getValue('high')
-        preview=self.getValue('preview')
-        if self.roi is not None:
-            if preview:
-                if (low==0 and high==1) or (low==0 and high==0):
-                    self.roi.translate_done.emit() #redraw roi without filter
+        if g.m.currentTrace is not None:
+            filter_order=self.getValue('filter_order')
+            low=self.getValue('low')
+            high=self.getValue('high')
+            preview=self.getValue('preview')
+            if self.roi is not None:
+                if preview:
+                    if (low==0 and high==1) or (low==0 and high==0):
+                        self.roi.translate_done.emit() #redraw roi without filter
+                    else:
+                        b,a,padlen=self.makeButterFilter(filter_order,low,high)
+                        trace=self.roi.getTrace()
+                        trace=filtfilt(b,a, trace, padlen=padlen)
+                        roi_index=g.m.currentTrace.get_roi_index(self.roi)
+                        g.m.currentTrace.update_trace_full(roi_index,trace) #update_trace_partial may speed it up
                 else:
-                    b,a,padlen=self.makeButterFilter(filter_order,low,high)
-                    trace=self.roi.getTrace()
-                    trace=filtfilt(b,a, trace, padlen=padlen)
-                    roi_index=g.m.currentTrace.get_roi_index(self.roi)
-                    g.m.currentTrace.update_trace_full(roi_index,trace) #update_trace_partial may speed it up
-            else:
-                self.roi.translate_done.emit()        
+                    self.roi.translate_done.emit()
     def makeButterFilter(self,filter_order,low,high):
         padlen=0
         if high==1: 

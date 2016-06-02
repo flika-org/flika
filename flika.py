@@ -19,6 +19,10 @@ from PyQt4.QtCore import pyqtSignal as Signal
 from pyqtgraph import plot, show
 import pyqtgraph as pg
 import global_vars as g
+
+import pyqtgraph.opengl as gl
+import matplotlib.cm
+
 from window import Window
 
 from process.stacks import deinterleave, trim, zproject, image_calculator, pixel_binning, frame_binning, resize
@@ -151,6 +155,7 @@ def start_flika():
     for a in args:
         w = open_file(a)
 
+    open_file()
 
 
 if __name__ == '__main__':
@@ -170,3 +175,5 @@ import os, sys; flika_dir = os.path.join(os.path.expanduser('~'),'Documents', 'G
             sys.exit(g.app.exec_())  # This is required to run outside of Spyder
         except Exception as e:
             print(e)
+
+

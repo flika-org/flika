@@ -51,8 +51,26 @@ class Window(QWidget):
         self.imageview.installEventFilter(self)
         self.imageview.ui.menuBtn.setParent(None)
 
+
+
+
+
         #self.imageview.ui.normBtn.setParent(None) # gets rid of 'norm' button that comes with ImageView
         self.imageview.ui.roiBtn.setParent(None) # gets rid of 'roi' button that comes with ImageView
+
+        self.imageview.ui.normLUTbtn = QPushButton(self.imageview.ui.layoutWidget)
+        #sizePolicy = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
+        #sizePolicy.setHorizontalStretch(0)
+        #sizePolicy.setVerticalStretch(1)
+        #sizePolicy.setHeightForWidth(self.imageview.ui.roiBtn.sizePolicy().hasHeightForWidth())
+        #self.imageview.ui.roiBtn.setSizePolicy(sizePolicy)
+        #self.imageview.ui.normLUTbtn.setCheckable(True)
+        self.imageview.ui.normLUTbtn.setObjectName("LUT norm")
+        self.imageview.ui.normLUTbtn.setText("LUT norm")
+        self.imageview.ui.gridLayout.addWidget(self.imageview.ui.normLUTbtn, 1, 1, 1, 1)
+        self.imageview.ui.normLUTbtn.pressed.connect(self.normLUT)
+
+
 
         rp = self.imageview.ui.roiPlot.getPlotItem()
         self.linkMenu = QMenu("Link frame")
@@ -62,8 +80,8 @@ class Window(QWidget):
 
         self.image=tif
         """ Here we set the initial range of the look up table.  """
-        nDims=len(np.shape(self.image))
-        if nDims==3:
+        self.nDims = len(np.shape(self.image))
+        if self.nDims == 3:
             if metadata['is_rgb']:
                 mx,my,mc=tif.shape
                 mt=1
@@ -71,27 +89,14 @@ class Window(QWidget):
             else:
                 mt,mx,my=tif.shape
                 dimensions_txt="{} frames; {}x{} pixels; ".format(mt,mx,my)
-            if np.all(self.image[0]==0): #if the first frame is all zeros
-                r=(np.min(self.image),np.max(self.image)) #set the levels to be just above and below the min and max of the entire tif
-                r=(r[0]-(r[1]-r[0])/100,r[1]+(r[1]-r[0])/100)
-                self.imageview.setLevels(r[0],r[1])
-            else: 
-                r=(np.min(self.image[0]),np.max(self.image[0])) #set the levels to be just above and below the min and max of the first frame
-                r=(r[0]-(r[1]-r[0])/100,r[1]+(r[1]-r[0])/100)
-                self.imageview.setLevels(r[0],r[1])
-        elif nDims==4:
-            mt,mx,my,mc=tif.shape
-            dimensions_txt="{} frames; {}x{} pixels; {} colors; ".format(mt,mx,my,mc)
-            if np.min(self.image)==0 and (np.max(self.image)==0 or np.max(self.image)==1): #if the image is binary (either all 0s or 0s and 1s)
-                self.imageview.setLevels(-.01,1.01) #set levels from slightly below 0 to 1
-        elif nDims==2:
+        elif self.nDims == 4:
+            mt,mx,my,mc = tif.shape
+            dimensions_txt = "{} frames; {}x{} pixels; {} colors; ".format(mt,mx,my,mc)
+        elif self.nDims == 2:
             mt=1
             mx,my=tif.shape
             dimensions_txt="{}x{} pixels; ".format(mx,my)
-        if np.min(self.image)==0 and (np.max(self.image)==0 or np.max(self.image)==1): #if the image is binary (either all 0s or 0s and 1s)
-            self.imageview.setLevels(-.01,1.01) #set levels from slightly below 0 to 1
-            
-        self.mx=mx; self.my=my; self.mt=mt
+        self.mx = mx; self.my = my; self.mt = mt
         dtype=self.image.dtype
 
         self.top_left_label = pg.LabelItem(dimensions_txt+'dtype='+str(dtype), justify='right')
@@ -99,6 +104,7 @@ class Window(QWidget):
         
         self.imageview.timeLine.sigPositionChanged.connect(self.updateindex)
         self.currentIndex=self.imageview.currentIndex
+        self.normLUT()
         self.layout = QVBoxLayout(self)
         self.layout.addWidget(self.imageview)
         self.layout.setContentsMargins(0,0,0,0)
@@ -126,6 +132,25 @@ class Window(QWidget):
         self.closed=False
 
         self.linkedWindows = []
+
+    def normLUT(self):
+        if self.nDims ==2:
+            # if the image is binary (either all 0s or 0s and 1s)
+            if np.min(self.image) == 0 and (np.max(self.image) == 0 or np.max(self.image) == 1):
+                self.imageview.setLevels(-.01, 1.01)  # set levels from slightly below 0 to 1
+        if self.nDims == 3 and not self.metadata['is_rgb']:
+            if np.all(self.image[self.currentIndex] == 0):  # if the current frame is all zeros
+                r = (np.min(self.image), np.max(self.image))  # set the levels to be just above and below the min and max of the entire tif
+                r = (r[0] - (r[1] - r[0]) / 100, r[1] + (r[1] - r[0]) / 100)
+                self.imageview.setLevels(r[0], r[1])
+            else:
+                r = (np.min(self.image[self.currentIndex]),
+                     np.max(self.image[self.currentIndex]))  # set the levels to be just above and below the min and max of the first frame
+                r = (r[0] - (r[1] - r[0]) / 100, r[1] + (r[1] - r[0]) / 100)
+                self.imageview.setLevels(r[0], r[1])
+        elif self.nDims == 4 and not self.metadata['is_rgb']:
+            if np.min(self.image) == 0 and (np.max(self.image) == 0 or np.max(self.image) == 1):  # if the image is binary (either all 0s or 0s and 1s)
+                self.imageview.setLevels(-.01, 1.01)  # set levels from slightly below 0 to 1
     
     def link(self, win):
         if win not in self.linkedWindows:

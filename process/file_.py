@@ -182,7 +182,8 @@ def open_file(filename=None):
         ScriptEditor.importScript(filename)
         return
     else:
-        print('Could not open %s' % filename)
+        print('Could not open {}'.format(filename))
+        g.m.statusBar().showMessage('Unable to open {}'.format(filename))
         if filename in g.settings['recent_files']:
             g.settings['recent_files'].remove(filename)
         make_recent_menu()
