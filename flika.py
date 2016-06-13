@@ -5,26 +5,17 @@ Latest Update: 2016.02.23
 @author: Kyle Ellefsen and Brett Settle
 """
 print('Launching Flika')
-#from __future__ import (absolute_import, division,print_function, unicode_literals)
-#from future.builtins import (bytes, dict, int, list, object, range, str, ascii, chr, hex, input, next, oct, open, pow, round, super, filter, map, zip)
 import time
 import os, sys
-if sys.version_info.major == 2:
-    reload(sys)
-    sys.setdefaultencoding('utf8') #http://stackoverflow.com/questions/21129020/how-to-fix-unicodedecodeerror-ascii-codec-cant-decode-byte
-    sys.path.insert(0, os.path.expanduser(r'~\Documents\Github\pyqtgraph'))
 import numpy as np
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import pyqtSignal as Signal
 from pyqtgraph import plot, show
 import pyqtgraph as pg
 import global_vars as g
-
 import pyqtgraph.opengl as gl
 import matplotlib.cm
-
 from window import Window
-
 from process.stacks import deinterleave, trim, zproject, image_calculator, pixel_binning, frame_binning, resize
 from process.math_ import multiply, subtract, power, ratio, absolute_value, subtract_trace, divide_trace
 from process.filters import gaussian_blur, butterworth_filter,boxcar_differential_filter, wavelet_filter, difference_filter, fourier_filter, mean_filter, median_filter, bilateral_filter
@@ -36,49 +27,41 @@ from roi import load_roi, makeROI
 from process.overlay import time_stamp,background, scale_bar
 from script_editor.ScriptEditor import ScriptEditor
 from plugins.plugin_manager import PluginManager
-
-    
 try:
     os.chdir(os.path.split(os.path.realpath(__file__))[0])
 except NameError:
     pass
+
+
 def initializeMainGui():
     if g.mainGuiInitialized:
         return 0 
     g.app = QtGui.QApplication(sys.argv)
     g.init('gui/main.ui')
-    desktop=QtGui.QApplication.desktop()
+    desktop = QtGui.QApplication.desktop()
     width_px=int(desktop.logicalDpiX()*3.4)
     height_px=int(desktop.logicalDpiY()*.9)
     g.m.setGeometry(QtCore.QRect(15, 33, width_px, height_px))
     g.m.setFixedSize(326, 80)
     g.m.setWindowIcon(QtGui.QIcon('images/favicon.png'))
-
     g.m.actionOpen.triggered.connect(lambda : open_file_gui(open_file, prompt='Open File', filetypes='Image Files (*.tif *.stk *.tiff *.nd2);;All Files (*.*)'))
     g.m.actionSaveAs.triggered.connect(lambda : save_file_gui(save_file, prompt='Save File As Tif', filetypes='*.tif'))
     g.m.actionExport_Movie.triggered.connect(save_movie_gui)
     g.m.actionSettings.triggered.connect(g.settings.gui)
-    
     g.m.actionExport_Points.triggered.connect(lambda : save_file_gui(save_points, prompt='Save Points', filetypes='*.txt'))
     g.m.actionImport_Points.triggered.connect(lambda : open_file_gui(load_points, prompt='Load Points', filetypes='*.txt'))
     g.m.actionImport_ROIs.triggered.connect(lambda : open_file_gui(load_roi, prompt='Load ROIs from file', filetypes='*.txt'))
-
     g.m.freehand.clicked.connect(lambda: g.m.settings.setmousemode('freehand'))
     g.m.line.clicked.connect(lambda: g.m.settings.setmousemode('line'))
     g.m.rect_line.clicked.connect(lambda: g.m.settings.setmousemode('rect_line'))
     g.m.rectangle.clicked.connect(lambda: g.m.settings.setmousemode('rectangle'))
     g.m.point.clicked.connect(lambda: g.m.settings.setmousemode('point'))
-    
     g.m.point.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
     g.m.point.customContextMenuRequested.connect(g.pointSettings)
-
-    
     g.m.actionScript_Editor.triggered.connect(ScriptEditor.show)
     g.m.actionPlugin_Manager.triggered.connect(PluginManager.show)
-
     url='http://flika-org.github.io/documentation.html'
     g.m.actionDocs.triggered.connect(lambda: QtGui.QDesktopServices.openUrl(QtGui.QUrl(url)))
-    
     g.m.actionDeinterleave.triggered.connect(deinterleave.gui)
     g.m.actionZ_Project.triggered.connect(zproject.gui)
     g.m.actionPixel_Binning.triggered.connect(pixel_binning.gui)
@@ -115,9 +98,7 @@ def initializeMainGui():
     g.m.actionBackground.triggered.connect(background.gui)
     g.m.actionMeasure.triggered.connect(measure.gui)
     make_recent_menu()
-
     g.m.actionCheck_For_Updates.triggered.connect(g.checkUpdates)
-    
     g.m.installEventFilter(mainWindowEventEater)
     g.m.show()
     QtGui.qApp.processEvents()
@@ -131,7 +112,7 @@ class MainWindowEventEater(QtCore.QObject):
                 event.accept()   # must accept the dragEnterEvent or else the dropEvent can't occur !!!
             else:
                 event.ignore()
-        if (event.type() == QtCore.QEvent.Drop):
+        if event.type() == QtCore.QEvent.Drop:
             if event.mimeData().hasUrls():   # if file or link is dropped
                 url = event.mimeData().urls()[0]   # get first url
                 filename=url.toString()
@@ -145,32 +126,28 @@ class MainWindowEventEater(QtCore.QObject):
         return False # lets the event continue to the edit
 mainWindowEventEater = MainWindowEventEater()
 
+
 def start_flika():
     initializeMainGui()
     args = sys.argv[1:]
     if os.name == 'nt':
         g.setConsoleVisible(g.settings['debug_mode'])
-
     args = [arg for arg in args if 'FLIKA.PY' not in arg.upper() and arg != 'python']
     for a in args:
         w = open_file(a)
 
 
-
 if __name__ == '__main__':
-    '''
+    """
     If you would like to run Flika inside an IDE such as PyCharm, run the following commands:
-
 
 import os, sys; flika_dir = os.path.join(os.path.expanduser('~'),'Documents', 'GitHub', 'flika'); sys.path.append(flika_dir); from flika import *; start_flika()
 
-
-    '''
+    """
     start_flika()
     insideSpyder = 'SPYDER_SHELL_ID' in os.environ
     if not insideSpyder:  # if we are running outside of Spyder
         try:
-            pass
             sys.exit(g.app.exec_())  # This is required to run outside of Spyder
         except Exception as e:
             print(e)

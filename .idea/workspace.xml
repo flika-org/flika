@@ -2,9 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9f5a147e-1964-4173-87dc-77d4fac0f992" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/flika.py" afterPath="$PROJECT_DIR$/flika.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/global_vars.py" afterPath="$PROJECT_DIR$/global_vars.py" />
     </list>
     <ignored path="Flika.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -26,17 +24,17 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="flika.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="flika.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/flika.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="401">
-              <caret line="157" column="0" selection-start-line="157" selection-start-column="0" selection-end-line="157" selection-end-column="0" />
+            <state relative-caret-position="255">
+              <caret line="36" column="28" selection-start-line="36" selection-start-column="28" selection-end-line="36" selection-end-column="28" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="threshold_cluster.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="threshold_cluster.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/plugins/detect_puffs/threshold_cluster.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="391">
@@ -149,12 +147,12 @@
         <option value="$PROJECT_DIR$/window.py" />
         <option value="$PROJECT_DIR$/plugins/detect_puffs/densities.py" />
         <option value="Y:/Kyle/2015/2015_06_16 kyle_bacman_puffs_alternating/trial6.py" />
-        <option value="$PROJECT_DIR$/flika.py" />
         <option value="$PROJECT_DIR$/global_vars.py" />
         <option value="$USER_HOME$/Desktop/tmp.py" />
         <option value="$PROJECT_DIR$/plugins/detect_puffs/higher_pts.py" />
         <option value="$PROJECT_DIR$/plugins/detect_puffs/clusters.py" />
         <option value="$PROJECT_DIR$/plugins/detect_puffs/threshold_cluster.py" />
+        <option value="$PROJECT_DIR$/flika.py" />
       </list>
     </option>
   </component>
@@ -743,7 +741,7 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <option name="time" value="5" />
+      <option name="time" value="12" />
     </breakpoint-manager>
     <watches-manager />
   </component>
@@ -1190,14 +1188,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/flika.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="401">
-          <caret line="157" column="0" selection-start-line="157" selection-start-column="0" selection-end-line="157" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/plugins/detect_puffs/threshold_cluster.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="391">
@@ -1256,6 +1246,14 @@
             <element signature="e#69120#70487#0" expanded="false" />
             <marker date="1465851811923" expanded="false" signature="47482:48227" ph="..." />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/flika.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="255">
+          <caret line="36" column="28" selection-start-line="36" selection-start-column="28" selection-end-line="36" selection-end-column="28" />
+          <folding />
         </state>
       </provider>
     </entry>
