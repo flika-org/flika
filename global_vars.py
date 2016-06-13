@@ -2,12 +2,8 @@ from PyQt4 import uic
 from PyQt4 import QtGui
 from PyQt4.QtCore import pyqtSignal as Signal
 import sys, os, atexit
-if sys.version_info.major==2:
-    import cPickle as pickle # pickle serializes python objects so they can be saved persistantly.  It converts a python object into a savable data structure
-    from urllib2 import urlopen
-else:
-    import pickle
-    from urllib.request import urlopen
+import pickle
+from urllib.request import urlopen
 from os.path import expanduser
 import numpy as np
 from pyqtgraph.dockarea import *
@@ -20,12 +16,11 @@ from multiprocessing import cpu_count
 import re, time, datetime, zipfile, shutil, subprocess, os
 from sys import executable
 from subprocess import Popen
-import atexit
-
-
 
 data_types = ['uint8', 'uint16', 'uint32', 'uint64', 'int8', 'int16', 'int32', 'int64', 'float16', 'float32', 'float64']
 mainGuiInitialized=False
+m = None
+
 
 class Settings:
     initial_settings = {'filename': None, 
@@ -40,6 +35,7 @@ class Settings:
                         'debug_mode': False,
                         'point_color': '#ff0000',
                         'point_size': 5}
+
     def __init__(self):
         self.config_file=os.path.join(expanduser("~"),'.FLIKA','config.p' )
         try:
@@ -48,27 +44,34 @@ class Settings:
             print("Failed to load settings file. %s\nDefault settings restored." % e)
             self.d=Settings.initial_settings
         self.d['mousemode'] = 'rectangle' # don't change initial mousemode
+
     def __getitem__(self, item):
         try:
             self.d[item]
         except KeyError:
             self.d[item]=Settings.initial_settings[item] if item in Settings.initial_settings else None
         return self.d[item]
+
     def __setitem__(self,key,item):
         self.d[key]=item
         self.save()
+
     def save(self):
         '''save to a config file.'''
         if not os.path.exists(os.path.dirname(self.config_file)):
             os.makedirs(os.path.dirname(self.config_file))
         pickle.dump(self.d, open( self.config_file, "wb" ))
+
     def setmousemode(self,mode):
         self['mousemode']=mode
+
     def setMultipleTraceWindows(self, f):
         self['multipleTraceWindows'] = f
+
     def setInternalDataType(self, dtype):
         self['internal_data_type'] = dtype
         print('Changed data_type to {}'.format(dtype))
+
     def gui(self):
         old_dtype=str(np.dtype(self['internal_data_type']))
         dataDrop = pg.ComboBox(items=data_types, default=old_dtype)
@@ -103,16 +106,17 @@ class Settings:
         self.bd.accepted.connect(update)
         self.bd.changeSignal.connect(update)
         self.bd.show()
-        
+
+
 def pointSettings(pointButton):
-    '''
+    """
     default points color
     default points size
     currentWindow points color
     currentWindow points size
     clear current points
 
-    '''
+    """
     point_color = ColorSelector()
     point_color.color=m.settings['point_color']
     point_color.label.setText(point_color.color)
@@ -138,7 +142,8 @@ def pointSettings(pointButton):
     m.dialog.accepted.connect(update)
     m.dialog.changeSignal.connect(update)
     m.dialog.show()
-        
+
+
 def mainguiClose(event):
     global m
     for win in m.windows[:] + m.traceWindows[:] + m.dialogs[:]:
@@ -148,13 +153,14 @@ def mainguiClose(event):
     m.settings.save()
     event.accept() # let the window close
 
+
 def messageBox(title, text, buttons=QtGui.QMessageBox.Ok, icon=QtGui.QMessageBox.Information):
     m.messagebox = QtGui.QMessageBox(icon, title, text, buttons)
     m.messagebox.setWindowIcon(m.windowIcon())
     m.messagebox.show()
-    #m.messagebox.exec()
     while m.messagebox.isVisible(): QtGui.QApplication.instance().processEvents()
     return m.messagebox.result()
+
 
 def checkUpdates():
     try:
@@ -227,18 +233,21 @@ def setConsoleVisible(v):
     ShowWindow = windll.user32.ShowWindow
     ShowWindow(console_window_handle, v)
 
+
 class SetCurrentWindowSignal(QtGui.QWidget):
     sig=Signal()
+
     def __init__(self,parent):
         QtGui.QWidget.__init__(self,parent)
         self.hide()
 
 settings=Settings()
 
+
 def init(filename):
     global m, mainGuiInitialized
     mainGuiInitialized=True
-    m=uic.loadUi(filename)
+    m = uic.loadUi(filename)
     load_plugin_menu()
     m.setCurrentWindowSignal=SetCurrentWindowSignal(m)
     m.settings = settings
@@ -247,7 +256,6 @@ def init(filename):
     m.dialogs = []
     m.currentWindow = None
     m.currentTrace = None
-
     m.clipboard = None
     m.setAcceptDrops(True)
     m.closeEvent = mainguiClose

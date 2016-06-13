@@ -155,7 +155,6 @@ def start_flika():
     for a in args:
         w = open_file(a)
 
-    open_file()
 
 
 if __name__ == '__main__':
