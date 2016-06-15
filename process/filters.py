@@ -26,6 +26,7 @@ class Gaussian_blur(BaseProcess):
     
     Parameters:
         | sigma (float) -- The width of the gaussian
+        | norm_edges (bool) -- If true, this reduces the values of the pixels near the edges so they have the same standard deviation as the rest of the image
     Returns:
         newWindow
     """
@@ -36,27 +37,41 @@ class Gaussian_blur(BaseProcess):
         sigma=SliderLabel(2)
         sigma.setRange(0,100)
         sigma.setValue(1)
+        norm_edges=QCheckBox()
+        norm_edges.setChecked(False)
         preview=QCheckBox()
         preview.setChecked(True)
-        self.items.append({'name':'sigma','string':'Sigma (pixels)','object':sigma})
-        self.items.append({'name':'preview','string':'Preview','object':preview})
+        self.items.append({'name': 'sigma', 'string': 'Sigma (pixels)', 'object': sigma})
+        self.items.append({'name': 'norm_edges', 'string': 'Normalize Edges', 'object': norm_edges})
+        self.items.append({'name': 'preview', 'string': 'Preview', 'object': preview})
         super().gui()
         self.preview()
-    def __call__(self,sigma,keepSourceWindow=False):
+
+    def __call__(self, sigma, norm_edges=False, keepSourceWindow=False):
         self.start(keepSourceWindow)
+
+        if norm_edges == True:
+            mode = 'constant'
+        else:
+            mode = 'nearest'
         if sigma>0:
             self.newtif=np.zeros(self.tif.shape)
             if len(self.tif.shape)==3:
                 for i in np.arange(len(self.newtif)):
-                    self.newtif[i]=skimage.filters.gaussian(self.tif[i].astype(np.float64),sigma)
+                    self.newtif[i]=skimage.filters.gaussian(self.tif[i].astype(np.float64),sigma, mode=mode)
             elif len(self.tif.shape)==2:
-                self.newtif=skimage.filters.gaussian(self.tif.astype(np.float64),sigma)
+                self.newtif=skimage.filters.gaussian(self.tif.astype(np.float64),sigma, mode=mode)
             self.newtif=self.newtif.astype(g.settings['internal_data_type'])
         else:
             self.newtif=self.tif
         self.newname=self.oldname+' - Gaussian Blur sigma='+str(sigma)
         return self.end()
     def preview(self):
+        norm_edges = self.getValue('norm_edges')
+        if norm_edges == True:
+            mode = 'constant'
+        else:
+            mode = 'nearest'
         sigma=self.getValue('sigma')
         preview=self.getValue('preview')
         if preview:
@@ -65,7 +80,7 @@ class Gaussian_blur(BaseProcess):
             elif len(g.m.currentWindow.image.shape)==2:
                 testimage=g.m.currentWindow.image.astype(np.float64)
             if sigma>0:
-                testimage=skimage.filters.gaussian(testimage,sigma)
+                testimage=skimage.filters.gaussian(testimage,sigma, mode=mode)
             g.m.currentWindow.imageview.setImage(testimage,autoLevels=False)            
         else:
             g.m.currentWindow.reset()
@@ -91,6 +106,7 @@ class Butterworth_filter(BaseProcess):
     """
     def __init__(self):
         super().__init__()
+
     def gui(self):
         self.gui_reset()
         filter_order=QSpinBox()
