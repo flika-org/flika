@@ -4,9 +4,6 @@ Created on Thu Jun 26 16:18:16 2014
 
 @author: Kyle Ellefsen
 """
-from __future__ import (absolute_import, division,print_function, unicode_literals)
-from future.builtins import (bytes, dict, int, list, object, range, str, ascii, chr, hex, input, next, oct, open, pow, round, super, filter, map, zip)
-
 from window import Window
 import numpy as np
 import global_vars as g

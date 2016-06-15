@@ -52,7 +52,6 @@
 	```
 	sudo apt-get install python-pip python-numpy python-scipy build-essential cython python-matplotlib python-qt4-gl libgeos-c1v5 libgeos-dev
 	sudo pip install scikit-image
-	sudo pip install future
 	```
 
 3. Install Flika
