@@ -148,7 +148,7 @@ import os, sys; flika_dir = os.path.join(os.path.expanduser('~'),'Documents', 'G
     insideSpyder = 'SPYDER_SHELL_ID' in os.environ
     if not insideSpyder:  # if we are running outside of Spyder
         try:
-            sys.exit(g.app.exec_())  # This is required to run outside of Spyder
+            sys.exit(g.app.exec_())  # This is required to run outside of Spyder or PyCharm
         except Exception as e:
             print(e)
 

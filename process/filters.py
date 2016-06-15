@@ -21,7 +21,7 @@ __all__ = ['gaussian_blur','mean_filter','median_filter','butterworth_filter','b
 ##################   SPATIAL FILTERS       ####################################
 ###############################################################################
 class Gaussian_blur(BaseProcess):
-    """ gaussian_blur(sigma, keepSourceWindow=False)
+    """ gaussian_blur(sigma, norm_edges=False, keepSourceWindow=False)
     This applies a spatial gaussian_blur to every frame of your stack.  
     
     Parameters:
