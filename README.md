@@ -9,40 +9,66 @@
 
 ### Installation Instructions ###
 
-#### Windows ####
-1) Install Python
+#### Windows (64 bit)####
+
+##### For most users #####
+[Download](https://github.com/flika-org/flika_win64/archive/master.zip) the stand-alone version of Flika.  Once it's downloaded, unzip the folder, find the flika.exe file, double click and Flika will launch.  
+
+##### For developers #####
+
+1. Install Python
  
-Flika requires Python to run.  You can install either Python 2 or Python 3 (if you are not sure, use Python 3). To install Python, go [here](https://www.python.org/downloads/windows/) and download the latest Windows x86-64 MSI installer.  Once the file is downloaded, double click the icon and follow the on-screen instructions.  
+	Flika requires Python 3 to run. To install Python, go [here](https://www.python.org/downloads/windows/) and download the latest Windows x86-64 MSI installer.  Once the file is downloaded, double click the icon and follow the on-screen instructions.  
 
-2) Install Flika
+2. Install Flika dependencies
+	* numpy MKL
+	* scipy
+	* PyQt4
+	* pyqtgraph
+	* PyOpenGL
+	* scikit-image
+	* xmltodict
+	* nd2reader
+	* openpyxl
+	* matplotlib
+
+3. Install Flika
 
 
-Download the [zipped folder](https://github.com/kyleellefsen/Flika/archive/master.zip) from Github and extract the folder to a location on your computer (preferably in ```C:/Program Files/```). After the folder has been extracted, you can double click the 'Flika.bat' file inside of the Flika-master folder. Or follow these steps to create an executable on the desktop:
-
-Right click 'Flika.bat' and choose 'Create Shortcut', a shortcut icon should show up. Rename the 'Flika.bat - Shortcut' to just 'Flika', then right click it and select Properties. Click the button that says 'Change Icon' at the bottom of the window. (If a window pops up, press ok). Select 'Browse' to locate the Flika icon, located in the 'C:/Program Files/Flika-master/images/' folder under the name 'favicon.ico'. Once the icon is selected, you can move the shortcut to your desktop. Double click it to run Flika!
+	Download the [zipped folder](https://github.com/kyleellefsen/Flika/archive/master.zip) from Github and extract the folder to a location on your computer (preferably in ```C:/Program Files/```). After the folder has been extracted, you can run Flika with the command ```python flika.py```. We recommend using the free IDE PyCharm for scripting in Flika. To run Flika in the PyCharm IPython interpreter, run the following command
+	```
+	import os, sys; flika_dir = my_flika_dir; sys.path.append(flika_dir); from flika import *; start_flika()
+	```
+	replacing ```my_flika_dir``` with the location of the flika folder.
 
 #### Ubuntu ####
-1) Install Flika dependencies
+1. Install Python
 
-Open a terminal and run the following commands:
-```
-sudo apt-get install python-pip python-numpy python-scipy build-essential cython python-matplotlib python-qt4-gl libgeos-c1v5 libgeos-dev
-sudo pip install scikit-image
-sudo pip install future
-```
+	Flika requires Python 3 to run. Make sure this is the version of Python you are using.
 
-2) Install Flika
+2. Install Flika dependencies
 
-Download the [zipped folder](https://github.com/kyleellefsen/Flika/archive/master.zip) from Github and extract the folder to a location on your computer.  Navigate to the directory Flika was downloaded into.  Run Flika with the command
-```python flika.py```
+	Open a terminal and run the following commands:
+	```
+	sudo apt-get install python-pip python-numpy python-scipy build-essential cython python-matplotlib python-qt4-gl libgeos-c1v5 libgeos-dev
+	sudo pip install scikit-image
+	sudo pip install future
+	```
+
+3. Install Flika
+
+	Download the [zipped folder](https://github.com/kyleellefsen/Flika/archive/master.zip) from Github and extract the folder to a location on your computer.  Navigate to the directory Flika was downloaded into.  Run Flika with the command
+
+	```python flika.py```
 
 #### Mac OSX ####
 
-1) Install Python and Flika Dependencies
+1. Install Python and Flika Dependencies
 
-Flika requires Python to run.  You can install either Python 2 or Python 3 (if you are not sure, use Python 3). To install Python along with most of Flika's dependencies, download [Anaconda](https://www.continuum.io/downloads) by Continuum.  Any dependencies not included in Anaconda will be installed the first time Flika is run.
+	Flika requires Python 3 to run. To install Python along with most of Flika's dependencies, download [Anaconda](https://www.continuum.io/downloads) by Continuum.
 
-2) Install Flika
+2. Install Flika
 
-Download the [zipped folder](https://github.com/kyleellefsen/Flika/archive/master.zip) from Github and extract the folder to a location on your computer.  Open a terminal (Press command+space, type 'Terminal'). Navigate to the directory Flika was downloaded into.  Run Flika with the command
-```python flika.py```
+	Download the [zipped folder](https://github.com/kyleellefsen/Flika/archive/master.zip) from Github and extract the folder to a location on your computer.  Open a terminal (Press command+space, type 'Terminal'). Navigate to the directory Flika was downloaded into.  Run Flika with the command
+
+	```python flika.py```
