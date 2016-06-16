@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9f5a147e-1964-4173-87dc-77d4fac0f992" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/script_editor/script_namespace.py" afterPath="$PROJECT_DIR$/script_editor/script_namespace.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/plugins/plugin_data.py" afterPath="$PROJECT_DIR$/plugins/plugin_data.py" />
     </list>
     <ignored path="Flika.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -24,114 +25,70 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="threshold_cluster.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/plugins/detect_puffs/threshold_cluster.py">
+      <file leaf-file-name="pynsight.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/plugins/pynsight/pynsight.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="498">
-              <caret line="183" column="93" selection-start-line="183" selection-start-column="93" selection-end-line="183" selection-end-column="93" />
+            <state relative-caret-position="-2634">
+              <caret line="31" column="38" selection-start-line="31" selection-start-column="4" selection-end-line="31" selection-end-column="38" />
               <folding>
-                <element signature="e#1889#2340#0" expanded="false" />
-                <element signature="e#2366#2456#0" expanded="false" />
-                <element signature="e#2490#2558#0" expanded="false" />
-                <element signature="e#2601#3859#0" expanded="false" />
-                <element signature="e#6331#6349#0" expanded="false" />
-                <element signature="e#11800#11823#0" expanded="false" />
-                <element signature="e#13624#14168#0" expanded="false" />
-                <element signature="e#14228#15235#0" expanded="false" />
-                <element signature="e#15271#15482#0" expanded="false" />
-                <element signature="e#15515#21637#0" expanded="false" />
-                <element signature="e#19708#20116#0" expanded="false" />
-                <element signature="e#20154#20641#0" expanded="false" />
-                <element signature="e#21667#22088#0" expanded="false" />
-                <element signature="e#22124#22618#0" expanded="false" />
-                <element signature="e#22672#22828#0" expanded="false" />
-                <element signature="e#22901#24301#0" expanded="false" />
-                <element signature="e#24338#24951#0" expanded="false" />
-                <element signature="e#24997#25292#0" expanded="false" />
-                <element signature="e#25326#25726#0" expanded="false" />
-                <element signature="e#25759#26662#0" expanded="false" />
-                <element signature="e#26700#26985#0" expanded="false" />
-                <element signature="e#27023#27074#0" expanded="false" />
-                <element signature="e#27117#27175#0" expanded="false" />
-                <element signature="e#28543#30026#0" expanded="false" />
-                <element signature="e#30069#31456#0" expanded="false" />
-                <element signature="e#31494#31695#0" expanded="false" />
-                <element signature="e#31732#31930#0" expanded="false" />
-                <element signature="e#31985#34418#0" expanded="false" />
-                <element signature="e#34465#34561#0" expanded="false" />
-                <element signature="e#34611#34780#0" expanded="false" />
-                <element signature="e#34830#35070#0" expanded="false" />
-                <element signature="e#35112#37013#0" expanded="false" />
-                <element signature="e#37055#37115#0" expanded="false" />
-                <element signature="e#37160#37576#0" expanded="false" />
-                <element signature="e#37613#37811#0" expanded="false" />
-                <element signature="e#37851#38781#0" expanded="false" />
-                <element signature="e#38822#39376#0" expanded="false" />
-                <element signature="e#39415#39542#0" expanded="false" />
-                <element signature="e#39586#40140#0" expanded="false" />
-                <element signature="e#40176#40608#0" expanded="false" />
-                <element signature="e#40649#44664#0" expanded="false" />
-                <element signature="e#44719#46798#0" expanded="false" />
-                <element signature="e#46825#47822#0" expanded="false" />
-                <element signature="e#47850#48360#0" expanded="false" />
-                <element signature="e#48386#49126#0" expanded="false" />
-                <element signature="e#49163#65356#0" expanded="false" />
-                <element signature="e#49240#53772#0" expanded="false" />
-                <element signature="e#53812#55536#0" expanded="false" />
-                <element signature="e#55764#56871#0" expanded="false" />
-                <element signature="e#56918#60103#0" expanded="false" />
-                <element signature="e#60154#60690#0" expanded="false" />
-                <element signature="e#60732#65356#0" expanded="false" />
-                <element signature="e#65395#66848#0" expanded="false" />
-                <element signature="e#66875#67347#0" expanded="false" />
-                <element signature="e#67397#67691#0" expanded="false" />
-                <element signature="e#67742#67997#0" expanded="false" />
-                <element signature="e#68042#69982#0" expanded="false" />
-                <element signature="e#70019#71386#0" expanded="false" />
+                <element signature="e#213#231#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="flika.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/flika.py">
+      <file leaf-file-name="threshold_cluster.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/plugins/detect_puffs/threshold_cluster.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="411">
-              <caret line="123" column="17" selection-start-line="123" selection-start-column="17" selection-end-line="123" selection-end-column="17" />
+            <state relative-caret-position="3774">
+              <caret line="222" column="23" selection-start-line="222" selection-start-column="0" selection-end-line="223" selection-end-column="0" />
+              <folding>
+                <element signature="e#1034#1052#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="pynsight_template.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/plugins/pynsight/pynsight_template.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="323">
+              <caret line="19" column="4" selection-start-line="19" selection-start-column="4" selection-end-line="19" selection-end-column="4" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="ScriptEditor.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/script_editor/ScriptEditor.py">
+      <file leaf-file-name="particle_simulator.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/plugins/pynsight/particle_simulator.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="51">
-              <caret line="3" column="3" selection-start-line="3" selection-start-column="3" selection-end-line="3" selection-end-column="3" />
+            <state relative-caret-position="494">
+              <caret line="137" column="17" selection-start-line="137" selection-start-column="14" selection-end-line="137" selection-end-column="17" />
               <folding>
-                <element signature="e#54#80#0" expanded="true" />
+                <element signature="e#275#486#0" expanded="false" />
+                <element signature="e#535#1134#0" expanded="false" />
+                <element signature="e#1178#2922#0" expanded="false" />
+                <element signature="e#2977#4108#0" expanded="false" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="script_namespace.py" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/script_editor/script_namespace.py">
+      <file leaf-file-name="window.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/window.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="221">
-              <caret line="13" column="24" selection-start-line="13" selection-start-column="16" selection-end-line="13" selection-end-column="24" />
-              <folding>
-                <element signature="e#92#132#0" expanded="true" />
-              </folding>
+            <state relative-caret-position="238">
+              <caret line="75" column="0" selection-start-line="75" selection-start-column="0" selection-end-line="75" selection-end-column="0" />
+              <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="threshold_cluster template.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/plugins/detect_puffs/threshold_cluster template.py">
+      <file leaf-file-name="info.xml" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/plugins/pynsight/info.xml">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="340">
-              <caret line="20" column="82" selection-start-line="11" selection-start-column="4" selection-end-line="20" selection-end-column="82" />
+              <caret line="20" column="85" selection-start-line="20" selection-start-column="85" selection-end-line="20" selection-end-column="85" />
               <folding />
             </state>
           </provider>
@@ -187,8 +144,12 @@
         <option value="$PROJECT_DIR$/script_editor/ScriptEditor.py" />
         <option value="$PROJECT_DIR$/plugins/detect_puffs/threshold_cluster template.py" />
         <option value="$PROJECT_DIR$/plugins/detect_puffs/tmp.py" />
-        <option value="$PROJECT_DIR$/plugins/detect_puffs/threshold_cluster.py" />
         <option value="$PROJECT_DIR$/script_editor/script_namespace.py" />
+        <option value="$PROJECT_DIR$/plugins/detect_puffs/threshold_cluster.py" />
+        <option value="$PROJECT_DIR$/plugins/pynsight/info.xml" />
+        <option value="$PROJECT_DIR$/plugins/pynsight/pynsight.py" />
+        <option value="$PROJECT_DIR$/plugins/pynsight/particle_simulator.py" />
+        <option value="$PROJECT_DIR$/plugins/pynsight/pynsight_template.py" />
       </list>
     </option>
   </component>
@@ -372,7 +333,6 @@
     </navigator>
     <panes>
       <pane id="Scratches" />
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -401,12 +361,49 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="script_editor" />
+              <option name="myItemId" value="plugins" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="Flika" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="flika" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="plugins" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="pynsight" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="Flika" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="flika" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="plugins" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="detect_puffs" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -702,12 +699,12 @@
     <frame x="1912" y="-8" width="1936" height="1216" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.13965885" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.14285715" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32903227" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.47926268" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.50138247" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.31520736" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32903227" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32718894" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.13856691" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
@@ -744,44 +741,17 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <option name="time" value="15" />
+      <option name="time" value="16" />
     </breakpoint-manager>
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/flika.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/.PyCharm2016.1/system/python_stubs/-1608856627/PyQt4/QtCore/QObject.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="265">
-          <caret line="82" column="8" selection-start-line="82" selection-start-column="8" selection-end-line="82" selection-end-column="8" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://Z:/LaserSpot_MS/simulation/Figures/range_of_action/range_of_action.py" />
-    <entry file="file://$PROJECT_DIR$/trace.py" />
-    <entry file="file://$PROJECT_DIR$/interactive_flika.py" />
-    <entry file="file://$USER_HOME$/Desktop/test.py" />
-    <entry file="file://$PROJECT_DIR$/dependency_check.py" />
-    <entry file="file://Z:/LaserSpot_MS/simulation/Figures/range_of_action/fizz_buzz" />
     <entry file="file://$PROJECT_DIR$/tmp.py" />
     <entry file="file://Z:/LaserSpot_MS/simulation/Figures/range_of_action/range_of_action_calculator.py" />
     <entry file="file://$USER_HOME$/AppData/Local/Programs/Python/Python35/Lib/site-packages/pyqtgraph/graphicsItems/ImageItem.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="127">
           <caret line="328" column="20" selection-start-line="328" selection-start-column="8" selection-end-line="328" selection-end-column="20" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/plugins/detect_puffs/info.xml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
         </state>
       </provider>
     </entry>
@@ -796,7 +766,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="221">
           <caret line="13" column="51" selection-start-line="13" selection-start-column="51" selection-end-line="13" selection-end-column="51" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -834,23 +803,14 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="459">
           <caret line="27" column="92" selection-start-line="27" selection-start-column="78" selection-end-line="27" selection-end-column="92" />
-          <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/Desktop/tmp.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-268">
-          <caret line="10" column="0" selection-start-line="10" selection-start-column="0" selection-end-line="10" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$USER_HOME$/Desktop/tmp.py" />
     <entry file="file://$PROJECT_DIR$/README.md">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="204">
           <caret line="54" column="0" selection-start-line="54" selection-start-column="0" selection-end-line="54" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -858,9 +818,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="85">
           <caret line="5" column="3" selection-start-line="5" selection-start-column="3" selection-end-line="5" selection-end-column="3" />
-          <folding>
-            <element signature="e#92#110#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -868,15 +825,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="85">
           <caret line="5" column="3" selection-start-line="5" selection-start-column="3" selection-end-line="5" selection-end-column="3" />
-          <folding>
-            <element signature="e#83#101#0" expanded="false" />
-            <element signature="e#416#1258#0" expanded="false" />
-            <element signature="e#4672#4742#0" expanded="false" />
-            <element signature="e#8966#9541#0" expanded="false" />
-            <element signature="e#9588#10261#0" expanded="false" />
-            <element signature="e#10318#11827#0" expanded="false" />
-            <element signature="e#11878#13181#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -884,9 +832,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="119">
           <caret line="7" column="0" selection-start-line="7" selection-start-column="0" selection-end-line="7" selection-end-column="0" />
-          <folding>
-            <element signature="e#267#285#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -894,10 +839,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="102">
           <caret line="6" column="0" selection-start-line="6" selection-start-column="0" selection-end-line="6" selection-end-column="0" />
-          <folding>
-            <element signature="e#92#120#0" expanded="false" />
-            <element signature="e#282#648#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -905,9 +846,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="136">
           <caret line="8" column="0" selection-start-line="8" selection-start-column="0" selection-end-line="8" selection-end-column="0" />
-          <folding>
-            <element signature="e#153#184#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -915,9 +853,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="102">
           <caret line="6" column="0" selection-start-line="6" selection-start-column="0" selection-end-line="6" selection-end-column="0" />
-          <folding>
-            <element signature="e#92#110#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -925,9 +860,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="102">
           <caret line="6" column="0" selection-start-line="6" selection-start-column="0" selection-end-line="6" selection-end-column="0" />
-          <folding>
-            <element signature="e#92#110#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -935,9 +867,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="85">
           <caret line="5" column="3" selection-start-line="5" selection-start-column="3" selection-end-line="5" selection-end-column="3" />
-          <folding>
-            <element signature="e#83#101#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -945,9 +874,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="85">
           <caret line="5" column="3" selection-start-line="5" selection-start-column="3" selection-end-line="5" selection-end-column="3" />
-          <folding>
-            <element signature="e#92#106#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -955,9 +881,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="85">
           <caret line="5" column="3" selection-start-line="5" selection-start-column="3" selection-end-line="5" selection-end-column="3" />
-          <folding>
-            <element signature="e#92#110#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -965,9 +888,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="85">
           <caret line="5" column="3" selection-start-line="5" selection-start-column="3" selection-end-line="5" selection-end-column="3" />
-          <folding>
-            <element signature="e#92#118#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -975,9 +895,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="85">
           <caret line="5" column="3" selection-start-line="5" selection-start-column="3" selection-end-line="5" selection-end-column="3" />
-          <folding>
-            <element signature="e#92#110#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -985,9 +902,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="102">
           <caret line="6" column="0" selection-start-line="6" selection-start-column="0" selection-end-line="6" selection-end-column="0" />
-          <folding>
-            <element signature="e#92#110#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -995,17 +909,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-4569">
           <caret line="12" column="26" selection-start-line="12" selection-start-column="26" selection-end-line="12" selection-end-column="26" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/window.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="85">
-          <caret line="5" column="3" selection-start-line="5" selection-start-column="3" selection-end-line="5" selection-end-column="3" />
-          <folding>
-            <element signature="e#92#118#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1013,9 +916,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="169">
           <caret line="131" column="7" selection-start-line="131" selection-start-column="7" selection-end-line="131" selection-end-column="7" />
-          <folding>
-            <marker date="1455842347998" expanded="true" signature="5061:5383" ph="..." />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1023,9 +923,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="85">
           <caret line="5" column="3" selection-start-line="5" selection-start-column="3" selection-end-line="5" selection-end-column="3" />
-          <folding>
-            <element signature="e#92#110#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1033,7 +930,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1041,9 +937,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="160">
           <caret line="376" column="60" selection-start-line="376" selection-start-column="52" selection-end-line="376" selection-end-column="60" />
-          <folding>
-            <element signature="e#92#110#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1051,9 +944,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="85">
           <caret line="5" column="3" selection-start-line="5" selection-start-column="3" selection-end-line="5" selection-end-column="3" />
-          <folding>
-            <element signature="e#92#110#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1061,9 +951,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="85">
           <caret line="5" column="3" selection-start-line="5" selection-start-column="3" selection-end-line="5" selection-end-column="3" />
-          <folding>
-            <element signature="e#92#110#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1071,100 +958,14 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="85">
           <caret line="5" column="3" selection-start-line="5" selection-start-column="3" selection-end-line="5" selection-end-column="3" />
-          <folding>
-            <element signature="e#92#101#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/plugins/detect_puffs/tmp.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="51">
-          <caret line="3" column="0" selection-start-line="3" selection-start-column="0" selection-end-line="3" selection-end-column="42" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/plugins/detect_puffs/threshold_cluster template.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="340">
-          <caret line="20" column="82" selection-start-line="11" selection-start-column="4" selection-end-line="20" selection-end-column="82" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/plugins/detect_puffs/tmp.py" />
     <entry file="file://$PROJECT_DIR$/flika.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="411">
           <caret line="123" column="17" selection-start-line="123" selection-start-column="17" selection-end-line="123" selection-end-column="17" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/plugins/detect_puffs/threshold_cluster.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="498">
-          <caret line="183" column="93" selection-start-line="183" selection-start-column="93" selection-end-line="183" selection-end-column="93" />
-          <folding>
-            <element signature="e#1889#2340#0" expanded="false" />
-            <element signature="e#2366#2456#0" expanded="false" />
-            <element signature="e#2490#2558#0" expanded="false" />
-            <element signature="e#2601#3859#0" expanded="false" />
-            <element signature="e#6331#6349#0" expanded="false" />
-            <element signature="e#11800#11823#0" expanded="false" />
-            <element signature="e#13624#14168#0" expanded="false" />
-            <element signature="e#14228#15235#0" expanded="false" />
-            <element signature="e#15271#15482#0" expanded="false" />
-            <element signature="e#15515#21637#0" expanded="false" />
-            <element signature="e#19708#20116#0" expanded="false" />
-            <element signature="e#20154#20641#0" expanded="false" />
-            <element signature="e#21667#22088#0" expanded="false" />
-            <element signature="e#22124#22618#0" expanded="false" />
-            <element signature="e#22672#22828#0" expanded="false" />
-            <element signature="e#22901#24301#0" expanded="false" />
-            <element signature="e#24338#24951#0" expanded="false" />
-            <element signature="e#24997#25292#0" expanded="false" />
-            <element signature="e#25326#25726#0" expanded="false" />
-            <element signature="e#25759#26662#0" expanded="false" />
-            <element signature="e#26700#26985#0" expanded="false" />
-            <element signature="e#27023#27074#0" expanded="false" />
-            <element signature="e#27117#27175#0" expanded="false" />
-            <element signature="e#28543#30026#0" expanded="false" />
-            <element signature="e#30069#31456#0" expanded="false" />
-            <element signature="e#31494#31695#0" expanded="false" />
-            <element signature="e#31732#31930#0" expanded="false" />
-            <element signature="e#31985#34418#0" expanded="false" />
-            <element signature="e#34465#34561#0" expanded="false" />
-            <element signature="e#34611#34780#0" expanded="false" />
-            <element signature="e#34830#35070#0" expanded="false" />
-            <element signature="e#35112#37013#0" expanded="false" />
-            <element signature="e#37055#37115#0" expanded="false" />
-            <element signature="e#37160#37576#0" expanded="false" />
-            <element signature="e#37613#37811#0" expanded="false" />
-            <element signature="e#37851#38781#0" expanded="false" />
-            <element signature="e#38822#39376#0" expanded="false" />
-            <element signature="e#39415#39542#0" expanded="false" />
-            <element signature="e#39586#40140#0" expanded="false" />
-            <element signature="e#40176#40608#0" expanded="false" />
-            <element signature="e#40649#44664#0" expanded="false" />
-            <element signature="e#44719#46798#0" expanded="false" />
-            <element signature="e#46825#47822#0" expanded="false" />
-            <element signature="e#47850#48360#0" expanded="false" />
-            <element signature="e#48386#49126#0" expanded="false" />
-            <element signature="e#49163#65356#0" expanded="false" />
-            <element signature="e#49240#53772#0" expanded="false" />
-            <element signature="e#53812#55536#0" expanded="false" />
-            <element signature="e#55764#56871#0" expanded="false" />
-            <element signature="e#56918#60103#0" expanded="false" />
-            <element signature="e#60154#60690#0" expanded="false" />
-            <element signature="e#60732#65356#0" expanded="false" />
-            <element signature="e#65395#66848#0" expanded="false" />
-            <element signature="e#66875#67347#0" expanded="false" />
-            <element signature="e#67397#67691#0" expanded="false" />
-            <element signature="e#67742#67997#0" expanded="false" />
-            <element signature="e#68042#69982#0" expanded="false" />
-            <element signature="e#70019#71386#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1172,19 +973,117 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="51">
           <caret line="3" column="3" selection-start-line="3" selection-start-column="3" selection-end-line="3" selection-end-column="3" />
-          <folding>
-            <element signature="e#54#80#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/script_editor/script_namespace.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="221">
-          <caret line="13" column="24" selection-start-line="13" selection-start-column="16" selection-end-line="13" selection-end-column="24" />
+          <caret line="13" column="24" selection-start-line="13" selection-start-column="24" selection-end-line="13" selection-end-column="24" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://Y:/Kyle/ians_palmdata_this one/mouse/trial_7/trial_7_gcamp6F_singlemols_2014_7_2_100msecframerate.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="306">
+          <caret line="18" column="10" selection-start-line="18" selection-start-column="0" selection-end-line="19" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$APPLICATION_HOME_DIR$/helpers/python-skeletons/os/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/plugins/plugin_data.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/plugins/detect_puffs/info.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/plugins/pynsight/insight_clone.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="467">
+          <caret line="264" column="26" selection-start-line="264" selection-start-column="26" selection-end-line="264" selection-end-column="26" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/plugins/pynsight/info.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="340">
+          <caret line="20" column="85" selection-start-line="20" selection-start-column="85" selection-end-line="20" selection-end-column="85" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/plugins/detect_puffs/threshold_cluster.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="3774">
+          <caret line="222" column="23" selection-start-line="222" selection-start-column="0" selection-end-line="223" selection-end-column="0" />
           <folding>
-            <element signature="e#92#132#0" expanded="true" />
+            <element signature="e#1034#1052#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/plugins/detect_puffs/threshold_cluster template.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="357">
+          <caret line="21" column="83" selection-start-line="21" selection-start-column="83" selection-end-line="21" selection-end-column="83" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/window.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="238">
+          <caret line="75" column="0" selection-start-line="75" selection-start-column="0" selection-end-line="75" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/plugins/pynsight/particle_simulator.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="494">
+          <caret line="137" column="17" selection-start-line="137" selection-start-column="14" selection-end-line="137" selection-end-column="17" />
+          <folding>
+            <element signature="e#275#486#0" expanded="false" />
+            <element signature="e#535#1134#0" expanded="false" />
+            <element signature="e#1178#2922#0" expanded="false" />
+            <element signature="e#2977#4108#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/plugins/pynsight/pynsight.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-2634">
+          <caret line="31" column="38" selection-start-line="31" selection-start-column="4" selection-end-line="31" selection-end-column="38" />
+          <folding>
+            <element signature="e#213#231#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/plugins/pynsight/pynsight_template.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="323">
+          <caret line="19" column="4" selection-start-line="19" selection-start-column="4" selection-end-line="19" selection-end-column="4" />
+          <folding />
         </state>
       </provider>
     </entry>
