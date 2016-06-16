@@ -4,61 +4,37 @@ Created on Wed Jul 23 12:05:56 2014
 
 @author: Kyle Ellefsen
 """
-
-import pkgutil
+from inspect import getmembers, ismodule
 import process
 import global_vars as g
 import numpy as np
 import scipy
 import pyqtgraph as pg
 import window
-import sys
+from roi import load_roi
 
 
 def getnamespace():
     """
-    This function gets the namespace for the script interpreter.  It goes through all the modules in the 'process' and 'analyze' packages and loads all the objects defined in their '__all__' variables. 
+    This function gets the namespace for the script interpreter.  It goes through all the modules in the 'process' package and loads all the objects defined in their '__all__' variables.
     """
-    if sys.version_info.major==2:
-        namespace=[g]
-        for importer, modname, ispkg in pkgutil.iter_modules(process.__path__):
-            exec('import {}.{}'.format(process.__name__,modname))
-            exec('module={}.{}'.format(process.__name__,modname))
-            exec("from {}.{} import *".format(process.__name__,modname))
-            for f in module.__all__:
-                exec("namespace.append({})".format(f))
-        
-        from roi import load_roi
-        namespace.append(load_roi)
-        d=dict()
-        for n in namespace:
-            d[n.__name__]=n
-        d['g']=g
-        d['np']=np
-        d['scipy']=scipy
-        d['pg']=pg
-        d['plot']=pg.plot
-        d['Window']=window.Window
-        return d
-    elif sys.version_info.major==3:
-        namespace=[g]
-        for importer, modname, ispkg in pkgutil.iter_modules(process.__path__):
-            exec('import {}.{}'.format(process.__name__,modname))
-            exec("from {}.{} import *".format(process.__name__,modname))
-            print(process.__name__)
-            print(modname)
-            for f in eval('{}.{}.__all__'.format(process.__name__,modname)):
-                exec("namespace.append({})".format(f))
-        
-        from roi import load_roi
-        namespace.append(load_roi)
-        d=dict()
-        for n in namespace:
-            d[n.__name__]=n
-        d['g']=g
-        d['np']=np
-        d['scipy']=scipy
-        d['pg']=pg
-        d['plot']=pg.plot
-        d['Window']=window.Window
-        return d
+    namespace =[g]
+    modnames = getmembers(process)
+    modnames = [mod for mod in modnames if ismodule(mod[1])]
+    for modname, mod in modnames:
+        exec('import process.{}'.format(modname))
+        exec('from process.{} import *'.format(modname))
+        for f in mod.__all__:
+            exec('namespace.append({})'.format(f))
+
+    namespace.append(load_roi)
+    d = dict()
+    for n in namespace:
+        d[n.__name__] = n
+    d['g'] = g
+    d['np'] = np
+    d['scipy'] = scipy
+    d['pg'] = pg
+    d['plot'] = pg.plot
+    d['Window'] = window.Window
+    return d
