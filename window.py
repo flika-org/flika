@@ -307,7 +307,7 @@ class Window(QWidget):
                     pointSize=g.m.settings['point_size']
                     pointColor = QColor(g.m.settings['point_color'])
                     self.scatterPlot.addPoints(pos=[[self.x,self.y]], size=pointSize, brush=pg.mkBrush(*pointColor.getRgb()))
-                    self.imageview.view.__class__.mouseClickEvent(self.imageview.view, ev)
+                    #  self.imageview.view.__class__.mouseClickEvent(self.imageview.view, ev)
                             
                 elif g.m.clipboard is not None:
                     self.menu = QMenu(self)

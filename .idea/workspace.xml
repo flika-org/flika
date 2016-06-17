@@ -2,8 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9f5a147e-1964-4173-87dc-77d4fac0f992" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/global_vars.py" afterPath="$PROJECT_DIR$/global_vars.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/window.py" afterPath="$PROJECT_DIR$/window.py" />
     </list>
     <ignored path="Flika.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -20,6 +19,9 @@
     <option name="PATCH_PATH" value="" />
   </component>
   <component name="ExecutionTargetManager" SELECTED_TARGET="default_target" />
+  <component name="ExportToHTMLSettings">
+    <option name="OUTPUT_DIRECTORY" value="C:\Users\kyle\Documents\GitHub\flika\exportToHTML" />
+  </component>
   <component name="FavoritesManager">
     <favorites_list name="Flika" />
   </component>
@@ -28,47 +30,37 @@
       <file leaf-file-name="pynsight.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/plugins/pynsight/pynsight.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="473">
-              <caret line="283" column="35" selection-start-line="283" selection-start-column="35" selection-end-line="283" selection-end-column="35" />
+            <state relative-caret-position="146">
+              <caret line="197" column="32" selection-start-line="197" selection-start-column="32" selection-end-line="197" selection-end-column="32" />
               <folding>
                 <element signature="e#213#231#0" expanded="true" />
-                <element signature="e#733#819#0" expanded="false" />
-                <element signature="e#860#908#0" expanded="false" />
-                <element signature="e#955#1341#0" expanded="false" />
-                <element signature="e#1364#1712#0" expanded="false" />
-                <element signature="e#1743#1989#0" expanded="false" />
-                <element signature="e#2015#2677#0" expanded="false" />
-                <element signature="e#4153#6357#0" expanded="false" />
+                <element signature="e#785#871#0" expanded="false" />
+                <element signature="e#912#960#0" expanded="false" />
+                <element signature="e#1007#1393#0" expanded="false" />
+                <element signature="e#1416#1764#0" expanded="false" />
+                <element signature="e#1795#2041#0" expanded="false" />
+                <element signature="e#2067#2729#0" expanded="false" />
+                <element signature="e#2766#3158#0" expanded="false" />
+                <element signature="e#3217#4176#0" expanded="false" />
+                <element signature="e#5038#5487#0" expanded="false" />
+                <element signature="e#5532#6464#0" expanded="false" />
+                <element signature="e#7899#7987#0" expanded="false" />
+                <element signature="e#8016#8908#0" expanded="false" />
+                <element signature="e#8943#9174#0" expanded="false" />
+                <element signature="e#9212#9908#0" expanded="false" />
+                <element signature="e#10466#10875#0" expanded="false" />
+                <element signature="e#10919#11443#0" expanded="false" />
+                <element signature="e#11627#11784#0" expanded="false" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="MotilityTracking.py" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/../MotilityTracking/MotilityTracking.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="119">
-              <caret line="10" column="15" selection-start-line="10" selection-start-column="15" selection-end-line="10" selection-end-column="15" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="file_.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/process/file_.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="116">
-              <caret line="76" column="65" selection-start-line="76" selection-start-column="65" selection-end-line="76" selection-end-column="65" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="window.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="window.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/window.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="233">
-              <caret line="118" column="8" selection-start-line="118" selection-start-column="8" selection-end-line="118" selection-end-column="54" />
+            <state relative-caret-position="673">
+              <caret line="308" column="43" selection-start-line="308" selection-start-column="43" selection-end-line="308" selection-end-column="43" />
               <folding>
                 <element signature="e#5246#6603#0" expanded="false" />
               </folding>
@@ -76,58 +68,25 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="info.xml" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/plugins/pynsight/info.xml">
+      <file leaf-file-name="ScatterPlotItem.py" pinned="false" current-in-tab="false">
+        <entry file="file://$USER_HOME$/AppData/Local/Programs/Python/Python35/Lib/site-packages/pyqtgraph/graphicsItems/ScatterPlotItem.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="51">
-              <caret line="3" column="15" selection-start-line="3" selection-start-column="15" selection-end-line="3" selection-end-column="15" />
+            <state relative-caret-position="206">
+              <caret line="181" column="0" selection-start-line="181" selection-start-column="0" selection-end-line="181" selection-end-column="0" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="threshold_cluster.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/plugins/detect_puffs/threshold_cluster.py">
+      <file leaf-file-name="rodentTracker.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/plugins/rodentTracker/rodentTracker.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="233">
-              <caret line="267" column="12" selection-start-line="267" selection-start-column="12" selection-end-line="267" selection-end-column="28" />
+            <state relative-caret-position="225">
+              <caret line="66" column="8" selection-start-line="66" selection-start-column="8" selection-end-line="66" selection-end-column="51" />
               <folding>
-                <element signature="e#1034#1052#0" expanded="true" />
-                <element signature="e#1889#2340#0" expanded="false" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="pynsight_template.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/plugins/pynsight/pynsight_template.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="153">
-              <caret line="9" column="6" selection-start-line="9" selection-start-column="4" selection-end-line="9" selection-end-column="6" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="gaussianFitting.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/plugins/pynsight/gaussianFitting.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="496">
-              <caret line="42" column="21" selection-start-line="42" selection-start-column="4" selection-end-line="42" selection-end-column="21" />
-              <folding>
-                <element signature="e#267#285#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="insight_writer.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/plugins/pynsight/insight_writer.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="427">
-              <caret line="51" column="43" selection-start-line="51" selection-start-column="37" selection-end-line="51" selection-end-column="43" />
-              <folding>
-                <element signature="e#215#233#0" expanded="true" />
+                <element signature="e#903#1779#0" expanded="false" />
+                <element signature="e#3484#3516#0" expanded="false" />
+                <element signature="e#4521#5886#0" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -178,7 +137,6 @@
         <option value="$PROJECT_DIR$/process/overlay.py" />
         <option value="$PROJECT_DIR$/process/roi.py" />
         <option value="$PROJECT_DIR$/process/stacks.py" />
-        <option value="$PROJECT_DIR$/window.py" />
         <option value="$PROJECT_DIR$/script_editor/ScriptEditor.py" />
         <option value="$PROJECT_DIR$/plugins/detect_puffs/threshold_cluster template.py" />
         <option value="$PROJECT_DIR$/plugins/detect_puffs/tmp.py" />
@@ -193,6 +151,8 @@
         <option value="$PROJECT_DIR$/plugins/pynsight/insight_writer.py" />
         <option value="$PROJECT_DIR$/global_vars.py" />
         <option value="$PROJECT_DIR$/plugins/pynsight/pynsight.py" />
+        <option value="$PROJECT_DIR$/window.py" />
+        <option value="$USER_HOME$/AppData/Local/Programs/Python/Python35/Lib/site-packages/pyqtgraph/graphicsItems/ScatterPlotItem.py" />
       </list>
     </option>
   </component>
@@ -376,14 +336,7 @@
     </navigator>
     <panes>
       <pane id="ProjectPane">
-        <subPane>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Flika" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-          </PATH>
-        </subPane>
+        <subPane />
       </pane>
       <pane id="Scope" />
       <pane id="Scratches" />
@@ -682,11 +635,11 @@
     <frame x="1912" y="-8" width="1936" height="1216" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.14232409" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.14232409" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32903227" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.30258304" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.16697417" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32903227" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32718894" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.13856691" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
@@ -724,12 +677,11 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <option name="time" value="18" />
+      <option name="time" value="19" />
     </breakpoint-manager>
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/plugins/detect_puffs/average_origin.py" />
     <entry file="file://$PROJECT_DIR$/plugins/detect_puffs/puffAnalyzer.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-1457">
@@ -871,13 +823,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/plugins/rodentTracker/rodentTracker.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="160">
-          <caret line="376" column="60" selection-start-line="376" selection-start-column="52" selection-end-line="376" selection-end-column="60" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/process/roi.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="85">
@@ -987,32 +932,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/plugins/pynsight/gaussianFitting.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="496">
-          <caret line="42" column="21" selection-start-line="42" selection-start-column="4" selection-end-line="42" selection-end-column="21" />
-          <folding>
-            <element signature="e#267#285#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/plugins/pynsight/pynsight_template.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="153">
-          <caret line="9" column="6" selection-start-line="9" selection-start-column="4" selection-end-line="9" selection-end-column="6" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/plugins/pynsight/info.xml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="51">
-          <caret line="3" column="15" selection-start-line="3" selection-start-column="15" selection-end-line="3" selection-end-column="15" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/process/BaseProcess.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="378">
@@ -1029,23 +948,57 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/global_vars.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="374">
+          <caret line="23" column="0" selection-start-line="23" selection-start-column="0" selection-end-line="23" selection-end-column="0" />
+          <folding>
+            <element signature="e#0#21#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../MotilityTracking/MotilityTracking.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-3556">
+          <caret line="33" column="28" selection-start-line="33" selection-start-column="28" selection-end-line="33" selection-end-column="28" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/plugins/pynsight/info.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="51">
+          <caret line="3" column="15" selection-start-line="3" selection-start-column="15" selection-end-line="3" selection-end-column="15" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/plugins/detect_puffs/threshold_cluster.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="233">
           <caret line="267" column="12" selection-start-line="267" selection-start-column="12" selection-end-line="267" selection-end-column="28" />
           <folding>
-            <element signature="e#1034#1052#0" expanded="true" />
+            <element signature="e#1034#1052#0" expanded="false" />
             <element signature="e#1889#2340#0" expanded="false" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/window.py">
+    <entry file="file://$PROJECT_DIR$/plugins/pynsight/pynsight_template.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="233">
-          <caret line="118" column="8" selection-start-line="118" selection-start-column="8" selection-end-line="118" selection-end-column="54" />
+        <state relative-caret-position="153">
+          <caret line="9" column="6" selection-start-line="9" selection-start-column="4" selection-end-line="9" selection-end-column="6" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/plugins/pynsight/gaussianFitting.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="496">
+          <caret line="42" column="21" selection-start-line="42" selection-start-column="4" selection-end-line="42" selection-end-column="21" />
           <folding>
-            <element signature="e#5246#6603#0" expanded="false" />
+            <element signature="e#267#285#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -1060,16 +1013,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/global_vars.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="374">
-          <caret line="23" column="0" selection-start-line="23" selection-start-column="0" selection-end-line="23" selection-end-column="0" />
-          <folding>
-            <element signature="e#0#21#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/process/file_.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="116">
@@ -1078,28 +1021,60 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/plugins/pynsight/pynsight.py">
+    <entry file="file://$PROJECT_DIR$/plugins/rodentTracker/rodentTracker.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="473">
-          <caret line="283" column="35" selection-start-line="283" selection-start-column="35" selection-end-line="283" selection-end-column="35" />
+        <state relative-caret-position="225">
+          <caret line="66" column="8" selection-start-line="66" selection-start-column="8" selection-end-line="66" selection-end-column="51" />
           <folding>
-            <element signature="e#213#231#0" expanded="true" />
-            <element signature="e#733#819#0" expanded="false" />
-            <element signature="e#860#908#0" expanded="false" />
-            <element signature="e#955#1341#0" expanded="false" />
-            <element signature="e#1364#1712#0" expanded="false" />
-            <element signature="e#1743#1989#0" expanded="false" />
-            <element signature="e#2015#2677#0" expanded="false" />
-            <element signature="e#4153#6357#0" expanded="false" />
+            <element signature="e#903#1779#0" expanded="false" />
+            <element signature="e#3484#3516#0" expanded="false" />
+            <element signature="e#4521#5886#0" expanded="false" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../MotilityTracking/MotilityTracking.py">
+    <entry file="file://$PROJECT_DIR$/plugins/pynsight/pynsight.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="119">
-          <caret line="10" column="15" selection-start-line="10" selection-start-column="15" selection-end-line="10" selection-end-column="15" />
+        <state relative-caret-position="146">
+          <caret line="197" column="32" selection-start-line="197" selection-start-column="32" selection-end-line="197" selection-end-column="32" />
+          <folding>
+            <element signature="e#213#231#0" expanded="true" />
+            <element signature="e#785#871#0" expanded="false" />
+            <element signature="e#912#960#0" expanded="false" />
+            <element signature="e#1007#1393#0" expanded="false" />
+            <element signature="e#1416#1764#0" expanded="false" />
+            <element signature="e#1795#2041#0" expanded="false" />
+            <element signature="e#2067#2729#0" expanded="false" />
+            <element signature="e#2766#3158#0" expanded="false" />
+            <element signature="e#3217#4176#0" expanded="false" />
+            <element signature="e#5038#5487#0" expanded="false" />
+            <element signature="e#5532#6464#0" expanded="false" />
+            <element signature="e#7899#7987#0" expanded="false" />
+            <element signature="e#8016#8908#0" expanded="false" />
+            <element signature="e#8943#9174#0" expanded="false" />
+            <element signature="e#9212#9908#0" expanded="false" />
+            <element signature="e#10466#10875#0" expanded="false" />
+            <element signature="e#10919#11443#0" expanded="false" />
+            <element signature="e#11627#11784#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/AppData/Local/Programs/Python/Python35/Lib/site-packages/pyqtgraph/graphicsItems/ScatterPlotItem.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="206">
+          <caret line="181" column="0" selection-start-line="181" selection-start-column="0" selection-end-line="181" selection-end-column="0" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/window.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="673">
+          <caret line="308" column="43" selection-start-line="308" selection-start-column="43" selection-end-line="308" selection-end-column="43" />
+          <folding>
+            <element signature="e#5246#6603#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
