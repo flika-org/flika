@@ -103,27 +103,33 @@ def initializeMainGui():
     g.m.show()
     QtGui.qApp.processEvents()
 
+
 class MainWindowEventEater(QtCore.QObject):
     def __init__(self,parent=None):
         QtCore.QObject.__init__(self,parent)
+
     def eventFilter(self,obj,event):
-        if (event.type()==QtCore.QEvent.DragEnter):
+        type = event.type()
+        if type == QtCore.QEvent.DragEnter:
             if event.mimeData().hasUrls():
                 event.accept()   # must accept the dragEnterEvent or else the dropEvent can't occur !!!
             else:
                 event.ignore()
-        if event.type() == QtCore.QEvent.Drop:
+        elif type == QtCore.QEvent.Drop:
             if event.mimeData().hasUrls():   # if file or link is dropped
                 url = event.mimeData().urls()[0]   # get first url
                 filename=url.toString()
                 filename=str(filename)
                 filename=filename.split('file:///')[1]
                 print('filename={}'.format(filename))
-                open_file(filename)  #This fails on windows symbolic links.  http://stackoverflow.com/questions/15258506/os-path-islink-on-windows-with-python
+                open_file(filename)  # This fails on windows symbolic links.  http://stackoverflow.com/questions/15258506/os-path-islink-on-windows-with-python
                 event.accept()
             else:
                 event.ignore()
-        return False # lets the event continue to the edit
+        elif type == QtCore.QEvent.Close:
+            g.m.settings.save()
+            print('Closing Flika')
+        return False  # Allows the event to continue to the edit
 mainWindowEventEater = MainWindowEventEater()
 
 
@@ -132,7 +138,7 @@ def start_flika():
     args = sys.argv[1:]
     if os.name == 'nt':
         g.setConsoleVisible(g.settings['debug_mode'])
-    args = [arg for arg in args if 'FLIKA.PY' not in arg.upper() and arg != 'python']
+    args = [arg for arg in args if 'flika.py' not in arg.lower() and arg != 'python']
     for a in args:
         w = open_file(a)
 

@@ -173,21 +173,26 @@ class Window(QWidget):
             win_action.setChecked(win in self.linkedWindows)
             win_action.toggled.connect(self.link_toggled(win))
             self.linkMenu.addAction(win_action)
-
         
     def updateindex(self):
         (idx, t) = self.imageview.timeIndex(self.imageview.timeLine)
-        t=int(np.floor(t))
-        if t>=0 and t<self.mt:
+        t = int(np.floor(t))
+        if 0 <= t < self.mt:
             self.currentIndex = t
-            self.scatterPlot.setPoints(pos=self.scatterPoints[t])
+            if not g.m.settings['show_all_points']:
+                pointSizes = [pt[3] for pt in self.scatterPoints[t]]
+                brushes = [pg.mkBrush(*pt[2].getRgb()) for pt in self.scatterPoints[t]]
+                self.scatterPlot.setPoints(pos=self.scatterPoints[t], size=pointSizes, brush=brushes)
             self.sigTimeChanged.emit(t)
+
     def setIndex(self,index):
         if index>=0 and index<len(self.image):
             self.imageview.setCurrentIndex(index)
+
     def showFrame(self,index):
         if index>=0 and index<self.mt:
             g.m.statusBar().showMessage('frame {}'.format(index))
+
     def setName(self,name):
         name=str(name)
         self.name=name
@@ -198,6 +203,7 @@ class Window(QWidget):
         self.imageview.setImage(self.image,autoLevels=True) #I had autoLevels=False before.  I changed it to adjust after boolean previews.
         self.imageview.setCurrentIndex(currentIndex)
         g.m.statusBar().showMessage('')
+
     def closeEvent(self, event):
         if self.closed:
             print('This window was already closed')
@@ -252,11 +258,9 @@ class Window(QWidget):
             return nDims
         return nDims
 
-            
     def resizeEvent(self, event):
         event.accept()
         self.imageview.resize(self.size())
-
 
     def paste(self):
         ''' This function pastes an ROI from one window into another.
@@ -269,6 +273,7 @@ class Window(QWidget):
     def mousePressEvent(self,ev):
         ev.accept()
         self.setAsCurrentWindow()
+
     def setAsCurrentWindow(self):
         if g.m.currentWindow is not None:
             g.m.currentWindow.setStyleSheet("border:1px solid rgb(0, 0, 0); ")
@@ -278,13 +283,24 @@ class Window(QWidget):
         g.m.setCurrentWindowSignal.sig.emit()
     
     def clickedScatter(self, plot, points):
-        p=points[0]
-        t=self.currentIndex
-        x,y=p.pos()
-        self.scatterPoints[t]=[p for p in self.scatterPoints[t] if x!=p[0] and y!=p[1]]
-        self.scatterPlot.setPoints(pos=self.scatterPoints[t])
-        print('clicked')
-        
+        p = points[0]
+        x, y = p.pos()
+
+        if g.m.settings['show_all_points']:
+            pts = []
+            for t in np.arange(self.mt):
+                self.scatterPoints[t] = [p for p in self.scatterPoints[t] if not (x == p[0] and y == p[1])]
+                pts.extend(self.scatterPoints[t])
+            pointSizes = [pt[3] for pt in pts]
+            brushes = [pg.mkBrush(*pt[2].getRgb()) for pt in pts]
+            self.scatterPlot.setPoints(pos=pts, size=pointSizes, brush=brushes)
+        else:
+            t = self.currentIndex
+            self.scatterPoints[t] = [p for p in self.scatterPoints[t] if not (x == p[0] and y == p[1])]
+            pointSizes = [pt[3] for pt in self.scatterPoints[t]]
+            brushes = [pg.mkBrush(*pt[2].getRgb()) for pt in self.scatterPoints[t]]
+            self.scatterPlot.setPoints(pos=self.scatterPoints[t], size=pointSizes, brush=brushes)
+
     def getScatterPts(self):
         p_out=[]
         p_in=self.scatterPoints
@@ -302,10 +318,10 @@ class Window(QWidget):
                 mm=g.m.settings['mousemode']
                 if mm=='point':
                     t=self.currentIndex
-                    position=[self.x,self.y]
-                    self.scatterPoints[t].append(position)
                     pointSize=g.m.settings['point_size']
                     pointColor = QColor(g.m.settings['point_color'])
+                    position=[self.x,self.y, pointColor, pointSize]
+                    self.scatterPoints[t].append(position)
                     self.scatterPlot.addPoints(pos=[[self.x,self.y]], size=pointSize, brush=pg.mkBrush(*pointColor.getRgb()))
                     #  self.imageview.view.__class__.mouseClickEvent(self.imageview.view, ev)
                             

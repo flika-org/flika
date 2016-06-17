@@ -35,7 +35,8 @@ class Settings:
                         'nCores':cpu_count(),
                         'debug_mode': False,
                         'point_color': '#ff0000',
-                        'point_size': 5}
+                        'point_size': 5,
+                        'show_all_points': False}
 
     def __init__(self):
         self.config_file=os.path.join(expanduser("~"),'.FLIKA','config.p' )
@@ -124,21 +125,40 @@ def pointSettings(pointButton):
     point_size = QtGui.QSpinBox()
     point_size.setRange(1,50)
     point_size.setValue(m.settings['point_size'])
+    show_all_points = QtGui.QCheckBox()
+    show_all_points.setChecked(m.settings['show_all_points'])
     
     update_current_points_check = QtGui.QCheckBox()
-    update_current_points_check.setChecked(True)
+    update_current_points_check.setChecked(False)
     
     items = []
     items.append({'name': 'point_color', 'string': 'Default Point Color', 'object': point_color})
     items.append({'name': 'point_size', 'string': 'Default Point Size', 'object': point_size})
+    items.append({'name': 'show_all_points', 'string': 'Show points from all frames', 'object': show_all_points})
     items.append({'name': 'update_current_points_check', 'string': 'Update already plotted points', 'object': update_current_points_check})
     def update():
+        win = m.currentWindow
         m.settings['point_color'] = point_color.value()
         m.settings['point_size'] = point_size.value()
-        if m.currentWindow is not None and update_current_points_check.isChecked()==True:
+        m.settings['show_all_points'] = show_all_points.isChecked()
+        if win is not None and update_current_points_check.isChecked() == True:
             color = QtGui.QColor(point_color.value())
-            m.currentWindow.scatterPlot.setBrush(pg.mkBrush(*color.getRgb()))
-            m.currentWindow.scatterPlot.setSize(point_size.value())
+            size = point_size.value()
+            for t in np.arange(win.mt):
+                for i in np.arange(len(win.scatterPoints[t])):
+                    win.scatterPoints[t][i][2] = color
+                    win.scatterPoints[t][i][3] = size
+            win.updateindex()
+        if win is not None:
+            if m.settings['show_all_points']:
+                pts = []
+                for t in np.arange(win.mt):
+                    pts.extend(win.scatterPoints[t])
+                pointSizes = [pt[3] for pt in pts]
+                brushes = [pg.mkBrush(*pt[2].getRgb()) for pt in pts]
+                win.scatterPlot.setPoints(pos=pts, size=pointSizes, brush=brushes)
+            else:
+                win.updateindex()
     m.dialog = BaseDialog(items, 'Points Settings', '')
     m.dialog.accepted.connect(update)
     m.dialog.changeSignal.connect(update)

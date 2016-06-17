@@ -2,6 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9f5a147e-1964-4173-87dc-77d4fac0f992" name="Default" comment="">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/flika.py" afterPath="$PROJECT_DIR$/flika.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/global_vars.py" afterPath="$PROJECT_DIR$/global_vars.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/window.py" afterPath="$PROJECT_DIR$/window.py" />
     </list>
     <ignored path="Flika.iws" />
@@ -27,42 +29,68 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="pynsight.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/plugins/pynsight/pynsight.py">
+      <file leaf-file-name="window.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/window.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="146">
-              <caret line="197" column="32" selection-start-line="197" selection-start-column="32" selection-end-line="197" selection-end-column="32" />
+            <state relative-caret-position="612">
+              <caret line="297" column="31" selection-start-line="297" selection-start-column="31" selection-end-line="297" selection-end-column="31" />
               <folding>
-                <element signature="e#213#231#0" expanded="true" />
-                <element signature="e#785#871#0" expanded="false" />
-                <element signature="e#912#960#0" expanded="false" />
-                <element signature="e#1007#1393#0" expanded="false" />
-                <element signature="e#1416#1764#0" expanded="false" />
-                <element signature="e#1795#2041#0" expanded="false" />
-                <element signature="e#2067#2729#0" expanded="false" />
-                <element signature="e#2766#3158#0" expanded="false" />
-                <element signature="e#3217#4176#0" expanded="false" />
-                <element signature="e#5038#5487#0" expanded="false" />
-                <element signature="e#5532#6464#0" expanded="false" />
-                <element signature="e#7899#7987#0" expanded="false" />
-                <element signature="e#8016#8908#0" expanded="false" />
-                <element signature="e#8943#9174#0" expanded="false" />
-                <element signature="e#9212#9908#0" expanded="false" />
-                <element signature="e#10466#10875#0" expanded="false" />
-                <element signature="e#10919#11443#0" expanded="false" />
-                <element signature="e#11627#11784#0" expanded="false" />
+                <element signature="e#560#5213#0" expanded="false" />
+                <element signature="e#5246#6603#0" expanded="false" />
+                <element signature="e#6642#6816#0" expanded="false" />
+                <element signature="e#6853#7028#0" expanded="false" />
+                <element signature="e#7071#7129#0" expanded="false" />
+                <element signature="e#7169#7551#0" expanded="false" />
+                <element signature="e#8139#8227#0" expanded="false" />
+                <element signature="e#8268#8364#0" expanded="false" />
+                <element signature="e#8402#8473#0" expanded="false" />
+                <element signature="e#8512#8775#0" expanded="false" />
+                <element signature="e#8818#9480#0" expanded="false" />
+                <element signature="e#9516#10135#0" expanded="false" />
+                <element signature="e#10176#10596#0" expanded="false" />
+                <element signature="e#10640#10697#0" expanded="false" />
+                <element signature="e#10728#11072#0" expanded="false" />
+                <element signature="e#11124#11169#0" expanded="false" />
+                <element signature="e#11213#11543#0" expanded="false" />
+                <element signature="e#12533#12747#0" expanded="false" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="window.py" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/window.py">
+      <file leaf-file-name="flika.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/flika.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="673">
-              <caret line="308" column="43" selection-start-line="308" selection-start-column="43" selection-end-line="308" selection-end-column="43" />
+            <state relative-caret-position="580">
+              <caret line="139" column="48" selection-start-line="139" selection-start-column="48" selection-end-line="139" selection-end-column="48" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="roi.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/roi.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="0">
+              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="global_vars.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/global_vars.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="519">
+              <caret line="133" column="14" selection-start-line="133" selection-start-column="14" selection-end-line="133" selection-end-column="14" />
               <folding>
-                <element signature="e#5246#6603#0" expanded="false" />
+                <element signature="e#0#21#0" expanded="true" />
+                <element signature="e#7084#7291#0" expanded="false" />
+                <element signature="e#7393#7639#0" expanded="false" />
+                <element signature="e#7666#8901#0" expanded="false" />
+                <element signature="e#8926#10388#0" expanded="false" />
+                <element signature="e#10425#10636#0" expanded="false" />
+                <element signature="e#10844#11230#0" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -71,23 +99,19 @@
       <file leaf-file-name="ScatterPlotItem.py" pinned="false" current-in-tab="false">
         <entry file="file://$USER_HOME$/AppData/Local/Programs/Python/Python35/Lib/site-packages/pyqtgraph/graphicsItems/ScatterPlotItem.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="206">
-              <caret line="181" column="0" selection-start-line="181" selection-start-column="0" selection-end-line="181" selection-end-column="0" />
+            <state relative-caret-position="258">
+              <caret line="186" column="28" selection-start-line="186" selection-start-column="28" selection-end-line="186" selection-end-column="28" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="rodentTracker.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/plugins/rodentTracker/rodentTracker.py">
+      <file leaf-file-name="file_.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/process/file_.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="225">
-              <caret line="66" column="8" selection-start-line="66" selection-start-column="8" selection-end-line="66" selection-end-column="51" />
-              <folding>
-                <element signature="e#903#1779#0" expanded="false" />
-                <element signature="e#3484#3516#0" expanded="false" />
-                <element signature="e#4521#5886#0" expanded="false" />
-              </folding>
+            <state relative-caret-position="167">
+              <caret line="247" column="41" selection-start-line="247" selection-start-column="41" selection-end-line="247" selection-end-column="41" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -115,7 +139,6 @@
         <option value="$PROJECT_DIR$/plugins/detect_puffs/densities.py" />
         <option value="Y:/Kyle/2015/2015_06_16 kyle_bacman_puffs_alternating/trial6.py" />
         <option value="$USER_HOME$/Desktop/tmp.py" />
-        <option value="$PROJECT_DIR$/flika.py" />
         <option value="$PROJECT_DIR$/README.md" />
         <option value="$PROJECT_DIR$/plugins/detect_puffs/clusters.py" />
         <option value="$PROJECT_DIR$/plugins/detect_puffs/frame_by_frame_origin.py" />
@@ -149,10 +172,11 @@
         <option value="$PROJECT_DIR$/plugins/pynsight/gaussianFitting.py" />
         <option value="$PROJECT_DIR$/plugins/pynsight/info.xml" />
         <option value="$PROJECT_DIR$/plugins/pynsight/insight_writer.py" />
-        <option value="$PROJECT_DIR$/global_vars.py" />
         <option value="$PROJECT_DIR$/plugins/pynsight/pynsight.py" />
-        <option value="$PROJECT_DIR$/window.py" />
+        <option value="$PROJECT_DIR$/flika.py" />
         <option value="$USER_HOME$/AppData/Local/Programs/Python/Python35/Lib/site-packages/pyqtgraph/graphicsItems/ScatterPlotItem.py" />
+        <option value="$PROJECT_DIR$/global_vars.py" />
+        <option value="$PROJECT_DIR$/window.py" />
       </list>
     </option>
   </component>
@@ -336,7 +360,38 @@
     </navigator>
     <panes>
       <pane id="ProjectPane">
-        <subPane />
+        <subPane>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="Flika" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="Flika" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="flika" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="Flika" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="flika" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="process" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+        </subPane>
       </pane>
       <pane id="Scope" />
       <pane id="Scratches" />
@@ -635,11 +690,12 @@
     <frame x="1912" y="-8" width="1936" height="1216" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.14232409" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.14232409" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32903227" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.16697417" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.47926268" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.2601476" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32903227" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32718894" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.13856691" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
@@ -653,7 +709,6 @@
       <window_info id="Documentation" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="FLOATING" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" x="2012" y="92" width="1736" height="1016" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.47926268" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
@@ -677,18 +732,11 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <option name="time" value="19" />
+      <option name="time" value="20" />
     </breakpoint-manager>
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/plugins/detect_puffs/puffAnalyzer.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1457">
-          <caret line="107" column="22" selection-start-line="107" selection-start-column="22" selection-end-line="107" selection-end-column="22" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$USER_HOME$/AppData/Local/Programs/Python/Python35/Lib/site-packages/pyqtgraph/GraphicsScene/GraphicsScene.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="129">
@@ -845,13 +893,6 @@
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/plugins/detect_puffs/tmp.py" />
-    <entry file="file://$PROJECT_DIR$/flika.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="411">
-          <caret line="123" column="17" selection-start-line="123" selection-start-column="17" selection-end-line="123" selection-end-column="17" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/script_editor/ScriptEditor.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="51">
@@ -948,16 +989,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/global_vars.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="374">
-          <caret line="23" column="0" selection-start-line="23" selection-start-column="0" selection-end-line="23" selection-end-column="0" />
-          <folding>
-            <element signature="e#0#21#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/../MotilityTracking/MotilityTracking.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-3556">
@@ -998,7 +1029,7 @@
         <state relative-caret-position="496">
           <caret line="42" column="21" selection-start-line="42" selection-start-column="4" selection-end-line="42" selection-end-column="21" />
           <folding>
-            <element signature="e#267#285#0" expanded="true" />
+            <element signature="e#267#285#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -1008,16 +1039,8 @@
         <state relative-caret-position="427">
           <caret line="51" column="43" selection-start-line="51" selection-start-column="37" selection-end-line="51" selection-end-column="43" />
           <folding>
-            <element signature="e#215#233#0" expanded="true" />
+            <element signature="e#215#233#0" expanded="false" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/process/file_.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="116">
-          <caret line="76" column="65" selection-start-line="76" selection-start-column="65" selection-end-line="76" selection-end-column="65" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1036,9 +1059,9 @@
     <entry file="file://$PROJECT_DIR$/plugins/pynsight/pynsight.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="146">
-          <caret line="197" column="32" selection-start-line="197" selection-start-column="32" selection-end-line="197" selection-end-column="32" />
+          <caret line="197" column="34" selection-start-line="197" selection-start-column="34" selection-end-line="197" selection-end-column="34" />
           <folding>
-            <element signature="e#213#231#0" expanded="true" />
+            <element signature="e#213#231#0" expanded="false" />
             <element signature="e#785#871#0" expanded="false" />
             <element signature="e#912#960#0" expanded="false" />
             <element signature="e#1007#1393#0" expanded="false" />
@@ -1060,20 +1083,77 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/process/file_.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="167">
+          <caret line="247" column="41" selection-start-line="247" selection-start-column="41" selection-end-line="247" selection-end-column="41" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/flika.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="580">
+          <caret line="139" column="48" selection-start-line="139" selection-start-column="48" selection-end-line="139" selection-end-column="48" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/roi.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$USER_HOME$/AppData/Local/Programs/Python/Python35/Lib/site-packages/pyqtgraph/graphicsItems/ScatterPlotItem.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="206">
-          <caret line="181" column="0" selection-start-line="181" selection-start-column="0" selection-end-line="181" selection-end-column="0" />
+        <state relative-caret-position="258">
+          <caret line="186" column="28" selection-start-line="186" selection-start-column="28" selection-end-line="186" selection-end-column="28" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/global_vars.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="519">
+          <caret line="133" column="14" selection-start-line="133" selection-start-column="14" selection-end-line="133" selection-end-column="14" />
+          <folding>
+            <element signature="e#0#21#0" expanded="true" />
+            <element signature="e#7084#7291#0" expanded="false" />
+            <element signature="e#7393#7639#0" expanded="false" />
+            <element signature="e#7666#8901#0" expanded="false" />
+            <element signature="e#8926#10388#0" expanded="false" />
+            <element signature="e#10425#10636#0" expanded="false" />
+            <element signature="e#10844#11230#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/window.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="673">
-          <caret line="308" column="43" selection-start-line="308" selection-start-column="43" selection-end-line="308" selection-end-column="43" />
+        <state relative-caret-position="612">
+          <caret line="297" column="31" selection-start-line="297" selection-start-column="31" selection-end-line="297" selection-end-column="31" />
           <folding>
+            <element signature="e#560#5213#0" expanded="false" />
             <element signature="e#5246#6603#0" expanded="false" />
+            <element signature="e#6642#6816#0" expanded="false" />
+            <element signature="e#6853#7028#0" expanded="false" />
+            <element signature="e#7071#7129#0" expanded="false" />
+            <element signature="e#7169#7551#0" expanded="false" />
+            <element signature="e#8139#8227#0" expanded="false" />
+            <element signature="e#8268#8364#0" expanded="false" />
+            <element signature="e#8402#8473#0" expanded="false" />
+            <element signature="e#8512#8775#0" expanded="false" />
+            <element signature="e#8818#9480#0" expanded="false" />
+            <element signature="e#9516#10135#0" expanded="false" />
+            <element signature="e#10176#10596#0" expanded="false" />
+            <element signature="e#10640#10697#0" expanded="false" />
+            <element signature="e#10728#11072#0" expanded="false" />
+            <element signature="e#11124#11169#0" expanded="false" />
+            <element signature="e#11213#11543#0" expanded="false" />
+            <element signature="e#12533#12747#0" expanded="false" />
           </folding>
         </state>
       </provider>
