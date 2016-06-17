@@ -20,6 +20,7 @@ from subprocess import Popen
 data_types = ['uint8', 'uint16', 'uint32', 'uint64', 'int8', 'int16', 'int32', 'int64', 'float16', 'float32', 'float64']
 mainGuiInitialized=False
 m = None
+halt_current_computation = False
 
 
 class Settings:
