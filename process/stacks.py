@@ -190,19 +190,30 @@ class Trim(BaseProcess):
             nFrames=g.m.currentWindow.image.shape[0]
         firstFrame=QSpinBox()
         firstFrame.setMaximum(nFrames-1)
-        self.items.append({'name':'firstFrame','string':'First Frame','object':firstFrame})
         lastFrame=QSpinBox()
         lastFrame.setRange(0,nFrames-1)
         lastFrame.setValue(nFrames-1)
-        self.items.append({'name':'lastFrame','string':'Last Frame','object':lastFrame})
         increment=QSpinBox()
         increment.setMaximum(nFrames)
         increment.setMinimum(1)
+        delete = QCheckBox()
+        delete.setChecked(False)
+
+        self.items.append({'name': 'firstFrame', 'string': 'First Frame', 'object': firstFrame})
+        self.items.append({'name': 'lastFrame', 'string': 'Last Frame', 'object': lastFrame})
         self.items.append({'name':'increment','string':'Increment','object':increment})
+        self.items.append({'name': 'delete', 'string': 'Delete', 'object': delete})
         super().gui()
-    def __call__(self,firstFrame,lastFrame,increment=1,keepSourceWindow=False):
+
+    def __call__(self, firstFrame, lastFrame, increment=1, delete = False, keepSourceWindow=False):
         self.start(keepSourceWindow)
-        self.newtif=self.tif[firstFrame:lastFrame+1:increment]
+        if not delete:
+            self.newtif=self.tif[firstFrame:lastFrame+1:increment]
+        if delete:
+            idxs_not=np.arange(firstFrame, lastFrame+1, increment)
+            idxs = np.ones(len(self.tif),dtype=np.bool)
+            idxs[idxs_not] = False
+            self.newtif = self.tif[idxs]
         self.newname=self.oldname+' - Kept Stack'
         return self.end()
 trim=Trim()
