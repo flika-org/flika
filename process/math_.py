@@ -11,6 +11,7 @@ from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 
 __all__ = ['subtract','multiply','power','ratio','absolute_value','subtract_trace','divide_trace']
+from window import Window
 
 def upgrade_dtype(dtype):
     if dtype==np.uint8:
@@ -231,16 +232,33 @@ class Ratio(BaseProcess):
         super().gui()
     def __call__(self,first_frame,nFrames,ratio_type,keepSourceWindow=False):
         self.start(keepSourceWindow)
+        if self.oldwindow.volume is None:
+            A = self.tif
+        else:
+            A = self.oldwindow.volume
         if ratio_type=='average':
-            baseline=self.tif[first_frame:first_frame+nFrames].mean(0)
-            baseline[baseline==0]=np.min(np.abs(baseline[baseline!=0])) #This isn't mathematically correct.  I do this to avoid dividing by zero
+            baseline=A[first_frame:first_frame+nFrames].mean(0)
+            baseline[baseline == 0] = np.min(np.abs(baseline[baseline != 0])) #This isn't mathematically correct.  I do this to avoid dividing by zero
         elif ratio_type=='standard deviation':
-            baseline=self.tif[first_frame:first_frame+nFrames].std(0)
-            baseline[baseline==0]=np.min(np.abs(baseline[baseline!=0]))
-        self.newtif=self.tif/baseline
-        self.newtif=self.newtif.astype(g.settings['internal_data_type'])
-        self.newname=self.oldname+' - Ratioed by '+str(ratio_type)
-        return self.end()
+            baseline=A[first_frame:first_frame+nFrames].std(0)
+            baseline[baseline == 0] = np.min(np.abs(baseline[baseline != 0]))
+        else:
+            print("'{}' is an unknown ratio_type.  Try 'average' or 'standard deviation'".format(ratio_type))
+            return None
+
+        newA = (A/baseline).astype(g.settings['internal_data_type'])
+        if self.oldwindow.volume is None:
+            self.newtif=newA
+            self.newname=self.oldname+' - Ratioed by '+str(ratio_type)
+            return self.end()
+        else:
+            from plugins.light_sheet_analyzer.light_sheet_analyzer import Volume_Viewer
+            self.newtif = np.squeeze(newA[:, 0, :, :])
+            self.newname = self.oldname + ' - Ratioed by ' + str(ratio_type)
+            w = self.end()
+            w.volume = newA
+            Volume_Viewer(w)
+            return w
 ratio=Ratio()
 
 

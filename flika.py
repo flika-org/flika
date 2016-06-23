@@ -143,6 +143,12 @@ def start_flika():
         w = open_file(a)
 
 
+    open_file()
+    trim(31, 1999, 32, True)
+    from plugins.light_sheet_analyzer.light_sheet_analyzer import light_sheet_analyzer
+    light_sheet_analyzer(31,4)
+
+
 if __name__ == '__main__':
     """
     If you would like to run Flika inside an IDE such as PyCharm, run the following commands:
@@ -157,5 +163,6 @@ import os, sys; flika_dir = os.path.join(os.path.expanduser('~'),'Documents', 'G
             sys.exit(g.app.exec_())  # This is required to run outside of Spyder or PyCharm
         except Exception as e:
             print(e)
+
 
 

@@ -25,7 +25,8 @@ class MissingWindowError(Exception):
         g.m.statusBar().showMessage(value)
     def __str__(self):
         return repr(self.value)
-        
+
+
 class WindowSelector(QWidget):
     """
     This widget is a button with a label.  Once you click the button, the widget waits for you to click a Window object.  Once you do, it sets self.window to be the window, and it sets the label to be the widget name.
@@ -55,7 +56,8 @@ class WindowSelector(QWidget):
         self.valueChanged.emit()
     def value(self):
         return self.window
-        
+
+
 class FileSelector(QWidget):
     """
     This widget is a button with a label.  Once you click the button, the widget waits for you to select a file to save.  Once you do, it sets self.filename and it sets the label.
@@ -91,7 +93,8 @@ class FileSelector(QWidget):
         self.valueChanged.emit()
     def value(self):
         return self.filename
-        
+
+
 class ColorSelector(QWidget):
     """
     This widget is a button with a label.  Once you click the button, the widget waits for you to select a color.  Once you do, it sets self.color and it sets the label.
@@ -122,7 +125,8 @@ class ColorSelector(QWidget):
             self.color=color.name()
             self.label.setText(color.name())
             self.valueChanged.emit()
-        
+
+
 class SliderLabel(QWidget):
     changeSignal=Signal(int)
     def __init__(self,decimals=0): #decimals specifies the resolution of the slider.  0 means only integers,  1 means the tens place, etc.
@@ -163,7 +167,8 @@ class SliderLabel(QWidget):
         self.label.setValue(value)
     def setSingleStep(self,value):
         self.label.setSingleStep(value)
-        
+
+
 class SliderLabelOdd(SliderLabel):
     '''This is a modified SliderLabel class that forces the user to only choose odd numbers.'''
     def __init__(self):
@@ -179,7 +184,8 @@ class SliderLabelOdd(SliderLabel):
         if value%2==0: #if value is even
             value+=1
         self.label.setValue(value)
-        
+
+
 class CheckBox(QCheckBox):
     ''' I overwrote the QCheckBox class so that every graphical element has the method 'setValue'
     '''
@@ -187,7 +193,8 @@ class CheckBox(QCheckBox):
         QCheckBox.__init__(self,parent)
     def setValue(self,value):
         self.setChecked(value)
-        
+
+
 class BaseDialog(QDialog):
     changeSignal=Signal()
     closeSignal=Signal()
@@ -244,12 +251,16 @@ def convert_to_string(item):
         return "'{}'".format(item)
     else:
         return str(item)
+
+
 class BaseProcess(object):
     def __init__(self):
         self.__name__=self.__class__.__name__.lower()
         self.items=[]
+
     def getValue(self,name):
         return [i['value'] for i in self.items if i['name']==name][0]
+
     def start(self,keepSourceWindow):
         frame = inspect.getouterframes(inspect.currentframe())[1][0]
         args, _, _, values = inspect.getargvalues(frame)
@@ -311,6 +322,7 @@ class BaseProcess(object):
             print(err)
     def preview(self):
         pass
+
 
 class BaseProcess_noPriorWindow(BaseProcess):
     def __init__(self):

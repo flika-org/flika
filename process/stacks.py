@@ -171,13 +171,14 @@ resize=Resize()
 
 
 class Trim(BaseProcess):
-    """ trim(firstFrame,lastFrame,increment,keepSourceWindow=False)
+    """ trim(firstFrame,lastFrame,increment=False,keepSourceWindow=False)
     This creates a new stack from the frames between the firstFrame and the lastFrame
     
     Parameters:
         | firstFrame (int) -- The index of the first frame in the stack to be kept.
         | lastFrame (int) -- The index of the last frame in the stack to be kept.
-        | increment (int) -- if increment equals, then every ith frame is kept.
+        | increment (int) -- if increment equals i, then every ith frame is kept.
+        | delete (bool) -- if False, then the specified frames will be kept.  If True, they will be deleted.
     Returns:
         newWindow
     """

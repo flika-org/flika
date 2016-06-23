@@ -19,6 +19,8 @@ class Window(QWidget):
     closeSignal=Signal()
     keyPressSignal=Signal(QEvent)
     sigTimeChanged=Signal(int)
+    gainedFocusSignal = Signal()
+    lostFocusSignal = Signal()
     def __init__(self,tif,name='Flika',filename='',commands=[],metadata=dict()):
         QWidget.__init__(self)
         self.commands=commands #commands is a list of the commands used to create this window, starting with loading the file
@@ -47,35 +49,19 @@ class Window(QWidget):
         self.imageview.setMouseTracking(True)
         self.imageview.installEventFilter(self)
         self.imageview.ui.menuBtn.setParent(None)
-
-
-
-
-
-        #self.imageview.ui.normBtn.setParent(None) # gets rid of 'norm' button that comes with ImageView
         self.imageview.ui.roiBtn.setParent(None) # gets rid of 'roi' button that comes with ImageView
-
         self.imageview.ui.normLUTbtn = QPushButton(self.imageview.ui.layoutWidget)
-        #sizePolicy = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
-        #sizePolicy.setHorizontalStretch(0)
-        #sizePolicy.setVerticalStretch(1)
-        #sizePolicy.setHeightForWidth(self.imageview.ui.roiBtn.sizePolicy().hasHeightForWidth())
-        #self.imageview.ui.roiBtn.setSizePolicy(sizePolicy)
-        #self.imageview.ui.normLUTbtn.setCheckable(True)
         self.imageview.ui.normLUTbtn.setObjectName("LUT norm")
         self.imageview.ui.normLUTbtn.setText("LUT norm")
         self.imageview.ui.gridLayout.addWidget(self.imageview.ui.normLUTbtn, 1, 1, 1, 1)
         self.imageview.ui.normLUTbtn.pressed.connect(self.normLUT)
-
-
-
         rp = self.imageview.ui.roiPlot.getPlotItem()
         self.linkMenu = QMenu("Link frame")
         rp.ctrlMenu = self.linkMenu
         self.linkMenu.aboutToShow.connect(self.make_link_menu)
         self.imageview.setImage(tif)
-
-        self.image=tif
+        self.image = tif
+        self.volume = None  # When attaching a 4D array to this Window object, where self.image is a 3D slice of this volume, attach it here. This will remain None for all 3D Windows
         """ Here we set the initial range of the look up table.  """
         self.nDims = len(np.shape(self.image))
         if self.nDims == 3:
@@ -277,10 +263,12 @@ class Window(QWidget):
     def setAsCurrentWindow(self):
         if g.m.currentWindow is not None:
             g.m.currentWindow.setStyleSheet("border:1px solid rgb(0, 0, 0); ")
+            g.m.currentWindow.lostFocusSignal.emit()
         g.m.currentWindow=self
         g.m.setWindowTitle("Flika - {}".format(os.path.basename(self.name)))
         self.setStyleSheet("border:1px solid rgb(0, 255, 0); ")
         g.m.setCurrentWindowSignal.sig.emit()
+        self.gainedFocusSignal.emit()
     
     def clickedScatter(self, plot, points):
         p = points[0]
