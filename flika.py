@@ -143,11 +143,6 @@ def start_flika():
         w = open_file(a)
 
 
-    open_file()
-    trim(31, 1999, 32, True)
-    from plugins.light_sheet_analyzer.light_sheet_analyzer import light_sheet_analyzer
-    light_sheet_analyzer(31,4)
-
 
 if __name__ == '__main__':
     """
