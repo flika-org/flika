@@ -253,13 +253,21 @@ def save_points(filename):
 def load_points(filename):
     g.m.statusBar().showMessage('Loading points from {}'.format(os.path.basename(filename)))
     pts=np.loadtxt(filename)
-    for pt in pts:
-        t=int(pt[0])
-        if g.m.currentWindow.mt==1:
-            t=0
-        g.m.currentWindow.scatterPoints[t].append([pt[1],pt[2]])
-    t=g.m.currentWindow.currentIndex
-    g.m.currentWindow.scatterPlot.setPoints(pos=g.m.currentWindow.scatterPoints[t])
+    nCols = pts.shape[1]
+    if nCols == 3:
+        for pt in pts:
+            t=int(pt[0])
+            if g.m.currentWindow.mt==1:
+                t=0
+            g.m.currentWindow.scatterPoints[t].append([pt[1],pt[2]])
+        t=g.m.currentWindow.currentIndex
+        g.m.currentWindow.scatterPlot.setPoints(pos=g.m.currentWindow.scatterPoints[t])
+    elif nCols == 2:
+        t = 0
+        for pt in pts:
+            g.m.currentWindow.scatterPoints[t].append([pt[0], pt[1]])
+        t = g.m.currentWindow.currentIndex
+        g.m.currentWindow.scatterPlot.setPoints(pos=g.m.currentWindow.scatterPoints[t])
     g.m.statusBar().showMessage('Successfully loaded {}'.format(os.path.basename(filename)))
 
 def save_movie_gui():

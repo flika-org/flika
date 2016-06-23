@@ -118,3 +118,5 @@ fabric.properties
 *.spec
 /dist
 /build
+
+.idea/
