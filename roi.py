@@ -92,6 +92,7 @@ class ROI_Drawing(pg.GraphicsObject):
     def boundingRect(self):
         return QRectF(self.state['pos'].x(), self.state['pos'].y(), self.state['size'].x(), self.state['size'].y())
 
+
 class ROI_Wrapper():
     init_args = {'removable': True, 'translateSnap': True, 'pen':ROI_COLOR}
     def __init__(self):
@@ -100,7 +101,7 @@ class ROI_Wrapper():
         self.colorDialog.colorSelected.connect(self.colorSelected)
         self.window.closeSignal.connect(self.delete)
         self.window.currentROI = self
-        self.traceWindow = None
+        self.traceWindow = None  # To test if roi is plotted, check if traceWindow is None
         self.mask=None
         self.linkedROIs = set()
         self.sigRegionChanged.connect(self.onRegionChange)
@@ -259,6 +260,7 @@ class ROI_Wrapper():
             s += '%d %d\n' % (x, y)
         return s
 
+
 class ROI_line(ROI_Wrapper, pg.LineSegmentROI):
     kind = 'line'
     plotSignal = Signal()
@@ -331,6 +333,7 @@ class ROI_line(ROI_Wrapper, pg.LineSegmentROI):
     def deleteKymograph(self):
         self.kymograph.closeSignal.disconnect(self.deleteKymograph)
         self.kymograph=None
+
 
 class ROI_rect_line(ROI_Wrapper, pg.MultiRectROI):
     kind = 'rect_line'
@@ -548,7 +551,8 @@ class ROI_rect_line(ROI_Wrapper, pg.MultiRectROI):
         self.kymographproxy.disconnect()
         self.kymograph.closeSignal.disconnect(self.deleteKymograph)
         self.kymograph=None
-        
+
+
 class ROI_rectangle(ROI_Wrapper, pg.ROI):
     kind = 'rectangle'
     plotSignal = Signal()
@@ -641,6 +645,7 @@ class ROI_rectangle(ROI_Wrapper, pg.ROI):
         else:
             return pg.ROI.contains(self, pos)
 
+
 class ROI(ROI_Wrapper, pg.ROI):
     kind = 'freehand'
     plotSignal = Signal()
@@ -698,8 +703,9 @@ class ROI(ROI_Wrapper, pg.ROI):
         self.mask = np.transpose([xx, yy]).astype(int)
         if len(self.mask) > 0:
             self.minn = np.min(self.mask, 0)
-    
-def makeROI(kind,pts,window=None, **kargs):
+
+
+def makeROI(kind, pts, window=None, **kargs):
     if window is None:
         window=g.m.currentWindow
 
@@ -722,6 +728,7 @@ def makeROI(kind,pts,window=None, **kargs):
 
     roi.drawFinished()    
     return roi
+
 
 def load_roi(filename):
     f = open(filename, 'r')

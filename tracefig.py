@@ -19,7 +19,9 @@ class TraceFig(QWidget):
     indexChanged=Signal(int)
     finishedDrawingSignal=Signal()
     keyPressSignal=Signal(QEvent)
+    partialThreadUpdatedSignal = Signal()
     name = "Trace Widget"
+
     def __init__(self):
         super(TraceFig,self).__init__()
         g.m.traceWindows.append(self)
@@ -78,6 +80,7 @@ class TraceFig(QWidget):
         
     def onResize(self,event):
         g.settings['tracefig_settings']['coords']=self.geometry().getRect()
+
     def onMove(self,event):
         g.settings['tracefig_settings']['coords']=self.geometry().getRect()
         
@@ -89,10 +92,13 @@ class TraceFig(QWidget):
 
     def mouseDragEvent2(self,ev):
         ev.ignore() # prevent anything from happening
+
     def mouseDragEvent1(self,ev):
         ev.ignore() # prevent anything from happening
+
     def keyPressEvent(self,ev):
         self.keyPressSignal.emit(ev)
+
     def closeEvent(self, event):
         while len(self.rois) > 0:
             self.removeROI(0)
@@ -105,15 +111,18 @@ class TraceFig(QWidget):
             g.m.traceWindows.remove(self)
         g.m.currentTrace = None
         event.accept() # let the window close
+
     def update(self):
         self.region.setZValue(10)
         minX, maxX = self.region.getRegion()
         self.p1.plotItem.setXRange(minX, maxX, padding=0, update=False)    
         self.p1.plotItem.axes['bottom']['item'].setRange(minX,maxX)
         #self.p1.plotItem.update()
+
     def updateRegion(self,window, viewRange):
         rgn = viewRange[0]
         self.region.setRegion(rgn)
+
     def getBounds(self):
         bounds=self.region.getRegion()
         bounds=[int(np.floor(bounds[0])),int(np.ceil(bounds[1]))]
@@ -132,14 +141,12 @@ class TraceFig(QWidget):
                     #self.label.setText("<span style='font-size: 12pt'>frame={0}</span>".format(index))
                     self.indexChanged.emit(index)
                     g.m.statusBar().showMessage('frame {}    y={}'.format(index,mousePoint.y()))
-
     
     def get_roi_index(self,roi):
         return [r['roi'] for r in self.rois].index(roi)
         
     def alert(self,msg):
-        pass #print(msg)
-        
+        pass  # print(msg)
         
     def translated(self,roi):
         index=self.get_roi_index(roi)
@@ -149,6 +156,7 @@ class TraceFig(QWidget):
             self.redrawPartialThread=RedrawPartialThread(self)
             self.redrawPartialThread.alert.connect(self.alert)
             self.redrawPartialThread.start()
+            self.redrawPartialThread.updated.connect(self.partialThreadUpdatedSignal.emit)
             
     def translate_done(self,roi):
         roi_index=self.get_roi_index(roi)  
@@ -160,7 +168,6 @@ class TraceFig(QWidget):
             
         trace=roi.getTrace()
         self.update_trace_full(roi_index,trace)
-
 
     def update_trace_full(self,roi_index,trace):
         pen=QPen(self.rois[roi_index]['roi'].pen)
@@ -206,9 +213,10 @@ class TraceFig(QWidget):
         del self.rois[index]
         if len(self.rois)==0:
             self.close()
-            
+
     def hasROI(self,roi):
         return roi in [r['roi'] for r in self.rois] #return True if roi is plotted
+
     def export_gui(self):
         filename=g.settings['filename']
         directory=os.path.dirname(filename)
@@ -221,6 +229,7 @@ class TraceFig(QWidget):
             return False
         else:
             self.export(filename)
+
     def export(self,filename):
         ''' This function saves out all the traces in the tracefig to a file specified by the argument 'filename'.
         The output file is a tab seperated ascii file where each column is a trace.  
@@ -251,6 +260,8 @@ class RedrawPartialThread(QThread):
     finished=Signal() #this announces that the thread has finished
     finished_sig=Signal() #This tells the thread to finish
     alert = Signal(str)
+    updated = Signal() #This signal is emitted after each redraw
+
     def __init__(self,tracefig):
         QThread.__init__(self)
         self.tracefig=tracefig
@@ -262,6 +273,8 @@ class RedrawPartialThread(QThread):
         while self.quit_loop is False:
             time.sleep(.05)
             self.redraw()
+            self.updated.emit()
+
         self.finished.emit()
         
     def request_quit_loop(self):
