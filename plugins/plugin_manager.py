@@ -275,7 +275,7 @@ class PluginManager(QMainWindow):
         os.rename(os.path.join('plugins', folder_name), base_dir)
         add_plugin_menu(plugin_name)
         PluginManager.plugins[plugin_name]['install_date'] = plugin['date']
-        if 'dependencies' in PluginManager.plugins[plugin_name]:
+        if 'dependencies' in PluginManager.plugins[plugin_name] and PluginManager.plugins[plugin_name]['dependencies'] is not None:
             deps = PluginManager.plugins[plugin_name]['dependencies']['dependency']
             deps = [dep['@name'] for dep in deps]
             #check_dependencies(*deps)
