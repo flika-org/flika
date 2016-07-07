@@ -43,14 +43,22 @@ class WindowSelector(QWidget):
         self.layout.addWidget(self.label)
         self.setLayout(self.layout)
         self.button.clicked.connect(self.buttonclicked)
+
     def buttonclicked(self):
         if self.button.isChecked() is False:
-            g.m.setCurrentWindowSignal.sig.disconnect(self.windowSet)
+            g.m.setCurrentWindowSignal.sig.disconnect(self.setWindow)
         else:
-            g.m.setCurrentWindowSignal.sig.connect(self.windowSet)
-    def windowSet(self):
-        g.m.setCurrentWindowSignal.sig.disconnect(self.windowSet)
-        self.window=g.m.currentWindow
+            g.m.setCurrentWindowSignal.sig.connect(self.setWindow)
+
+    def setWindow(self, window=None):
+        if window is None:
+            try:
+                g.m.setCurrentWindowSignal.sig.disconnect(self.setWindow)
+            except TypeError:
+                pass
+            self.window=g.m.currentWindow
+        else:
+            self.window = window
         self.button.setChecked(False)
         self.label.setText('...'+os.path.split(self.window.name)[-1][-20:])
         self.valueChanged.emit()
