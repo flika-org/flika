@@ -6,6 +6,7 @@ Created on Thu Jun 26 14:43:19 2014
 """
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
+from PyQt4.QtGui import qApp
 import pyqtgraph as pg
 import pyqtgraph.exporters
 import time
@@ -292,29 +293,34 @@ def save_movie(filename, rate):
         | %03d: The files have to be numbered 001.jpg, 002.jpg... etc.
     '''
     #http://ffmpeg.org/releases/ffmpeg-2.8.4.tar.bz2
-    A=g.m.currentWindow.image
+    win = g.m.currentWindow
+    A = win.image
     if len(A.shape)<3:
         g.m.statusBar().showMessage('Movie not the right shape for saving.')
         return
     try:
-        exporter = pg.exporters.ImageExporter(g.m.currentWindow.imageview.view)
+        exporter = pg.exporters.ImageExporter(win.imageview.view)
     except TypeError:
-        exporter = pg.exporters.ImageExporter.ImageExporter(g.m.currentWindow.imageview.view)
+        exporter = pg.exporters.ImageExporter.ImageExporter(win.imageview.view)
         
-    nFrames=len(A)
-    tmpdir=os.path.join(os.path.dirname(g.settings.config_file),'tmp')
+    nFrames = len(A)
+    tmpdir = os.path.join(os.path.dirname(g.settings.config_file),'tmp')
     if os.path.isdir(tmpdir):
         shutil.rmtree(tmpdir)
     os.mkdir(tmpdir)
+    win.top_left_label.hide()
     for i in np.arange(0,nFrames):
-        g.m.currentWindow.imageview.timeLine.setPos(i)
+        win.imageview.timeLine.setPos(i)
         exporter.export(os.path.join(tmpdir,'{:03}.jpg'.format(i)))
-    olddir=os.getcwd()
+        qApp.processEvents()
+    win.top_left_label.show()
+    olddir = os.getcwd()
     os.chdir(tmpdir)
     subprocess.call(['ffmpeg', '-r', '%d' % rate, '-i', '%03d.jpg', '-vf','scale=trunc(iw/2)*2:trunc(ih/2)*2', 'output.mp4'])
-    os.rename('output.mp4',filename)
+    os.rename('output.mp4', filename)
     os.chdir(olddir)
     g.m.statusBar().showMessage('Successfully saved movie as {}.'.format(os.path.basename(filename)))
+
     
 def txt2dict(metadata):
     meta=dict()

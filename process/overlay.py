@@ -36,6 +36,7 @@ class Time_Stamp(BaseProcess):
         elif 'framerate' in g.settings.d.keys():
             framerate.setValue(g.settings['framerate'])
         framerate.setRange(0,1000000)
+        framerate.setDecimals(10)
         show=QCheckBox(); show.setChecked(True)
         self.items.append({'name':'framerate','string':'Frame Rate (Hz)','object':framerate})
         self.items.append({'name':'show','string':'Show','object':show})
