@@ -6,6 +6,7 @@ Created on Sat Jun 28 14:38:26 2014
 """
 import numpy as np
 import skimage
+import skimage.filters
 import global_vars as g
 from process.BaseProcess import BaseProcess, SliderLabel, SliderLabelOdd
 from PyQt4.QtGui import *
