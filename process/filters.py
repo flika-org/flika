@@ -29,6 +29,7 @@ class Gaussian_blur(BaseProcess):
     """
     def __init__(self):
         super().__init__()
+        assert 'gaussian' in skimage.filters.__dict__  # Make sure your version of skimage is >= 0.12.3
     def gui(self):
         self.gui_reset()
         sigma=SliderLabel(2)
@@ -46,7 +47,6 @@ class Gaussian_blur(BaseProcess):
 
     def __call__(self, sigma, norm_edges=False, keepSourceWindow=False):
         self.start(keepSourceWindow)
-
         if norm_edges == True:
             mode = 'constant'
         else:
