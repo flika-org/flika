@@ -140,7 +140,8 @@ def start_flika():
         g.setConsoleVisible(g.settings['debug_mode'])
     args = [arg for arg in args if 'flika.py' not in arg.lower() and arg != 'python']
     for a in args:
-        w = open_file(a)
+        if 'PYCHARM_HOSTED' not in os.environ:
+            w = open_file(a)
 
 
 

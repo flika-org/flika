@@ -6,6 +6,7 @@ Created on Thu Jun 26 14:43:19 2014
 """
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
+from PyQt4.QtGui import QColor
 from PyQt4.QtGui import qApp
 import pyqtgraph as pg
 import pyqtgraph.exporters
@@ -255,18 +256,20 @@ def load_points(filename):
     g.m.statusBar().showMessage('Loading points from {}'.format(os.path.basename(filename)))
     pts=np.loadtxt(filename)
     nCols = pts.shape[1]
+    pointSize = g.m.settings['point_size']
+    pointColor = QColor(g.m.settings['point_color'])
     if nCols == 3:
         for pt in pts:
             t=int(pt[0])
             if g.m.currentWindow.mt==1:
                 t=0
-            g.m.currentWindow.scatterPoints[t].append([pt[1],pt[2]])
+            g.m.currentWindow.scatterPoints[t].append([pt[1],pt[2], pointColor, pointSize])
         t=g.m.currentWindow.currentIndex
         g.m.currentWindow.scatterPlot.setPoints(pos=g.m.currentWindow.scatterPoints[t])
     elif nCols == 2:
         t = 0
         for pt in pts:
-            g.m.currentWindow.scatterPoints[t].append([pt[0], pt[1]])
+            g.m.currentWindow.scatterPoints[t].append([pt[0], pt[1], pointColor, pointSize])
         t = g.m.currentWindow.currentIndex
         g.m.currentWindow.scatterPlot.setPoints(pos=g.m.currentWindow.scatterPoints[t])
     g.m.statusBar().showMessage('Successfully loaded {}'.format(os.path.basename(filename)))

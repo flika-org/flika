@@ -114,11 +114,11 @@ class ROI_Wrapper():
 
 
     def finish_translate(self):
-        pts=self.getPoints()
+        pts=self.getPoints(round=True)
         for roi in self.linkedROIs:
             roi.draw_from_points(pts)
             roi.translate_done.emit()
-        self.draw_from_points(pts)
+        #self.draw_from_points(pts)
         self.translate_done.emit()
 
     def setMouseHover(self, hover):
@@ -244,7 +244,11 @@ class ROI_Wrapper():
             xx, yy = np.transpose(pts_in)
             self.minn = np.min(self.mask, 0)
             vals = np.average(tif[:, xx, yy], 1)
-
+            if vals[0] != np.average(tif[0, xx, yy]):
+                if tif.dtype == np.float16:  # There is probably a float 16 overflow going on.
+                    vals = np.average(tif[:, xx, yy].astype(np.float), 1)
+                else:
+                    assert vals[0] == np.average(tif[0, xx, yy])  # Deal with this issue if it happens.
             if SHOW_MASK:
                 img = np.zeros((w, h))
                 img[xx, yy] = 1
@@ -279,7 +283,7 @@ class ROI_line(ROI_Wrapper, pg.LineSegmentROI):
         ROI_Wrapper.getMenu(self)
         self.menu.addAction(self.kymographAct)
 
-    def getPoints(self):
+    def getPoints(self, round=False):
         return self.pts
 
     def getMask(self):
@@ -454,7 +458,7 @@ class ROI_rect_line(ROI_Wrapper, pg.MultiRectROI):
         l.boundingRect = boundingRect
         l.contains = contains
 
-    def getPoints(self):
+    def getPoints(self, round=False):
         return self.pts
 
     def getMask(self):
@@ -609,10 +613,22 @@ class ROI_rectangle(ROI_Wrapper, pg.ROI):
             newtif=tif[x1:x2+1,y1:y2+1]
         return Window(newtif,self.window.name+' Cropped',metadata=self.window.metadata)
 
-    def getPoints(self):
-        x, y = np.array(self.state['pos'], dtype=int)
-        w, h = np.array(self.state['size'], dtype=int)
-        self.pts = [self.state['pos'], pg.Point(x+w, y), pg.Point(x+w, y+h), pg.Point(x, y+h), self.state['pos']] 
+    def getPoints(self, round=False):
+        handles = self.getHandles()
+        if round:
+            x, y = self.pos()
+            offset = [np.round(x) - x, np.round(y) - y]
+            if offset != [0, 0]:
+                self.translate(offset, finish=False)
+            handle_pos = [h.pos() for h in handles]
+            w, h = np.round(np.ptp(handle_pos, 0))
+            old_size = self.size()
+            if w != old_size[0] or h != old_size[1]:
+                self.setSize([w, h], finish=False)
+        top_left = self.pos()
+        self.pts = [h.pos() + top_left for h in handles]
+        #self.state['pos'] = top_left
+        #self.state['size'] = pg.Point(*np.ptp(self.pts, 0))
         return self.pts
 
     def getMask(self):
@@ -685,7 +701,7 @@ class ROI(ROI_Wrapper, pg.ROI):
         for i in range(len(self.pts)):
             p.drawLine(self.pts[i], self.pts[i-1])
 
-    def getPoints(self):
+    def getPoints(self, round=False):
         return self.state['pos'], self.pts
 
     def getMask(self):

@@ -87,9 +87,9 @@ class Set_value(BaseProcess):
         
         else:
             if nDim==2:
-                self.newtif=value
+                self.newtif = value
             elif nDim==3:
-                self.newtif[firstFrame:lastFrame+1]=value
+                self.newtif[firstFrame:lastFrame+1] = value
         self.newname=self.oldname+' - value set to '+str(value)
         return self.end()
 set_value=Set_value()
