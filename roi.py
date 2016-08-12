@@ -650,14 +650,16 @@ class ROI_rectangle(ROI_Wrapper, pg.ROI):
         if len(self.mask) > 0:
             self.minn = np.min(self.mask, 0)
             
-    def contains(self, *pos, **kwargs):  # pyqtgraph ROI uses this function for mouse interaction. Set corrected=True to use
+    def contains(self, *pos, **kwargs):  # pyqtgraph ROI uses this function for mouse interaction. Set corrected=False to use
         corrected = kwargs.pop('corrected',True)
         if isinstance(pos[0], QPointF):
             pos = pos[0]
         elif len(pos) == 2:
             pos = QPointF(pos[0], pos[1])
-        if not corrected:
-            return QRectF(self.pts[0], self.pts[2]).contains(pos)
+        if not corrected:  # 'corrected' means relative to the top left corner of the ROI. 'Not corrected' means relative to the top left corner of the image.
+            top_left = QPointF(self.pos())
+            bottom_right = QPointF(*np.ptp(self.pts, 0)+np.array(self.pos()))
+            return QRectF(top_left, bottom_right).contains(pos)
         else:
             return pg.ROI.contains(self, pos)
 
