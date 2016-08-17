@@ -576,11 +576,12 @@ class ROI_rectangle(ROI_Wrapper, pg.ROI):
 
     def draw_from_points(self, pts):
         self.blockSignals(True)
-        self.setPos(pts[0], finish=False)
+        self.setPos(np.min(pts, 0), finish=False)
         if len(pts) == 2:
             self.setSize(pts[1], finish=False)
         elif len(pts) > 2:
-            self.setSize([pts[2][0] - pts[0][0], pts[2][1] - pts[0][1]], finish=False)
+            size = np.ptp(pts, 0)
+            self.setSize(size, finish=False)
         self.blockSignals(False)
 
     def getMenu(self):
@@ -731,10 +732,12 @@ def makeROI(kind, pts, window=None, **kargs):
         roi=ROI(window, pts, **kargs)
     elif kind=='rectangle':
         if len(pts) > 2:
-            size = [pts[2][0] - pts[0][0], pts[2][1] - pts[0][1]]
+            size = np.ptp(pts,0)
+            top_left = np.min(pts,0)
         else:
             size = pts[1]
-        roi=ROI_rectangle(window,pts[0], size, **kargs)
+            top_left = pts[0]
+        roi=ROI_rectangle(window, top_left, size, **kargs)
     elif kind=='line':
         roi=ROI_line(window, pos=(pts), **kargs)
     elif kind == 'rect_line':
