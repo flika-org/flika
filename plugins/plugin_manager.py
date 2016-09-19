@@ -7,10 +7,7 @@ from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 from PyQt4 import uic
 import sys
-if sys.version_info.major==2:
-    from urllib2 import urlopen
-elif sys.version_info.major==3:
-    from urllib.request import urlopen
+from urllib.request import urlopen
 import difflib
 import zipfile
 import time, shutil
@@ -18,7 +15,7 @@ import os.path
 import traceback
 from plugins.plugin_data import plugin_list
 from xmltodict import parse
-sep=os.path.sep
+sep = os.path.sep
     
 def str2func(plugin_name, file_location, function):
     '''
@@ -80,7 +77,6 @@ def load_plugin_menu():
             add_plugin_menu(plugin)
         except Exception as e:
             g.messageBox("Menu Creation Error", "Could not load %s. %s" % (plugin, traceback.format_exc()))
-
 
 class PluginManager(QMainWindow):
     plugins = {}

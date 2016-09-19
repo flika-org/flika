@@ -11,7 +11,7 @@ import window
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 from PyQt4.QtCore import pyqtSignal as Signal
-from PyQt4.QtCore import pyqtSlot  as Slot
+from PyQt4.QtCore import pyqtSlot as Slot
 import pyqtgraph as pg
 import sys
 import inspect
