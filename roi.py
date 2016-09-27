@@ -247,6 +247,8 @@ class ROI_Wrapper():
             if vals[0] != np.average(tif[0, xx, yy]):
                 if tif.dtype == np.float16:  # There is probably a float 16 overflow going on.
                     vals = np.average(tif[:, xx, yy].astype(np.float), 1)
+                elif tif.dtype ==np.float32:
+                    vals = np.average(tif[:, xx, yy].astype(np.float), 1)
                 else:
                     assert vals[0] == np.average(tif[0, xx, yy])  # Deal with this issue if it happens.
             if SHOW_MASK:

@@ -217,6 +217,7 @@
      <addaction name="actionPixel_Binning"/>
      <addaction name="actionFrame_Binning"/>
      <addaction name="actionResize"/>
+     <addaction name="actionChange_datatype"/>
     </widget>
     <widget class="QMenu" name="menuWindow">
      <property name="title">
@@ -598,6 +599,11 @@
   <action name="actionCheck_For_Updates">
    <property name="text">
     <string>Check For Updates</string>
+   </property>
+  </action>
+  <action name="actionChange_datatype">
+   <property name="text">
+    <string>Change datatype</string>
    </property>
   </action>
  </widget>

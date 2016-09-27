@@ -377,3 +377,33 @@ class Image_calculator(BaseProcess):
         return newWindow
         
 image_calculator=Image_calculator()
+
+
+class Change_datatype(BaseProcess):
+    """ change_datatype(datatype, keepSourceWindow=False)
+    This bins the pixels to reduce the file size
+
+    Parameters:
+        | datatype (string)
+    Returns:
+        newWindow
+    """
+
+    def __init__(self):
+        super().__init__()
+
+    def gui(self):
+        self.gui_reset()
+        dtype = QComboBox()
+        dtype_strs = ['uint8', 'uint16', 'uint32', 'uint64', 'int8','int16', 'int32', 'int64', 'float16', 'float32', 'float64']
+        for d in dtype_strs:
+            dtype.addItem(d)
+        self.items.append({'name': 'datatype', 'string': 'Convert image to which datatype?', 'object': dtype})
+        super().gui()
+    def __call__(self, datatype, keepSourceWindow=False):
+        self.start(keepSourceWindow)
+        self.newtif = self.tif.astype(np.dtype(datatype))
+        self.newname = self.oldname
+        return self.end()
+
+change_datatype = Change_datatype()
