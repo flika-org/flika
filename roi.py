@@ -134,6 +134,7 @@ class ROI_Wrapper():
         self.update()
         
     def onRegionChange(self):
+        print('on region change')
         pts = self.getPoints()
         for roi in self.linkedROIs:
             roi.blockSignals(True)
@@ -617,6 +618,7 @@ class ROI_rectangle(ROI_Wrapper, pg.ROI):
         return Window(newtif,self.window.name+' Cropped',metadata=self.window.metadata)
 
     def getPoints(self, round=False):
+        print('getting points')
         handles = self.getHandles()
         if round:
             x, y = self.pos()
@@ -628,10 +630,24 @@ class ROI_rectangle(ROI_Wrapper, pg.ROI):
             old_size = self.size()
             if w != old_size[0] or h != old_size[1]:
                 self.setSize([w, h], finish=False)
-        top_left = self.pos()
-        self.pts = [h.pos() + top_left for h in handles]
-        #self.state['pos'] = top_left
-        #self.state['size'] = pg.Point(*np.ptp(self.pts, 0))
+
+        # go around the rectangle from top left handle, clockwise
+        r = self.boundingRect()
+        p1 = r.topLeft() + self.state['pos']
+        p2 = r.bottomRight() + self.state['pos']
+        x1, y1 = p1.x(), p1.y()
+        x2, y2 = p2.x(), p2.y()
+        self.pts = [pg.Point(x1, y1),
+                    pg.Point(x2, y1),
+                    pg.Point(x2, y2),
+                    pg.Point(x1, y2)]
+
+        #top_left = self.pos()
+        #self.pts = [h.pos() + top_left for h in handles]
+
+
+
+
         return self.pts
 
     def getMask(self):
