@@ -70,7 +70,7 @@ class Set_value(BaseProcess):
                     self.newtif[i][xx,yy]=value
         elif restrictToOutside:
             roi=g.m.currentWindow.currentROI
-            roi.pts=roi.getPoints()
+            roi.pts = roi.getPoints()
             x=np.array([p[0] for p in roi.pts])
             y=np.array([p[1] for p in roi.pts])
             xx,yy=skimage.draw.polygon(x,y)

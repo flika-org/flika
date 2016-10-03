@@ -134,8 +134,8 @@ class ROI_Wrapper():
         self.update()
         
     def onRegionChange(self):
-        print('on region change')
-        pts = self.getPoints()
+        self.getMask()
+        pts = self.pts
         for roi in self.linkedROIs:
             roi.blockSignals(True)
             roi.draw_from_points(pts)
@@ -145,7 +145,6 @@ class ROI_Wrapper():
             if roi.traceWindow != None:
                 roi.traceWindow.translated(roi)
             roi.getMask()
-        self.getMask()
         self.translated.emit()
 
     def plot(self):
@@ -246,12 +245,13 @@ class ROI_Wrapper():
             self.minn = np.min(self.mask, 0)
             vals = np.average(tif[:, xx, yy], 1)
             if vals[0] != np.average(tif[0, xx, yy]):
-                if tif.dtype == np.float16:  # There is probably a float 16 overflow going on.
-                    vals = np.average(tif[:, xx, yy].astype(np.float), 1)
-                elif tif.dtype ==np.float32:
-                    vals = np.average(tif[:, xx, yy].astype(np.float), 1)
-                else:
-                    assert vals[0] == np.average(tif[0, xx, yy])  # Deal with this issue if it happens.
+                if vals[0] - np.average(tif[0, xx, yy]) > 10**-15: # This number was chosen because it's really small, not for some clever computational reason
+                    if tif.dtype == np.float16:  # There is probably a float 16 overflow going on.
+                        vals = np.average(tif[:, xx, yy].astype(np.float), 1)
+                    elif tif.dtype ==np.float32:
+                        vals = np.average(tif[:, xx, yy].astype(np.float), 1)
+                    else:
+                        assert vals[0] == np.average(tif[0, xx, yy])  # Deal with this issue if it happens.
             if SHOW_MASK:
                 img = np.zeros((w, h))
                 img[xx, yy] = 1
@@ -618,7 +618,6 @@ class ROI_rectangle(ROI_Wrapper, pg.ROI):
         return Window(newtif,self.window.name+' Cropped',metadata=self.window.metadata)
 
     def getPoints(self, round=False):
-        print('getting points')
         handles = self.getHandles()
         if round:
             x, y = self.pos()
@@ -641,13 +640,6 @@ class ROI_rectangle(ROI_Wrapper, pg.ROI):
                     pg.Point(x2, y1),
                     pg.Point(x2, y2),
                     pg.Point(x1, y2)]
-
-        #top_left = self.pos()
-        #self.pts = [h.pos() + top_left for h in handles]
-
-
-
-
         return self.pts
 
     def getMask(self):
