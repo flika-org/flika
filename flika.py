@@ -118,13 +118,13 @@ class MainWindowEventEater(QtCore.QObject):
                 event.ignore()
         elif type == QtCore.QEvent.Drop:
             if event.mimeData().hasUrls():   # if file or link is dropped
-                url = event.mimeData().urls()[0]   # get first url
-                filename=url.toString()
-                filename=str(filename)
-                filename=filename.split('file:///')[1]
-                print('filename={}'.format(filename))
-                open_file(filename)  # This fails on windows symbolic links.  http://stackoverflow.com/questions/15258506/os-path-islink-on-windows-with-python
-                event.accept()
+                for url in event.mimeData().urls():
+                    filename=url.toString()
+                    filename=str(filename)
+                    filename=filename.split('file:///')[1]
+                    print('filename={}'.format(filename))
+                    open_file(filename)  # This fails on windows symbolic links.  http://stackoverflow.com/questions/15258506/os-path-islink-on-windows-with-python
+                    event.accept()
             else:
                 event.ignore()
         elif type == QtCore.QEvent.Close:
