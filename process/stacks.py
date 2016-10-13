@@ -379,6 +379,53 @@ class Image_calculator(BaseProcess):
 image_calculator=Image_calculator()
 
 
+class Concatenate_stacks(BaseProcess):
+    """ concatenate_stacks(window1,window2,keepSourceWindow=False)
+    This creates a new stack by concatenating two stacks
+
+    Parameters:
+        | window1 (Window) -- The first window
+        | window2 (Window) -- The second window
+    Returns:
+        newWindow
+    """
+
+    def __init__(self):
+        super().__init__()
+
+    def gui(self):
+        self.gui_reset()
+        window1 = WindowSelector()
+        window2 = WindowSelector()
+        self.items.append({'name': 'window1', 'string': 'Window 1', 'object': window1})
+        self.items.append({'name': 'window2', 'string': 'Window 2', 'object': window2})
+        super().gui()
+
+    def __call__(self, window1, window2, keepSourceWindow=False):
+        self.keepSourceWindow = keepSourceWindow
+        g.m.statusBar().showMessage('Performing {}...'.format(self.__name__))
+        if window1 is None or window2 is None:
+            raise (
+            MissingWindowError("You cannot execute '{}' without selecting a window first.".format(self.__name__)))
+        A = window1.image
+        B = window2.image
+        self.newtif = np.concatenate((A,B),0)
+
+        self.oldwindow = window1
+        self.oldname = window1.name
+        self.newname = self.oldname + ' - {}'.format('concatenated')
+        if keepSourceWindow is False:
+            print('closing both windows')
+            window1.close()
+            window2.close()
+        g.m.statusBar().showMessage('Finished with {}.'.format(self.__name__))
+        newWindow = Window(self.newtif, str(self.newname), self.oldwindow.filename)
+        del self.newtif
+        return newWindow
+
+
+concatenate_stacks = Concatenate_stacks()
+
 class Change_datatype(BaseProcess):
     """ change_datatype(datatype, keepSourceWindow=False)
     This bins the pixels to reduce the file size

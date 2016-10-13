@@ -16,7 +16,7 @@ import global_vars as g
 import pyqtgraph.opengl as gl
 import matplotlib.cm
 from window import Window
-from process.stacks import deinterleave, trim, zproject, image_calculator, pixel_binning, frame_binning, resize, change_datatype
+from process.stacks import deinterleave, trim, zproject, image_calculator, pixel_binning, frame_binning, resize, change_datatype, concatenate_stacks
 from process.math_ import multiply, subtract, power, ratio, absolute_value, subtract_trace, divide_trace
 from process.filters import gaussian_blur, butterworth_filter,boxcar_differential_filter, wavelet_filter, difference_filter, fourier_filter, mean_filter, median_filter, bilateral_filter
 from process.binary import threshold, adaptive_threshold, canny_edge_detector, remove_small_blobs, logically_combine, binary_dilation, binary_erosion
@@ -68,6 +68,7 @@ def initializeMainGui():
     g.m.actionFrame_Binning.triggered.connect(frame_binning.gui)
     g.m.actionResize.triggered.connect(resize.gui)
     g.m.actionTrim_Frames.triggered.connect(trim.gui)
+    g.m.actionConcatenate_Stacks.triggered.connect(concatenate_stacks.gui)
     g.m.actionChange_datatype.triggered.connect(change_datatype.gui)
     g.m.actionMultiply.triggered.connect(multiply.gui)
     g.m.actionSubtract.triggered.connect(subtract.gui)

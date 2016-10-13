@@ -218,6 +218,7 @@
      <addaction name="actionFrame_Binning"/>
      <addaction name="actionResize"/>
      <addaction name="actionChange_datatype"/>
+     <addaction name="actionConcatenate_Stacks"/>
     </widget>
     <widget class="QMenu" name="menuWindow">
      <property name="title">
@@ -604,6 +605,16 @@
   <action name="actionChange_datatype">
    <property name="text">
     <string>Change datatype</string>
+   </property>
+  </action>
+  <action name="actionMerge_Windows">
+   <property name="text">
+    <string>Merge Windows</string>
+   </property>
+  </action>
+  <action name="actionConcatenate_Stacks">
+   <property name="text">
+    <string>Concatenate Stacks</string>
    </property>
   </action>
  </widget>
