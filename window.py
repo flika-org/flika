@@ -70,8 +70,8 @@ class Window(QWidget):
                 mt=1
                 dimensions_txt="{}x{} pixels; {} colors; ".format(mx,my,mc)
             else:
-                mt,mx,my=tif.shape
-                dimensions_txt="{} frames; {}x{} pixels; ".format(mt,mx,my)
+                mt, mx, my=tif.shape
+                dimensions_txt="{} frames; {}x{} pixels; ".format(mt, mx, my)
         elif self.nDims == 4:
             mt,mx,my,mc = tif.shape
             dimensions_txt = "{} frames; {}x{} pixels; {} colors; ".format(mt,mx,my,mc)
@@ -81,8 +81,11 @@ class Window(QWidget):
             dimensions_txt="{}x{} pixels; ".format(mx,my)
         self.mx = mx; self.my = my; self.mt = mt
         dtype=self.image.dtype
-
-        self.top_left_label = pg.LabelItem(dimensions_txt+'dtype='+str(dtype), justify='right')
+        dimensions_txt += 'dtype='+str(dtype)
+        if 'timestamps' in self.metadata:
+            self.framerate = self.metadata['timestamps'][-1]/len(self.metadata['timestamps'])
+            dimensions_txt += '; {:.4f} {}/frame'.format(self.framerate, self.metadata['timestamp_units'])
+        self.top_left_label = pg.LabelItem(dimensions_txt, justify='right')
         self.imageview.ui.graphicsView.addItem(self.top_left_label)
         
         self.imageview.timeLine.sigPositionChanged.connect(self.updateindex)
@@ -177,7 +180,26 @@ class Window(QWidget):
 
     def showFrame(self,index):
         if index>=0 and index<self.mt:
-            g.m.statusBar().showMessage('frame {}'.format(index))
+            msg = 'frame {}'.format(index)
+            if 'timestamps' in self.metadata and self.metadata['timestamp_units']=='ms':
+                ttime = self.metadata['timestamps'][index]
+                if ttime < 1*1000:
+                    msg += '; {:.4f} ms'.format(ttime)
+                elif ttime < 60*1000:
+                    seconds = ttime / 1000
+                    msg += '; {:.4f} s'.format(seconds)
+                elif ttime < 3600*1000:
+                    minutes = int(np.floor(ttime / (60*1000)))
+                    seconds = (ttime/1000) % 60
+                    msg += '; {} m {:.4f} s'.format(minutes, seconds)
+                else:
+                    seconds = ttime/1000
+                    hours = int(np.floor(seconds / 3600))
+                    mminutes = seconds - hours * 3600
+                    minutes = int(np.floor(mminutes / 60))
+                    seconds = mminutes - minutes * 60
+                    '; {} h {} m {:.4f} s'.format(hours, minutes, seconds)
+            g.m.statusBar().showMessage(msg)
 
     def setName(self,name):
         name=str(name)

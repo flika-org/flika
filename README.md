@@ -31,6 +31,7 @@
 	* nd2reader
 	* openpyxl
 	* matplotlib
+	* tifffile
 
 3. Install Flika
 

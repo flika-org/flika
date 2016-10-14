@@ -26,6 +26,7 @@ import nd2reader
 import datetime
 from script_editor.ScriptEditor import ScriptEditor
 from process.BaseProcess import BaseDialog
+import json
 
 
 __all__ = ['open_file_gui','open_file','save_file_gui','save_file','save_movie', 'save_movie_gui', 'load_metadata','save_metadata','close', 'load_points', 'save_points', 'save_current_frame']
@@ -108,7 +109,45 @@ def save_roi_traces(filename):
     g.settings['filename'] = filename
     g.m.statusBar().showMessage('Successfully saved traces to {}'.format(os.path.basename(filename)))
 
-            
+
+def get_metadata_tiff(Tiff):
+    metadata = {}
+    if Tiff[0].is_micromanager:
+        imagej_tags = Tiff[0].imagej_tags
+        imagej_tags['info']
+        imagej_tags_unpacked = json.loads(imagej_tags['info'])
+        micromanager_metadata = Tiff[0].tags['micromanager_metadata']
+        metadata = {**micromanager_metadata.value, **imagej_tags_unpacked}
+        if metadata['Frames'] > 1:
+            timestamps = [c.tags['micromanager_metadata'].value['ElapsedTime-ms'] for c in Tiff]
+            timestamps = np.array(timestamps)
+            timestamps -= timestamps[0]
+            metadata['timestamps'] = timestamps
+            metadata['timestamp_units'] = 'ms'
+        keys_to_remove = ['NextFrame', 'ImageNumber', 'Frame', 'FrameIndex']
+        for key in keys_to_remove:
+            metadata.pop(key)
+    else:
+        try:
+            metadata = Tiff[0].image_description
+            metadata = txt2dict(metadata)
+        except AttributeError:
+            metadata = dict()
+    metadata['is_rgb'] = Tiff[0].is_rgb
+    return metadata
+
+def get_metadata_nd2(nd2):
+    metadata = dict()
+    metadata['channels'] = nd2.channels
+    metadata['date'] = nd2.date
+    metadata['fields_of_view'] = nd2.fields_of_view
+    metadata['frames'] = nd2.frames
+    metadata['height'] = nd2.height
+    metadata['width'] = nd2.width
+    metadata['z_levels'] = nd2.z_levels
+    return metadata
+
+
 def open_file(filename=None):
     """ open_file(filename=None)
     Opens an image or movie file (.tif, .stk, .nd2) into a newWindow.
@@ -128,21 +167,17 @@ def open_file(filename=None):
     g.m.statusBar().showMessage('Loading {}'.format(os.path.basename(filename)))
     t=time.time()
     metadata=dict()
-    ext=os.path.splitext(filename)[1]
+    ext = os.path.splitext(filename)[1]
     if ext in ['.tif', '.stk', '.tiff']:
         try:
             Tiff=tifffile.TiffFile(filename)
         except Exception as s:
             g.m.statusBar().showMessage("Unable to open %s. %s" % (filename, s))
             return None
-        try:
-            metadata=Tiff[0].image_description
-            metadata = txt2dict(metadata)
-        except AttributeError:
-            metadata=dict()
+        metadata = get_metadata_tiff(Tiff)
         A=Tiff.asarray()#.astype(g.settings['internal_data_type'])
         Tiff.close()
-        axes=[tifffile.AXES_LABELS[ax] for ax in Tiff.pages[0].axes]
+        axes=[tifffile.tifffile.AXES_LABELS[ax] for ax in Tiff.pages[0].axes]
         #print("Original Axes = {}".format(axes)) #sample means RBGA, plane means frame, width means X, height means Y
         if Tiff.is_rgb:
             if A.ndim==3: # still color image.  [X, Y, RBGA]
@@ -158,7 +193,6 @@ def open_file(filename=None):
                 if axes[3]=='sample' and A.shape[3]==1:
                     A=np.squeeze(A) #this gets rid of the meaningless 4th dimention in .stk files
                     A=np.transpose(A,(0,2,1))
-        metadata['is_rgb']=Tiff[0].is_rgb
     elif ext=='.nd2':
         nd2 = nd2reader.Nd2(filename)
         mt,mx,my=len(nd2),nd2.width,nd2.height
@@ -170,13 +204,7 @@ def open_file(filename=None):
                 percent=int(100*float(frame)/mt)
                 g.m.statusBar().showMessage('Loading file {}%'.format(percent))
                 qApp.processEvents()
-        metadata['channels']=nd2.channels
-        metadata['date']=nd2.date
-        metadata['fields_of_view']=nd2.fields_of_view
-        metadata['frames']=nd2.frames
-        metadata['height']=nd2.height
-        metadata['width']=nd2.width
-        metadata['z_levels']=nd2.z_levels
+        metadata = get_metadata_nd2(nd2)
     elif ext == '.py':
         ScriptEditor.importScript(filename)
         return
