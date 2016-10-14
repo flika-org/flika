@@ -121,7 +121,6 @@ def get_metadata_tiff(Tiff):
         if metadata['Frames'] > 1:
             timestamps = [c.tags['micromanager_metadata'].value['ElapsedTime-ms'] for c in Tiff]
             timestamps = np.array(timestamps)
-            timestamps -= timestamps[0]
             metadata['timestamps'] = timestamps
             metadata['timestamp_units'] = 'ms'
         keys_to_remove = ['NextFrame', 'ImageNumber', 'Frame', 'FrameIndex']
@@ -168,11 +167,11 @@ def open_file(filename=None):
     t=time.time()
     metadata=dict()
     ext = os.path.splitext(filename)[1]
-    if ext in ['.tif', '.stk', '.tiff']:
+    if ext in ['.tif', '.stk', '.tiff', '.ome']:
         try:
-            Tiff=tifffile.TiffFile(filename)
+            Tiff = tifffile.TiffFile(filename)
         except Exception as s:
-            g.m.statusBar().showMessage("Unable to open %s. %s" % (filename, s))
+            g.alert("Unable to open {}. {}".format(filename, s))
             return None
         metadata = get_metadata_tiff(Tiff)
         A=Tiff.asarray()#.astype(g.settings['internal_data_type'])
@@ -193,7 +192,7 @@ def open_file(filename=None):
                 if axes[3]=='sample' and A.shape[3]==1:
                     A=np.squeeze(A) #this gets rid of the meaningless 4th dimention in .stk files
                     A=np.transpose(A,(0,2,1))
-    elif ext=='.nd2':
+    elif ext == '.nd2':
         nd2 = nd2reader.Nd2(filename)
         mt,mx,my=len(nd2),nd2.width,nd2.height
         A=np.zeros((mt,mx,my))
@@ -209,8 +208,8 @@ def open_file(filename=None):
         ScriptEditor.importScript(filename)
         return
     else:
-        print('Could not open {}'.format(filename))
-        g.m.statusBar().showMessage('Unable to open {}'.format(filename))
+        msg = "Could not open.  Filetype for '{}' not recognized".format(filename)
+        g.alert(msg)
         if filename in g.settings['recent_files']:
             g.settings['recent_files'].remove(filename)
         make_recent_menu()

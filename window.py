@@ -83,7 +83,8 @@ class Window(QWidget):
         dtype=self.image.dtype
         dimensions_txt += 'dtype='+str(dtype)
         if 'timestamps' in self.metadata:
-            self.framerate = self.metadata['timestamps'][-1]/len(self.metadata['timestamps'])
+            ts = self.metadata['timestamps']
+            self.framerate = (ts[-1]-ts[0])/len(ts)
             dimensions_txt += '; {:.4f} {}/frame'.format(self.framerate, self.metadata['timestamp_units'])
         self.top_left_label = pg.LabelItem(dimensions_txt, justify='right')
         self.imageview.ui.graphicsView.addItem(self.top_left_label)

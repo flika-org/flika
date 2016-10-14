@@ -1,5 +1,7 @@
 from PyQt4 import uic
 from PyQt4 import QtGui
+from PyQt4.QtGui import QMessageBox
+
 from PyQt4.QtCore import pyqtSignal as Signal
 import sys, os, atexit
 import pickle
@@ -261,6 +263,16 @@ class SetCurrentWindowSignal(QtGui.QWidget):
     def __init__(self,parent):
         QtGui.QWidget.__init__(self,parent)
         self.hide()
+
+def alert(msg):
+    print('Alert!')
+    print(msg)
+    msgbx = QMessageBox(m)
+    msgbx.setIcon(QMessageBox.Information)
+    msgbx.setText(msg)
+    msgbx.setWindowTitle("Flika")
+    msgbx.show()
+    m.statusBar().showMessage(msg)
 
 settings=Settings()
 
