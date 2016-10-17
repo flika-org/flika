@@ -113,12 +113,14 @@ def save_roi_traces(filename):
 def get_metadata_tiff(Tiff):
     metadata = {}
     if Tiff[0].is_micromanager:
-        imagej_tags = Tiff[0].imagej_tags
-        imagej_tags['info']
-        imagej_tags_unpacked = json.loads(imagej_tags['info'])
+        imagej_tags_unpacked = {}
+        if hasattr(Tiff[0],'imagej_tags'):
+            imagej_tags = Tiff[0].imagej_tags
+            imagej_tags['info']
+            imagej_tags_unpacked = json.loads(imagej_tags['info'])
         micromanager_metadata = Tiff[0].tags['micromanager_metadata']
         metadata = {**micromanager_metadata.value, **imagej_tags_unpacked}
-        if metadata['Frames'] > 1:
+        if 'Frames' in metadata and metadata['Frames'] > 1:
             timestamps = [c.tags['micromanager_metadata'].value['ElapsedTime-ms'] for c in Tiff]
             timestamps = np.array(timestamps)
             metadata['timestamps'] = timestamps
