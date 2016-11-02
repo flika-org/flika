@@ -19,7 +19,7 @@ import global_vars as g
 from PyQt4 import uic
 import codecs
 import shutil, subprocess
-import tifffile
+from skimage.external import tifffile
 import json
 import re
 import nd2reader

@@ -61,7 +61,7 @@ def initializeMainGui():
     g.m.point.customContextMenuRequested.connect(g.pointSettings)
     g.m.actionScript_Editor.triggered.connect(ScriptEditor.show)
     g.m.actionPlugin_Manager.triggered.connect(PluginManager.show)
-    g.m.actionDocs.triggered.connect(lambda: QtGui.QDesktopServices.openUrl(QtGui.QUrl(DOCS_URL)))
+    g.m.actionDocs.triggered.connect(lambda: QtGui.QDesktopServices.openUrl(QtCore.QUrl(DOCS_URL)))
     g.m.actionDeinterleave.triggered.connect(deinterleave.gui)
     g.m.actionZ_Project.triggered.connect(zproject.gui)
     g.m.actionPixel_Binning.triggered.connect(pixel_binning.gui)
