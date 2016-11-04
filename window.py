@@ -176,6 +176,8 @@ class Window(QWidget):
             self.sigTimeChanged.emit(t)
 
     def setIndex(self,index):
+        if not hasattr(self, "image"):
+            return
         if index>=0 and index<len(self.image):
             self.imageview.setCurrentIndex(index)
 
@@ -224,13 +226,14 @@ class Window(QWidget):
             if hasattr(self,'image'):
                 del self.image
             self.imageview.setImage(np.zeros((2,2))) #clear the memory
-            #self.imageview.close()
+            self.imageview.close()
             del self.imageview
             if g.m.currentWindow==self:
                 g.m.currentWindow=None
             if self in g.m.windows:
                 g.m.windows.remove(self)
             self.closed=True
+
             event.accept() # let the window close
 
     def imageArray(self):

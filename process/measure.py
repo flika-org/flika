@@ -139,7 +139,7 @@ class Measure(BaseProcess):
         self.pathitem.setPath(path)
         
     def close(self):
-        if self.pathitem.parentWidget() != None:
+        if hasattr(self, "pathitem") and self.pathitem.parentWidget() != None:
             self.pathitem.parentWidget().removeItem(self.pathitem) 
         self.ON=False
     def getNearestPoint(self,point):
