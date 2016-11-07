@@ -342,7 +342,7 @@ def save_movie(filename, rate):
     os.mkdir(tmpdir)
     win.top_left_label.hide()
     for i in np.arange(0,nFrames):
-        win.imageview.timeLine.setPos(i)
+        win.setIndex(i)
         exporter.export(os.path.join(tmpdir,'{:03}.jpg'.format(i)))
         qApp.processEvents()
     win.top_left_label.show()
