@@ -54,6 +54,7 @@ class Window(QWidget):
         self.imageview.ui.normLUTbtn.setObjectName("LUT norm")
         self.imageview.ui.normLUTbtn.setText("LUT norm")
         self.imageview.ui.gridLayout.addWidget(self.imageview.ui.normLUTbtn, 1, 1, 1, 1)
+
         self.imageview.ui.normLUTbtn.pressed.connect(self.normLUT)
         rp = self.imageview.ui.roiPlot.getPlotItem()
         self.linkMenu = QMenu("Link frame")
@@ -117,6 +118,12 @@ class Window(QWidget):
         if self not in g.m.windows:
             g.m.windows.append(self)
         self.closed=False
+
+        from process.measure import measure
+        self.measure=measure
+        def clicked(evt):
+            self.measure.pointclicked(evt, window=self)
+        self.imageview.scene.sigMouseClicked.connect(clicked)
 
         self.linkedWindows = []
 
