@@ -245,7 +245,7 @@ class ROI_Wrapper():
             self.minn = np.min(self.mask, 0)
             vals = np.average(tif[:, xx, yy], 1)
             if vals[0] != np.average(tif[0, xx, yy]):
-                if vals[0] - np.average(tif[0, xx, yy]) > 10**-15: # This number was chosen because it's really small, not for some clever computational reason
+                if vals[0] - np.average(tif[0, xx, yy]) > 10**-10: # This number was chosen because it's really small, not for some clever computational reason
                     if tif.dtype == np.float16:  # There is probably a float 16 overflow going on.
                         vals = np.average(tif[:, xx, yy].astype(np.float), 1)
                     elif tif.dtype ==np.float32:
