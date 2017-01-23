@@ -9,8 +9,7 @@ import skimage
 import skimage.filters
 import global_vars as g
 from process.BaseProcess import BaseProcess, SliderLabel, SliderLabelOdd
-from PyQt4.QtGui import *
-from PyQt4.QtCore import *
+from qtpy import QtWidgets, QtGui, QtCore
 import time
 from process.progress_bar import ProgressBar
 
@@ -36,9 +35,9 @@ class Gaussian_blur(BaseProcess):
         sigma=SliderLabel(2)
         sigma.setRange(0,100)
         sigma.setValue(1)
-        norm_edges=QCheckBox()
+        norm_edges=QtWidgets.QCheckBox()
         norm_edges.setChecked(False)
-        preview=QCheckBox()
+        preview=QtWidgets.QCheckBox()
         preview.setChecked(True)
         self.items.append({'name': 'sigma', 'string': 'Sigma (pixels)', 'object': sigma})
         self.items.append({'name': 'norm_edges', 'string': 'Normalize Edges', 'object': norm_edges})
@@ -107,7 +106,7 @@ class Butterworth_filter(BaseProcess):
 
     def gui(self):
         self.gui_reset()
-        filter_order=QSpinBox()
+        filter_order=QtWidgets.QSpinBox()
         filter_order.setRange(1,10)
         low=SliderLabel(5)
         low.setRange(0,1)
@@ -117,7 +116,7 @@ class Butterworth_filter(BaseProcess):
         high.setValue(1)
         low.valueChanged.connect(lambda low: high.setMinimum(low))
         high.valueChanged.connect(lambda high: low.setMaximum(high))
-        preview=QCheckBox()
+        preview=QtWidgets.QCheckBox()
         preview.setChecked(True)
         self.items.append({'name':'filter_order','string':'Filter Order','object':filter_order})
         self.items.append({'name':'low','string':'Low Cutoff Frequency','object':low})
@@ -256,7 +255,7 @@ class Mean_filter(BaseProcess):
         self.gui_reset()
         nFrames=SliderLabel(0)
         nFrames.setRange(1,100)
-        preview=QCheckBox()
+        preview=QtWidgets.QCheckBox()
         preview.setChecked(True)
         self.items.append({'name':'nFrames','string':'nFrames','object':nFrames})
         self.items.append({'name':'preview','string':'Preview','object':preview})        
@@ -306,7 +305,7 @@ class Median_filter(BaseProcess):
         self.gui_reset()
         nFrames=SliderLabelOdd()
         nFrames.setRange(1,100)
-        preview=QCheckBox()
+        preview=QtWidgets.QCheckBox()
         preview.setChecked(True)
         self.items.append({'name':'nFrames','string':'nFrames','object':nFrames})
         self.items.append({'name':'preview','string':'Preview','object':preview})        
@@ -369,7 +368,7 @@ class Fourier_filter(BaseProcess):
         super().__init__()
     def gui(self):
         self.gui_reset()
-        frame_rate=QDoubleSpinBox()
+        frame_rate=QtWidgets.QDoubleSpinBox()
         frame_rate.setRange(.01,1000)
         frame_rate.setValue(200)
         low=SliderLabel(5)
@@ -381,9 +380,9 @@ class Fourier_filter(BaseProcess):
         frame_rate.valueChanged.connect(self.frame_rate_changed)
         low.valueChanged.connect(lambda low: high.setMinimum(low))
         high.valueChanged.connect(lambda high: low.setMaximum(high))
-        preview=QCheckBox()
+        preview=QtWidgets.QCheckBox()
         preview.setChecked(True)
-        loglogPreview=QCheckBox()
+        loglogPreview=QtWidgets.QCheckBox()
         self.items.append({'name':'frame_rate','string':'Frame Rate (Hz)','object':frame_rate})
         self.items.append({'name':'low','string':'Low Cutoff Frequency','object':low})
         self.items.append({'name':'high','string':'High Cutoff Frequency','object':high})
@@ -517,7 +516,7 @@ class Boxcar_differential_filter(BaseProcess):
         maxNframes.setRange(2,101)
         minNframes.valueChanged.connect(lambda minn: maxNframes.setMinimum(minn+1))
         maxNframes.valueChanged.connect(lambda maxx: minNframes.setMaximum(maxx-1))
-        preview=QCheckBox()
+        preview=QtWidgets.QCheckBox()
         preview.setChecked(True)
         self.items.append({'name':'minNframes','string':'Minimum Number of Frames','object':minNframes})
         self.items.append({'name':'maxNframes','string':'Maximum Number of Frames','object':maxNframes})
@@ -582,7 +581,7 @@ class Wavelet_filter(BaseProcess):
         high.setRange(2,50)
         low.valueChanged.connect(lambda minn: high.setMinimum(minn+1))
         high.valueChanged.connect(lambda maxx: low.setMaximum(maxx-1))
-        preview=QCheckBox()
+        preview=QtWidgets.QCheckBox()
         preview.setChecked(True)
         self.items.append({'name':'low','string':'Low Frequency Threshold','object':low})
         self.items.append({'name':'high','string':'High Frequency Threshold','object':high})
@@ -651,7 +650,7 @@ class Bilateral_filter(BaseProcess):
     def gui(self):
         self.gui_reset()
         
-        soft=QCheckBox()
+        soft=QtWidgets.QCheckBox()
         soft.setChecked(True)
         beta=SliderLabel(2)
         beta.setRange(1,500)
@@ -665,7 +664,7 @@ class Bilateral_filter(BaseProcess):
         maxiter=SliderLabel(0)
         maxiter.setRange(1,100)
         maxiter.setValue(10)
-        preview=QCheckBox()
+        preview=QtWidgets.QCheckBox()
         preview.setChecked(True)
         self.items.append({'name':'soft','string':'soft','object':soft})  
         self.items.append({'name':'beta','string':'beta','object':beta})  

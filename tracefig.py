@@ -4,8 +4,8 @@ Created on Sun Jun 29 13:13:59 2014
 
 @author: Kyle Ellefsen
 """
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from qtpy.QtCore import Signal, QEvent, QThread
+from qtpy.QtWidgets import QWidget
 import pyqtgraph as pg
 pg.setConfigOptions(useWeave=False)
 import numpy as np

@@ -8,9 +8,8 @@ from window import Window
 import numpy as np
 import global_vars as g
 from process.BaseProcess import BaseProcess, WindowSelector, MissingWindowError
-from PyQt4.QtGui import *
-from PyQt4.QtCore import *
 from tracefig import TraceFig
+from qtpy import QtWidgets
 
 __all__ = ['deinterleave','trim','zproject','image_calculator', 'pixel_binning', 'frame_binning', 'resize']
 
@@ -27,7 +26,7 @@ class Deinterleave(BaseProcess):
         super().__init__()
     def gui(self):
         self.gui_reset()
-        nChannels=QSpinBox()
+        nChannels=QtWidgets.QSpinBox()
         nChannels.setMinimum(2)
         self.items.append({'name':'nChannels','string':'How many Channels?','object':nChannels})
         super().gui()
@@ -60,7 +59,7 @@ class Pixel_binning(BaseProcess):
         super().__init__()
     def gui(self):
         self.gui_reset()
-        nPixels=QSpinBox()
+        nPixels=QtWidgets.QSpinBox()
         nPixels.setMinimum(2)
         nPixels.setMaximum(2)
         self.items.append({'name':'nPixels','string':'How many adjacent pixels to bin?','object':nPixels})
@@ -116,7 +115,7 @@ class Frame_binning(BaseProcess):
         super().__init__()
     def gui(self):
         self.gui_reset()
-        nFrames=QSpinBox()
+        nFrames=QtWidgets.QSpinBox()
         nFrames.setMinimum(2)
         nFrames.setMaximum(10000)
         self.items.append({'name':'nFrames','string':'How many frames to bin?','object':nFrames})
@@ -145,7 +144,7 @@ class Resize(BaseProcess):
         super().__init__()
     def gui(self):
         self.gui_reset()
-        factor=QSpinBox()
+        factor=QtWidgets.QSpinBox()
         factor.setMinimum(2)
         factor.setMaximum(100)
         self.items.append({'name':'factor','string':'By what factor to resize the image?','object':factor})
@@ -189,15 +188,15 @@ class Trim(BaseProcess):
         nFrames=1
         if g.m.currentWindow is not None:
             nFrames=g.m.currentWindow.image.shape[0]
-        firstFrame=QSpinBox()
+        firstFrame=QtWidgets.QSpinBox()
         firstFrame.setMaximum(nFrames-1)
-        lastFrame=QSpinBox()
+        lastFrame=QtWidgets.QSpinBox()
         lastFrame.setRange(0,nFrames-1)
         lastFrame.setValue(nFrames-1)
-        increment=QSpinBox()
+        increment=QtWidgets.QSpinBox()
         increment.setMaximum(nFrames)
         increment.setMinimum(1)
-        delete = QCheckBox()
+        delete = QtWidgets.QCheckBox()
         delete.setChecked(False)
 
         self.items.append({'name': 'firstFrame', 'string': 'First Frame', 'object': firstFrame})
@@ -241,14 +240,14 @@ class ZProject(BaseProcess):
             return False
         if g.m.currentWindow is not None:
             nFrames=g.m.currentWindow.image.shape[0]
-        firstFrame=QSpinBox()
+        firstFrame=QtWidgets.QSpinBox()
         firstFrame.setMaximum(nFrames)
         self.items.append({'name':'firstFrame','string':'First Frame','object':firstFrame})
-        lastFrame=QSpinBox()
+        lastFrame=QtWidgets.QSpinBox()
         lastFrame.setRange(1,nFrames-1)
         lastFrame.setValue(nFrames-1)
         self.items.append({'name':'lastFrame','string':'Last Frame','object':lastFrame})
-        projection_type=QComboBox()
+        projection_type=QtWidgets.QComboBox()
         projection_type.addItem('Average')
         projection_type.addItem('Max Intensity')
         projection_type.addItem('Min Intensity')
@@ -297,7 +296,7 @@ class Image_calculator(BaseProcess):
         self.gui_reset()
         window1=WindowSelector()
         window2=WindowSelector()      
-        operation=QComboBox()
+        operation=QtWidgets.QComboBox()
         operation.addItems(['Add','Subtract','Multiply','Divide','AND','OR','XOR','Min','Max','Average'])
         self.items.append({'name':'window1','string':'Window 1','object':window1})
         self.items.append({'name':'window2','string':'Window 2','object':window2})
@@ -441,7 +440,7 @@ class Change_datatype(BaseProcess):
 
     def gui(self):
         self.gui_reset()
-        dtype = QComboBox()
+        dtype = QtWidgets.QComboBox()
         dtype_strs = ['uint8', 'uint16', 'uint32', 'uint64', 'int8','int16', 'int32', 'int64', 'float16', 'float32', 'float64']
         for d in dtype_strs:
             dtype.addItem(d)

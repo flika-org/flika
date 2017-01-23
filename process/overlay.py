@@ -7,10 +7,9 @@ Created on Wed Sep 17 15:10:30 2014
 import numpy as np
 import global_vars as g
 import pyqtgraph as pg
+from qtpy import QtWidgets, QtCore, QtGui
 
 from process.BaseProcess import BaseProcess, SliderLabel, WindowSelector,  MissingWindowError
-from PyQt4.QtGui import *
-from PyQt4.QtCore import *    
 
 __all__ = ['time_stamp','background','scale_bar']
      
@@ -30,14 +29,14 @@ class Time_Stamp(BaseProcess):
         super().__init__()
     def gui(self):
         self.gui_reset()
-        framerate=QDoubleSpinBox()
+        framerate=QtWidgets.QDoubleSpinBox()
         if hasattr(g.m.currentWindow,'framerate'):
             framerate.setValue(g.m.currentWindow.framerate)
         elif 'framerate' in g.settings.d.keys():
             framerate.setValue(g.settings['framerate'])
         framerate.setRange(0,1000000)
         framerate.setDecimals(10)
-        show=QCheckBox(); show.setChecked(True)
+        show=QtWidgets.QCheckBox(); show.setChecked(True)
         self.items.append({'name':'framerate','string':'Frame Rate (Hz)','object':framerate})
         self.items.append({'name':'show','string':'Show','object':show})
         super().gui()
@@ -84,7 +83,7 @@ class Background(BaseProcess):
         opacity=SliderLabel(3)
         opacity.setRange(0,1)
         opacity.setValue(.5)
-        show=QCheckBox(); show.setChecked(True)
+        show=QtWidgets.QCheckBox(); show.setChecked(True)
         self.items.append({'name':'background_window','string':'Background window','object':background_window})
         self.items.append({'name':'data_window','string':'Data window','object':data_window})
         self.items.append({'name':'opacity','string':'Opacity','object':opacity})
@@ -138,27 +137,27 @@ class Scale_Bar(BaseProcess):
     def gui(self):
         self.gui_reset()
         w=g.m.currentWindow
-        width_microns=QDoubleSpinBox()
+        width_microns=QtWidgets.QDoubleSpinBox()
         
-        width_pixels=QSpinBox()
+        width_pixels=QtWidgets.QSpinBox()
         width_pixels.setRange(.001,1000000)
         width_pixels.setRange(1,w.mx)
         
-        font_size=QSpinBox()
+        font_size=QtWidgets.QSpinBox()
         
-        color=QComboBox()
+        color=QtWidgets.QComboBox()
         color.addItem("White")
         color.addItem("Black")
-        background=QComboBox()
+        background=QtWidgets.QComboBox()
         background.addItem('None')
         background.addItem('Black')
         background.addItem('White')
-        location=QComboBox()
+        location=QtWidgets.QComboBox()
         location.addItem('Lower Right')
         location.addItem('Lower Left')
         location.addItem('Top Right')
         location.addItem('Top Left')
-        show=QCheckBox();
+        show=QtWidgets.QCheckBox();
         if hasattr(w,'scaleBarLabel') and w.scaleBarLabel is not None: #if the scaleBarLabel already exists
             props=w.scaleBarLabel.flika_properties
             width_microns.setValue(props['width_microns'])
@@ -213,13 +212,13 @@ class Scale_Bar(BaseProcess):
             textRect=w.scaleBarLabel.boundingRect()
             
             if location=='Top Left':
-                barPoint=QPoint(0, textRect.height())
+                barPoint=QtCore.QPoint(0, textRect.height())
             elif location=='Top Right':
-                barPoint=QPoint(-width_pixels, textRect.height())
+                barPoint=QtCore.QPoint(-width_pixels, textRect.height())
             elif location=='Lower Right':
-                barPoint=QPoint(-width_pixels, -textRect.height())
+                barPoint=QtCore.QPoint(-width_pixels, -textRect.height())
             elif location=='Lower Left':
-                barPoint=QPoint(0, -textRect.height())
+                barPoint=QtCore.QPoint(0, -textRect.height())
                 
             bar = QGraphicsRectItem(QRectF(barPoint,QSizeF(width_pixels,int(font_size/3))))
             bar.setPen(pg.mkPen(color255)); bar.setBrush(pg.mkBrush(color255))
@@ -247,18 +246,18 @@ class Scale_Bar(BaseProcess):
         textHeight=textRect.height()*view.viewPixelSize()[1]
         
         if location=='Top Left':
-            barPoint=QPoint(0, 1.3*textHeight)
-            w.scaleBarLabel.setPos(QPointF(width_pixels/2-textWidth/2,0))
+            barPoint=QtCore.QPoint(0, 1.3*textHeight)
+            w.scaleBarLabel.setPos(QtCore.QPointF(width_pixels/2-textWidth/2,0))
         elif location=='Top Right':
-            barPoint=QPoint(w.mx-width_pixels, 1.3*textHeight)
-            w.scaleBarLabel.setPos(QPointF(w.mx-width_pixels/2-textWidth/2,0))
+            barPoint=QtCore.QPoint(w.mx-width_pixels, 1.3*textHeight)
+            w.scaleBarLabel.setPos(QtCore.QPointF(w.mx-width_pixels/2-textWidth/2,0))
         elif location=='Lower Right':
-            barPoint=QPoint(w.mx-width_pixels, w.my-1.3*textHeight)
-            w.scaleBarLabel.setPos(QPointF(w.mx-width_pixels/2-textWidth/2,w.my-textHeight))
+            barPoint=QtCore.QPoint(w.mx-width_pixels, w.my-1.3*textHeight)
+            w.scaleBarLabel.setPos(QtCore.QPointF(w.mx-width_pixels/2-textWidth/2,w.my-textHeight))
         elif location=='Lower Left':
-            barPoint=QPoint(0, w.my-1.3*textHeight)
-            w.scaleBarLabel.setPos(QPointF(QPointF(width_pixels/2-textWidth/2,w.my-textHeight)))
-        w.scaleBarLabel.bar.setRect(QRectF(barPoint,QSizeF(width_pixels,textHeight/4)))
+            barPoint=QtCore.QPoint(0, w.my-1.3*textHeight)
+            w.scaleBarLabel.setPos(QtCore.QPointF(QtCore.QPointF(width_pixels/2-textWidth/2,w.my-textHeight)))
+        w.scaleBarLabel.bar.setRect(QtCore.QRectF(barPoint,QtCore.QSizeF(width_pixels,textHeight/4)))
         
     def preview(self):
         width_microns=self.getValue('width_microns')

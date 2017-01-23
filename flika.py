@@ -8,8 +8,8 @@ print('Launching Flika')
 import time
 import os, sys
 import numpy as np
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import pyqtSignal as Signal
+from qtpy import QtCore, QtGui, QtWidgets
+from qtpy.QtCore import Signal
 from pyqtgraph import plot, show
 import pyqtgraph as pg
 import global_vars as g
@@ -37,9 +37,9 @@ DOCS_URL = 'http://flika-org.github.io/documentation.html'
 def initializeMainGui():
     if g.mainGuiInitialized:
         return 0 
-    g.app = QtGui.QApplication(sys.argv)
+    g.app = QtWidgets.QApplication(sys.argv)
     g.init('gui/main.ui')
-    desktop = QtGui.QApplication.desktop()
+    desktop = QtWidgets.QApplication.desktop()
     width_px=int(desktop.logicalDpiX()*3.4)
     height_px=int(desktop.logicalDpiY()*.9)
     g.m.setGeometry(QtCore.QRect(15, 33, width_px, height_px))
@@ -103,7 +103,7 @@ def initializeMainGui():
     g.m.actionCheck_For_Updates.triggered.connect(g.checkUpdates)
     g.m.installEventFilter(mainWindowEventEater)
     g.m.show()
-    QtGui.qApp.processEvents()
+    QtWidgets.qApp.processEvents()
 
 
 class MainWindowEventEater(QtCore.QObject):

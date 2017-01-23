@@ -4,9 +4,9 @@ Created on Thu Jun 26 16:10:00 2014
 
 @author: Kyle Ellefsen
 """
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-from PyQt4.QtCore import pyqtSignal as Signal
+from qtpy.QtCore import Signal, QEvent, QRect, Qt
+from qtpy.QtGui import QIcon
+from qtpy.QtWidgets import QWidget, QPushButton, QAction, QVBoxLayout, qApp, QApplication
 import pyqtgraph as pg
 pg.setConfigOptions(useWeave=False)
 import os, time

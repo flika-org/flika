@@ -1,7 +1,6 @@
 import sys, time
-from PyQt4 import QtGui, QtCore
-from PyQt4.QtCore import QThread
-from PyQt4.QtCore import pyqtSignal as Signal
+from qtpy import QtWidgets, QtCore, QtGui
+from qtpy.QtCore import QThread, Signal
 from multiprocessing import Process, Queue, cpu_count, Pipe
 import os
 import numpy as np
@@ -63,7 +62,7 @@ class ProcessLauncher(QThread):
 
         
     
-class ProgressBar(QtGui.QWidget):
+class ProgressBar(QtWidgets.QWidget):
     finished_sig=Signal()
     def __init__(self, outerfunc, data, args, nCores, msg='Performing Operations', parent=None ):
         super(ProgressBar, self).__init__(parent)
@@ -75,16 +74,16 @@ class ProgressBar(QtGui.QWidget):
         
         # GUI
         self.setWindowIcon(QtGui.QIcon('images/favicon.png'))
-        self.label=QtGui.QLabel(msg)
+        self.label=QtWidgets.QLabel(msg)
         #self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         self.progress_bars=[]
-        self.button = QtGui.QPushButton('Stop')
+        self.button = QtWidgets.QPushButton('Stop')
         self.button.clicked.connect(self.handleButton)
-        main_layout = QtGui.QGridLayout()
+        main_layout = QtWidgets.QGridLayout()
         main_layout.addWidget(self.label,0,0)
         main_layout.addWidget(self.button, 0, 1)
         for i in range(nCores):
-            bar=QtGui.QProgressBar()
+            bar=QtWidgets.QProgressBar()
             bar.setMinimum(1)
             bar.setMaximum(100)
             main_layout.addWidget(bar, 1+i, 0)
@@ -93,7 +92,7 @@ class ProgressBar(QtGui.QWidget):
         self.setWindowTitle(msg)
         self.stopPressed = False
         self.show()
-        QtGui.qApp.processEvents()
+        QtWidgets.qApp.processEvents()
         
         self.results=[None for i in range(nCores)]
         self.process_finished=[False for i in range(nCores)]
@@ -118,7 +117,7 @@ class ProgressBar(QtGui.QWidget):
         
         while self.finished is False: #the exec_() loop doesn't wait for loop.quit when running in spyder for some reason.  This is the workaround
             time.sleep(.01)
-            QtGui.qApp.processEvents()
+            QtWidgets.qApp.processEvents()
         self.close()
         
     def check_if_finished(self):
@@ -132,7 +131,7 @@ class ProgressBar(QtGui.QWidget):
                 self.results[i]=self.q_results[i].get()
                 self.process_finished[i]=True
                 self.processes[i].join(1)
-        QtGui.qApp.processEvents()
+        QtWidgets.qApp.processEvents()
         if all(self.process_finished):
             if any(r is None for r in self.results):
                 self.results=None
@@ -262,7 +261,7 @@ def inner_func(q_results, q_progress, q_status, child_conn, args):
 
         
 if __name__ == '__main__':
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     result=outer_func()
     print(result)
 

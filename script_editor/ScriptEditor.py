@@ -2,13 +2,11 @@
 """
 @author: Brett Settle
 """
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
 import os
 import global_vars as g
 from os.path import expanduser
 import datetime
-from PyQt4 import uic
+from qtpy import uic, QtWidgets, QtGui, QtCore
 from pyqtgraph import console
 import pyqtgraph as pg
 from script_editor.script_namespace import getnamespace
@@ -21,7 +19,7 @@ def qstr2str(string):
 
 class SettingsDialog(BaseDialog):
     def __init__(self):
-        self.textSizeSpin = QSpinBox(value=ScriptEditor.gui.font().pointSize())
+        self.textSizeSpin = QtWidgets.QSpinBox(value=ScriptEditor.gui.font().pointSize())
         items = [{'string': 'Text Size', 'object': self.textSizeSpin}]
         BaseDialog.__init__(self, items, "Script Editor Settings", '')
         self.accepted.connect(self.applySettings)
@@ -35,9 +33,9 @@ def settingsWindow():
     ScriptEditor.gui.settingsWindow = SettingsDialog()
     ScriptEditor.gui.settingsWindow.show()
 
-class Editor(QPlainTextEdit):
+class Editor(QtWidgets.QPlainTextEdit):
     def __init__(self, scriptfile = ''):
-        QWidget.__init__(self)
+        QtWidgets.QWidget.__init__(self)
         self.highlight = PythonHighlighter(self.document())
         self.scriptfile = ''
         if scriptfile != '':
@@ -59,7 +57,7 @@ class Editor(QPlainTextEdit):
         ScriptEditor.gui.statusBar().showMessage('{} loaded.'.format(os.path.basename(self.scriptfile)))
 
     def save_as(self):
-        filename= str(QFileDialog.getSaveFileName(g.m, 'Save script', ScriptEditor.most_recent_script(), '*.py'))
+        filename= str(QtWidgets.QFileDialog.getSaveFileName(g.m, 'Save script', ScriptEditor.most_recent_script(), '*.py'))
         if filename == '':
             ScriptEditor.gui.statusBar().showMessage('Save cancelled')
             return False
@@ -79,7 +77,7 @@ class Editor(QPlainTextEdit):
         return True
 
     def eventFilter(self, source, event):
-        if (event.type()==QKeyEvent.KeyPress and event.key() == Qt.Key_Tab):
+        if (event.type()==QtCore.QKeyEvent.KeyPress and event.key() == QtCore.Qt.Key_Tab):
             event.accept()
             self.insertPlainText('    ')
             return True
@@ -87,12 +85,12 @@ class Editor(QPlainTextEdit):
             event.ignore()
         return False
 
-class ScriptEditor(QMainWindow):
+class ScriptEditor(QtWidgets.QMainWindow):
     '''
     QMainWindow for editing and running user scripts. Comprised of a tabbed text editor and console.
     '''
     def __init__(self, parent=None):
-        QMainWindow.__init__(self, parent)
+        super(ScriptEditor, self).__init__(parent)
         uic.loadUi('gui/scriptEditor.ui', self)
         text = """
         This is an interactive python console. The numpy and pyqtgraph modules have already been imported 
@@ -104,7 +102,7 @@ class ScriptEditor(QMainWindow):
             - You can get traces of those rois by using the roi.getTrace() function
         
         """
-        self.setWindowIcon(QIcon('images/favicon.png'))
+        self.setWindowIcon(QtGui.QIcon('images/favicon.png'))
         self.consoleWidget.localNamespace=getnamespace()
         self.consoleWidget.output.setPlainText(text)
         self.addEditor()
@@ -128,7 +126,7 @@ class ScriptEditor(QMainWindow):
         def makeFun(script):
             return lambda: ScriptEditor.importScript(script)
         if len(g.settings['recent_scripts']) == 0:
-            action = QAction("No Recent Scripts", g.m)
+            action = QtWidgets.QAction("No Recent Scripts", g.m)
             action.setEnabled(False)
             self.menuRecentScripts.addAction(action)
         else:
@@ -136,7 +134,7 @@ class ScriptEditor(QMainWindow):
                 if not os.path.exists(filename):
                     g.settings['recent_scripts'].remove(filename)
                     continue
-                action = QAction(filename, g.m, triggered=makeFun(filename))
+                action = QtWidgets.QAction(filename, g.m, triggered=makeFun(filename))
                 self.menuRecentScripts.addAction(action)
 
     def closeTab(self, index):
@@ -171,7 +169,7 @@ class ScriptEditor(QMainWindow):
         if not hasattr(ScriptEditor, 'gui') or not ScriptEditor.gui.isVisible():
             ScriptEditor.show()
         if scriptfile == '':
-            scriptfile= str(QFileDialog.getOpenFileName(ScriptEditor.gui, 'Load script', os.path.dirname(ScriptEditor.most_recent_script()), '*.py'))
+            scriptfile= str(QtWidgets.QFileDialog.getOpenFileName(ScriptEditor.gui, 'Load script', os.path.dirname(ScriptEditor.most_recent_script()), '*.py'))
             if scriptfile == '':
                 return
         editor = Editor(scriptfile)
@@ -193,15 +191,15 @@ class ScriptEditor(QMainWindow):
         return editor
 
     def keyPressEvent(self, ev):
-        if ev.modifiers() == Qt.ControlModifier:
-            if ev.key() == Qt.Key_N:
+        if ev.modifiers() == QtCore.Qt.ControlModifier:
+            if ev.key() == QtCore.Qt.Key_N:
                 self.addEditor()
                 ev.accept()
-            elif ev.key() == Qt.Key_S:
+            elif ev.key() == QtCore.Qt.Key_S:
                 self.saveCurrentScript()
 
     def editorKeyPressEvent(self, editor, ev):
-        if ev.key() == Qt.Key_F9:
+        if ev.key() == QtCore.Qt.Key_F9:
             self.runSelected()
             ev.accept()
         else:
@@ -226,24 +224,24 @@ class ScriptEditor(QMainWindow):
     def show():
         if not hasattr(ScriptEditor, 'gui'):
             ScriptEditor.gui = ScriptEditor()
-        QMainWindow.show(ScriptEditor.gui)
+        QtWidgets.QMainWindow.show(ScriptEditor.gui)
 
     @staticmethod
     def close():
         if hasattr(ScriptEditor, 'gui'):
-            QMainWindow.close(ScriptEditor.gui)
+            QtWidgets.QMainWindow.close(ScriptEditor.gui)
 
-class ScriptEventEater(QObject):
+class ScriptEventEater(QtCore.QObject):
     def __init__(self,parent=None):
-        QObject.__init__(self,parent)
+        QtCore.QObject.__init__(self,parent)
         self.parent = parent
     def eventFilter(self,obj,event):
-        if (event.type()==QEvent.DragEnter):
+        if (event.type()==QtCore.QEvent.DragEnter):
             if event.mimeData().hasUrls():
                 event.accept()   # must accept the dragEnterEvent or else the dropEvent can't occur !!!
             else:
                 event.ignore()
-        if (event.type() == QEvent.Drop):
+        if (event.type() == QtCore.QEvent.Drop):
             if event.mimeData().hasUrls():   # if file or link is dropped
                 url = event.mimeData().urls()[0]   # get first url
                 filename=url.toString()

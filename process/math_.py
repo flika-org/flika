@@ -7,8 +7,7 @@ Created on Thu Jun 26 19:44:11 2014
 import numpy as np
 import global_vars as g
 from process.BaseProcess import BaseProcess
-from PyQt4.QtGui import *
-from PyQt4.QtCore import *
+from qtpy import QtGui, QtWidgets, QtCore
 
 __all__ = ['subtract','multiply','power','ratio','absolute_value','subtract_trace','divide_trace']
 from window import Window
@@ -47,12 +46,12 @@ class Subtract(BaseProcess):
         super().__init__()
     def gui(self):
         self.gui_reset()
-        value=QDoubleSpinBox()
+        value=QtWidgets.QDoubleSpinBox()
         if g.m.currentWindow is not None:
             value.setRange(-1 * np.max(g.m.currentWindow.image),np.max(g.m.currentWindow.image)) # -np.max sometimes returns abnormal large value
             value.setValue(np.min(g.m.currentWindow.image))
         self.items.append({'name':'value','string':'Value','object':value})
-        self.items.append({'name':'preview','string':'Preview','object':QCheckBox()})
+        self.items.append({'name':'preview','string':'Preview','object':QtWidgets.QCheckBox()})
         super().gui()
     def __call__(self,value,keepSourceWindow=False):
         self.start(keepSourceWindow)
@@ -143,10 +142,10 @@ class Multiply(BaseProcess):
         super().__init__()
     def gui(self):
         self.gui_reset()
-        value=QDoubleSpinBox()
+        value=QtWidgets.QDoubleSpinBox()
         value.setRange(-2**64,2**64)
         self.items.append({'name':'value','string':'Value','object':value})
-        self.items.append({'name':'preview','string':'Preview','object':QCheckBox()})
+        self.items.append({'name':'preview','string':'Preview','object':QtWidgets.QCheckBox()})
         super().gui()
     def __call__(self,value,keepSourceWindow=False):
         self.start(keepSourceWindow)
@@ -177,12 +176,12 @@ class Power(BaseProcess):
         super().__init__()
     def gui(self):
         self.gui_reset()
-        value=QDoubleSpinBox()
+        value=QtWidgets.QDoubleSpinBox()
         if g.m.currentWindow is not None:
             value.setRange(-100,100)
             value.setValue(1)
         self.items.append({'name':'value','string':'Value','object':value})
-        self.items.append({'name':'preview','string':'Preview','object':QCheckBox()})
+        self.items.append({'name':'preview','string':'Preview','object':QtWidgets.QCheckBox()})
         super().gui()
     def __call__(self,value,keepSourceWindow=False):
         self.start(keepSourceWindow)
@@ -218,14 +217,14 @@ class Ratio(BaseProcess):
         nFrames=1
         if g.m.currentWindow is not None:
             nFrames=g.m.currentWindow.image.shape[0]
-        first_frame=QSpinBox()
+        first_frame=QtWidgets.QSpinBox()
         first_frame.setMaximum(nFrames)
         self.items.append({'name':'first_frame','string':'First Frame','object':first_frame})
-        nFrames_spinbox=QSpinBox()
+        nFrames_spinbox=QtWidgets.QSpinBox()
         nFrames_spinbox.setMaximum(nFrames)
         nFrames_spinbox.setMinimum(1)
         self.items.append({'name':'nFrames','string':'Number of Frames','object':nFrames_spinbox})
-        ratio_type=QComboBox()
+        ratio_type=QtWidgets.QComboBox()
         ratio_type.addItem('average')
         ratio_type.addItem('standard deviation')
         self.items.append({'name':'ratio_type','string':'Ratio Type','object':ratio_type})

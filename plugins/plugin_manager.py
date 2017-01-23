@@ -3,9 +3,10 @@
 '''
 from glob import glob
 import global_vars as g
-from PyQt4.QtGui import *
-from PyQt4.QtCore import *
-from PyQt4 import uic
+from qtpy.QtWidgets import QWidget, QMainWindow, QAction
+from qtpy.QtGui import QIcon
+from qtpy import QtGui, QtWidgets
+from qtpy import uic
 import sys
 from urllib.request import urlopen
 import difflib
@@ -197,12 +198,12 @@ class PluginManager(QMainWindow):
 
     @staticmethod
     def makeListWidgetItem(name):
-        item=QListWidgetItem(name)
+        item=QtWidgets.QListWidgetItem(name)
         if 'install_date' in PluginManager.plugins[name]:
             if PluginManager.update_available(name):
-                item.setIcon(QIcon('images/exclamation.png'))
+                item.setIcon(QtGui.QIcon('images/exclamation.png'))
             else:
-                item.setIcon(QIcon('images/check.png'))
+                item.setIcon(QtGui.QIcon('images/check.png'))
         return item
 
     def clearList(self):

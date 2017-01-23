@@ -11,8 +11,7 @@ import scipy.ndimage
 from skimage import feature
 from skimage.filters import threshold_adaptive
 from process.BaseProcess import BaseProcess, SliderLabel, WindowSelector,  MissingWindowError
-from PyQt4.QtGui import *
-from PyQt4.QtCore import *    
+from qtpy import QtCore, QtGui, QtWidgets  
 
 __all__ = ['threshold','remove_small_blobs','adaptive_threshold','logically_combine','binary_dilation','binary_erosion']
      
@@ -44,10 +43,10 @@ class Threshold(BaseProcess):
             image=g.m.currentWindow.image
             valueSlider.setRange(np.min(image),np.max(image))
             valueSlider.setValue(np.mean(image))
-        preview=QCheckBox()
+        preview=QtWidgets.QCheckBox()
         preview.setChecked(True)
         self.items.append({'name':'value','string':'Value','object':valueSlider})
-        self.items.append({'name':'darkBackground','string':'Dark Background','object':QCheckBox()})
+        self.items.append({'name':'darkBackground','string':'Dark Background','object':QtWidgets.QCheckBox()})
         self.items.append({'name':'preview','string':'Preview','object':preview})
         super().gui()
     def __call__(self,value,darkBackground=False, keepSourceWindow=False):
@@ -122,10 +121,10 @@ class Adaptive_threshold(BaseProcess):
         if g.m.currentWindow is not None:
             max_block=int(max([g.m.currentWindow.image.shape[-1],g.m.currentWindow.image.shape[-2]])/2)
         block_size.setRange(3,max_block)
-        preview=QCheckBox(); preview.setChecked(True)
+        preview=QtWidgets.QCheckBox(); preview.setChecked(True)
         self.items.append({'name':'value','string':'Value','object':valueSlider})
         self.items.append({'name':'block_size','string':'Block Size','object':block_size})
-        self.items.append({'name':'darkBackground','string':'Dark Background','object':QCheckBox()})
+        self.items.append({'name':'darkBackground','string':'Dark Background','object':QtWidgets.QCheckBox()})
         self.items.append({'name':'preview','string':'Preview','object':preview})
         super().gui()
         self.preview()
@@ -186,7 +185,7 @@ class Canny_edge_detector(BaseProcess):
         if g.m.currentWindow is not None:
             sigma.setRange(0,1000)
             sigma.setValue(1)
-        preview=QCheckBox(); preview.setChecked(True)
+        preview=QtWidgets.QCheckBox(); preview.setChecked(True)
         self.items.append({'name':'sigma','string':'Sigma','object':sigma})
         self.items.append({'name':'preview','string':'Preview','object':preview})
         super().gui()
@@ -241,7 +240,7 @@ class Logically_combine(BaseProcess):
         self.gui_reset()
         window1=WindowSelector()
         window2=WindowSelector()
-        operator=QComboBox()
+        operator=QtWidgets.QComboBox()
         operator.addItem('AND')
         operator.addItem('OR')
         operator.addItem('XOR')
@@ -291,9 +290,9 @@ class Remove_small_blobs(BaseProcess):
         super().__init__()
     def gui(self):
         self.gui_reset()
-        rank=QSpinBox()
+        rank=QtWidgets.QSpinBox()
         rank.setRange(2,3)
-        value=QSpinBox()
+        value=QtWidgets.QSpinBox()
         value.setRange(1,100000)
         self.items.append({'name':'rank','string':'Number of Dimensions','object':rank})
         self.items.append({'name':'value','string':'Value','object':value})
@@ -335,11 +334,11 @@ class Binary_Dilation(BaseProcess):
         super().__init__()
     def gui(self):
         self.gui_reset()
-        rank=QSpinBox()
+        rank=QtWidgets.QSpinBox()
         rank.setRange(2,3)
-        connectivity=QSpinBox()
+        connectivity=QtWidgets.QSpinBox()
         connectivity.setRange(1,3)
-        iterations=QSpinBox()
+        iterations=QtWidgets.QSpinBox()
         iterations.setRange(1,100)
         self.items.append({'name':'rank','string':'Number of Dimensions','object':rank})
         self.items.append({'name':'connectivity','string':'Connectivity','object':connectivity})
@@ -378,11 +377,11 @@ class Binary_Erosion(BaseProcess):
         super().__init__()
     def gui(self):
         self.gui_reset()
-        rank=QSpinBox()
+        rank=QtWidgets.QSpinBox()
         rank.setRange(2,3)
-        connectivity=QSpinBox()
+        connectivity=QtWidgets.QSpinBox()
         connectivity.setRange(1,3)
-        iterations=QSpinBox()
+        iterations=QtWidgets.QSpinBox()
         iterations.setRange(1,100)
         self.items.append({'name':'rank','string':'Number of Dimensions','object':rank})
         self.items.append({'name':'connectivity','string':'Connectivity','object':connectivity})

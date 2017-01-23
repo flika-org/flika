@@ -4,10 +4,7 @@ Created on Thu Jun 26 14:43:19 2014
 
 @author: Kyle Ellefsen
 """
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-from PyQt4.QtGui import QColor
-from PyQt4.QtGui import qApp
+
 import pyqtgraph as pg
 import pyqtgraph.exporters
 import time
@@ -16,7 +13,7 @@ import numpy as np
 from skimage.io import imread, imsave
 from window import Window
 import global_vars as g
-from PyQt4 import uic
+from qtpy import uic, QtGui, QtCore, QtWidgets
 import codecs
 import shutil, subprocess
 from skimage.external import tifffile
@@ -45,7 +42,7 @@ def save_recent_file(fname):
 def make_recent_menu():
     g.m.menuRecent_Files.clear()
     if len(g.settings['recent_files']) == 0:
-        no_recent = QAction("No Recent Files", g.m)
+        no_recent = QtWidgets.QAction("No Recent Files", g.m)
         no_recent.setEnabled(False)
         g.m.menuRecent_Files.addAction(no_recent)
         return
@@ -53,7 +50,7 @@ def make_recent_menu():
         return lambda : open_file(save_recent_file(f))
     for fname in g.settings['recent_files'][:10]:
         if os.path.exists(fname):
-            g.m.menuRecent_Files.addAction(QAction(fname, g.m, triggered=openFun(fname)))
+            g.m.menuRecent_Files.addAction(QtWidgets.QAction(fname, g.m, triggered=openFun(fname)))
 
 def open_file_gui(func, filetypes, prompt='Open File', kargs={}):
     '''
@@ -61,15 +58,15 @@ def open_file_gui(func, filetypes, prompt='Open File', kargs={}):
 
     Parameters:
         | func (function) -- once the file is loaded, run this function with the data array as the first parameter
-        | filetypes (str) -- QFileDialog representation of acceptable filetypes eg (Text Files (\*.txt);;Images(\*.tif, \*.stk, \*.nd2))
+        | filetypes (str) -- QtWidgets.QFileDialog representation of acceptable filetypes eg (Text Files (\*.txt);;Images(\*.tif, \*.stk, \*.nd2))
         | prompt (str) -- prompt shown at the top of the dialog
         | kargs (dict) -- any excess arguments to be passed to func
     '''
     filename=g.settings['filename']
     if filename is not None and os.path.isfile(filename):
-        filename= QFileDialog.getOpenFileName(g.m, prompt, filename, filetypes)
+        filename= QtWidgets.QFileDialog.getOpenFileName(g.m, prompt, filename, filetypes)
     else:
-        filename= QFileDialog.getOpenFileName(g.m, prompt, '', filetypes)
+        filename= QtWidgets.QFileDialog.getOpenFileName(g.m, prompt, '', filetypes)
     filename=str(filename)
     if filename != '':
         save_recent_file(filename)
@@ -83,7 +80,7 @@ def save_file_gui(func, filetypes, prompt = 'Save File', kargs={}):
 
     Parameters:
         | func (function) -- once the file is selected, run this function with the data array as the first parameter
-        | filetypes (str) -- QFileDialog representation of acceptable filetypes eg (Text Files (\*.txt);;Images(\*.tif, \*.stk, \*.nd2))
+        | filetypes (str) -- QtWidgets.QFileDialog representation of acceptable filetypes eg (Text Files (\*.txt);;Images(\*.tif, \*.stk, \*.nd2))
         | prompt (str) -- prompt shown at the top of the dialog
         | kargs (dict) -- any excess arguments to be passed to func
     '''
@@ -93,9 +90,9 @@ def save_file_gui(func, filetypes, prompt = 'Save File', kargs={}):
     except:
         directory=''
     if filename is not None and directory != '':
-        filename= QFileDialog.getSaveFileName(g.m, prompt, directory, filetypes)
+        filename= QtWidgets.QFileDialog.getSaveFileName(g.m, prompt, directory, filetypes)
     else:
-        filename= QFileDialog.getSaveFileName(g.m, prompt, filetypes)
+        filename= QtWidgets.QFileDialog.getSaveFileName(g.m, prompt, filetypes)
     filename=str(filename)
     if filename != '':
         func(filename, **kargs)

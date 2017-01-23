@@ -1,8 +1,6 @@
-from PyQt4 import uic
-from PyQt4 import QtGui
-from PyQt4.QtGui import QMessageBox
+from qtpy import uic, QtWidgets
 
-from PyQt4.QtCore import pyqtSignal as Signal
+from qtpy.QtCore import Signal
 import sys, os, atexit
 import pickle
 from urllib.request import urlopen
@@ -79,14 +77,14 @@ class Settings:
     def gui(self):
         old_dtype=str(np.dtype(self['internal_data_type']))
         dataDrop = pg.ComboBox(items=data_types, default=old_dtype)
-        showCheck = QtGui.QCheckBox()
+        showCheck = QtWidgets.QCheckBox()
         showCheck.setChecked(self.d['show_windows'])
-        multipleTracesCheck = QtGui.QCheckBox()
+        multipleTracesCheck = QtWidgets.QCheckBox()
         multipleTracesCheck.setChecked(self['multipleTraceWindows'])
-        multiprocessing = QtGui.QCheckBox()
+        multiprocessing = QtWidgets.QCheckBox()
         multiprocessing.setChecked(self['multiprocessing'])
-        nCores = QtGui.QComboBox()
-        debug_check = QtGui.QCheckBox(checked=self['debug_mode'])
+        nCores = QtWidgets.QComboBox()
+        debug_check = QtWidgets.QCheckBox(checked=self['debug_mode'])
         debug_check.toggled.connect(setConsoleVisible)
         for i in np.arange(cpu_count())+1:
             nCores.addItem(str(i))
@@ -124,13 +122,13 @@ def pointSettings(pointButton):
     point_color = ColorSelector()
     point_color.color=m.settings['point_color']
     point_color.label.setText(point_color.color)
-    point_size = QtGui.QSpinBox()
+    point_size = QtWidgets.QSpinBox()
     point_size.setRange(1,50)
     point_size.setValue(m.settings['point_size'])
-    show_all_points = QtGui.QCheckBox()
+    show_all_points = QtWidgets.QCheckBox()
     show_all_points.setChecked(m.settings['show_all_points'])
     
-    update_current_points_check = QtGui.QCheckBox()
+    update_current_points_check = QtWidgets.QCheckBox()
     update_current_points_check.setChecked(False)
     
     items = []
@@ -144,7 +142,7 @@ def pointSettings(pointButton):
         m.settings['point_size'] = point_size.value()
         m.settings['show_all_points'] = show_all_points.isChecked()
         if win is not None and update_current_points_check.isChecked() == True:
-            color = QtGui.QColor(point_color.value())
+            color = QtWidgets.QColor(point_color.value())
             size = point_size.value()
             for t in np.arange(win.mt):
                 for i in np.arange(len(win.scatterPoints[t])):
@@ -177,11 +175,11 @@ def mainguiClose(event):
     event.accept() # let the window close
 
 
-def messageBox(title, text, buttons=QtGui.QMessageBox.Ok, icon=QtGui.QMessageBox.Information):
-    m.messagebox = QtGui.QMessageBox(icon, title, text, buttons)
+def messageBox(title, text, buttons=QtWidgets.QMessageBox.Ok, icon=QtWidgets.QMessageBox.Information):
+    m.messagebox = QtWidgets.QMessageBox(icon, title, text, buttons)
     m.messagebox.setWindowIcon(m.windowIcon())
     m.messagebox.show()
-    while m.messagebox.isVisible(): QtGui.QApplication.instance().processEvents()
+    while m.messagebox.isVisible(): QtWidgets.QApplication.instance().processEvents()
     return m.messagebox.result()
 
 
@@ -208,7 +206,7 @@ def checkUpdates():
         latest_version = latest_version[0]
         message += latest_version
     if any([int(j) > int(i) for i, j in zip(version.split('.'), latest_version.split('.'))]):
-        if messageBox("Update Recommended", message + '\n\nWould you like to update?', QtGui.QMessageBox.Yes | QtGui.QMessageBox.No, QtGui.QMessageBox.Question) == QtGui.QMessageBox.Yes:
+        if messageBox("Update Recommended", message + '\n\nWould you like to update?', QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.Question) == QtWidgets.QMessageBox.Yes:
             updateFlika()
     else:
         messageBox("Up to date", "Your version of Flika is up to date")
@@ -246,7 +244,7 @@ def updateFlika():
         shutil.rmtree(extract_location)
         exit(0)
     except Exception as e:
-        messageBox("Update Error", "Failed to remove and replace old Flika. %s" % e, icon=QtGui.QMessageBox.Warning)
+        messageBox("Update Error", "Failed to remove and replace old Flika. %s" % e, icon=QtWidgets.QMessageBox.Warning)
     
 
 def setConsoleVisible(v):
@@ -257,11 +255,11 @@ def setConsoleVisible(v):
     ShowWindow(console_window_handle, v)
 
 
-class SetCurrentWindowSignal(QtGui.QWidget):
+class SetCurrentWindowSignal(QtWidgets.QWidget):
     sig=Signal()
 
     def __init__(self,parent):
-        QtGui.QWidget.__init__(self,parent)
+        QtWidgets.QWidget.__init__(self,parent)
         self.hide()
 
 def alert(msg):

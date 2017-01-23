@@ -7,10 +7,9 @@ Created on Thu Aug 28 12:54:12 2014
 import os
 import numpy as np
 import global_vars as g
-from PyQt4.QtGui import *
-from PyQt4.QtCore import *
 from process.BaseProcess import BaseProcess
 import pyqtgraph as pg
+from qtpy import QtWidgets, QtCore, QtGui
 
 __all__ = ['measure']
 
@@ -30,13 +29,13 @@ class Measure(BaseProcess):
     def gui(self):
         self.gui_reset()
         self.currentPoint=0
-        active_point=QLineEdit(); #active_point.setEnabled(False)
-        second_point=QLineEdit(); #second_point.setEnabled(False)
-        difference=QLineEdit(); #difference.setEnabled(False)
-        slope=QLineEdit(); #slope.setEnabled(False)
-        log=QPushButton('Log Data')
+        active_point=QtWidgets.QLineEdit(); #active_point.setEnabled(False)
+        second_point=QtWidgets.QLineEdit(); #second_point.setEnabled(False)
+        difference=QtWidgets.QLineEdit(); #difference.setEnabled(False)
+        slope=QtWidgets.QLineEdit(); #slope.setEnabled(False)
+        log=QtWidgets.QPushButton('Log Data')
         log.pressed.connect(self.log)
-        newcol=QPushButton('New Column')
+        newcol=QtWidgets.QPushButton('New Column')
         newcol.pressed.connect(self.newcol)
         self.table = pg.TableWidget()
         self.items.append({'name':'active_point','string':'Active Point: ','object':active_point})
@@ -82,7 +81,7 @@ class Measure(BaseProcess):
                 self.clear()
                 self.fig = window
                 self.viewbox = self.fig.imageview.view
-                self.pathitem=QGraphicsPathItem(self.viewbox)
+                self.pathitem=QtWidgets.QGraphicsPathItem(self.viewbox)
                 self.pathitem.setPen(QPen(Qt.red))
                 self.viewbox.addItem(self.pathitem,ignoreBounds=True)
             mousePoint = self.fig.imageview.getImageItem().mapFromScene(pos)
@@ -94,7 +93,7 @@ class Measure(BaseProcess):
                 self.viewbox=self.fig.vb
                 if not g.m.currentTrace.p1.plotItem.sceneBoundingRect().contains(pos):
                     return
-                self.pathitem=QGraphicsPathItem(self.viewbox)
+                self.pathitem=QtWidgets.QGraphicsPathItem(self.viewbox)
                 self.pathitem.setPen(QPen(Qt.red))
                 self.viewbox.addItem(self.pathitem,ignoreBounds=True)
             mousePoint = self.viewbox.mapSceneToView(pos) if not overwrite else pos
@@ -133,7 +132,7 @@ class Measure(BaseProcess):
     def draw(self,points):
         if type(self.fig) != type(g.m.currentTrace):
             points = [p[::-1] for p in points]
-        path=QPainterPath(QPointF(*points[0]))
+        path=QtGui.QPainterPath(QPointF(*points[0]))
         for i in np.arange(1,len(points)):
             path.lineTo(QPointF(*points[i]))
         self.pathitem.setPath(path)

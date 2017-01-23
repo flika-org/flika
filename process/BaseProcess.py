@@ -8,10 +8,8 @@ import os.path
 import global_vars as g
 import numpy as np
 import window
-from PyQt4.QtGui import *
-from PyQt4.QtCore import *
-from PyQt4.QtCore import pyqtSignal as Signal
-from PyQt4.QtCore import pyqtSlot as Slot
+from qtpy.QtWidgets import *
+from qtpy.QtCore import Signal, Slot
 import pyqtgraph as pg
 import sys
 import inspect

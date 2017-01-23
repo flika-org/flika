@@ -24,6 +24,7 @@
 	* numpy MKL
 	* scipy
 	* PyQt4
+	* qtpy
 	* pyqtgraph
 	* PyOpenGL
 	* scikit-image
