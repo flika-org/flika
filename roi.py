@@ -1,6 +1,6 @@
-from qtpy.QtWidgets import QAction, QMenu
-from qtpy.QtGui import QColor
-from qtpy.QtCore import Signal
+from qtpy.QtWidgets import QAction, QMenu, QColorDialog, QInputDialog, QFileDialog
+from qtpy.QtGui import QColor, QPen, QPainterPath
+from qtpy.QtCore import Signal, QPoint, QPointF, QRect, QRectF
 import global_vars as g
 import pyqtgraph as pg
 from skimage.draw import polygon, line

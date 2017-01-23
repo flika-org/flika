@@ -4,8 +4,9 @@ Created on Sun Jun 29 13:13:59 2014
 
 @author: Kyle Ellefsen
 """
-from qtpy.QtCore import Signal, QEvent, QThread
-from qtpy.QtWidgets import QWidget
+from qtpy.QtCore import Signal, QEvent, QThread, Qt, QEventLoop, QRect
+from qtpy.QtGui import QIcon, QPen
+from qtpy.QtWidgets import QWidget, QApplication, QVBoxLayout, QPushButton, QFileDialog
 import pyqtgraph as pg
 pg.setConfigOptions(useWeave=False)
 import numpy as np
