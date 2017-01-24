@@ -15,7 +15,16 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
-    <property name="margin">
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
      <number>0</number>
     </property>
     <property name="spacing">
@@ -23,11 +32,8 @@
     </property>
     <item row="0" column="0">
      <widget class="QSplitter" name="splitter">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-      <property name="handleWidth">
-       <number>4</number>
+      <property name="childrenCollapsible">
+       <bool>false</bool>
       </property>
       <widget class="QWidget" name="verticalLayoutWidget">
        <layout class="QVBoxLayout" name="verticalLayout">
@@ -83,10 +89,10 @@
         </item>
        </layout>
       </widget>
-      <widget class="ConsoleWidget" name="consoleWidget" native="true">
+      <widget class="QWidget" name="terminalWidget" native="true">
        <property name="minimumSize">
         <size>
-         <width>0</width>
+         <width>250</width>
          <height>0</height>
         </size>
        </property>
@@ -125,7 +131,7 @@
     <addaction name="menuRecentScripts"/>
     <addaction name="menuLoad_Script"/>
     <addaction name="actionSave_Script"/>
-    <addaction name="actionSettings"/>
+    <addaction name="actionChangeFontSize"/>
    </widget>
    <addaction name="menuFile"/>
   </widget>
@@ -158,20 +164,12 @@
     <string>No Recent Scripts</string>
    </property>
   </action>
-  <action name="actionSettings">
+  <action name="actionChangeFontSize">
    <property name="text">
-    <string>Settings</string>
+    <string>Change Font Size</string>
    </property>
   </action>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>ConsoleWidget</class>
-   <extends>QWidget</extends>
-   <header>pyqtgraph.console</header>
-   <container>1</container>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>

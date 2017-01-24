@@ -11,7 +11,7 @@ from pyqtgraph.dockarea import *
 from process.BaseProcess import BaseDialog, ColorSelector
 import pyqtgraph as pg
 from plugins.plugin_manager import PluginManager, load_plugin_menu
-from script_editor.ScriptEditor import ScriptEditor
+from script_editor.terminal_widget import ScriptEditor
 from multiprocessing import cpu_count
 import re, time, datetime, zipfile, shutil, subprocess, os
 from sys import executable

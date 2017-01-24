@@ -25,7 +25,7 @@ from process.measure import measure
 from process.file_ import make_recent_menu, open_file_gui, save_file_gui, open_file, load_metadata, close, save_file, save_movie, save_movie_gui, save_points, load_points, save_current_frame, save_roi_traces
 from roi import load_roi, makeROI
 from process.overlay import time_stamp,background, scale_bar
-from script_editor.ScriptEditor import ScriptEditor
+from script_editor.terminal_widget import ScriptEditor
 from plugins.plugin_manager import PluginManager
 try:
     os.chdir(os.path.split(os.path.realpath(__file__))[0])

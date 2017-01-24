@@ -2,40 +2,22 @@
 """
 @author: Brett Settle
 """
+from qtpy import QtGui, QtCore, QtWidgets, uic
 import os
+
 import global_vars as g
-from os.path import expanduser
-import datetime
-from qtpy import uic, QtWidgets, QtGui, QtCore
-from pyqtgraph import console
-import pyqtgraph as pg
-from script_editor.script_namespace import getnamespace
-from script_editor.syntax import PythonHighlighter
-from process.BaseProcess import BaseDialog
+from .terminal import ipython_terminal
+from .script_namespace import getnamespace
+from .syntax import PythonHighlighter
+
 
 def qstr2str(string):
     string=str(string)
-    return string.replace(u'\u2029','\n')
-
-class SettingsDialog(BaseDialog):
-    def __init__(self):
-        self.textSizeSpin = QtWidgets.QSpinBox(value=ScriptEditor.gui.font().pointSize())
-        items = [{'string': 'Text Size', 'object': self.textSizeSpin}]
-        BaseDialog.__init__(self, items, "Script Editor Settings", '')
-        self.accepted.connect(self.applySettings)
-
-    def applySettings(self):
-        font = ScriptEditor.gui.font()
-        font.setPointSize(self.textSizeSpin.value())
-        ScriptEditor.gui.setFont(font)
-
-def settingsWindow():
-    ScriptEditor.gui.settingsWindow = SettingsDialog()
-    ScriptEditor.gui.settingsWindow.show()
+    return string.replace(u'\u2029','\n').strip()
 
 class Editor(QtWidgets.QPlainTextEdit):
     def __init__(self, scriptfile = ''):
-        QtWidgets.QWidget.__init__(self)
+        super(Editor, self).__init__()
         self.highlight = PythonHighlighter(self.document())
         self.scriptfile = ''
         if scriptfile != '':
@@ -50,14 +32,16 @@ class Editor(QtWidgets.QPlainTextEdit):
         
     def load_file(self, scriptfile):
         self.scriptfile = scriptfile
-        f = open(scriptfile, 'r')
-        script=f.read()
-        f.close()
+        try:
+            script = open(scriptfile, 'r').read()
+        except Exception as e:
+            print("Failed to read %s: %s" % (scriptfile, e))
+
         self.setPlainText(script)
         ScriptEditor.gui.statusBar().showMessage('{} loaded.'.format(os.path.basename(self.scriptfile)))
 
     def save_as(self):
-        filename= str(QtWidgets.QFileDialog.getSaveFileName(g.m, 'Save script', ScriptEditor.most_recent_script(), '*.py'))
+        filename= str(QtWidgets.QFileDialog.getSaveFileName(self, 'Save script', ScriptEditor.most_recent_script(), '*.py'))
         if filename == '':
             ScriptEditor.gui.statusBar().showMessage('Save cancelled')
             return False
@@ -77,7 +61,7 @@ class Editor(QtWidgets.QPlainTextEdit):
         return True
 
     def eventFilter(self, source, event):
-        if (event.type()==QtCore.QKeyEvent.KeyPress and event.key() == QtCore.Qt.Key_Tab):
+        if (event.type()==QtGui.QKeyEvent.KeyPress and event.key() == QtCore.Qt.Key_Tab):
             event.accept()
             self.insertPlainText('    ')
             return True
@@ -89,44 +73,67 @@ class ScriptEditor(QtWidgets.QMainWindow):
     '''
     QMainWindow for editing and running user scripts. Comprised of a tabbed text editor and console.
     '''
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, ):
         super(ScriptEditor, self).__init__(parent)
-        uic.loadUi('gui/scriptEditor.ui', self)
-        text = """
-        This is an interactive python console. The numpy and pyqtgraph modules have already been imported 
-        as 'np' and 'pg'.
-        The following are useful variables:
-            g.m.windows is a dictionary containing all the windows.
-            g.m.currentWindow is the currentWindow
-            g.m.currentWindow.rois is a list of all the rois in that window
-            - You can get traces of those rois by using the roi.getTrace() function
-        
-        """
+        uic.loadUi(os.path.abspath('gui/ipythonWidget.ui'), self)
+        text = """Predefined Libraries:
+    scipy and numpy (np)
+Useful variables:
+    g.m.windows - list of windows.
+    g.currentWindow - the selected window
+    g.currentWindow.rois -list of rois in that window
+    - roi.getTrace() gets an roi trace as an array """
         self.setWindowIcon(QtGui.QIcon('images/favicon.png'))
-        self.consoleWidget.localNamespace=getnamespace()
-        self.consoleWidget.output.setPlainText(text)
+        self.verticalLayout.setMargin(2)
+        self.terminal = ipython_terminal(banner=text, **getnamespace())
+        layout = QtWidgets.QGridLayout()
+        self.terminalWidget.setLayout(layout)
+        layout.addWidget(self.terminal)
         self.addEditor()
         self.saveButton.clicked.connect(self.saveCurrentScript)
         self.runButton.clicked.connect(self.runScript)
         self.runSelectedButton.clicked.connect(self.runSelected)
         self.actionNew_Script.triggered.connect(lambda f: self.addEditor())
         self.actionFrom_File.triggered.connect(lambda f: ScriptEditor.importScript())
-        self.actionFrom_Window.triggered.connect(lambda : self.addEditor(Editor.fromWindow(g.m.currentWindow)))
+        self.actionFrom_Window.triggered.connect(lambda : self.addEditor(Editor.fromWindow(g.currentWindow)))
         self.actionSave_Script.triggered.connect(self.saveCurrentScript)
         self.menuRecentScripts.aboutToShow.connect(self.load_scripts)
-        self.actionSettings.triggered.connect(settingsWindow)
-        self.eventeater = ScriptEventEater(self)
+        self.actionChangeFontSize.triggered.connect(self.changeFontSize)
+        #self.eventeater = ScriptEventEater(self)
         self.setAcceptDrops(True)
-        self.installEventFilter(self.eventeater)
+        #self.installEventFilter(self.eventeater)
         self.scriptTabs.tabCloseRequested.connect(self.closeTab)
         self.setWindowTitle('Script Editor')
+
+    def changeFontSize(self):
+        val, ok = QtWidgets.QInputDialog.getInt(self, "Change Font Size", "Font Size", \
+            value=ScriptEditor.gui.centralWidget().font().pointSize(), min = 8, max = 30, step = 1)
+        if ok:
+            font = ScriptEditor.gui.centralWidget().font()
+            font.setPointSize(val)
+            ScriptEditor.gui.centralWidget().setFont(font)
+
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasUrls():
+            event.accept()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event):
+        for url in event.mimeData().urls():
+            filename=url.toString()
+            filename=filename.split('file:///')[1]
+            print('filename={}'.format(filename))
+            ScriptEditor.importScript(filename)
+
+        event.accept()
 
     def load_scripts(self):
         self.menuRecentScripts.clear()
         def makeFun(script):
             return lambda: ScriptEditor.importScript(script)
         if len(g.settings['recent_scripts']) == 0:
-            action = QtWidgets.QAction("No Recent Scripts", g.m)
+            action = QtWidgets.QAction("No Recent Scripts", self)
             action.setEnabled(False)
             self.menuRecentScripts.addAction(action)
         else:
@@ -134,7 +141,7 @@ class ScriptEditor(QtWidgets.QMainWindow):
                 if not os.path.exists(filename):
                     g.settings['recent_scripts'].remove(filename)
                     continue
-                action = QtWidgets.QAction(filename, g.m, triggered=makeFun(filename))
+                action = QtWidgets.QAction(filename, self, triggered=makeFun(filename))
                 self.menuRecentScripts.addAction(action)
 
     def closeTab(self, index):
@@ -209,7 +216,8 @@ class ScriptEditor(QtWidgets.QMainWindow):
         if self.currentTab() == None:
             return
         command=qstr2str(self.currentTab().toPlainText())
-        self.consoleWidget.runCmd(command)
+        if command:
+            self.terminal.execute(command)
 
     def runSelected(self):
         if self.currentTab() == None:
@@ -218,7 +226,8 @@ class ScriptEditor(QtWidgets.QMainWindow):
         command=cursor.selectedText()
         self.command=command
         command=qstr2str(command)
-        self.consoleWidget.runCmd(command)
+        if command:
+            self.terminal.execute(command)
 
     @staticmethod
     def show():
@@ -231,27 +240,9 @@ class ScriptEditor(QtWidgets.QMainWindow):
         if hasattr(ScriptEditor, 'gui'):
             QtWidgets.QMainWindow.close(ScriptEditor.gui)
 
-class ScriptEventEater(QtCore.QObject):
-    def __init__(self,parent=None):
-        QtCore.QObject.__init__(self,parent)
-        self.parent = parent
-    def eventFilter(self,obj,event):
-        if (event.type()==QtCore.QEvent.DragEnter):
-            if event.mimeData().hasUrls():
-                event.accept()   # must accept the dragEnterEvent or else the dropEvent can't occur !!!
-            else:
-                event.ignore()
-        if (event.type() == QtCore.QEvent.Drop):
-            if event.mimeData().hasUrls():   # if file or link is dropped
-                url = event.mimeData().urls()[0]   # get first url
-                filename=url.toString()
-                filename=filename.split('file:///')[1]
-                print('filename={}'.format(filename))
-                ScriptEditor.importScript(filename)  #This fails on windows symbolic links.  http://stackoverflow.com/questions/15258506/os-path-islink-on-windows-with-python
-                event.accept()
-            else:
-                event.ignore()
-        return False # lets the event continue to the edit
-
     
+if __name__ == '__main__':
+    app = QtWidgets.QApplication([])
+    ScriptEditor.show()
+    app.exec_()
     
