@@ -29,10 +29,10 @@ class Measure(BaseProcess):
     def gui(self):
         self.gui_reset()
         self.currentPoint=0
-        active_point=QtWidgets.QLineEdit(); #active_point.setEnabled(False)
-        second_point=QtWidgets.QLineEdit(); #second_point.setEnabled(False)
-        difference=QtWidgets.QLineEdit(); #difference.setEnabled(False)
-        slope=QtWidgets.QLineEdit(); #slope.setEnabled(False)
+        active_point=QtWidgets.QLineEdit() #active_point.setEnabled(False)
+        second_point=QtWidgets.QLineEdit() #second_point.setEnabled(False)
+        difference=QtWidgets.QLineEdit() #difference.setEnabled(False)
+        slope=QtWidgets.QLineEdit() #slope.setEnabled(False)
         log=QtWidgets.QPushButton('Log Data')
         log.pressed.connect(self.log)
         newcol=QtWidgets.QPushButton('New Column')
@@ -82,7 +82,7 @@ class Measure(BaseProcess):
                 self.fig = window
                 self.viewbox = self.fig.imageview.view
                 self.pathitem=QtWidgets.QGraphicsPathItem(self.viewbox)
-                self.pathitem.setPen(QPen(Qt.red))
+                self.pathitem.setPen(QtGui.QPen(QtCore.Qt.red))
                 self.viewbox.addItem(self.pathitem,ignoreBounds=True)
             mousePoint = self.fig.imageview.getImageItem().mapFromScene(pos)
             pos = np.array([mousePoint.y(),mousePoint.x()])
@@ -94,7 +94,7 @@ class Measure(BaseProcess):
                 if not g.m.currentTrace.p1.plotItem.sceneBoundingRect().contains(pos):
                     return
                 self.pathitem=QtWidgets.QGraphicsPathItem(self.viewbox)
-                self.pathitem.setPen(QPen(Qt.red))
+                self.pathitem.setPen(QtGui.QPen(QtCore.Qt.red))
                 self.viewbox.addItem(self.pathitem,ignoreBounds=True)
             mousePoint = self.viewbox.mapSceneToView(pos) if not overwrite else pos
             pos = np.array([mousePoint.x(),mousePoint.y()])
@@ -104,8 +104,8 @@ class Measure(BaseProcess):
 
     def update(self, point):
         
-        modifiers = QApplication.keyboardModifiers()
-        if modifiers == Qt.ShiftModifier:
+        modifiers = QtWidgets.QApplication.keyboardModifiers()
+        if modifiers == QtCore.Qt.ShiftModifier:
             point=self.getNearestPoint(point)
         if self.currentPoint==0:
             self.currentPoint=1
@@ -132,9 +132,9 @@ class Measure(BaseProcess):
     def draw(self,points):
         if type(self.fig) != type(g.m.currentTrace):
             points = [p[::-1] for p in points]
-        path=QtGui.QPainterPath(QPointF(*points[0]))
+        path=QtGui.QPainterPath(QtCore.QPointF(*points[0]))
         for i in np.arange(1,len(points)):
-            path.lineTo(QPointF(*points[i]))
+            path.lineTo(QtCore.QPointF(*points[i]))
         self.pathitem.setPath(path)
         
     def close(self):
@@ -152,7 +152,7 @@ class Measure(BaseProcess):
         for roi in g.m.currentTrace.rois:
             d=roi['p2trace'].getData()
             ys.append(d[1][index])
-        roi_idx=np.argmin(abs(ys-point[1]))
+        roi_idx=np.argmin(abs(ys - point[1]))
         y=ys[roi_idx]
         return np.array([x,y])
     
@@ -160,9 +160,9 @@ class Measure(BaseProcess):
         filename=g.settings['filename']
         directory=os.path.dirname(filename)
         if filename is not None:
-            filename= QFileDialog.getSaveFileName(g.m, 'Save Measurements', directory, '*.txt')
+            filename= QtWidgets.QFileDialog.getSaveFileName(g.m, 'Save Measurements', directory, '*.txt')
         else:
-            filename= QFileDialog.getSaveFileName(g.m, 'Save Measurements', '*.txt')
+            filename= QtWidgets.QFileDialog.getSaveFileName(g.m, 'Save Measurements', '*.txt')
         filename=str(filename)
         if filename=='':
             return False

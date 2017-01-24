@@ -220,7 +220,7 @@ class Scale_Bar(BaseProcess):
             elif location=='Lower Left':
                 barPoint=QtCore.QPoint(0, -textRect.height())
                 
-            bar = QGraphicsRectItem(QRectF(barPoint,QSizeF(width_pixels,int(font_size/3))))
+            bar = QtWidgets.QGraphicsRectItem(QtCore.QRectF(barPoint, QtCore.QSizeF(width_pixels,int(font_size/3))))
             bar.setPen(pg.mkPen(color255)); bar.setBrush(pg.mkBrush(color255))
             w.imageview.view.addItem(bar)
             #bar.setParentItem(w.scaleBarLabel)
@@ -257,7 +257,7 @@ class Scale_Bar(BaseProcess):
         elif location=='Lower Left':
             barPoint=QtCore.QPoint(0, w.my-1.3*textHeight)
             w.scaleBarLabel.setPos(QtCore.QPointF(QtCore.QPointF(width_pixels/2-textWidth/2,w.my-textHeight)))
-        w.scaleBarLabel.bar.setRect(QtCore.QRectF(barPoint,QtCore.QSizeF(width_pixels,textHeight/4)))
+        w.scaleBarLabel.bar.setRect(QtCore.QRectF(barPoint, QtCore.QSizeF(width_pixels,textHeight/4)))
         
     def preview(self):
         width_microns=self.getValue('width_microns')

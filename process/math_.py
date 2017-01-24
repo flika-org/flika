@@ -242,7 +242,7 @@ class Ratio(BaseProcess):
             baseline=A[first_frame:first_frame+nFrames].std(0)
             baseline[baseline == 0] = np.min(np.abs(baseline[baseline != 0]))
         else:
-            print("'{}' is an unknown ratio_type.  Try 'average' or 'standard deviation'".format(ratio_type))
+            g.alert("'{}' is an unknown ratio_type.  Try 'average' or 'standard deviation'".format(ratio_type))
             return None
 
         newA = (A/baseline).astype(g.settings['internal_data_type'])

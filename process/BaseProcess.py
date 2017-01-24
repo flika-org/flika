@@ -8,8 +8,9 @@ import os.path
 import global_vars as g
 import numpy as np
 import window
+from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import *
-from qtpy.QtCore import Signal, Slot
+from qtpy.QtCore import Signal, Slot, QUrl, Qt
 import pyqtgraph as pg
 import sys
 import inspect
@@ -253,7 +254,7 @@ class BaseDialog(QDialog):
 
 
 def convert_to_string(item):
-    if (sys.version_info.major == 2 and isinstance(item,basestring)) or isinstance(item,str):
+    if isinstance(item, str):
         return "'{}'".format(item)
     else:
         return str(item)
@@ -323,9 +324,9 @@ class BaseProcess(object):
         try:
             self.__call__(*args,keepSourceWindow=True)
         except MemoryError as err:
-            print('There was a memory error in {}'.format(self.__name__))
-            g.m.statusBar().showMessage('There was a memory error in {}'.format(self.__name__))
-            print(err)
+            msg = 'There was a memory error in {}'.format(self.__name__)
+            msg += str(err)
+            g.alert(msg)
     def preview(self):
         pass
 
@@ -357,9 +358,9 @@ class BaseProcess_noPriorWindow(BaseProcess):
         try:
             self.__call__(*args)
         except MemoryError as err:
-            print('There was a memory error in {}'.format(self.__name__))
-            g.m.statusBar().showMessage('There was a memory error in {}'.format(self.__name__))
-            print(err)
+            msg = 'There was a memory error in {}'.format(self.__name__)
+            msg += str(err)
+            g.alert(msg)
 
 
 

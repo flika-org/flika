@@ -317,9 +317,9 @@ class Median_filter(BaseProcess):
             preview.setChecked(False)
             preview.setEnabled(False)
             
-    def __call__(self,nFrames,keepSourceWindow=False):
-        if nFrames%2==0: #if value is even:
-            print('median_filter only takes odd numbers.  Operation cancelled')
+    def __call__(self, nFrames, keepSourceWindow=False):
+        if nFrames%2 == 0: #if value is even:
+            g.alert('median_filter only takes odd numbers.  Operation cancelled')
             return None
         self.start(keepSourceWindow)
         mx=self.tif.shape[2]

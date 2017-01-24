@@ -40,8 +40,8 @@ class Set_value(BaseProcess):
         self.items.append({'name':'value','string':'Value','object':value})
         self.items.append({'name':'firstFrame','string':'First Frame','object':firstFrame})
         self.items.append({'name':'lastFrame','string':'Last Frame','object':lastFrame})
-        self.items.append({'name':'restrictToROI','string':'Restrict to current ROI','object':QCheckBox()})
-        self.items.append({'name':'restrictToOutside','string':'Restrict to everything outside current ROI','object':QCheckBox()})
+        self.items.append({'name':'restrictToROI','string':'Restrict to current ROI','object': QtWidgets.QCheckBox()})
+        self.items.append({'name':'restrictToOutside','string':'Restrict to everything outside current ROI','object': QtWidgets.QCheckBox()})
         super().gui()
     def __call__(self,value,firstFrame,lastFrame,restrictToROI=False, restrictToOutside=False, keepSourceWindow=False):
         self.start(keepSourceWindow)

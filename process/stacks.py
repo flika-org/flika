@@ -99,7 +99,7 @@ class Pixel_binning(BaseProcess):
                 self.newname=self.oldname+' - Binned'
                 return self.end()
         else:
-            print("2 is the only supported value for binning at the moment")
+            g.alert("2 is the only supported value for binning at the moment")
 pixel_binning=Pixel_binning()
 
 class Frame_binning(BaseProcess):
@@ -161,7 +161,7 @@ class Resize(BaseProcess):
                 for t in np.arange(mt):
                     B[t]=skimage.transform.resize(A[t],(mx*factor,my*factor))
             elif nDim==2:
-                my,mt=A.shape
+                mx, my=A.shape
                 B=skimage.transform.resize(A,(mx*factor,my*factor))
         self.newtif=B
         self.newname=self.oldname+' - resized {}x '.format(factor)

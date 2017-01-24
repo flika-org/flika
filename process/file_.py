@@ -159,7 +159,7 @@ def open_file(filename=None):
     if filename is None:
         filename=g.settings['filename']
         if filename is None:
-            print('No filename selected')
+            g.alert('No filename selected')
             return
     if filename not in g.settings['recent_files']:
         save_recent_file(filename)
@@ -284,7 +284,7 @@ def load_points(filename):
     pts=np.loadtxt(filename)
     nCols = pts.shape[1]
     pointSize = g.m.settings['point_size']
-    pointColor = QColor(g.m.settings['point_color'])
+    pointColor = QtGui.QColor(g.m.settings['point_color'])
     if nCols == 3:
         for pt in pts:
             t=int(pt[0])
@@ -375,7 +375,7 @@ def load_metadata(filename=None):
         filename=os.path.splitext(g.settings['filename'])[0]+'.txt'
     BOM = codecs.BOM_UTF8.decode('utf8')
     if not os.path.isfile(filename):
-        print("'"+filename+"' is not a file.")
+        g.alert("'"+filename+"' is not a file.")
         return dict()
     with codecs.open(filename, encoding='utf-8') as f:
         for line in f:
@@ -400,7 +400,8 @@ def save_metadata(meta):
         text+="{}={}\n".format(item[0],item[1])
     f.write(text)
     f.close()
-    
+
+
 def close(windows=None):
     '''
     Will close a window or a set of windows.
@@ -411,9 +412,9 @@ def close(windows=None):
         | (Window) - closes individual window
         | (None) - closes current window
     '''
-    if isinstance(windows,basestring):
-        if windows=='all':
-            windows=[window for window in g.m.windows]
+    if isinstance(windows, str):
+        if windows == 'all':
+            windows = [window for window in g.m.windows]
             for window in windows:
                 window.close()
     elif isinstance(windows,list):
