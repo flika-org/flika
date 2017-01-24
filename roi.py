@@ -730,24 +730,23 @@ class ROI(ROI_Wrapper, pg.ROI):
 def makeROI(kind, pts, window=None, **kargs):
     if window is None:
         window=g.m.currentWindow
-
-    if kind=='freehand':
+    if kind == 'freehand':
         roi=ROI(window, pts, **kargs)
-    elif kind=='rectangle':
+    elif kind == 'rectangle':
         if len(pts) > 2:
             size = np.ptp(pts,0)
             top_left = np.min(pts,0)
         else:
             size = pts[1]
             top_left = pts[0]
-        roi=ROI_rectangle(window, top_left, size, **kargs)
-    elif kind=='line':
-        roi=ROI_line(window, pos=(pts), **kargs)
+        roi = ROI_rectangle(window, top_left, size, **kargs)
+    elif kind == 'line':
+        roi = ROI_line(window, pos=(pts), **kargs)
     elif kind == 'rect_line':
         roi = ROI_rect_line(window, pts, **kargs)
 
     else:
-        print("ERROR: THIS TYPE OF ROI COULD NOT BE FOUND: {}".format(kind))
+        g.alert("ERROR: THIS TYPE OF ROI COULD NOT BE FOUND: {}".format(kind))
         return None
 
     roi.drawFinished()    

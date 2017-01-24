@@ -14,6 +14,7 @@ from skimage.io import imread, imsave
 from window import Window
 import global_vars as g
 from qtpy import uic, QtGui, QtCore, QtWidgets
+from qtpy.QtWidgets import qApp
 import codecs
 import shutil, subprocess
 from skimage.external import tifffile

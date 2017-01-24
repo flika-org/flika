@@ -265,8 +265,8 @@ class SetCurrentWindowSignal(QtWidgets.QWidget):
 def alert(msg):
     print('Alert!')
     print(msg)
-    msgbx = QMessageBox(m)
-    msgbx.setIcon(QMessageBox.Information)
+    msgbx = QtWidgets.QMessageBox(m)
+    msgbx.setIcon(QtWidgets.QMessageBox.Information)
     msgbx.setText(msg)
     msgbx.setWindowTitle("Flika")
     msgbx.show()
@@ -280,7 +280,7 @@ def init(filename):
     mainGuiInitialized=True
     m = uic.loadUi(filename)
     load_plugin_menu()
-    m.setCurrentWindowSignal=SetCurrentWindowSignal(m)
+    m.setCurrentWindowSignal = SetCurrentWindowSignal(m)
     m.settings = settings
     m.windows = []
     m.traceWindows = []
