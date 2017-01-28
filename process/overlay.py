@@ -64,6 +64,21 @@ class Time_Stamp(BaseProcess):
      
 time_stamp=Time_Stamp()
 
+
+class ShowCheckbox(QtWidgets.QCheckBox):
+
+    def __init__(self, opacity_slider, parent=None):
+        super().__init__(parent)
+        self.stateChanged.connect(self.changed)
+        self.opacity_slider = opacity_slider
+
+    def changed(self, state):
+        if state == 0:  # unchecked
+            self.opacity_slider.setEnabled(True)
+        if state == 2:  # checked
+            self.opacity_slider.setEnabled(False)
+
+
 class Background(BaseProcess):
     """ background(background_window, data_window)
     Overlays the background_window onto the data_window
@@ -80,35 +95,39 @@ class Background(BaseProcess):
         self.gui_reset()
         background_window=WindowSelector()
         data_window=WindowSelector()
-        opacity=SliderLabel(3)
+        opacity = SliderLabel(3)
         opacity.setRange(0,1)
         opacity.setValue(.5)
-        show=QtWidgets.QCheckBox(); show.setChecked(True)
+        show = ShowCheckbox(opacity)
+        show.setChecked(True)
         self.items.append({'name':'background_window','string':'Background window','object':background_window})
         self.items.append({'name':'data_window','string':'Data window','object':data_window})
         self.items.append({'name':'opacity','string':'Opacity','object':opacity})
         self.items.append({'name':'show','string':'Show','object':show})
         super().gui()
-    def __call__(self,background_window, data_window, opacity,show,keepSourceWindow=False):
+    def __call__(self, background_window, data_window, opacity,show,keepSourceWindow=False):
         if background_window is None or data_window is None:
             return
         w=data_window
         if show:
-            bg=background_window.image
-            bgItem=pg.ImageItem(bg)
-            bgItem.setOpacity(opacity)
-            if hasattr(w,'bgItem') and w.bgItem is not None:
+            if hasattr(w, 'bgItem') and w.bgItem is not None:
+                w.imageview.ui.gridLayout.removeWidget(w.bgItem.hist_luttt)
                 w.imageview.view.removeItem(w.bgItem)
-            w.bgItem=bgItem
-            w.imageview.view.addItem(w.bgItem)
-            #lut = np.zeros((256,3), dtype=np.ubyte)
-            #lut[:128,0] = np.arange(0,255,2)
-            #lut[128:,0] = 255
-            #lut[:,1] = np.arange(256)
-            #bgItem.setLookupTable(lut)
+            bgItem = pg.ImageItem(background_window.imageview.imageItem.image)
+            bgItem.setOpacity(opacity)
+            w.imageview.view.addItem(bgItem)
+            bgItem.hist_luttt = pg.HistogramLUTWidget()
+            bgItem.hist_luttt.setMinimumWidth(110)
+            bgItem.hist_luttt.setImageItem(bgItem)
+            w.imageview.ui.gridLayout.addWidget(bgItem.hist_luttt, 0, 4, 1, 4)
+            w.bgItem = bgItem
         else:
-            w.imageview.view.removeItem(w.bgItem)
-            w.bgItem=None
+            if hasattr(w, 'bgItem') and w.bgItem is not None:
+                w.bgItem.hist_luttt.hide()
+                w.imageview.ui.gridLayout.removeWidget(w.bgItem.hist_luttt)
+                w.imageview.view.removeItem(w.bgItem)
+                w.bgItem.hist_luttt = None
+                w.bgItem = None
             return None
     def preview(self):
         background_window=self.getValue('background_window')

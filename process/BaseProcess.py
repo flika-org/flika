@@ -174,6 +174,9 @@ class SliderLabel(QWidget):
         self.label.setValue(value)
     def setSingleStep(self,value):
         self.label.setSingleStep(value)
+    def setEnabled(self, bool):
+        self.slider.setEnabled(bool)
+        self.label.setEnabled(bool)
 
 
 class SliderLabelOdd(SliderLabel):
