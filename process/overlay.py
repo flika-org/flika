@@ -111,6 +111,7 @@ class Background(BaseProcess):
         w=data_window
         if show:
             if hasattr(w, 'bgItem') and w.bgItem is not None:
+                w.bgItem.hist_luttt.hide()
                 w.imageview.ui.gridLayout.removeWidget(w.bgItem.hist_luttt)
                 w.imageview.view.removeItem(w.bgItem)
             bgItem = pg.ImageItem(background_window.imageview.imageItem.image)
