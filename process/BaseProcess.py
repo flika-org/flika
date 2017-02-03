@@ -208,7 +208,7 @@ class CheckBox(QCheckBox):
 class BaseDialog(QDialog):
     changeSignal=Signal()
     closeSignal=Signal()
-    def __init__(self, parent, items, title, docstring):
+    def __init__(self, items, title, docstring, parent=None):
         QDialog.__init__(self)
         self.parent = parent
         self.setWindowTitle(title)
@@ -235,19 +235,18 @@ class BaseDialog(QDialog):
         for item in self.items:
             self.formlayout.addRow(item['string'], item['object'])
         # Get the old vals from settings
-
-        name = self.parent.__name__
-        if g.settings['baseprocesses'] is None:
-            g.settings['baseprocesses'] = dict()
-        if name not in g.settings['baseprocesses']:
-            print("YAY")
-            settings = self.parent.get_init_settings_dict()
-            g.settings['baseprocesses'][name] = settings
-        else:
-            settings = g.settings['baseprocesses'][name]
-        for item in self.items:
-            if item['name'] in settings:
-                item['object'].setValue(settings[item['name']])
+        if self.parent is not None:
+            name = self.parent.__name__
+            if g.settings['baseprocesses'] is None:
+                g.settings['baseprocesses'] = dict()
+            if name not in g.settings['baseprocesses']:
+                settings = self.parent.get_init_settings_dict()
+                g.settings['baseprocesses'][name] = settings
+            else:
+                settings = g.settings['baseprocesses'][name]
+            for item in self.items:
+                if item['name'] in settings:
+                    item['object'].setValue(settings[item['name']])
 
     def connectToChangeSignal(self):
         for item in self.items:
@@ -323,7 +322,7 @@ class BaseProcess(object):
         return newWindow
 
     def gui(self):
-        self.ui=BaseDialog(self, self.items,self.__name__,self.__doc__)
+        self.ui=BaseDialog(self.items,self.__name__,self.__doc__, self)
         if hasattr(self, '__url__'):
             self.ui.bbox.addButton(QDialogButtonBox.Help)
             self.ui.bbox.helpRequested.connect(lambda : QDesktopServices.openUrl(QUrl(self.__url__)))
