@@ -1,5 +1,4 @@
-from qtpy import uic, QtWidgets
-
+from qtpy import uic, QtWidgets, QtGui
 from qtpy.QtCore import Signal
 import sys, os, atexit
 import pickle
@@ -142,7 +141,7 @@ def pointSettings(pointButton):
         m.settings['point_size'] = point_size.value()
         m.settings['show_all_points'] = show_all_points.isChecked()
         if win is not None and update_current_points_check.isChecked() == True:
-            color = QtWidgets.QColor(point_color.value())
+            color = QtGui.QColor(point_color.value())
             size = point_size.value()
             for t in np.arange(win.mt):
                 for i in np.arange(len(win.scatterPoints[t])):
