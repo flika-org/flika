@@ -228,7 +228,14 @@
      <addaction name="actionTime_Stamp"/>
      <addaction name="actionScale_Bar"/>
     </widget>
+    <widget class="QMenu" name="menuColor">
+     <property name="title">
+      <string>Color</string>
+     </property>
+     <addaction name="actionSplit_Channels"/>
+    </widget>
     <addaction name="menuStacks"/>
+    <addaction name="menuColor"/>
     <addaction name="actionMeasure"/>
     <addaction name="actionSet_Value"/>
     <addaction name="menuWindow"/>
@@ -615,6 +622,11 @@
   <action name="actionConcatenate_Stacks">
    <property name="text">
     <string>Concatenate Stacks</string>
+   </property>
+  </action>
+  <action name="actionSplit_Channels">
+   <property name="text">
+    <string>Split Channels</string>
    </property>
   </action>
  </widget>

@@ -17,6 +17,8 @@ import pyqtgraph.opengl as gl
 import matplotlib.cm
 from window import Window
 from process.stacks import deinterleave, trim, zproject, image_calculator, pixel_binning, frame_binning, resize, change_datatype, concatenate_stacks
+from process.color import split_channels
+
 from process.math_ import multiply, subtract, power, ratio, absolute_value, subtract_trace, divide_trace
 from process.filters import gaussian_blur, butterworth_filter,boxcar_differential_filter, wavelet_filter, difference_filter, fourier_filter, mean_filter, median_filter, bilateral_filter
 from process.binary import threshold, adaptive_threshold, canny_edge_detector, remove_small_blobs, logically_combine, binary_dilation, binary_erosion
@@ -63,6 +65,7 @@ def initializeMainGui():
     g.m.actionPlugin_Manager.triggered.connect(PluginManager.show)
     g.m.actionDocs.triggered.connect(lambda: QtGui.QDesktopServices.openUrl(QtCore.QUrl(DOCS_URL)))
     g.m.actionDeinterleave.triggered.connect(deinterleave.gui)
+    g.m.actionSplit_Channels.triggered.connect(split_channels.gui)
     g.m.actionZ_Project.triggered.connect(zproject.gui)
     g.m.actionPixel_Binning.triggered.connect(pixel_binning.gui)
     g.m.actionFrame_Binning.triggered.connect(frame_binning.gui)

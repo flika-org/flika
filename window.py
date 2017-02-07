@@ -61,6 +61,10 @@ class Window(QWidget):
         self.linkMenu = QMenu("Link frame")
         rp.ctrlMenu = self.linkMenu
         self.linkMenu.aboutToShow.connect(self.make_link_menu)
+
+        if np.any(np.isinf(tif)):
+            tif[np.isinf(tif)] = 0
+            g.alert('Some array values were inf. Setting those values to 0')
         self.imageview.setImage(tif)
         self.image = tif
         self.volume = None  # When attaching a 4D array to this Window object, where self.image is a 3D slice of this volume, attach it here. This will remain None for all 3D Windows
@@ -69,7 +73,7 @@ class Window(QWidget):
         if self.nDims == 3:
             if metadata['is_rgb']:
                 mx,my,mc=tif.shape
-                mt=1
+                mt = 1
                 dimensions_txt="{}x{} pixels; {} colors; ".format(mx,my,mc)
             else:
                 mt, mx, my=tif.shape

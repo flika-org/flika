@@ -120,7 +120,6 @@ def get_metadata_tiff(Tiff):
         metadata = {**micromanager_metadata.value, **imagej_tags_unpacked}
         if 'Frames' in metadata and metadata['Frames'] > 1:
             timestamps = [c.tags['micromanager_metadata'].value['ElapsedTime-ms'] for c in Tiff]
-            timestamps = np.array(timestamps)
             metadata['timestamps'] = timestamps
             metadata['timestamp_units'] = 'ms'
         keys_to_remove = ['NextFrame', 'ImageNumber', 'Frame', 'FrameIndex']
@@ -239,7 +238,11 @@ def save_file(filename):
     g.m.statusBar().showMessage('Saving {}'.format(os.path.basename(filename)))
     A=g.m.currentWindow.image#.astype(g.settings['internal_data_type'])
     metadata=g.m.currentWindow.metadata
-    metadata=json.dumps(metadata,default=JSONhandler)
+    try:
+        metadata=json.dumps(metadata,default=JSONhandler)
+    except TypeError as e:
+        msg = "Error saving metadata.\n{}\nContinuing to save file".format(e)
+        g.alert(msg)
     if len(A.shape)==3:
         A=np.transpose(A,(0,2,1)) # This keeps the x and the y the same as in FIJI
     elif len(A.shape)==2:

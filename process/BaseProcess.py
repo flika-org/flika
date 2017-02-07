@@ -204,6 +204,18 @@ class CheckBox(QCheckBox):
     def setValue(self,value):
         self.setChecked(value)
 
+class ComboBox(QComboBox):
+    ''' I overwrote the QComboBox class so that every graphical element has the method 'setValue'
+    '''
+    def __init__(self, parent=None):
+        QComboBox.__init__(self, parent)
+    def setValue(self, value):
+        if isinstance(value, str):
+            idx = self.findText(value)
+        else:
+            idx = self.findData(value)
+        if idx != -1:
+            self.setCurrentIndex(idx)
 
 class BaseDialog(QDialog):
     changeSignal=Signal()

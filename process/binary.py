@@ -51,6 +51,9 @@ class Threshold(BaseProcess):
         super().gui()
     def __call__(self,value,darkBackground=False, keepSourceWindow=False):
         self.start(keepSourceWindow)
+        if self.oldwindow.nDims > 3:
+            g.alert("You cannot run this function on an image of dimension greater than 3. If your window has color, convert to a grayscale image before running this function")
+            return None
         if darkBackground:
             newtif=self.tif<value
         else:
@@ -63,6 +66,9 @@ class Threshold(BaseProcess):
         preview=self.getValue('preview')
         darkBackground=self.getValue('darkBackground')
         nDim=len(g.m.currentWindow.image.shape)
+        if nDim > 3:
+            g.alert("You cannot run this function on an image of dimension greater than 3. If your window has color, convert to a grayscale image before running this function")
+            return None
         if preview:
             if nDim==3: # if the image is 3d
                 testimage=np.copy(g.m.currentWindow.image[g.m.currentWindow.currentIndex])
@@ -139,6 +145,7 @@ class Adaptive_threshold(BaseProcess):
                 newtif[i] = threshold_adaptive(newtif[i], block_size, offset=value)
         else:
             g.alert("You cannot run this function on an image of dimension greater than 3. If your window has color, convert to a grayscale image before running this function")
+            return None
         if darkBackground:
             newtif = np.logical_not(newtif)
         self.newtif = newtif.astype(np.uint8)
@@ -151,6 +158,9 @@ class Adaptive_threshold(BaseProcess):
         preview = self.getValue('preview')
         darkBackground = self.getValue('darkBackground')
         nDim = len(g.m.currentWindow.image.shape)
+        if nDim > 3:
+            g.alert("You cannot run this function on an image of dimension greater than 3. If your window has color, convert to a grayscale image before running this function")
+            return None
         if preview:
             if nDim == 3: # if the image is 3d
                 testimage=np.copy(g.m.currentWindow.image[g.m.currentWindow.currentIndex])
