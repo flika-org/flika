@@ -231,9 +231,12 @@ Useful variables:
 
     @staticmethod
     def show():
-        if not hasattr(ScriptEditor, 'gui'):
-            ScriptEditor.gui = ScriptEditor()
-        QtWidgets.QMainWindow.show(ScriptEditor.gui)
+        if 'PYCHARM_HOSTED' in os.environ:
+            g.alert('You cannot run the script editor from within PyCharm.')
+        else:
+            if not hasattr(ScriptEditor, 'gui'):
+                ScriptEditor.gui = ScriptEditor()
+            QtWidgets.QMainWindow.show(ScriptEditor.gui)
 
     @staticmethod
     def close():

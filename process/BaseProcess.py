@@ -208,32 +208,46 @@ class CheckBox(QCheckBox):
 class BaseDialog(QDialog):
     changeSignal=Signal()
     closeSignal=Signal()
-    def __init__(self,items,title,docstring):
+    def __init__(self, items, title, docstring, parent=None):
         QDialog.__init__(self)
+        self.parent = parent
         self.setWindowTitle(title)
         self.setWindowIcon(QIcon('images/favicon.png'))
-        self.formlayout=QFormLayout()
+        self.formlayout = QFormLayout()
         self.formlayout.setLabelAlignment(Qt.AlignRight)
-        
-        self.items=items
+        self.items = items
+        self.setupitems()
         self.connectToChangeSignal()
-        for item in self.items:
-            self.formlayout.addRow(item['string'],item['object'])
-        self.bbox=QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        self.bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         self.bbox.accepted.connect(self.accept)
         self.bbox.rejected.connect(self.reject)
-        
-        self.docstring=QLabel(docstring)
-        self.docstring.setWordWrap(True)        
-        
-        self.layout=QVBoxLayout()
+        self.docstring = QLabel(docstring)
+        self.docstring.setWordWrap(True)
+        self.layout = QVBoxLayout()
         self.layout.addWidget(self.docstring)
         self.layout.addLayout(self.formlayout)
         self.layout.addWidget(self.bbox)
         self.setLayout(self.layout)
         self.changeSignal.connect(self.updateValues)
         self.updateValues()
-        
+
+    def setupitems(self):
+        for item in self.items:
+            self.formlayout.addRow(item['string'], item['object'])
+        # Get the old vals from settings
+        if self.parent is not None:
+            name = self.parent.__name__
+            if g.settings['baseprocesses'] is None:
+                g.settings['baseprocesses'] = dict()
+            if name not in g.settings['baseprocesses']:
+                settings = self.parent.get_init_settings_dict()
+                g.settings['baseprocesses'][name] = settings
+            else:
+                settings = g.settings['baseprocesses'][name]
+            for item in self.items:
+                if item['name'] in settings:
+                    item['object'].setValue(settings[item['name']])
+
     def connectToChangeSignal(self):
         for item in self.items:
             methods=[method for method in dir(item['object']) if callable(getattr(item['object'], method))]
@@ -243,6 +257,7 @@ class BaseDialog(QDialog):
                 item['object'].stateChanged.connect(self.changeSignal)
             elif 'currentIndexChanged' in methods:
                 item['object'].currentIndexChanged.connect(self.changeSignal)
+
     def updateValues(self): # copy values from gui into the 'item' dictionary
         for item in self.items:
             methods=[method for method in dir(item['object']) if callable(getattr(item['object'], method))]
@@ -270,6 +285,9 @@ class BaseProcess(object):
 
     def getValue(self,name):
         return [i['value'] for i in self.items if i['name']==name][0]
+
+    def get_init_settings_dict(self):
+        return dict() #this function needs to be overwritten by every subclass
 
     def start(self,keepSourceWindow):
         frame = inspect.getouterframes(inspect.currentframe())[1][0]
@@ -304,7 +322,7 @@ class BaseProcess(object):
         return newWindow
 
     def gui(self):
-        self.ui=BaseDialog(self.items,self.__name__,self.__doc__)
+        self.ui=BaseDialog(self.items,self.__name__,self.__doc__, self)
         if hasattr(self, '__url__'):
             self.ui.bbox.addButton(QDialogButtonBox.Help)
             self.ui.bbox.helpRequested.connect(lambda : QDesktopServices.openUrl(QUrl(self.__url__)))
@@ -318,12 +336,19 @@ class BaseProcess(object):
 
     def gui_reset(self):
         self.items=[]
+
     def call_from_gui(self):
-        varnames=[i for i in inspect.getargspec(self.__call__)[0] if i!='self' and i!='keepSourceWindow']
+        varnames = [i for i in inspect.getargspec(self.__call__)[0] if i != 'self' and i != 'keepSourceWindow']
         try:
-            args=[self.getValue(name) for name in varnames]
-        except IndexError:
-            print("Names in {}: {}".format(self.__name__,varnames))
+            args = [self.getValue(name) for name in varnames]
+        except IndexError as err:
+            msg = "IndexError in {}: {}".format(self.__name__, varnames)
+            msg += str(err)
+            g.alert(msg)
+        newsettings = dict()
+        for name in varnames:
+            newsettings[name] = self.getValue(name)
+        g.settings['baseprocesses'][self.__name__] = newsettings
         try:
             self.__call__(*args,keepSourceWindow=True)
         except MemoryError as err:
@@ -356,8 +381,14 @@ class BaseProcess_noPriorWindow(BaseProcess):
         varnames=[i for i in inspect.getargspec(self.__call__)[0] if i!='self']
         try:
             args=[self.getValue(name) for name in varnames]
-        except IndexError:
-            print("Names in {}: {}".format(self.__name__,varnames))
+        except IndexError as err:
+            msg = "IndexError in {}: {}".format(self.__name__, varnames)
+            msg += str(err)
+            g.alert(msg)
+        newsettings = dict()
+        for name in varnames:
+            newsettings[name] = self.getValue(name)
+        g.settings['baseprocesses'][self.__name__] = newsettings
         try:
             self.__call__(*args)
         except MemoryError as err:

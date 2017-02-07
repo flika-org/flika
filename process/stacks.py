@@ -7,7 +7,7 @@ Created on Thu Jun 26 16:18:16 2014
 from window import Window
 import numpy as np
 import global_vars as g
-from process.BaseProcess import BaseProcess, WindowSelector, MissingWindowError
+from process.BaseProcess import BaseProcess, WindowSelector, MissingWindowError, CheckBox
 from tracefig import TraceFig
 from qtpy import QtWidgets
 
@@ -192,18 +192,26 @@ class Trim(BaseProcess):
         firstFrame.setMaximum(nFrames-1)
         lastFrame=QtWidgets.QSpinBox()
         lastFrame.setRange(0,nFrames-1)
-        lastFrame.setValue(nFrames-1)
+        #lastFrame.setValue(nFrames-1)
         increment=QtWidgets.QSpinBox()
         increment.setMaximum(nFrames)
         increment.setMinimum(1)
-        delete = QtWidgets.QCheckBox()
-        delete.setChecked(False)
+        delete = CheckBox()
+        #delete.setChecked(False)
 
         self.items.append({'name': 'firstFrame', 'string': 'First Frame', 'object': firstFrame})
-        self.items.append({'name': 'lastFrame', 'string': 'Last Frame', 'object': lastFrame})
-        self.items.append({'name':'increment','string':'Increment','object':increment})
-        self.items.append({'name': 'delete', 'string': 'Delete', 'object': delete})
+        self.items.append({'name': 'lastFrame',  'string': 'Last Frame',  'object': lastFrame })
+        self.items.append({'name': 'increment',  'string': 'Increment',   'object': increment })
+        self.items.append({'name': 'delete',     'string': 'Delete',      'object': delete    })
         super().gui()
+
+    def get_init_settings_dict(self):
+        s = dict()
+        s['firstFrame'] = 0
+        s['lastFrame'] = g.m.currentWindow.image.shape[0]
+        s['increment'] = 1
+        s['delete'] = False
+        return s
 
     def __call__(self, firstFrame, lastFrame, increment=1, delete = False, keepSourceWindow=False):
         self.start(keepSourceWindow)
