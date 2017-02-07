@@ -140,9 +140,9 @@ class Adaptive_threshold(BaseProcess):
         else:
             g.alert("You cannot run this function on an image of dimension greater than 3. If your window has color, convert to a grayscale image before running this function")
         if darkBackground:
-                newtif = np.logical_not(newtif)
+            newtif = np.logical_not(newtif)
         self.newtif = newtif.astype(np.uint8)
-        self.newname=self.oldname+' - Thresholded '+str(value)
+        self.newname = self.oldname+' - Thresholded '+str(value)
         return self.end()
 
     def preview(self):
