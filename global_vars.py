@@ -1,4 +1,4 @@
-from qtpy import uic, QtWidgets, QtGui
+from qtpy import uic, QtWidgets, QtGui, QtCore
 from qtpy.QtCore import Signal
 import sys, os, atexit
 import pickle
@@ -267,9 +267,13 @@ def alert(msg):
     msgbx = QtWidgets.QMessageBox(m)
     msgbx.setIcon(QtWidgets.QMessageBox.Information)
     msgbx.setText(msg)
-    msgbx.setWindowTitle("Flika")
+    msgbx.setWindowTitle("Flika - Alert")
     msgbx.show()
     m.statusBar().showMessage(msg)
+    desktopSize = QtWidgets.QDesktopWidget().screenGeometry()
+    top = (desktopSize.height() / 2) - (msgbx.size().height() / 2)
+    left = (desktopSize.width() / 2) - (msgbx.size().width() / 2)
+    msgbx.move(left, top)
 
 settings=Settings()
 

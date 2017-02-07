@@ -10,7 +10,7 @@ import global_vars as g
 import scipy.ndimage    
 from skimage import feature
 from skimage.filters import threshold_adaptive
-from process.BaseProcess import BaseProcess, SliderLabel, WindowSelector,  MissingWindowError
+from process.BaseProcess import BaseProcess, SliderLabel, WindowSelector,  MissingWindowError, CheckBox
 from qtpy import QtCore, QtGui, QtWidgets  
 
 __all__ = ['threshold','remove_small_blobs','adaptive_threshold','logically_combine','binary_dilation','binary_erosion']
@@ -43,10 +43,10 @@ class Threshold(BaseProcess):
             image=g.m.currentWindow.image
             valueSlider.setRange(np.min(image),np.max(image))
             valueSlider.setValue(np.mean(image))
-        preview=QtWidgets.QCheckBox()
+        preview=CheckBox()
         preview.setChecked(True)
         self.items.append({'name':'value','string':'Value','object':valueSlider})
-        self.items.append({'name':'darkBackground','string':'Dark Background','object':QtWidgets.QCheckBox()})
+        self.items.append({'name':'darkBackground','string':'Dark Background','object': CheckBox()})
         self.items.append({'name':'preview','string':'Preview','object':preview})
         super().gui()
     def __call__(self,value,darkBackground=False, keepSourceWindow=False):
@@ -121,51 +121,54 @@ class Adaptive_threshold(BaseProcess):
         if g.m.currentWindow is not None:
             max_block=int(max([g.m.currentWindow.image.shape[-1],g.m.currentWindow.image.shape[-2]])/2)
         block_size.setRange(3,max_block)
-        preview=QtWidgets.QCheckBox(); preview.setChecked(True)
-        self.items.append({'name':'value','string':'Value','object':valueSlider})
-        self.items.append({'name':'block_size','string':'Block Size','object':block_size})
-        self.items.append({'name':'darkBackground','string':'Dark Background','object':QtWidgets.QCheckBox()})
-        self.items.append({'name':'preview','string':'Preview','object':preview})
+        preview = CheckBox(); preview.setChecked(True)
+        self.items.append({'name': 'value', 'string': 'Value', 'object': valueSlider})
+        self.items.append({'name': 'block_size', 'string':'Block Size', 'object':block_size})
+        self.items.append({'name': 'darkBackground', 'string': 'Dark Background', 'object': CheckBox()})
+        self.items.append({'name': 'preview', 'string': 'Preview', 'object': preview})
         super().gui()
         self.preview()
-    def __call__(self,value,block_size,darkBackground=False, keepSourceWindow=False):
+
+    def __call__(self, value, block_size, darkBackground=False, keepSourceWindow=False):
         self.start(keepSourceWindow)
-        nDim=len(self.tif.shape)
-        newtif=np.copy(self.tif)
-        if nDim==2:
-            newtif = threshold_adaptive(newtif,block_size,offset=value)
-        else:
+        newtif = np.copy(self.tif)
+        if self.oldwindow.nDims == 2:
+            newtif = threshold_adaptive(newtif, block_size, offset=value)
+        elif self.oldwindow.nDims == 3:
             for i in np.arange(len(newtif)):
-                newtif[i] = threshold_adaptive(newtif[i],block_size,offset=value)
+                newtif[i] = threshold_adaptive(newtif[i], block_size, offset=value)
+        else:
+            g.alert("You cannot run this function on an image of dimension greater than 3. If your window has color, convert to a grayscale image before running this function")
         if darkBackground:
-                newtif=np.logical_not(newtif)
-        self.newtif=newtif.astype(np.uint8)
+                newtif = np.logical_not(newtif)
+        self.newtif = newtif.astype(np.uint8)
         self.newname=self.oldname+' - Thresholded '+str(value)
         return self.end()
+
     def preview(self):
-        value=self.getValue('value')
-        block_size=self.getValue('block_size')
-        preview=self.getValue('preview')
-        darkBackground=self.getValue('darkBackground')
-        nDim=len(g.m.currentWindow.image.shape)
+        value = self.getValue('value')
+        block_size = self.getValue('block_size')
+        preview = self.getValue('preview')
+        darkBackground = self.getValue('darkBackground')
+        nDim = len(g.m.currentWindow.image.shape)
         if preview:
-            if nDim==3: # if the image is 3d
+            if nDim == 3: # if the image is 3d
                 testimage=np.copy(g.m.currentWindow.image[g.m.currentWindow.currentIndex])
-            elif nDim==2:
+            elif nDim == 2:
                 testimage=np.copy(g.m.currentWindow.image)
-            testimage = threshold_adaptive(testimage,block_size,offset=value)
+            testimage = threshold_adaptive(testimage, block_size, offset=value)
             if darkBackground:
-                testimage=np.logical_not(testimage)
-            testimage=testimage.astype(np.uint8)
-            g.m.currentWindow.imageview.setImage(testimage,autoLevels=False)
-            g.m.currentWindow.imageview.setLevels(-.1,1.1)
+                testimage = np.logical_not(testimage)
+            testimage = testimage.astype(np.uint8)
+            g.m.currentWindow.imageview.setImage(testimage, autoLevels=False)
+            g.m.currentWindow.imageview.setLevels(-.1, 1.1)
         else:
             g.m.currentWindow.reset()
-            if nDim==3:
-                image=g.m.currentWindow.image[g.m.currentWindow.currentIndex]
+            if nDim == 3:
+                image = g.m.currentWindow.image[g.m.currentWindow.currentIndex]
             else:
-                image=g.m.currentWindow.image
-            g.m.currentWindow.imageview.setLevels(np.min(image),np.max(image))
+                image = g.m.currentWindow.image
+            g.m.currentWindow.imageview.setLevels(np.min(image), np.max(image))
 adaptive_threshold=Adaptive_threshold()
 
 
@@ -185,7 +188,7 @@ class Canny_edge_detector(BaseProcess):
         if g.m.currentWindow is not None:
             sigma.setRange(0,1000)
             sigma.setValue(1)
-        preview=QtWidgets.QCheckBox(); preview.setChecked(True)
+        preview=CheckBox(); preview.setChecked(True)
         self.items.append({'name':'sigma','string':'Sigma','object':sigma})
         self.items.append({'name':'preview','string':'Preview','object':preview})
         super().gui()
@@ -222,6 +225,7 @@ class Canny_edge_detector(BaseProcess):
                 image=g.m.currentWindow.image
             g.m.currentWindow.imageview.setLevels(np.min(image),np.max(image))
 canny_edge_detector=Canny_edge_detector()
+
 
 class Logically_combine(BaseProcess):
     """ logically_combine(window1, window2,operator, keepSourceWindow=False)
@@ -272,9 +276,6 @@ class Logically_combine(BaseProcess):
         return self.end()
 logically_combine=Logically_combine()
 
-
-
-
     
 class Remove_small_blobs(BaseProcess):
     """remove_small_blobs(rank, value, keepSourceWindow=False)
@@ -313,7 +314,6 @@ class Remove_small_blobs(BaseProcess):
         self.newname=self.oldname+' - Removed Blobs '+str(value)
         return self.end()
 remove_small_blobs=Remove_small_blobs()
-
 
 
 class Binary_Dilation(BaseProcess):
@@ -358,6 +358,7 @@ class Binary_Dilation(BaseProcess):
         self.newname=self.oldname+' - Dilated '
         return self.end()
 binary_dilation=Binary_Dilation()
+
 
 class Binary_Erosion(BaseProcess):
     """binary_erosion(rank,connectivity,iterations, keepSourceWindow=False)

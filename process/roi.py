@@ -6,7 +6,7 @@ Created on Mon Jul 21 09:53:16 2014
 """
 import numpy as np
 import global_vars as g
-from process.BaseProcess import BaseProcess
+from process.BaseProcess import BaseProcess, CheckBox
 import skimage
 from qtpy import QtWidgets
 
@@ -40,8 +40,8 @@ class Set_value(BaseProcess):
         self.items.append({'name':'value','string':'Value','object':value})
         self.items.append({'name':'firstFrame','string':'First Frame','object':firstFrame})
         self.items.append({'name':'lastFrame','string':'Last Frame','object':lastFrame})
-        self.items.append({'name':'restrictToROI','string':'Restrict to current ROI','object': QtWidgets.QCheckBox()})
-        self.items.append({'name':'restrictToOutside','string':'Restrict to everything outside current ROI','object': QtWidgets.QCheckBox()})
+        self.items.append({'name':'restrictToROI','string':'Restrict to current ROI','object': CheckBox()})
+        self.items.append({'name':'restrictToOutside','string':'Restrict to everything outside current ROI','object': CheckBox()})
         super().gui()
     def __call__(self,value,firstFrame,lastFrame,restrictToROI=False, restrictToOutside=False, keepSourceWindow=False):
         self.start(keepSourceWindow)

@@ -6,7 +6,7 @@ Created on Thu Jun 26 19:44:11 2014
 """
 import numpy as np
 import global_vars as g
-from process.BaseProcess import BaseProcess
+from process.BaseProcess import BaseProcess, CheckBox
 from qtpy import QtGui, QtWidgets, QtCore
 
 __all__ = ['subtract','multiply','power','ratio','absolute_value','subtract_trace','divide_trace']
@@ -51,7 +51,7 @@ class Subtract(BaseProcess):
             value.setRange(-1 * np.max(g.m.currentWindow.image),np.max(g.m.currentWindow.image)) # -np.max sometimes returns abnormal large value
             value.setValue(np.min(g.m.currentWindow.image))
         self.items.append({'name':'value','string':'Value','object':value})
-        self.items.append({'name':'preview','string':'Preview','object':QtWidgets.QCheckBox()})
+        self.items.append({'name':'preview','string':'Preview','object':CheckBox()})
         super().gui()
     def __call__(self,value,keepSourceWindow=False):
         self.start(keepSourceWindow)
@@ -145,7 +145,7 @@ class Multiply(BaseProcess):
         value=QtWidgets.QDoubleSpinBox()
         value.setRange(-2**64,2**64)
         self.items.append({'name':'value','string':'Value','object':value})
-        self.items.append({'name':'preview','string':'Preview','object':QtWidgets.QCheckBox()})
+        self.items.append({'name':'preview','string':'Preview','object':CheckBox()})
         super().gui()
     def __call__(self,value,keepSourceWindow=False):
         self.start(keepSourceWindow)
@@ -181,7 +181,7 @@ class Power(BaseProcess):
             value.setRange(-100,100)
             value.setValue(1)
         self.items.append({'name':'value','string':'Value','object':value})
-        self.items.append({'name':'preview','string':'Preview','object':QtWidgets.QCheckBox()})
+        self.items.append({'name':'preview','string':'Preview','object':CheckBox()})
         super().gui()
     def __call__(self,value,keepSourceWindow=False):
         self.start(keepSourceWindow)

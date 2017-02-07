@@ -289,20 +289,19 @@ class BaseProcess(object):
     def get_init_settings_dict(self):
         return dict() #this function needs to be overwritten by every subclass
 
-    def start(self,keepSourceWindow):
+    def start(self, keepSourceWindow):
         frame = inspect.getouterframes(inspect.currentframe())[1][0]
         args, _, _, values = inspect.getargvalues(frame)
         funcname=self.__name__
-        self.command=funcname+'('+', '.join([i+'='+convert_to_string(values[i]) for i in args if i!='self'])+')'
-        
-        
-        g.m.statusBar().showMessage('Performing {}...'.format(self.__name__))
-        self.keepSourceWindow=keepSourceWindow
-        self.oldwindow=g.m.currentWindow
+        self.command = funcname+'('+', '.join([i+'='+convert_to_string(values[i]) for i in args if i!='self'])+')'
+        g.m.statusBar().showMessage('Running function {}...'.format(self.__name__))
+        self.keepSourceWindow = keepSourceWindow
+        self.oldwindow = g.m.currentWindow
         if self.oldwindow is None:
             raise(MissingWindowError("You cannot execute '{}' without selecting a window first.".format(self.__name__)))
         self.tif=self.oldwindow.image
         self.oldname=self.oldwindow.name
+
     def end(self):
         if self.newtif is None:
             self.oldwindow.reset()

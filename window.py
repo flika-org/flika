@@ -16,24 +16,25 @@ import global_vars as g
 from roi import *
 
 class Window(QWidget):
-    closeSignal=Signal()
-    keyPressSignal=Signal(QEvent)
-    sigTimeChanged=Signal(int)
+    closeSignal = Signal()
+    keyPressSignal = Signal(QEvent)
+    sigTimeChanged = Signal(int)
     gainedFocusSignal = Signal()
     lostFocusSignal = Signal()
-    def __init__(self,tif,name='Flika',filename='',commands=[],metadata=dict()):
+
+    def __init__(self, tif, name='Flika', filename='', commands=[], metadata=dict()):
         QWidget.__init__(self)
-        self.commands=commands #commands is a list of the commands used to create this window, starting with loading the file
-        self.metadata=metadata
+        self.commands = commands #commands is a list of the commands used to create this window, starting with loading the file
+        self.metadata = metadata
         if 'is_rgb' not in metadata.keys():
             metadata['is_rgb']=False
 
         if g.m.currentWindow is None:
-            width=684
-            height=585
-            nwindows=len(g.m.windows)
-            x=10+10*nwindows
-            y=484+10*nwindows
+            width = 684
+            height = 585
+            nwindows = len(g.m.windows)
+            x = 10+10*nwindows
+            y = 484+10*nwindows
         else:
             oldGeometry=g.m.currentWindow.geometry()
             width=oldGeometry.width()
