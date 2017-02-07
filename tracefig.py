@@ -6,7 +6,7 @@ Created on Sun Jun 29 13:13:59 2014
 """
 from qtpy.QtCore import Signal, QEvent, QThread, Qt, QEventLoop, QRect
 from qtpy.QtGui import QIcon, QPen
-from qtpy.QtWidgets import QWidget, qApp, QVBoxLayout, QPushButton, QFileDialog
+from qtpy.QtWidgets import QWidget, qApp, QVBoxLayout, QPushButton, QFileDialog, QApplication
 import pyqtgraph as pg
 pg.setConfigOptions(useWeave=False)
 import numpy as np

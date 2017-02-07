@@ -4,7 +4,7 @@
 from glob import glob
 import global_vars as g
 from qtpy.QtWidgets import QWidget, QMainWindow, QAction
-from qtpy.QtGui import QIcon
+from qtpy.QtGui import QIcon, QDesktopServices
 from qtpy import QtGui, QtWidgets
 from qtpy import uic
 import sys
@@ -15,6 +15,7 @@ import time, shutil
 import os.path
 import traceback
 from plugins.plugin_data import plugin_list
+import pip
 from xmltodict import parse
 sep = os.path.sep
     
@@ -246,6 +247,26 @@ class PluginManager(QMainWindow):
 
     @staticmethod
     def downloadPlugin(plugin_name):
+
+        if 'dependencies' in PluginManager.plugins[plugin_name] and 'dependency' in PluginManager.plugins[plugin_name]['dependencies']:
+            PluginManager.gui.statusBar.showMessage('Installing dependencies for %s' % PluginManager.gui.link)
+            deps = [a['@name'] for a in PluginManager.plugins[plugin_name]['dependencies']['dependency']]
+            failed = []
+            dists = [a.project_name for a in pip.get_installed_distributions()]
+
+            for pl in deps:
+                try:
+                    if pl in dists:
+                        continue
+                    a = __import__(pl)
+                except ImportError:
+                    res = pip.main(['install', pl])
+                    if res != 0:
+                        failed.append(pl)
+            if failed:
+                g.alert("Failed to install dependencies for %s:\n%s\nYou must install them on your own before installing this plugin." % (plugin_name, ', '.join(failed)))
+                return
+
         PluginManager.gui.statusBar.showMessage('Opening %s' % PluginManager.gui.link)
         try:
             data = urlopen(PluginManager.gui.link).read()
@@ -272,10 +293,7 @@ class PluginManager(QMainWindow):
         os.rename(os.path.join('plugins', folder_name), base_dir)
         add_plugin_menu(plugin_name)
         PluginManager.plugins[plugin_name]['install_date'] = plugin['date']
-        if 'dependencies' in PluginManager.plugins[plugin_name] and PluginManager.plugins[plugin_name]['dependencies'] is not None:
-            deps = PluginManager.plugins[plugin_name]['dependencies']['dependency']
-            deps = [dep['@name'] for dep in deps]
-            #check_dependencies(*deps)
+        
         PluginManager.gui.statusBar.showMessage('Successfully installed %s and it\'s plugins' % plugin_name)
         PluginManager.gui.pluginSelected(PluginManager.gui.pluginList.selectedItems()[0])
 
@@ -295,7 +313,7 @@ class PluginManager(QMainWindow):
     def uninstallPlugin(plugin_name):
         base_dir = PluginManager.plugins[plugin_name]['base_dir']
         try:
-            shutil.rmtree(os.path.join('plugins', base_dir))
+            shutil.rmtree(os.path.join('plugins', base_dir), ignore_errors=True)
             for act in g.m.menuPlugins.actions():
                 if str(act.text()) == plugin_name:
                     g.m.menuPlugins.removeAction(act)
