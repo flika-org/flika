@@ -68,7 +68,7 @@ def open_file_gui(func, filetypes, prompt='Open File', kargs={}):
         filename= QtWidgets.QFileDialog.getOpenFileName(g.m, prompt, filename, filetypes)
     else:
         filename= QtWidgets.QFileDialog.getOpenFileName(g.m, prompt, '', filetypes)
-    filename=str(filename)
+    filename=str(filename) if not isinstance(filename, tuple) else str(filename[0])
     if filename != '':
         save_recent_file(filename)
         return func(filename, **kargs)
@@ -94,7 +94,7 @@ def save_file_gui(func, filetypes, prompt = 'Save File', kargs={}):
         filename= QtWidgets.QFileDialog.getSaveFileName(g.m, prompt, directory, filetypes)
     else:
         filename= QtWidgets.QFileDialog.getSaveFileName(g.m, prompt, filetypes)
-    filename=str(filename)
+    filename=str(filename) if not isinstance(filename, tuple) else str(filename[0])
     if filename != '':
         func(filename, **kargs)
     else:

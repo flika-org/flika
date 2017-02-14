@@ -224,7 +224,8 @@ class Window(QWidget):
     def reset(self):
         currentIndex=self.currentIndex
         self.imageview.setImage(self.image,autoLevels=True) #I had autoLevels=False before.  I changed it to adjust after boolean previews.
-        self.imageview.setCurrentIndex(currentIndex)
+        if self.mt != 1:
+            self.imageview.setCurrentIndex(currentIndex)
         g.m.statusBar().showMessage('')
 
     def closeEvent(self, event):
@@ -339,22 +340,24 @@ class Window(QWidget):
         
     def mouseClickEvent(self,ev):
         self.EEEE=ev
-        if self.x is not None and self.y is not None and ev.button()==2:
-            if self.creatingROI is False:
-                mm=g.m.settings['mousemode']
-                if mm=='point':
-                    t=self.currentIndex
-                    pointSize=g.m.settings['point_size']
-                    pointColor = QColor(g.m.settings['point_color'])
-                    position=[self.x,self.y, pointColor, pointSize]
-                    self.scatterPoints[t].append(position)
-                    self.scatterPlot.addPoints(pos=[[self.x,self.y]], size=pointSize, brush=pg.mkBrush(*pointColor.getRgb()))
-                    #  self.imageview.view.__class__.mouseClickEvent(self.imageview.view, ev)
-                            
-                elif g.m.clipboard is not None:
-                    self.menu = QMenu(self)
-                    self.menu.addAction(self.pasteAct)
-                    self.menu.exec_(ev.screenPos().toQPoint())
+        if self.x is not None and self.y is not None and ev.button()==2 and not self.creatingROI:
+            mm=g.m.settings['mousemode']
+            if mm=='point':
+                t=self.currentIndex
+                pointSize=g.m.settings['point_size']
+                pointColor = QColor(g.m.settings['point_color'])
+                position=[self.x,self.y, pointColor, pointSize]
+                self.scatterPoints[t].append(position)
+                self.scatterPlot.addPoints(pos=[[self.x,self.y]], size=pointSize, brush=pg.mkBrush(*pointColor.getRgb()))
+                #  self.imageview.view.__class__.mouseClickEvent(self.imageview.view, ev)
+                        
+            elif g.m.clipboard is not None:
+                self.menu = QMenu(self)
+                self.menu.addAction(self.pasteAct)
+                self.menu.exec_(ev.screenPos().toQPoint())
+        elif self.creatingROI:
+            self.currentROI.cancel()
+            self.creatingROI = None
 
                         
     
@@ -398,9 +401,13 @@ class Window(QWidget):
                     self.creatingROI=True
                     self.currentROI=ROI_Drawing(self,self.x,self.y, mm)
                 if ev.isFinish():
-                    if self.creatingROI:
-                        self.currentROI = self.currentROI.drawFinished()
-                        self.creatingROI=False
+                    if self.creatingROI:   
+                        if ev._buttons | Qt.RightButton != ev._buttons:
+                            self.currentROI = self.currentROI.drawFinished()
+                            self.creatingROI=False
+                        else:
+                            self.currentROI.cancel()
+                            self.creatingROI = False
                     else: 
                         for r in self.currentROIs:
                             r.finish_translate()

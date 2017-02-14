@@ -8,7 +8,7 @@ import numpy as np
 import scipy
 import global_vars as g
 import scipy.ndimage    
-from skimage import feature
+from skimage import feature, measure
 from skimage.filters import threshold_adaptive
 from process.BaseProcess import BaseProcess, SliderLabel, WindowSelector,  MissingWindowError, CheckBox
 from qtpy import QtCore, QtGui, QtWidgets  
@@ -414,7 +414,101 @@ class Binary_Erosion(BaseProcess):
 binary_erosion=Binary_Erosion()
 
 
+class Generate_ROIs(BaseProcess):
+    """generate_rois(level, keepSourceWindow=False)
+    Uses a binary image to create ROIs from positive clusters.
+    
+    Parameters:
+        | level (float) - value in [0, 1] to use when finding contours
+        | keepSourceWindow (bool) -- If this is False, a new Window is created with the result. Otherwise, the currentWindow is used
+    Returns:
+        newWindow
+    """
+    def __init__(self):
+        super().__init__()
+    def gui(self):
+        self.gui_reset()
+        self.previewing = False
+        self.toPreview = False
+        self.ROIs = []
+        level=SliderLabel(2)
+        level.setRange(0,1)
+        level.setValue(.5)
+        minDensity=QtWidgets.QSpinBox()
+        minDensity.setRange(4, 1000)
+        self.items.append({'name':'level','string':'Contour Level','object':level})
+        self.items.append({'name':'minDensity','string':'Minimum Density','object':minDensity})
+        super().gui()
+        self.ui.rejected.connect(self.removeROIs)
 
+    def removeROIs(self):
+        for roi in self.ROIs:
+            roi.cancel()
+        self.ROIs = []
+
+    def __call__(self, level, minDensity, keepSourceWindow=False):
+        self.start(keepSourceWindow)
+        for roi in self.ROIs:
+            roi.cancel()
+        self.ROIs = []
+
+        im = g.m.currentWindow.image if g.m.currentWindow.image.ndim == 2 else g.m.currentWindow.image[g.m.currentWindow.currentIndex]
+        im = scipy.ndimage.morphology.binary_closing(im)
+        if np.any(im < 0) or np.any(im > 1):
+            raise Exception("The current image is not a binary image. Threshold first")
+
+        from roi import makeROI
+        thresholded_image = np.squeeze(im)
+        labelled=measure.label(thresholded_image)
+        ROIs = []
+        for i in range(1, np.max(labelled)+1):
+            if np.sum(labelled == i) >= minDensity:
+                im = scipy.ndimage.morphology.binary_dilation(scipy.ndimage.morphology.binary_closing(labelled == i))
+                outline_coords = measure.find_contours(im, level)
+                if len(outline_coords) == 0:
+                    continue
+                outline_coords = outline_coords[0]
+                new_roi = makeROI("freehand", outline_coords)
+                ROIs.append(new_roi)
+
+    def preview(self):
+        if self.previewing:
+            self.toPreview = True
+            return
+        self.previewing = True
+        im = g.m.currentWindow.image if g.m.currentWindow.image.ndim == 2 else g.m.currentWindow.image[g.m.currentWindow.currentIndex]
+        im = scipy.ndimage.morphology.binary_closing(im)
+        if np.any(im < 0) or np.any(im > 1):
+            raise Exception("The current image is not a binary image. Threshold first")
+
+        from roi import ROI_Drawing
+        level = self.getValue('level')
+        minDensity = self.getValue('minDensity')
+        thresholded_image = np.squeeze(im)
+        labelled=measure.label(thresholded_image)
+        for roi in self.ROIs:
+            roi.cancel()
+        self.ROIs = []
+
+        for i in range(1, np.max(labelled)+1):
+            QtWidgets.qApp.processEvents()
+            if np.sum(labelled == i) >= minDensity:
+                im = scipy.ndimage.morphology.binary_dilation(scipy.ndimage.morphology.binary_closing(labelled == i))
+                outline_coords = measure.find_contours(im, level)
+                if len(outline_coords) == 0:
+                    continue
+                outline_coords = outline_coords[0]
+                self.ROIs.append(ROI_Drawing(g.m.currentWindow, outline_coords[0][0], outline_coords[0][1], 'freehand'))
+                for p in outline_coords[1:]:
+                    self.ROIs[-1].extend(p[0], p[1])
+                    QtWidgets.qApp.processEvents()
+
+        self.previewing = False
+        if self.toPreview:
+            self.toPreview = False
+            self.preview()
+        
+generate_rois=Generate_ROIs()
 
 
 

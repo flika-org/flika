@@ -28,6 +28,10 @@ class ROI_Drawing(pg.GraphicsObject):
         self.type = type
         self.state = {'pos': pg.Point(x, y), 'size': pg.Point(0, 0)}
 
+    def cancel(self):
+        g.m.currentWindow.imageview.removeItem(self)
+        g.m.currentWindow.currentROI = None
+
     def extendRectLine(self):
         for roi in self.window.rois:
             if isinstance(roi, ROI_rect_line):
@@ -168,7 +172,7 @@ class ROI_Wrapper():
             filename= QFileDialog.getSaveFileName(g.m, 'Save ROI', filename, "Text Files (*.txt);;All Files (*.*)")
         else:
             filename= QFileDialog.getSaveFileName(g.m, 'Save ROI', '', "Text Files (*.txt);;All Files (*.*)")
-        filename=str(filename)
+        filename=str(filename) if not isinstance(filename, tuple) else str(filename[0])
         if filename != '':
             reprs = [roi.str() for roi in self.window.rois]
             reprs = '\n'.join(reprs)

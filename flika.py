@@ -21,7 +21,7 @@ from process.color import split_channels
 
 from process.math_ import multiply, subtract, power, ratio, absolute_value, subtract_trace, divide_trace
 from process.filters import gaussian_blur, butterworth_filter,boxcar_differential_filter, wavelet_filter, difference_filter, fourier_filter, mean_filter, median_filter, bilateral_filter
-from process.binary import threshold, adaptive_threshold, canny_edge_detector, remove_small_blobs, logically_combine, binary_dilation, binary_erosion
+from process.binary import threshold, adaptive_threshold, canny_edge_detector, remove_small_blobs, logically_combine, binary_dilation, binary_erosion, generate_rois
 from process.roi import set_value
 from process.measure import measure
 from process.file_ import make_recent_menu, open_file_gui, save_file_gui, open_file, load_metadata, close, save_file, save_movie, save_movie_gui, save_points, load_points, save_current_frame, save_roi_traces
@@ -96,6 +96,7 @@ def initializeMainGui():
     g.m.actionRemove_Small_Blobs.triggered.connect(remove_small_blobs.gui)
     g.m.actionBinary_Erosion.triggered.connect(binary_erosion.gui)
     g.m.actionBinary_Dilation.triggered.connect(binary_dilation.gui)
+    g.m.menuBinary.addAction("Generate ROIs", generate_rois.gui)
     g.m.actionSet_Value.triggered.connect(set_value.gui)
     g.m.actionImage_Calculator.triggered.connect(image_calculator.gui)
     g.m.actionTime_Stamp.triggered.connect(time_stamp.gui)
