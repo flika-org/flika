@@ -55,7 +55,7 @@ class WindowSelector(QWidget):
                 g.m.setCurrentWindowSignal.sig.disconnect(self.setWindow)
             except TypeError:
                 pass
-            self.window=g.m.currentWindow
+            self.window = g.m.currentWindow
         else:
             self.window = window
         self.button.setChecked(False)
@@ -63,6 +63,9 @@ class WindowSelector(QWidget):
         self.valueChanged.emit()
     def value(self):
         return self.window
+    def setValue(self, window):
+        ''' This function is written to satify the requirement that all items have a setValue function to recall from settings the last set value. '''
+        self.setWindow(window)
 
 
 class FileSelector(QWidget):
