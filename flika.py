@@ -16,7 +16,7 @@ import global_vars as g
 import pyqtgraph.opengl as gl
 import matplotlib.cm
 from window import Window
-from process.stacks import deinterleave, trim, zproject, image_calculator, pixel_binning, frame_binning, resize, change_datatype, concatenate_stacks
+from process.stacks import deinterleave, trim, zproject, image_calculator, pixel_binning, frame_binning, resize, change_datatype, concatenate_stacks, duplicate, generate_random_image
 from process.color import split_channels
 
 from process.math_ import multiply, subtract, power, ratio, absolute_value, subtract_trace, divide_trace
@@ -70,6 +70,8 @@ def initializeMainGui():
     g.m.actionPixel_Binning.triggered.connect(pixel_binning.gui)
     g.m.actionFrame_Binning.triggered.connect(frame_binning.gui)
     g.m.actionResize.triggered.connect(resize.gui)
+    g.m.actionDuplicate.triggered.connect(duplicate)
+    g.m.actionGenerate_random_image.triggered.connect(generate_random_image.gui)
     g.m.actionTrim_Frames.triggered.connect(trim.gui)
     g.m.actionConcatenate_Stacks.triggered.connect(concatenate_stacks.gui)
     g.m.actionChange_datatype.triggered.connect(change_datatype.gui)

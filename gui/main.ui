@@ -211,6 +211,8 @@
      <property name="title">
       <string>Stacks</string>
      </property>
+     <addaction name="actionDuplicate"/>
+     <addaction name="actionGenerate_random_image"/>
      <addaction name="actionTrim_Frames"/>
      <addaction name="actionDeinterleave"/>
      <addaction name="actionZ_Project"/>
@@ -627,6 +629,16 @@
   <action name="actionSplit_Channels">
    <property name="text">
     <string>Split Channels</string>
+   </property>
+  </action>
+  <action name="actionDuplicate">
+   <property name="text">
+    <string>Duplicate Window</string>
+   </property>
+  </action>
+  <action name="actionGenerate_random_image">
+   <property name="text">
+    <string>Generate Random Image</string>
    </property>
   </action>
  </widget>

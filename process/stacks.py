@@ -7,11 +7,44 @@ Created on Thu Jun 26 16:18:16 2014
 from window import Window
 import numpy as np
 import global_vars as g
-from process.BaseProcess import BaseProcess, WindowSelector, MissingWindowError, CheckBox
+from process.BaseProcess import BaseProcess, BaseProcess_noPriorWindow, WindowSelector, MissingWindowError, CheckBox, SliderLabel
 from tracefig import TraceFig
 from qtpy import QtWidgets
 
-__all__ = ['deinterleave','trim','zproject','image_calculator', 'pixel_binning', 'frame_binning', 'resize']
+__all__ = ['deinterleave','trim','zproject','image_calculator', 'pixel_binning', 'frame_binning', 'resize', 'duplicate']
+
+
+def duplicate():
+    old = g.m.currentWindow
+    if old is None:
+        g.alert('Select a window before trying to duplicate it.')
+    else:
+        return Window(old.image, old.name, old.filename, old.commands, old.metadata)
+
+class Generate_Random_Image(BaseProcess_noPriorWindow):
+    def __init__(self):
+        super().__init__()
+        self.puffs=None
+
+    def gui(self):
+        self.gui_reset()
+        nFrames = SliderLabel(0)
+        nFrames.setRange(0,10000)
+        nFrames.setValue(1000)
+        width = SliderLabel(0)
+        width.setRange(2,1024)
+        width.setValue(128)
+        self.items.append({'name':'nFrames','string':'Movie Duration (frames)','object':nFrames})
+        self.items.append({'name':'width','string':'Width of image (pixels)','object':width})
+        super().gui()
+
+    def __call__(self, nFrames=10000, width=128):
+        self.start()
+        self.newtif = np.random.randn(nFrames, width, width)
+        self.newname=' Random Noise '
+        return self.end()
+
+generate_random_image = Generate_Random_Image()
 
 class Deinterleave(BaseProcess):
     """ deinterleave(nChannels, keepSourceWindow=False)
