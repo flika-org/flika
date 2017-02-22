@@ -1,0 +1,24 @@
+<plugin name="Pynsight">
+	<base_dir>
+		pynsight
+	</base_dir>
+	<date>
+		06/15/2016
+	</date>
+	<author>
+		Kyle Ellefsen
+	</author>
+	<description>
+		A clone of Insight2 in Python.  This can be used to analyze 2D STORM microscopy movies.
+	</description>
+	<url>
+		https://github.com/kyleellefsen/pynsight/archive/master.zip
+	</url>
+	<dependencies>
+	</dependencies>
+	<menu_layout>
+		<action location="pynsight" function="pynsight.gui">Pynsight</action>
+		<action location="pynsight" function="simulate_particles_wrapper">Simulate Particles</action>
+		<action location="pynsight" function="launch_docs">Docs</action>
+	</menu_layout>
+</plugin>

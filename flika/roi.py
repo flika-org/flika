@@ -113,19 +113,19 @@ class ROI_Wrapper():
         self.mask=None
         self.linkedROIs = set()
         self.sigRegionChanged.connect(self.onRegionChange)
-        self.sigRegionChangeFinished.connect(self.finish_translate)
+        self.sigRegionChangeFinished.connect(self.onRegionChangeFinished)
         if isinstance(self.pen, QtGui.QColor):
             self.color = self.pen
         else:
             self.color = self.pen.color()
 
-    def finish_translate(self):
+    def onRegionChangeFinished(self):
         pts=self.getPoints(round=True)
         for roi in self.linkedROIs:
             roi.draw_from_points(pts)
-            roi.translate_done.emit()
+            roi.sigRegionChangeFinished.emit(self)
         #self.draw_from_points(pts)
-        self.translate_done.emit()
+        #self.sigRegionChangeFinished.emit(self)
 
 
     def setMouseHover(self, hover):
@@ -166,7 +166,6 @@ class ROI_Wrapper():
             if roi.traceWindow != None:
                 roi.traceWindow.translated(roi)
             roi.getMask()
-        self.translated.emit()
 
     def plot(self):
         self.plotAct.setText("Unplot")
@@ -181,7 +180,7 @@ class ROI_Wrapper():
     def colorSelected(self, color):
         if color.isValid():
             self.setPen(QtGui.QColor(color.name()))
-            self.translate_done.emit()
+            self.sigRegionChangeFinished.emit(self)
         self.color = color
 
     def unplot(self):
@@ -278,8 +277,7 @@ class ROI_Wrapper():
 class ROI_line(ROI_Wrapper, pg.LineSegmentROI):
     kind = 'line'
     plotSignal = QtCore.Signal()
-    translated = QtCore.Signal()
-    translate_done = QtCore.Signal()
+    
     def __init__(self, window, pos, *args, **kargs):
         self.init_args.update(kargs)
         self.window = window
@@ -337,7 +335,7 @@ class ROI_line(ROI_Wrapper, pg.LineSegmentROI):
         oldwindow=g.currentWindow
         name=oldwindow.name+' - Kymograph'
         self.kymograph=Window(mn,name,metadata=self.window.metadata)
-        self.translated.connect(self.update_kymograph)
+        self.sigRegionChanged.connect(self.update_kymograph)
         self.kymograph.closeSignal.connect(self.deleteKymograph)
         self.sigRemoveRequested.connect(self.deleteKymograph)
 
@@ -349,8 +347,7 @@ class ROI_line(ROI_Wrapper, pg.LineSegmentROI):
 class ROI_rect_line(ROI_Wrapper, pg.MultiRectROI):
     kind = 'rect_line'
     plotSignal = QtCore.Signal()
-    translated = QtCore.Signal()
-    translate_done = QtCore.Signal()
+    
     def __init__(self, window, pts, width=1, *args, **kargs):
         self.init_args.update(kargs)
         self.window = window
@@ -408,7 +405,7 @@ class ROI_rect_line(ROI_Wrapper, pg.MultiRectROI):
             return
         for i in range(len(self.lines)-1, ind-1, -1):
             self.removeSegment(i)
-        self.translate_done.emit()
+        self.sigRegionChangeFinished.emit(self)
 
     def getMenu(self):
         ROI_Wrapper.getMenu(self)
@@ -426,7 +423,7 @@ class ROI_rect_line(ROI_Wrapper, pg.MultiRectROI):
             return
         self.lines[0].scale([1.0, newWidth/self.width], center=[0.5,0.5])
         self.width = newWidth
-        self.translate_done.emit()
+        self.sigRegionChangeFinished.emit(self)
 
     def setPen(self, pen):
         self.pen = pen
@@ -506,12 +503,12 @@ class ROI_rect_line(ROI_Wrapper, pg.MultiRectROI):
             self.addSegment(pg.Point(int(x), int(y)), connectTo=self.lines[-1].handles[1]['item'])
         else:
             self.lines[-1].handles[-1]['item'].movePoint(self.window.imageview.getImageItem().mapToScene(pg.Point(x, y)))
-        self.translated.emit()
+        self.sigRegionChanged.emit()
 
     def extendFinished(self):
         self.extending = False
         self.extendHandle = None
-        self.translate_done.emit()
+        self.sigRegionChangeFinished.emit()
 
     def getHandleTuples(self):
         pos = []
@@ -558,7 +555,7 @@ class ROI_rect_line(ROI_Wrapper, pg.MultiRectROI):
         name=oldwindow.name+' - Kymograph'
         self.kymograph=Window(mn,name,metadata=self.window.metadata)
         self.kymographproxy = pg.SignalProxy(self.sigRegionChanged, rateLimit=1, slot=self.update_kymograph) #This will only update 3 Hz
-        self.translated.connect(self.update_kymograph)
+        self.sigRegionChanged.connect(self.update_kymograph)
         self.kymograph.closeSignal.connect(self.deleteKymograph)
 
     def deleteKymograph(self):
@@ -570,8 +567,7 @@ class ROI_rect_line(ROI_Wrapper, pg.MultiRectROI):
 class ROI_rectangle(ROI_Wrapper, pg.ROI):
     kind = 'rectangle'
     plotSignal = QtCore.Signal()
-    translated = QtCore.Signal()
-    translate_done = QtCore.Signal()
+    
     def __init__(self, window, pos, size=(1, 1), resizable=True, *args, **kargs):
         self.init_args.update(kargs)
         self.window = window
@@ -685,8 +681,7 @@ class ROI_rectangle(ROI_Wrapper, pg.ROI):
 class ROI(ROI_Wrapper, pg.ROI):
     kind = 'freehand'
     plotSignal = QtCore.Signal()
-    translated = QtCore.Signal()
-    translate_done = QtCore.Signal()
+    
     def __init__(self, window, pts, *args, **kargs):
         self.init_args.update(kargs)
         self.window = window
