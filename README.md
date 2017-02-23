@@ -3,8 +3,7 @@
 #### Windows ####
 
 1. Install Python
- 
-@@ -26,16 +21,31 @@
+
 	* PyQt4
 	* qtpy
 	* pyqtgraph

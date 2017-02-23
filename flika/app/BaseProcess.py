@@ -117,6 +117,9 @@ class FileSelector(QWidget):
         self.valueChanged.emit()
     def value(self):
         return self.filename
+    def setValue(self, filename):
+        self.filename = str(filename)
+        self.label.setText('...' + os.path.split(self.filename)[-1][-20:])
 
 def color_pixmap(color):
     pm = QPixmap(15, 15)
