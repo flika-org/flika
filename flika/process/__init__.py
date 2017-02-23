@@ -1,4 +1,4 @@
-from .stacks import deinterleave, trim, zproject, image_calculator, pixel_binning, frame_binning, resize, change_datatype, concatenate_stacks
+from .stacks import deinterleave, trim, zproject, image_calculator, pixel_binning, frame_binning, resize, change_datatype, concatenate_stacks, duplicate, generate_random_image
 from .math_ import multiply, subtract, power, ratio, absolute_value, subtract_trace, divide_trace
 from .filters import gaussian_blur, butterworth_filter,boxcar_differential_filter, wavelet_filter, difference_filter, fourier_filter, mean_filter, median_filter, bilateral_filter
 from .binary import threshold, adaptive_threshold, canny_edge_detector, remove_small_blobs, logically_combine, binary_dilation, binary_erosion, generate_rois
@@ -21,6 +21,8 @@ def setup_menus():
 
 	stacksMenu = imageMenu.addMenu("Stacks")
 	
+	addAction(stacksMenu, "Duplicate", duplicate)
+	addAction(stacksMenu, "Generate Random Image", generate_random_image.gui)
 	addAction(stacksMenu, "Trim Frames", trim.gui)
 	addAction(stacksMenu, "Deinterlace", deinterleave.gui)
 	addAction(stacksMenu, "Z Project", zproject.gui)
