@@ -101,8 +101,13 @@ class FileSelector(QWidget):
         self.filename=str(filename)
         self.label.setText('...'+os.path.split(self.filename)[-1][-20:])
         self.valueChanged.emit()
+
     def value(self):
         return self.filename
+
+    def setValue(self, filename):
+        self.filename = str(filename)
+        self.label.setText('...' + os.path.split(self.filename)[-1][-20:])
 
 
 class ColorSelector(QWidget):
