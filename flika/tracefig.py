@@ -109,7 +109,7 @@ class TraceFig(QWidget):
         minX, maxX = self.region.getRegion()
         self.p1.plotItem.setXRange(minX, maxX, padding=0, update=False)    
         self.p1.plotItem.axes['bottom']['item'].setRange(minX,maxX)
-        #self.p1.plotItem.update()
+        
 
     def updateRegion(self,window, viewRange):
         rgn = viewRange[0]
@@ -138,18 +138,19 @@ class TraceFig(QWidget):
         return [r['roi'] for r in self.rois].index(roi)
         
     def alert(self, msg):
+        print(msg)
         pass
 
     def translated(self,roi):
         index=self.get_roi_index(roi)
         self.rois[index]['toBeRedrawn']=True
-
+        
         if self.redrawPartialThread is None or self.redrawPartialThread.isFinished():
-            self.alert('Launching redrawPartialThread')
-            self.redrawPartialThread=RedrawPartialThread(self)
-            self.redrawPartialThread.alert.connect(self.alert)
-            self.redrawPartialThread.start()
-            self.redrawPartialThread.updated.connect(self.partialThreadUpdatedSignal.emit)
+           self.alert('Launching redrawPartialThread')
+           self.redrawPartialThread=RedrawPartialThread(self)
+           self.redrawPartialThread.alert.connect(self.alert)
+           self.redrawPartialThread.start()
+           self.redrawPartialThread.updated.connect(self.partialThreadUpdatedSignal.emit)
             
     def translateFinished(self,roi):
         roi_index=self.get_roi_index(roi)
@@ -267,7 +268,7 @@ class RedrawPartialThread(QtCore.QThread):
             time.sleep(.05)
             self.redraw()
             self.updated.emit()
-
+        self.alert.emit("Finished Redraw")
         self.finished.emit()
         
     def request_quit_loop(self):
@@ -286,6 +287,7 @@ class RedrawPartialThread(QtCore.QThread):
                     self.tracefig.rois[i]['toBeRedrawn']=False
                     idxs.append(i)
             traces=[]
+            self.alert.emit(str(len(idxs)))
             bounds=self.tracefig.getBounds()
             bounds = [max(0, bounds[0]), bounds[1]]
             for i in idxs:
@@ -306,3 +308,4 @@ class RedrawPartialThread(QtCore.QThread):
                 curve.setData(newtrace,pen=pen)
                 qApp.processEvents()
             self.redrawCompleted=True
+            

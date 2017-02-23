@@ -23,6 +23,7 @@ else:
     import numpy, scipy
     getnamespace = lambda : {'np': numpy, 'scipy': scipy}
 
+MESSAGE_TIME = 2000
 
 def qstr2str(string):
     string=str(string)
@@ -51,12 +52,12 @@ class Editor(QtWidgets.QPlainTextEdit):
             print("Failed to read %s: %s" % (scriptfile, e))
 
         self.setPlainText(script)
-        ScriptEditor.gui.statusBar().showMessage('{} loaded.'.format(os.path.basename(self.scriptfile)))
+        ScriptEditor.gui.statusBar().showMessage('{} loaded.'.format(os.path.basename(self.scriptfile)), MESSAGE_TIME)
 
     def save_as(self):
         filename=getSaveFileName(self, 'Save script', ScriptEditor.most_recent_script(), '*.py')
         if filename == '':
-            ScriptEditor.gui.statusBar().showMessage('Save cancelled')
+            ScriptEditor.gui.statusBar().showMessage('Save cancelled', MESSAGE_TIME)
             return False
         self.scriptfile = filename
         self.save()
@@ -70,7 +71,7 @@ class Editor(QtWidgets.QPlainTextEdit):
         f.write(command)
         f.close()
         ScriptEditor.add_recent_file(self.scriptfile)
-        ScriptEditor.gui.statusBar().showMessage('{} saved.'.format(os.path.basename(self.scriptfile)))
+        ScriptEditor.gui.statusBar().showMessage('{} saved.'.format(os.path.basename(self.scriptfile)), MESSAGE_TIME)
         return True
 
     def eventFilter(self, source, event):

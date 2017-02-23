@@ -179,7 +179,8 @@ class Settings:
                         'roi_color': '#ffff00',
                         'rect_width': 5,
                         'rect_height': 5,
-                        'show_all_points': False}
+                        'show_all_points': False,
+                        'default_rect_on_click': False}
 
     def __init__(self):
         self.config_file=os.path.join(expanduser("~"),'.FLIKA','config.p' )

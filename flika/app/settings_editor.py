@@ -32,6 +32,9 @@ class SettingsEditor(BaseDialog):
         roi_color = ColorSelector()
         roi_color.setEnabled(g.settings['roi_color'] != 'random')
         roi_color.color=g.settings['roi_color'] if g.settings['roi_color'] != 'random' else '#ffff00'
+
+        default_rect = QtWidgets.QCheckBox()
+        default_rect.setChecked(g.settings['default_rect_on_click'])
         
         items = []
         items.append({'name': 'random_color_check', 'string': 'Randomly color ROIs', 'object': random_color_check})
@@ -42,6 +45,8 @@ class SettingsEditor(BaseDialog):
         items.append({'name': 'multiprocessing', 'string': 'Multiprocessing On', 'object': multiprocessing})
         items.append({'name': 'nCores', 'string': 'Number of cores to use when multiprocessing', 'object': nCores})
         items.append({'name': 'debug_mode', 'string': 'Debug Mode', 'object': debug_check})
+        items.append({'name': 'default_rect_on_click', 'string': 'Enable default ROI on right click', 'object': default_rect})
+        
         def update():
             g.settings['internal_data_type'] = np.dtype(str(dataDrop.currentText()))
             g.settings['show_windows'] = showCheck.isChecked()
@@ -127,14 +132,13 @@ def rectSettings(rectButton):
     default rect height
     default rect width
     """
-
     rect_width = QtWidgets.QSpinBox()
     rect_width.setRange(1,50)
     rect_width.setValue(g.settings['rect_width'])
     rect_height = QtWidgets.QSpinBox()
     rect_height.setRange(1,50)
     rect_height.setValue(g.settings['rect_height'])
-    
+
     items = []
     items.append({'name': 'rect_width', 'string': 'Default Rectangle Width', 'object': rect_width})
     items.append({'name': 'rect_height', 'string': 'Default Rectangle Height', 'object': rect_height})

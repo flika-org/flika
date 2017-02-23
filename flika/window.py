@@ -6,6 +6,7 @@ import numpy as np
 import flika.global_vars as g
 from flika.roi import makeROI, ROI_Drawing
 from flika.utils import getSaveFileName
+import os
 
 class Window(QtWidgets.QWidget):
     closeSignal = Signal()
@@ -102,7 +103,7 @@ class Window(QtWidgets.QWidget):
         self.scatterPoints=[[] for _ in np.arange(mt)]
         self.scatterPlot.sigClicked.connect(self.clickedScatter)
         self.imageview.addItem(self.scatterPlot)
-        self.pasteAct = QtWidgets.QAction("&Paste", self, triggered=self.paste)
+    
         if g.settings['show_windows']:
             self.show()
             QtWidgets.qApp.processEvents()
@@ -118,6 +119,7 @@ class Window(QtWidgets.QWidget):
         self.imageview.scene.sigMouseClicked.connect(clicked)
 
         self.linkedWindows = set()
+        self.makeMenu()
 
     def normLUT(self):
         if self.nDims ==2:
@@ -253,24 +255,23 @@ class Window(QtWidgets.QWidget):
         self.imageview.resize(self.size())
 
     def paste(self):
+        ''' This function pastes an ROI from one window into another.
+        The ROIs will be linked so that when you translate one of them, the other one also moves'''
+        def pasteROI(roi):
+            if roi in self.rois:
+                return None
+            self.currentROI=makeROI(roi.kind,roi.pts,self)
+            if roi in roi.window.rois:
+                self.currentROI.link(roi)
+            return self.currentROI
+
         if type(g.clipboard) == list:
             rois = []
             for roi in g.clipboard:
-                rois.append(self._pasteROI(roi))
+                rois.append(pasteROI(roi))
             return rois
         else:
-            return self._pasteROI(g.clipboard)
-
-    def _pasteROI(self, roi):
-        ''' This function pastes an ROI from one window into another.
-        The ROIs will be linked so that when you translate one of them, the other one also moves'''
-
-        if roi in self.rois:
-            return None
-        self.currentROI=makeROI(roi.kind,roi.pts,self)
-        if roi in roi.window.rois:
-            self.currentROI.link(roi)
-        return self.currentROI
+            return pasteROI(g.clipboard)
         
     def mousePressEvent(self,ev):
         ev.accept()
@@ -313,7 +314,27 @@ class Window(QtWidgets.QWidget):
                 p_out.append(np.array([t,p[0],p[1]]))
         p_out=np.array(p_out)
         return p_out
-        
+
+    def makeMenu(self):
+        self.menu = QtWidgets.QMenu(self)
+
+        def updateMenu():
+            plotAllAct.setEnabled(self.image.ndim > 2)
+            pasteAct.setEnabled(isinstance(g.clipboard, (list, pg.ROI)))
+
+        pasteAct = QtWidgets.QAction("&Paste", self, triggered=self.paste)
+        plotAllAct = QtWidgets.QAction('&Plot All ROIs', self.menu, triggered=lambda : [roi.plot() for roi in self.rois if roi.traceWindow == None])
+        copyAll = QtWidgets.QAction("Copy All ROIs", self.menu, triggered = lambda a: setattr(g, 'clipboard', self.rois))
+        removeAll = QtWidgets.QAction("Remove All ROIs", self.menu, triggered = lambda : [a.delete() for a in self.rois[:]])
+        saveAct = QtWidgets.QAction("&Save ROIs",self, triggered=self.exportROIs) 
+
+        self.menu.addAction(plotAllAct)
+        self.menu.addAction(pasteAct)
+        self.menu.addAction(copyAll)
+        self.menu.addAction(saveAct)
+        self.menu.addAction(removeAll)
+        self.menu.aboutToShow.connect(updateMenu)
+
     def mouseClickEvent(self,ev):
         modifiers = QtWidgets.QApplication.keyboardModifiers()
         self.EEEE=ev
@@ -327,30 +348,11 @@ class Window(QtWidgets.QWidget):
                 self.scatterPoints[t].append(position)
                 self.scatterPlot.addPoints(pos=[[self.x,self.y]], size=pointSize, brush=pg.mkBrush(*pointColor.getRgb()))
                 #  self.imageview.view.__class__.mouseClickEvent(self.imageview.view, ev)
-            elif modifiers == QtCore.Qt.ControlModifier or mm == 'mouse':
-                self.menu = QtWidgets.QMenu(self)
-
-                self.pasteAct.setEnabled(g.clipboard is not None)
-                plotAllAct = QtWidgets.QAction('&Plot All', self, triggered=lambda : [roi.plot() for roi in self.rois if roi.traceWindow == None])
-                plotAllAct.setEnabled(self.image.ndim > 2)
-                copyAll = QtWidgets.QAction("Copy All ROIs", self.menu)
-                copyAll.triggered.connect(lambda a: setattr(g, 'clipboard', self.rois))
-                removeAll = QtWidgets.QAction("Remove All ROIs", self.menu)
-                removeAll.triggered.connect(lambda : [a.delete() for a in self.rois[:]])
-                saveAct = QtWidgets.QAction("&Save ROIs",self,triggered=self.exportROIs) 
-
-                self.menu.addAction(plotAllAct)
-                self.menu.addAction(self.pasteAct)
-                self.menu.addAction(copyAll)
-                self.menu.addAction(saveAct)
-                self.menu.addAction(removeAll)
-                
-                self.menu.exec_(ev.screenPos().toQPoint())
-            elif mm == 'rectangle':
-                self.currentROI = ROI_Drawing(self, self.x - g.settings['rect_width']/2, self.y - g.settings['rect_height']/2, mm)
-                self.currentROI.extend(self.x + g.settings['rect_width']/2, self.y + g.settings['rect_height']/2)
-                self.currentROI.drawFinished()
-            elif mm == 'freehand':
+            elif modifiers != QtCore.Qt.ControlModifier and mm == 'rectangle' and g.settings['default_roi_on_click']:
+                    self.currentROI = ROI_Drawing(self, self.x - g.settings['rect_width']/2, self.y - g.settings['rect_height']/2, mm)
+                    self.currentROI.extend(self.x + g.settings['rect_width']/2, self.y + g.settings['rect_height']/2)
+                    self.currentROI.drawFinished()
+            elif modifiers != QtCore.Qt.ControlModifier and mm == 'freehand' and g.settings['default_roi_on_click']:
                 # Before using this script to get the outlines of cells from a raw movie of fluorescence, you need to do some processing.
                 # Get a good image of cells by averaging the movie using the zproject() function inside Flika. 
                 # Then threshold the image and use a combination of binary dilation and binary erosion to clean it up (all functions inside Flika)
@@ -365,18 +367,21 @@ class Window(QtWidgets.QWidget):
                 outline_coords = measure.find_contours(labelled == labelled[int(self.x)][int(self.y)], 0.5)
                 outline_coords = sorted(outline_coords, key=lambda a: -len(a))[0]
                 new_roi = makeROI("freehand", outline_coords)
+            else:
+                self.menu.exec_(ev.screenPos().toQPoint())
         elif self.creatingROI:
             self.currentROI.cancel()
             self.creatingROI = None
 
     def exportROIs(self, filename=None):
-        if filename == None:
+        if not isinstance(filename, str):
             filename=g.settings['filename'].split('.')[0]
             if filename is not None and os.path.isfile(filename):
                 filename= getSaveFileName(g.m, 'Save ROI', filename, "Text Files (*.txt);;All Files (*.*)")
             else:
                 filename= getSaveFileName(g.m, 'Save ROI', '', "Text Files (*.txt);;All Files (*.*)")
-        if filename != '':
+
+        if filename != '' and isinstance(filename, str):
             reprs = [roi.str() for roi in self.rois]
             reprs = '\n'.join(reprs)
             open(filename, 'w').write(reprs)
@@ -401,8 +406,8 @@ class Window(QtWidgets.QWidget):
         self.x=point.x()
         self.y=point.y()
         image=self.imageview.getImageItem().image
-        for roi in self.currentROIs:
-            roi.setMouseHover(True)
+        #for roi in self.currentROIs:
+        #    roi.setMouseHover(True)
         if self.x<0 or self.y<0 or self.x>=image.shape[0] or self.y>=image.shape[1]:
             pass# if we are outside the image
         else:
@@ -441,17 +446,9 @@ class Window(QtWidgets.QWidget):
                     else:
                         for r in self.currentROIs:
                             r.finish_translate()
-                else: # if we are in the middle of the drag between starting and finishing
-                    #if inImage:
+                else: 
                     if self.creatingROI:
                         self.currentROI.extend(self.x,self.y)
-                    else:
-                        difference=self.imageview.getImageItem().mapFromScene(ev.scenePos())-self.imageview.getImageItem().mapFromScene(ev.lastScenePos())
-                        if difference.isNull():
-                            return
-                        #for r in self.currentROIs:
-                        #    if r != self.currentROI:
-                        #        r.translate(difference,self.imageview.getImageItem().mapFromScene(ev.lastScenePos()))
                                 
     def updateTimeStampLabel(self,frame):
         label=self.timeStampLabel

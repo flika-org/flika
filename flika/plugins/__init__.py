@@ -5,7 +5,6 @@ plugin_list = {
 'Beam Splitter': 'https://raw.githubusercontent.com/BrettJSettle/BeamSplitter/master/info.xml',
 'Rodent Tracker': 'https://raw.githubusercontent.com/kyleellefsen/rodentTracker/master/info.xml',
 'Detect Puffs': 'https://raw.githubusercontent.com/kyleellefsen/detect_puffs/master/info.xml',
-'Drift Correction': 'https://raw.githubusercontent.com/BrettJSettle/DriftCorrection/master/info.xml',
 'Pynsight' : 'http://raw.githubusercontent.com/kyleellefsen/pynsight/master/info.xml'
 }
 

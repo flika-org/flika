@@ -102,31 +102,36 @@ class ROI_Drawing(pg.GraphicsObject):
 
 
 class ROI_Wrapper():
+    '''
+    ROI wrapper class for all pyqtgraph ROI wrappers
+    
+    
+
+    '''
     init_args = {'removable': True, 'translateSnap': True, 'pen':ROI_COLOR}
     def __init__(self):
-        self.getMenu()
         self.colorDialog=QtWidgets.QColorDialog()
         self.colorDialog.colorSelected.connect(self.colorSelected)
         self.window.closeSignal.connect(self.delete)
         self.window.currentROI = self
         self.traceWindow = None  # To test if roi is plotted, check if traceWindow is None
-        self.mask=None
+        self.mask = None
         self.linkedROIs = set()
         self.sigRegionChanged.connect(self.onRegionChange)
         self.sigRegionChangeFinished.connect(self.onRegionChangeFinished)
+
         if isinstance(self.pen, QtGui.QColor):
             self.color = self.pen
         else:
             self.color = self.pen.color()
+        self.makeMenu()
 
     def onRegionChangeFinished(self):
-        pts=self.getPoints(round=True)
+        pts = self.getPoints()
         for roi in self.linkedROIs:
             roi.draw_from_points(pts)
-            roi.sigRegionChangeFinished.emit(self)
-        #self.draw_from_points(pts)
-        #self.sigRegionChangeFinished.emit(self)
-
+            if roi.traceWindow:
+                roi.traceWindow.translateFinished(roi)
 
     def setMouseHover(self, hover):
         ## Inform the ROI that the mouse is(not) hovering over it
@@ -140,35 +145,21 @@ class ROI_Wrapper():
 
         self.update()
 
-    def mouseClickEvent(self, ev):
-        if ev.button() == 1:
-            modifiers = QtWidgets.QApplication.keyboardModifiers()
-            if modifiers == QtCore.Qt.ControlModifier:
-                if self in self.window.currentROIs:
-                    self.window.currentROIs.remove(self)
-                else:
-                    self.window.currentROIs.add(self)
-            else:
-                for roi in self.window.currentROIs:
-                    roi.setMouseHover(False)
-                self.window.currentROIs = {self}
-        super().mouseClickEvent(ev)
-        
     def onRegionChange(self):
         self.getMask()
-        pts = self.pts
         for roi in self.linkedROIs:
             roi.blockSignals(True)
-            roi.draw_from_points(pts)
+            roi.draw_from_points(self.pts)
             if isinstance(roi, ROI):
                 roi.state['pos'] = self.state['pos']
             roi.blockSignals(False)
             if roi.traceWindow != None:
                 roi.traceWindow.translated(roi)
             roi.getMask()
+        #self.pts = self.getPoints()
+            
 
     def plot(self):
-        self.plotAct.setText("Unplot")
         self.traceWindow = roiPlot(self)
         self.traceWindow.indexChanged.connect(self.window.setIndex)
         self.plotSignal.emit()
@@ -184,7 +175,6 @@ class ROI_Wrapper():
         self.color = color
 
     def unplot(self):
-        self.plotAct.setText("Plot")
         try:
             self.traceWindow.indexChanged.disconnect(self.window.setIndex)
         except:
@@ -199,28 +189,35 @@ class ROI_Wrapper():
 
     def link(self,roi):
         '''This function links this roi to another, so a translation of one will cause a translation of the other'''
+        if not isinstance(roi, pg.ROI):
+            return
         join = self.linkedROIs | roi.linkedROIs | {self, roi}
         self.linkedROIs = join - {self}
         roi.linkedROIs = join - {roi}
 
     def raiseContextMenu(self, ev):
         pos = ev.screenPos()
-        self.plotAct.setText("&Plot" if self.traceWindow == None else "&Unplot")
-        self.plotAct.setEnabled(self.window.image.ndim > 2)
-        
+        self.menu.addSeparator()
+        self.menu.addActions(self.window.menu.actions())
         self.menu.popup(QtCore.QPoint(pos.x(), pos.y()))
     
-    def getMenu(self):
-        self.plotAct = QtWidgets.QAction("&Plot", self, triggered=lambda : self.plot() if self.plotAct.text() == "&Plot" else self.unplot())
-        self.colorAct = QtWidgets.QAction("&Change Color",self,triggered=self.changeColor)
-        self.copyAct = QtWidgets.QAction("&Copy", self, triggered=self.copy)
-        self.remAct = QtWidgets.QAction("&Delete", self, triggered=self.delete)       
+    def makeMenu(self):
+        plotAct = QtWidgets.QAction("&Plot", self, triggered=lambda : self.plot() if plotAct.text() == "&Plot" else self.unplot())
+        colorAct = QtWidgets.QAction("&Change Color",self,triggered=self.changeColor)
+        copyAct = QtWidgets.QAction("&Copy", self, triggered=self.copy)
+        remAct = QtWidgets.QAction("&Delete", self, triggered=self.delete)
         self.menu = QtWidgets.QMenu("ROI Menu")
-        
-        self.menu.addAction(self.plotAct)
-        self.menu.addAction(self.colorAct)
-        self.menu.addAction(self.copyAct)
-        self.menu.addAction(self.remAct)
+
+        def updateMenu():
+            plotAct.setEnabled(self.window.image.ndim > 2)
+            plotAct.setText("&Plot" if self.traceWindow == None else "&Unplot")
+            self.window.menu.aboutToShow.emit()
+
+        self.menu.addAction(plotAct)
+        self.menu.addAction(colorAct)
+        self.menu.addAction(copyAct)
+        self.menu.addAction(remAct)
+        self.menu.aboutToShow.connect(updateMenu)
     
     def delete(self):
         self.unplot()
@@ -241,8 +238,9 @@ class ROI_Wrapper():
         self.window.currentROI = self
         self.getMask()
 
-    def getPoints(self):
-        return NotImplementedError()
+    def mouseDragEvent(self, ev):
+        self.setMouseHover(not ev.isFinish())
+        pg.ROI.mouseDragEvent(self, ev)
 
     def getTrace(self, bounds=None, pts=None):
         tif = self.window.imageArray()
@@ -262,10 +260,16 @@ class ROI_Wrapper():
                         vals = np.average(tif[:, xx, yy].astype(np.float), 1)
                     else:
                         assert vals[0] == np.average(tif[0, xx, yy])  # Deal with this issue if it happens.
-
+    def getTrace(self, bounds=None):
+        region = self.getArrayRegion(self.window.image, self.window.imageview.getImageItem(), (1, 2))
+        while region.ndim > 1:
+            region = np.average(region, 1)
         if bounds:
-            vals = vals[bounds[0]:bounds[1]]
-        return vals
+            region = region[bounds[0]:bounds[1]]
+        return region
+
+    #def getMask(self):
+    #    return self.renderShapeMask(self.window.mx, self.window.my)
 
     def str(self):
         s = self.kind + '\n'
@@ -286,10 +290,10 @@ class ROI_line(ROI_Wrapper, pg.LineSegmentROI):
         self.kymographAct = QtWidgets.QAction("&Kymograph", self, triggered=self.update_kymograph)
         self.kymograph = None
         ROI_Wrapper.__init__(self)
+        self.mouseHovering = False
 
-
-    def getMenu(self):
-        ROI_Wrapper.getMenu(self)
+    def makeMenu(self):
+        ROI_Wrapper.makeMenu(self)
         self.menu.addAction(self.kymographAct)
 
     def getPoints(self, round=False):
@@ -308,6 +312,7 @@ class ROI_line(ROI_Wrapper, pg.LineSegmentROI):
         self.movePoint(self.handles[0]['item'], pts[0], finish=False)
         self.movePoint(self.handles[1]['item'], pts[1], finish=False)
         self.blockSignals(False)
+        self.pts = pts
 
     def update_kymograph(self):
         tif=self.window.image
@@ -385,6 +390,7 @@ class ROI_rect_line(ROI_Wrapper, pg.MultiRectROI):
             self.lines[i].movePoint(self.lines[i].handles[0]['item'], pts[i], finish=False)
         self.lines[-1].movePoint(self.lines[-1].handles[-1]['item'], pts[-1])
         self.blockSignals(False)
+        self.pts = pts
         
     def setCurrentPen(self, pen):
         for l in self.lines:
@@ -394,7 +400,9 @@ class ROI_rect_line(ROI_Wrapper, pg.MultiRectROI):
     def hoverEvent(self, l, ev):
         self.currentLine = l
         if ev.enter:
-            self.setCurrentPen(QtGui.QPen(HOVER_COLOR))
+            pen = QtGui.QPen(HOVER_COLOR)
+            pen.setWidth(0)
+            self.setCurrentPen(pen)
         elif ev.exit:
             self.setCurrentPen(l.pen)
 
@@ -407,8 +415,8 @@ class ROI_rect_line(ROI_Wrapper, pg.MultiRectROI):
             self.removeSegment(i)
         self.sigRegionChangeFinished.emit(self)
 
-    def getMenu(self):
-        ROI_Wrapper.getMenu(self)
+    def makeMenu(self):
+        ROI_Wrapper.makeMenu(self)
         removeLinkAction = QtWidgets.QAction('Remove Link', self, triggered=self.removeLink)
         setWidthAction = QtWidgets.QAction("Set Width", self, triggered=lambda: self.setWidth())
         self.menu.addAction(removeLinkAction)
@@ -457,7 +465,7 @@ class ROI_rect_line(ROI_Wrapper, pg.MultiRectROI):
         pg.MultiRectROI.addSegment(self, *arg, **args)
         l = self.lines[-1]
         l.raiseContextMenu = self.raiseContextMenu
-        l.getMenu = self.getMenu
+        #l.getMenu = self.getMenu
         l.hoverEvent = lambda ev: self.hoverEvent(l, ev)
         def boundingRect():
             w = max(8, self.width)
@@ -503,12 +511,12 @@ class ROI_rect_line(ROI_Wrapper, pg.MultiRectROI):
             self.addSegment(pg.Point(int(x), int(y)), connectTo=self.lines[-1].handles[1]['item'])
         else:
             self.lines[-1].handles[-1]['item'].movePoint(self.window.imageview.getImageItem().mapToScene(pg.Point(x, y)))
-        self.sigRegionChanged.emit()
+        self.sigRegionChanged.emit(self)
 
     def extendFinished(self):
         self.extending = False
         self.extendHandle = None
-        self.sigRegionChangeFinished.emit()
+        self.sigRegionChangeFinished.emit(self)
 
     def getHandleTuples(self):
         pos = []
@@ -579,19 +587,23 @@ class ROI_rectangle(ROI_Wrapper, pg.ROI):
             self.addScaleHandle([1, 1], [0, 0])
         self.cropAction = QtWidgets.QAction('&Crop', self, triggered=self.crop)
         ROI_Wrapper.__init__(self)
+        self.pts = [pos, size]
 
     def draw_from_points(self, pts):
         self.blockSignals(True)
-        self.setPos(np.min(pts, 0), finish=False)
+        pos = np.min(pts, 0)
+        self.setPos(pos, finish=False)
+        size = self.state['size']
         if len(pts) == 2:
-            self.setSize(pts[1], finish=False)
+            size = pts[1]
         elif len(pts) > 2:
             size = np.ptp(pts, 0)
-            self.setSize(size, finish=False)
+        self.setSize(size, finish=False)
         self.blockSignals(False)
+        self.pts = [pos, size]
 
-    def getMenu(self):
-        ROI_Wrapper.getMenu(self)
+    def makeMenu(self):
+        ROI_Wrapper.makeMenu(self)
         self.menu.addAction(self.cropAction)
 
     def crop(self):
@@ -623,13 +635,13 @@ class ROI_rectangle(ROI_Wrapper, pg.ROI):
     def getPoints(self, round=False):
         handles = self.getHandles()
         if round:
-            x, y = self.pos()
+            x, y = self.state['pos']
             offset = [np.round(x) - x, np.round(y) - y]
             if offset != [0, 0]:
                 self.translate(offset, finish=False)
             handle_pos = [h.pos() for h in handles]
             w, h = np.round(np.ptp(handle_pos, 0))
-            old_size = self.size()
+            old_size = self.state['size']
             if w != old_size[0] or h != old_size[1]:
                 self.setSize([w, h], finish=False)
 
@@ -754,15 +766,15 @@ def makeROI(kind, pts, window=None, **kargs):
         roi=ROI_line(window, pos=(pts), **kargs)
     elif kind == 'rect_line':
         roi = ROI_rect_line(window, pts, **kargs)
-
     else:
         g.alert("ERROR: THIS TYPE OF ROI COULD NOT BE FOUND: {}".format(kind))
         return None
 
-    roi.pen = QtGui.QPen(QtGui.QColor(g.settings['roi_color']) if g.settings['roi_color'] != 'random' else random_color())
-    roi.pen.setWidth(0)
+    pen = QtGui.QPen(QtGui.QColor(g.settings['roi_color']) if g.settings['roi_color'] != 'random' else random_color())
+    pen.setWidth(0)
 
-    roi.drawFinished()    
+    roi.drawFinished()
+    roi.setPen(pen)
     return roi
 
 
