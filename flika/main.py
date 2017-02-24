@@ -17,6 +17,11 @@ import numpy as np
 
 warnings.filterwarnings("ignore", category=np.VisibleDeprecationWarning)
 
+rois = [{'type': 'rectangle', 'pos': [[3, 5], [3, 4]], 'mask': [[3, 3], [3, 4], [3, 5],
+                                                                [4, 3], [4, 4], [4, 5],
+                                                                [5, 3], [5, 4], [5, 5],
+                                                                [6, 3], [6, 4], [6, 5]]}]
+
 def parse_arguments(argv):
     ''' Parses command line arguments for valid Flika args
 

@@ -9,8 +9,6 @@ from flika.tracefig import roiPlot
 import os
 from scipy.ndimage.interpolation import rotate
 
-ROI_COLOR = QtGui.QColor(255, 255, 0)
-HOVER_COLOR = QtGui.QColor(255, 0, 0)
 
 class ROI_Drawing(pg.GraphicsObject):
     def __init__(self, window, x, y, type):
@@ -100,38 +98,134 @@ class ROI_Drawing(pg.GraphicsObject):
     def boundingRect(self):
         return QtCore.QRectF(self.state['pos'].x(), self.state['pos'].y(), self.state['size'].x(), self.state['size'].y())
 
-
 class ROI_Wrapper():
-    '''
-    ROI wrapper class for all pyqtgraph ROI wrappers
-    
-    
+    ''' ROI wrapper interface for all ROI types, template class for duplicate functions and functions to override
+        connect window closeEvent to ROI delete
+        set the window currentROI to self
 
+    Attributes:
+        colorDialog: dialog for selecting the color of the ROI and its trace
+        traceWindow: the tracewindow that this ROI is plotted to, or None
+        mask: array of XY values that are contained within the ROI
+        pts: array of XY values used to copy the ROI
+        linkedROIs: set of rois that act as one ROI
+
+    Not Implemented Functions:
+        getMask()
+        getTrace(bounds=None)
+        getPoints()
+
+    Functions:
+        plot():
+            run the roiPlot function and link this window to the traceWindow
+            Returns the traceWindow
+        unplot():
+            Remove the roi from its traceWindow
+        link(roi):
+            add an roi to the linkedROIs set, so they translate together
+        colorSelected(QColor):
+            set the color of the roi
+        copy():
+            store the roi in the clipboard
+        paste():
+            Create an roi from the clipboard ROI using roi.getPoints()
+        delete():
+            unplot the ROI, remove the ROI from the window, clear it from the clipboard if it was copied, disconnect all signals
+        drawFinished():
+            add the ROI to the window, called by ROI_Drawing
+        str():
+            return type and self.pts for recreating the ROI
     '''
-    init_args = {'removable': True, 'translateSnap': True, 'pen':ROI_COLOR}
-    def __init__(self):
+    INITIAL_ARGS = {'translateSnap': True, 'removable': True, 'snapSize': 1, 'scaleSnap': True}
+    def __init__(self, window, pts):
+        self.window = window
         self.colorDialog=QtWidgets.QColorDialog()
         self.colorDialog.colorSelected.connect(self.colorSelected)
         self.window.closeSignal.connect(self.delete)
         self.window.currentROI = self
         self.traceWindow = None  # To test if roi is plotted, check if traceWindow is None
-        self.mask = None
+        self.pts = np.array(pts)
         self.linkedROIs = set()
+        self.resetSignals()
+        self.makeMenu()
+
+    def resetSignals(self):
+        try:
+            self.sigRegionChanged.disconnect()
+        except:
+            pass
+        try:
+            self.sigRegionChangeFinished.disconnect()
+        except:
+            pass
+        self.sigRegionChanged.connect(lambda a: print("CHANGE"))
+        self.sigRegionChangeFinished.connect(lambda a: print("CHANGE FINISH"))
         self.sigRegionChanged.connect(self.onRegionChange)
         self.sigRegionChangeFinished.connect(self.onRegionChangeFinished)
 
-        if isinstance(self.pen, QtGui.QColor):
-            self.color = self.pen
-        else:
-            self.color = self.pen.color()
-        self.makeMenu()
-
-    def onRegionChangeFinished(self):
-        pts = self.getPoints()
+    def updateLinkedROIs(self, finish=False):
         for roi in self.linkedROIs:
-            roi.draw_from_points(pts)
-            if roi.traceWindow:
-                roi.traceWindow.translateFinished(roi)
+            roi.blockSignals(True)
+            roi.draw_from_points(self.pts, finish=False)
+            if roi.traceWindow != None:
+                if not finish:
+                    roi.traceWindow.translated(roi)
+                else:
+                    roi.traceWindow.translateFinished(roi)
+            roi.blockSignals(False)
+
+    def onRegionChange(self):
+        self.pts = self.getPoints()
+        self.updateLinkedROIs(finish=False)
+        
+    def onRegionChangeFinished(self):
+        self.pts = self.getPoints()
+        self.updateLinkedROIs(finish=True)
+
+    def link(self,roi):
+        '''This function links this roi to another, so a translation of one will cause a translation of the other'''
+        if not isinstance(roi, type(self)):
+            return
+        join = self.linkedROIs | roi.linkedROIs | {self, roi}
+        self.linkedROIs = join - {self}
+        roi.linkedROIs = join - {roi}
+
+    def getMask(self):
+        '''
+        Returns the list of integer points contained within the ROI
+        '''
+        raise NotImplementedError()
+
+    def getTrace(self, bounds=None):
+        '''
+        Compute the average of the pixels within this ROI for the window of this ROI, return an array of average values, cropped by bounds
+        '''
+        if self.window.image.ndim == 2:
+            g.alert("Cannot get the trace of an ROI on a 2D image.")
+            return
+        s1, s2 = self.getMask()
+        if np.size(s1) == 0 or np.size(s2) == 0:
+            trace = np.zeros(self.window.image.shape[0])
+        else:
+            trace = self.window.image[:, s1, s2]
+            while trace.ndim > 1:
+                trace = np.average(trace, 1)
+
+        if bounds:
+            trace = trace[bounds[0]:bounds[1]]
+        return trace
+
+    def getPoints(self):
+        '''
+        return the points that represent this ROI. Used for exporting
+        '''
+        raise NotImplementedError()
+
+    def draw_from_points(self, pts, finish=True):
+        '''
+        Redraw the ROI from the given points, used on linked ROIs
+        '''
+        raise NotImplementedError()
 
     def setMouseHover(self, hover):
         ## Inform the ROI that the mouse is(not) hovering over it
@@ -139,25 +233,11 @@ class ROI_Wrapper():
             return
         self.mouseHovering = hover
         if hover:
-            self.currentPen = pg.mkPen(HOVER_COLOR)
+            self.currentPen = pg.mkPen(QtGui.QColor(255, 0, 0))
         else:
             self.currentPen = self.pen
 
         self.update()
-
-    def onRegionChange(self):
-        self.getMask()
-        for roi in self.linkedROIs:
-            roi.blockSignals(True)
-            roi.draw_from_points(self.pts)
-            if isinstance(roi, ROI):
-                roi.state['pos'] = self.state['pos']
-            roi.blockSignals(False)
-            if roi.traceWindow != None:
-                roi.traceWindow.translated(roi)
-            roi.getMask()
-        #self.pts = self.getPoints()
-            
 
     def plot(self):
         self.traceWindow = roiPlot(self)
@@ -172,7 +252,7 @@ class ROI_Wrapper():
         if color.isValid():
             self.setPen(QtGui.QColor(color.name()))
             self.sigRegionChangeFinished.emit(self)
-        self.color = color
+            self.color = color
 
     def unplot(self):
         try:
@@ -186,14 +266,6 @@ class ROI_Wrapper():
 
     def copy(self):
         g.clipboard=self
-
-    def link(self,roi):
-        '''This function links this roi to another, so a translation of one will cause a translation of the other'''
-        if not isinstance(roi, pg.ROI):
-            return
-        join = self.linkedROIs | roi.linkedROIs | {self, roi}
-        self.linkedROIs = join - {self}
-        roi.linkedROIs = join - {roi}
 
     def raiseContextMenu(self, ev):
         pos = ev.screenPos()
@@ -218,7 +290,7 @@ class ROI_Wrapper():
         self.menu.addAction(copyAct)
         self.menu.addAction(remAct)
         self.menu.aboutToShow.connect(updateMenu)
-    
+
     def delete(self):
         self.unplot()
         for roi in self.linkedROIs:
@@ -236,40 +308,6 @@ class ROI_Wrapper():
         self.window.imageview.addItem(self)
         self.window.rois.append(self)
         self.window.currentROI = self
-        self.getMask()
-
-    def mouseDragEvent(self, ev):
-        self.setMouseHover(not ev.isFinish())
-        pg.ROI.mouseDragEvent(self, ev)
-
-    def getTrace(self, bounds=None, pts=None):
-        tif = self.window.imageArray()
-        t, w, h = np.shape(tif)
-        pts_in = [[x, y] for x, y in self.mask if x >= 0 and y >= 0 and x < w and y < h]
-        if len(pts_in) == 0 or len(self.mask) == 0:
-            vals = np.zeros(t)
-        else:
-            xx, yy = np.transpose(pts_in)
-            self.minn = np.min(self.mask, 0)
-            vals = np.average(tif[:, xx, yy], 1)
-            if vals[0] != np.average(tif[0, xx, yy]):
-                if vals[0] - np.average(tif[0, xx, yy]) > 10**-10: # This number was chosen because it's really small, not for some clever computational reason
-                    if tif.dtype == np.float16:  # There is probably a float 16 overflow going on.
-                        vals = np.average(tif[:, xx, yy].astype(np.float), 1)
-                    elif tif.dtype ==np.float32:
-                        vals = np.average(tif[:, xx, yy].astype(np.float), 1)
-                    else:
-                        assert vals[0] == np.average(tif[0, xx, yy])  # Deal with this issue if it happens.
-    def getTrace(self, bounds=None):
-        region = self.getArrayRegion(self.window.image, self.window.imageview.getImageItem(), (1, 2))
-        while region.ndim > 1:
-            region = np.average(region, 1)
-        if bounds:
-            region = region[bounds[0]:bounds[1]]
-        return region
-
-    #def getMask(self):
-    #    return self.renderShapeMask(self.window.mx, self.window.my)
 
     def str(self):
         s = self.kind + '\n'
@@ -277,46 +315,75 @@ class ROI_Wrapper():
             s += '%d %d\n' % (x, y)
         return s
 
+    def showMask(self):
+        from flika.window import Window
+        im = np.zeros_like(self.window.imageview.getImageItem().image)
+        s1, s2 = self.getMask()
+        im[s1, s2] = 1
+        return Window(im)
+
 
 class ROI_line(ROI_Wrapper, pg.LineSegmentROI):
+    '''
+    ROI Line class for selecting a straight line of pixels between two points
+        Extends from the ROI_Wrapper class and pyqtgraph ROI.LineSegmentROI
+    '''
     kind = 'line'
     plotSignal = QtCore.Signal()
     
-    def __init__(self, window, pos, *args, **kargs):
-        self.init_args.update(kargs)
-        self.window = window
-        self.pts = pos
-        pg.LineSegmentROI.__init__(self, positions=pos, *args, **self.init_args)
-        self.kymographAct = QtWidgets.QAction("&Kymograph", self, triggered=self.update_kymograph)
+    def __init__(self, window, positions, **kargs):
+        self.INITIAL_ARGS.update(kargs)
+        pg.LineSegmentROI.__init__(self, positions=positions, **self.INITIAL_ARGS)
         self.kymograph = None
-        ROI_Wrapper.__init__(self)
-        self.mouseHovering = False
+        self.kymographAct = QtWidgets.QAction("&Kymograph", self, triggered=self.update_kymograph)
+        ROI_Wrapper.__init__(self, window, positions)
+
+    def resetSignals(self):
+        ROI_Wrapper.resetSignals(self)
+        self.sigRegionChanged.connect(self.snapPoints)
+
+    def snapPoints(self):
+        fix = False
+        self.blockSignals(True)
+        for handle in self.handles:
+            pos = handle['pos']
+            pos_round = pg.Point(round(pos.x()), round(pos.y()))
+            if not (pos == pos_round):
+                handle['item'].setPos(pos_round)
+                handle['pos'] = pos_round
+                fix = True
+
+        self.blockSignals(False)
+        #if fix:
+        #    self.sigRegionChanged.emit(self)
+
+    def draw_from_points(self, pts, finish=True):
+        self.blockSignals(True)
+        self.movePoint(self.handles[0]['item'], pts[0], finish=False)
+        self.movePoint(self.handles[1]['item'], pts[1], finish=False)
+        self.pts = pts
+        self.blockSignals(False)
+        if finish:
+            self.sigRegionChangeFinished.emit(self)
+
+    def getMask(self):
+        x=np.array([p[0] for p in self.pts], dtype=int)
+        y=np.array([p[1] for p in self.pts], dtype=int)
+        xx, yy = line(x[0],y[0],x[1],y[1])
+        xx = xx[xx < self.window.imageview.getImageItem().image.shape[0]]
+        yy = yy[yy < self.window.imageview.getImageItem().image.shape[1]]
+        return xx, yy
+
+    def getPoints(self):
+        return np.array([handle['pos'] + self.state['pos'] for handle in self.handles])
 
     def makeMenu(self):
         ROI_Wrapper.makeMenu(self)
         self.menu.addAction(self.kymographAct)
 
-    def getPoints(self, round=False):
-        return self.pts
-
-    def getMask(self):
-        self.pts = [h['item'].pos() + self.pos() for h in self.handles]
-        x=np.array([p[0] for p in self.pts], dtype=int)
-        y=np.array([p[1] for p in self.pts], dtype=int)
-        xx,yy=line(x[0],y[0],x[1],y[1])
-        self.mask = np.transpose([xx, yy])
-        self.minn = np.min(self.mask)
-
-    def draw_from_points(self, pts):
-        self.blockSignals(True)
-        self.movePoint(self.handles[0]['item'], pts[0], finish=False)
-        self.movePoint(self.handles[1]['item'], pts[1], finish=False)
-        self.blockSignals(False)
-        self.pts = pts
-
     def update_kymograph(self):
         tif=self.window.image
-        xx, yy = self.mask.T
+        xx, yy = self.getMask()
         mt = len(tif)
         if len(xx) == 0:
             return
@@ -348,54 +415,179 @@ class ROI_line(ROI_Wrapper, pg.LineSegmentROI):
         self.kymograph.closeSignal.disconnect(self.deleteKymograph)
         self.kymograph=None
 
+class ROI_rectangle(ROI_Wrapper, pg.ROI):
+    '''
+    ROI rectangle class for selecting a set width and height group of pixels on an image
+        Extends from pyqtgraph ROI and ROI_Wrapper
+
+    Parameters:
+        window: parent window to draw the ROI in
+        pos: XY coordinate of the upper left corner of the rectangle
+        size: (width, height) tuple of the ROI
+        resizable: scale handles will be drawn on each corner if this is True
+        See pg.ROI for other parameters
+
+    Functions:
+        crop():
+            create a new window with the original image cropped within this ROI
+    '''
+    kind = 'rectangle'
+    plotSignal = QtCore.Signal()
+
+    def __init__(self, window, pos, size, resizable=True, **kargs):
+        self.INITIAL_ARGS.update(kargs)
+        pos = np.array(pos, dtype=int)
+        size = np.array(size, dtype=int)
+
+        pg.ROI.__init__(self, pos, size, **self.INITIAL_ARGS)
+        if resizable:
+            self.addScaleHandle([0, 1], [1, 0])
+            self.addScaleHandle([1, 0], [0, 1])
+            self.addScaleHandle([0, 0], [1, 1])
+            self.addScaleHandle([1, 1], [0, 0])
+        self.cropAction = QtWidgets.QAction('&Crop', self, triggered=self.crop)
+        ROI_Wrapper.__init__(self, window, [pos, size])
+
+    def getPoints(self):
+        return np.array([self.state['pos'], self.state['size']], dtype=int)
+
+    def getMask(self):
+        ii = self.window.imageview.getImageItem()
+        x, y = self.state['pos']
+        w, h = self.state['size']
+
+        mx, my = ii.image.shape
+        xmin = max(x, 0)
+        ymin = max(y, 0)
+        xmax = min(x+w, mx)
+        ymax = min(y+h, my)
+
+        return np.meshgrid(np.arange(xmin, xmax, dtype=int), np.arange(ymin, ymax, dtype=int))
+
+    def draw_from_points(self, pts, finish=True):
+        self.setPos(pts[0], finish=False)
+        self.setSize(pts[1], finish=False)
+        self.pts = np.array(pts)
+        if finish:
+            self.sigRegionChangeFinished.emit(self)
+
+    def makeMenu(self):
+        ROI_Wrapper.makeMenu(self)
+        self.menu.addAction(self.cropAction)
+
+    def crop(self):
+        from flika.window import Window
+        r = self.boundingRect()
+        p1 = r.topLeft() + self.state['pos']
+        p2 = r.bottomRight() + self.state['pos']
+        x1, y1 = int(p1.x()), int(p1.y())
+        x2, y2 = int(p2.x()), int(p2.y())
+
+        tif=self.window.image
+        if tif.ndim==3:
+            mt,mx,my=tif.shape
+            if x1<0: x1=0
+            if y1<0: y1=0
+            if x2>=mx: x2=mx-1
+            if y2>=my: y2=my-1
+            newtif=tif[:,x1:x2,y1:y2]
+        elif tif.ndim==2:
+            mx,my=tif.shape
+            if x1<0: x1=0
+            if y1<0: y1=0
+            if x2>=mx: x2=mx-1
+            if y2>=my: y2=my-1
+            mx,my=tif.shape
+            newtif=tif[x1:x2,y1:y2]
+            
+        return Window(newtif,self.window.name+' Cropped',metadata=self.window.metadata)
+
+class ROI(ROI_Wrapper, pg.PolyLineROI):
+    kind = 'freehand'
+    plotSignal = QtCore.Signal()
+    def __init__(self, window, pts, **kargs):
+        self.INITIAL_ARGS.update(kargs)
+        self.INITIAL_ARGS['closed'] = True
+        pg.PolyLineROI.__init__(self, pts, **self.INITIAL_ARGS)
+        ROI_Wrapper.__init__(self, window, pts)
+        self._untranslated_mask = None
+
+    def draw_from_points(self, pts, finish=False):
+        return
+        self.blockSignals(True)
+        self.setPoints([pg.Point(p) for p in pts], closed=True)
+        self.blockSignals(False)
+
+    def setMouseHover(self, hover):
+        for seg in self.segments:
+            seg.setPen(QtGui.QColor(255, 0, 0) if hover else self.currentPen)
+
+    def translate(self, pos, y=None, *args, **kargs):
+        if y is None:
+            pos = pg.Point(pos)
+        else:
+            # avoid ambiguity where update is provided as a positional argument
+            if isinstance(y, bool):
+                raise TypeError("Positional arguments to setPos() must be numerical.")
+            pos = pg.Point(pos, y)
+
+
+        pos = np.round(pos) 
+        pg.PolyLineROI.translate(self, pos, *args, **kargs)
+        for roi in self.linkedROIs:
+            roi.blockSignals(True)
+            roi.setPos(roi.state['pos'] + pos)
+            roi.pts = roi.getPoints()
+            roi.blockSignals(False)
+
+    def getPoints(self):
+        return np.array([h.pos() + self.state['pos'] for h in self.getHandles()], dtype=int)
+
+    def removeSegment(self, seg):
+        for handle in seg.handles[:]:
+            seg.removeHandle(handle['item'])
+        self.segments.remove(seg)
+        self.scene().removeItem(seg)
+
+    def addSegment(self, h1, h2, index=None):
+        seg = pg.LineSegmentROI(handles=(h1, h2), pen=self.pen, parent=self, movable=False)
+        if index is None:
+            self.segments.append(seg)
+        else:
+            self.segments.insert(index, seg)
+        seg.setAcceptedMouseButtons(QtCore.Qt.LeftButton)
+        seg.setZValue(self.zValue()+1)
+        seg.setMouseHover = self.setMouseHover
+        for h in seg.handles:
+            h['item'].setAcceptedMouseButtons(h['item'].acceptedMouseButtons() | QtCore.Qt.LeftButton) ## have these handles take left clicks too, so that handles cannot be added on top of other handles
+            h['item'].setOpacity(0)
+
+    def getMask(self):
+        if self._untranslated_mask is not None:
+            xx = self._untranslated_mask[0] + int(self.state['pos'][0])
+            yy = self._untranslated_mask[1] + int(self.state['pos'][1])
+        else:
+            x, y = np.transpose(self.pts)
+            mask=np.zeros(self.window.imageDimensions())
+            xx,yy=polygon(x,y,shape=mask.shape)
+            self._untranslated_mask = xx, yy
+        return xx, yy
 
 class ROI_rect_line(ROI_Wrapper, pg.MultiRectROI):
     kind = 'rect_line'
     plotSignal = QtCore.Signal()
-    
-    def __init__(self, window, pts, width=1, *args, **kargs):
-        self.init_args.update(kargs)
-        self.window = window
-        self.width = width
-        self.pts = pts
-        pg.MultiRectROI.__init__(self, pts, width, *args, **self.init_args)
-        self.blockSignals(True)
+    def __init__(self, window, pts, width=1, **kargs):
+        self.INITIAL_ARGS.update(kargs)
+        pg.MultiRectROI.__init__(self, points=pts, width=width, **self.INITIAL_ARGS)
         self.kymographAct = QtWidgets.QAction("&Kymograph", self, triggered=self.update_kymograph)
-        ROI_Wrapper.__init__(self)
+        ROI_Wrapper.__init__(self, window, pts)
         self.maskProxy = pg.SignalProxy(self.sigRegionChanged, rateLimit=5, slot=self.onRegionChange) #This will only update 3 Hz
         self.kymograph = None
         self.extending = False
         self.extendHandle = None
         w, h = self.lines[0].size()
         self.lines[0].scale([1.0, width/5.0], center=[0.5,0.5], finish=False)
-        self.width = width
         self.currentLine = None
-        self.blockSignals(False)
-
-    def translate(self, *args, **kargs):
-        if len(args) == 1:
-            pg.MultiRectROI.translate(self, args[0][0], args[0][1])#, **kargs)
-        else:
-            pg.MultiRectROI.translate(self, args[0], args[1])#, **kargs)
-
-    def drawFinished(self):
-        ROI_Wrapper.drawFinished(self)
-        self.lines[0].removeHandle(2)
-    
-    def draw_from_points(self, pts):
-        self.blockSignals(True)
-        self.lines[0].movePoint(self.lines[0].handles[0]['item'], pts[0], finish=False)
-        for i in range(1, len(self.lines)):
-            self.lines[i-1].movePoint(self.lines[i-1].handles[1]['item'], pts[i], finish=False)
-            self.lines[i].movePoint(self.lines[i].handles[0]['item'], pts[i], finish=False)
-        self.lines[-1].movePoint(self.lines[-1].handles[-1]['item'], pts[-1])
-        self.blockSignals(False)
-        self.pts = pts
-        
-    def setCurrentPen(self, pen):
-        for l in self.lines:
-            l.currentPen = pen
-            l.update()
 
     def hoverEvent(self, l, ev):
         self.currentLine = l
@@ -406,14 +598,19 @@ class ROI_rect_line(ROI_Wrapper, pg.MultiRectROI):
         elif ev.exit:
             self.setCurrentPen(l.pen)
 
-    def removeLink(self):
-        ind = self.lines.index(self.currentLine)
-        if ind == 0:
-            self.delete()
-            return
-        for i in range(len(self.lines)-1, ind-1, -1):
-            self.removeSegment(i)
-        self.sigRegionChangeFinished.emit(self)
+    def drawFinished(self):
+        ROI_Wrapper.drawFinished(self)
+        self.lines[0].removeHandle(2)
+
+    def draw_from_points(self, pts, finish=False):
+        self.blockSignals(True)
+        self.lines[0].movePoint(self.lines[0].handles[0]['item'], pts[0], finish=False)
+        for i in range(1, len(self.lines)):
+            self.lines[i-1].movePoint(self.lines[i-1].handles[1]['item'], pts[i], finish=False)
+            self.lines[i].movePoint(self.lines[i].handles[0]['item'], pts[i], finish=False)
+        self.lines[-1].movePoint(self.lines[-1].handles[-1]['item'], pts[-1])
+        self.blockSignals(False)
+        self.pts = pts
 
     def makeMenu(self):
         ROI_Wrapper.makeMenu(self)
@@ -422,6 +619,28 @@ class ROI_rect_line(ROI_Wrapper, pg.MultiRectROI):
         self.menu.addAction(removeLinkAction)
         self.menu.addAction(setWidthAction)
         self.menu.addAction(self.kymographAct)
+
+    def setPen(self, pen):
+        self.pen = pen
+        for l in self.lines:
+            l.setPen(pen)
+
+    def getMask(self):
+        region = self.getArrayRegion(self.window.imageview.getImageItem().image, self.window.imageview.getImageItem(), (0, 1))
+        mask = self.renderShapeMask(region.shape[0], region.shape[1])
+        return np.where(mask)
+
+    def getRegion(self):
+        return self.getArrayRegion(self.window.imageview.image, self.window.imageview.getImageItem(), (1, 2))
+
+    def removeLink(self):
+        ind = self.lines.index(self.currentLine)
+        if ind == 0:
+            self.delete()
+            return
+        for i in range(len(self.lines)-1, ind-1, -1):
+            self.removeSegment(i)
+        self.sigRegionChangeFinished.emit(self)
 
     def setWidth(self, newWidth=None):
         s = True
@@ -432,78 +651,6 @@ class ROI_rect_line(ROI_Wrapper, pg.MultiRectROI):
         self.lines[0].scale([1.0, newWidth/self.width], center=[0.5,0.5])
         self.width = newWidth
         self.sigRegionChangeFinished.emit(self)
-
-    def setPen(self, pen):
-        self.pen = pen
-        for l in self.lines:
-            l.setPen(pen)
-
-    def getArrayRegion(self, arr, img=None, axes=(0,1), returnMappedCoords=False):
-        rgns = []
-        coords = []
-        for l in self.lines:
-            rgn = l.getArrayRegion(arr, img, axes=axes, returnMappedCoords=returnMappedCoords)
-            if rgn is None:
-                continue
-            if returnMappedCoords:
-                rgn, coord = rgn
-                coords.append(np.concatenate(coord.T))
-            rgns.append(rgn)
-            
-        ## make sure orthogonal axis is the same size
-        ## (sometimes fp errors cause differences)
-        ms = min([r.shape[axes[1]] for r in rgns])
-        sl = [slice(None)] * rgns[0].ndim
-        sl[axes[1]] = slice(0,ms)
-        rgns = [r[sl] for r in rgns]
-        if returnMappedCoords:
-            return np.concatenate(rgns, axis=axes[0]), np.concatenate(coords)
-
-        return np.concatenate(rgns, axis=axes[0])
-
-    def addSegment(self, *arg, **args):
-        pg.MultiRectROI.addSegment(self, *arg, **args)
-        l = self.lines[-1]
-        l.raiseContextMenu = self.raiseContextMenu
-        #l.getMenu = self.getMenu
-        l.hoverEvent = lambda ev: self.hoverEvent(l, ev)
-        def boundingRect():
-            w = max(8, self.width)
-            return QtCore.QRectF(0, -w / 2, l.state['size'][0], w)
-        def contains(pos):
-            return l.boundingRect().contains(pos)
-        l.boundingRect = boundingRect
-        l.contains = contains
-
-    def getPoints(self, round=False):
-        return self.pts
-
-    def getMask(self):
-        self.pts = [pg.Point(self.window.imageview.getImageItem().mapFromScene(self.lines[0].getSceneHandlePositions(0)[1]))]
-        for l in self.lines:
-            self.pts.append(pg.Point(self.window.imageview.getImageItem().mapFromScene(l.getSceneHandlePositions(1)[1])))
-
-        xx = []
-        yy = []
-        for i in range(1, len(self.pts)):
-            p1, p2=[self.pts[i-1], self.pts[i]]
-            xs,ys=line(*[int(a) for a in (p1.x(),p1.y(),p2.x(),p2.y())])
-            xx.append(xs)
-            yy.append(ys)
-        xx = np.concatenate(xx)
-        yy = np.concatenate(yy)
-
-        self.mask = np.transpose([xx, yy])
-        if self.mask.size != 0:
-            self.minn = np.min(self.mask, 0)
-
-
-    def getNearestHandle(self, pos, distance=3):
-        for l in self.lines:
-            for i in range(2):
-                p = self.window.imageview.getImageItem().mapFromScene(l.getSceneHandlePositions(i)[1])
-                if (p - pos).manhattanLength() <= distance:
-                    return l, l.handles[i]['item']
 
     def extend(self, x, y):
         if not self.extending:
@@ -518,22 +665,13 @@ class ROI_rect_line(ROI_Wrapper, pg.MultiRectROI):
         self.extendHandle = None
         self.sigRegionChangeFinished.emit(self)
 
-    def getHandleTuples(self):
-        pos = []
-        for l in self.lines:
-            #pts=[self.window.imageview.getImageItem().mapFromScene(l.getSceneHandlePositions(i)[1]) for i in range(2)]
-            for handle in l.handles:
-                if handle['type'] == 'sr':
-                    pos.append((l, handle['item'], l.mapToParent(handle['item'].pos())))
-        return pos
-
     def update_kymograph(self):
         tif=self.window.image
         
         if self.width == 1:
             w, h = self.window.imageDimensions()
             r = QtCore.QRect(0, 0, w, h)
-            xx, yy = np.transpose([p for p in self.mask if r.contains(p[0], p[1])])
+            xx, yy = self.getMask()
             mn = tif[:, xx, yy].T
         else:
             kyms = []
@@ -571,183 +709,6 @@ class ROI_rect_line(ROI_Wrapper, pg.MultiRectROI):
         self.kymograph.closeSignal.disconnect(self.deleteKymograph)
         self.kymograph=None
 
-
-class ROI_rectangle(ROI_Wrapper, pg.ROI):
-    kind = 'rectangle'
-    plotSignal = QtCore.Signal()
-    
-    def __init__(self, window, pos, size=(1, 1), resizable=True, *args, **kargs):
-        self.init_args.update(kargs)
-        self.window = window
-        pg.ROI.__init__(self, pos, size, *args, **self.init_args)
-        if resizable:
-            self.addScaleHandle([0, 1], [1, 0])
-            self.addScaleHandle([1, 0], [0, 1])
-            self.addScaleHandle([0, 0], [1, 1])
-            self.addScaleHandle([1, 1], [0, 0])
-        self.cropAction = QtWidgets.QAction('&Crop', self, triggered=self.crop)
-        ROI_Wrapper.__init__(self)
-        self.pts = [pos, size]
-
-    def draw_from_points(self, pts):
-        self.blockSignals(True)
-        pos = np.min(pts, 0)
-        self.setPos(pos, finish=False)
-        size = self.state['size']
-        if len(pts) == 2:
-            size = pts[1]
-        elif len(pts) > 2:
-            size = np.ptp(pts, 0)
-        self.setSize(size, finish=False)
-        self.blockSignals(False)
-        self.pts = [pos, size]
-
-    def makeMenu(self):
-        ROI_Wrapper.makeMenu(self)
-        self.menu.addAction(self.cropAction)
-
-    def crop(self):
-        from flika.window import Window
-        r = self.boundingRect()
-        p1 = r.topLeft() + self.state['pos']
-        p2 = r.bottomRight() + self.state['pos']
-        x1, y1 = int(p1.x()), int(p1.y())
-        x2, y2 = int(p2.x()), int(p2.y())
-
-        tif=self.window.image
-        if tif.ndim==3:
-            mt,mx,my=tif.shape
-            if x1<0: x1=0
-            if y1<0: y1=0
-            if x2>=mx: x2=mx-1
-            if y2>=my: y2=my-1
-            newtif=tif[:,x1:x2+1,y1:y2+1]
-        elif tif.ndim==2:
-            mx,my=tif.shape
-            if x1<0: x1=0
-            if y1<0: y1=0
-            if x2>=mx: x2=mx-1
-            if y2>=my: y2=my-1
-            mx,my=tif.shape
-            newtif=tif[x1:x2+1,y1:y2+1]
-        return Window(newtif,self.window.name+' Cropped',metadata=self.window.metadata)
-
-    def getPoints(self, round=False):
-        handles = self.getHandles()
-        if round:
-            x, y = self.state['pos']
-            offset = [np.round(x) - x, np.round(y) - y]
-            if offset != [0, 0]:
-                self.translate(offset, finish=False)
-            handle_pos = [h.pos() for h in handles]
-            w, h = np.round(np.ptp(handle_pos, 0))
-            old_size = self.state['size']
-            if w != old_size[0] or h != old_size[1]:
-                self.setSize([w, h], finish=False)
-
-        # go around the rectangle from top left handle, clockwise
-        r = self.boundingRect()
-        p1 = r.topLeft() + self.state['pos']
-        p2 = r.bottomRight() + self.state['pos']
-        x1, y1 = p1.x(), p1.y()
-        x2, y2 = p2.x(), p2.y()
-        self.pts = [pg.Point(x1, y1),
-                    pg.Point(x2, y1),
-                    pg.Point(x2, y2),
-                    pg.Point(x1, y2)]
-        return self.pts
-
-    def getMask(self):
-        w, h = self.window.imageDimensions()
-        mask = np.zeros((w, h))
-        
-        x, y = np.array(self.state['pos'], dtype=int)
-        w, h = np.array(self.state['size'], dtype=int)
-        self.pts = self.getPoints()
-
-        if x < 0:
-            w = max(0, w + x)
-            x = 0
-        if y < 0:
-            h = max(0, h + y)
-            y = 0
-        mask[x:x+w, y:y+h] = True
-        self.mask=np.array(np.where(mask)).T
-        if len(self.mask) > 0:
-            self.minn = np.min(self.mask, 0)
-            
-    def contains(self, *pos, **kwargs):  # pyqtgraph ROI uses this function for mouse interaction. Set corrected=False to use
-        corrected = kwargs.pop('corrected',True)
-        if isinstance(pos[0], QtCore.QPointF):
-            pos = pos[0]
-        elif len(pos) == 2:
-            pos = QtCore.QPointF(pos[0], pos[1])
-        if not corrected:  # 'corrected' means relative to the top left corner of the ROI. 'Not corrected' means relative to the top left corner of the image.
-            top_left = QtCore.QPointF(self.pos())
-            bottom_right = QtCore.QPointF(*np.ptp(self.pts, 0)+np.array(self.pos()))
-            return QtCore.QRectF(top_left, bottom_right).contains(pos)
-        else:
-            return pg.ROI.contains(self, pos)
-
-
-class ROI(ROI_Wrapper, pg.ROI):
-    kind = 'freehand'
-    plotSignal = QtCore.Signal()
-    
-    def __init__(self, window, pts, *args, **kargs):
-        self.init_args.update(kargs)
-        self.window = window
-        self.pts = [pg.Point(pt[0], pt[1]) for pt in pts]
-        w, h = np.ptp(self.pts, 0)
-        pg.ROI.__init__(self, (0, 0), (w, h), *args, **self.init_args)
-        ROI_Wrapper.__init__(self)
-
-    def draw_from_points(self, pts):
-        self.blockSignals(True)
-        self.setPos(pts[0], finish=False)
-        self.pts = pts[1]
-        self.blockSignals(False)
-
-    def boundingRect(self):
-        r = pg.ROI.boundingRect(self)
-        r.translate(*np.min(self.pts, 0))
-        return r
-
-    def contains(self, *pos):
-        if len(pos) == 2:
-            pos = [pg.Point(*pos)]
-        p = QtGui.QPainterPath()
-
-        p.moveTo(self.pts[0])
-        for i in range(len(self.pts)):
-            p.lineTo(self.pts[i])
-        return p.contains(*pos)
-
-    def paint(self, p, *args):
-        p.setPen(self.currentPen)
-        for i in range(len(self.pts)):
-            p.drawLine(self.pts[i], self.pts[i-1])
-
-    def getPoints(self, round=False):
-        return self.state['pos'], self.pts
-
-    def getMask(self):
-        if self.mask is not None:
-            xx, yy = np.transpose(self._mask + self.state['pos'])
-
-        else:
-            self.minn = np.min(self.pts, 0)
-            x, y = np.transpose(self.pts)
-            mask=np.zeros(self.window.imageDimensions())
-            
-            xx,yy=polygon(x,y,shape=mask.shape)
-            self._mask = np.transpose([xx, yy])
-        
-        self.mask = np.transpose([xx, yy]).astype(int)
-        if len(self.mask) > 0:
-            self.minn = np.min(self.mask, 0)
-
-
 def makeROI(kind, pts, window=None, **kargs):
     if window is None:
         window=g.currentWindow
@@ -763,7 +724,7 @@ def makeROI(kind, pts, window=None, **kargs):
             top_left = pts[0]
         roi=ROI_rectangle(window, top_left, size, **kargs)
     elif kind=='line':
-        roi=ROI_line(window, pos=(pts), **kargs)
+        roi=ROI_line(window, (pts), **kargs)
     elif kind == 'rect_line':
         roi = ROI_rect_line(window, pts, **kargs)
     else:
@@ -776,7 +737,6 @@ def makeROI(kind, pts, window=None, **kargs):
     roi.drawFinished()
     roi.setPen(pen)
     return roi
-
 
 def load_rois(filename):
     text = open(filename, 'r').read()

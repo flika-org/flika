@@ -117,7 +117,7 @@ class TraceFig(QWidget):
 
     def getBounds(self):
         bounds=self.region.getRegion()
-        bounds=[int(np.floor(bounds[0])),int(np.ceil(bounds[1]))]
+        bounds=[int(np.floor(bounds[0])),int(np.ceil(bounds[1]))+1]
         return bounds
 
     def mouseMoved(self,evt):
@@ -138,7 +138,7 @@ class TraceFig(QWidget):
         return [r['roi'] for r in self.rois].index(roi)
         
     def alert(self, msg):
-        print(msg)
+        #print(msg)
         pass
 
     def translated(self,roi):
@@ -154,12 +154,13 @@ class TraceFig(QWidget):
             
     def translateFinished(self,roi):
         roi_index=self.get_roi_index(roi)
-        
+
         if self.redrawPartialThread is not None and self.redrawPartialThread.isRunning():
-            self.redrawPartialThread.finished_sig.emit() #tell the thread to finish
-            loop = QtCore.QEventLoop()
-            self.redrawPartialThread.finished.connect(loop.quit)
-            loop.exec_()# This blocks until the "finished" signal is emitted
+            self.redrawPartialThread.quit_loop = True
+            #self.redrawPartialThread.finished_sig.emit() #tell the thread to finish
+            #loop = QtCore.QEventLoop()
+            #self.redrawPartialThread.finished.connect(loop.quit)
+            #loop.exec_()# This blocks until the "finished" signal is emitted
         trace=roi.getTrace()
         self.update_trace_full(roi_index,trace)
 
@@ -177,13 +178,13 @@ class TraceFig(QWidget):
         pen.setWidth(0)
         if len(trace)==1:
             p1trace=self.p1.plot(trace, pen=None, symbol='o')
-            p2trace=self.p2.plot(trace, pen=None, symbol='o') 
+            p2trace=self.p2.plot(trace, pen=None, symbol='o')
         else:
             p1trace=self.p1.plot(trace, pen=pen)
             p2trace=self.p2.plot(trace, pen=pen) 
         
-        roi.sigRegionChanged.connect(lambda: self.translated(roi))
-        roi.sigRegionChangeFinished.connect(lambda: self.translateFinished(roi))
+        roi.sigRegionChanged.connect(self.translated)
+        roi.sigRegionChangeFinished.connect(self.translateFinished)
 
         if len(self.rois)==0:
             self.region.setRegion([0, len(trace)-1])
@@ -200,8 +201,7 @@ class TraceFig(QWidget):
         self.p2.removeItem(self.rois[index]['p2trace'])
         self.rois[index]['roi'].traceWindow = None
         try:
-            self.rois[index]['roi'].sigRegionChanged.disconnect()
-            self.rois[index]['roi'].sigRegionChangeFinished.disconnect()
+            self.rois[index]['roi'].resetSignals()
         except:
             pass
         del self.rois[index]
@@ -287,7 +287,6 @@ class RedrawPartialThread(QtCore.QThread):
                     self.tracefig.rois[i]['toBeRedrawn']=False
                     idxs.append(i)
             traces=[]
-            self.alert.emit(str(len(idxs)))
             bounds=self.tracefig.getBounds()
             bounds = [max(0, bounds[0]), bounds[1]]
             for i in idxs:
@@ -306,6 +305,8 @@ class RedrawPartialThread(QtCore.QThread):
                     return
                 newtrace[bb[0]:bb[1]]=trace
                 curve.setData(newtrace,pen=pen)
+
+                self.alert.emit("CURVE %d redrawn" % roi_index)
                 qApp.processEvents()
             self.redrawCompleted=True
             
