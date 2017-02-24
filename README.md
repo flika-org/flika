@@ -12,6 +12,7 @@
 ### Installation Instructions ###
 
 #### Windows ####
+If you aren't comfortable manually installing Python packages, we have written a script that automates the following steps. You can find it at [https://github.com/flika-org/flika_windows_installer](https://github.com/flika-org/flika_windows_installer).
 
 1. Install Python
  
