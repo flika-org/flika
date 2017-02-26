@@ -6,7 +6,10 @@ from logging import NullHandler
 logging.getLogger('flika').addHandler(NullHandler())
 
 def handle_exception(exc_type, exc_value, exc_traceback):
-    logging.getLogger('flika').warn(str(exc_type) + "; " + str(exc_value) + " " + str(exc_traceback.tb_frame.f_code))
+    try:
+        logging.getLogger('flika').warn(str(exc_type) + "; " + str(exc_value) + " " + str(exc_traceback.tb_frame.f_code))
+    except:
+        logging.getLogger('flika').warn(str(exc_type) + "; " + str(exc_value))
     '''
     if exc_type == ImportError and exc_value.msg.startswith("No module named"):
         from tkinter import messagebox
