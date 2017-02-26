@@ -43,10 +43,9 @@ class PyTest(Command):
 
 cmdclass['test'] = PyTest
 
-entry_points = """[flika.plugins]
-
+entry_points = """
 [console_scripts]
-flika = flika.main:run
+flika = flika.flika:run
 """
 
 setup_requires = ['numpy', 'scipy']

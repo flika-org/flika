@@ -1,5 +1,5 @@
 from .version import __version__
-from .main import run, exec_
+from .flika import run, exec_
 
 import logging, sys
 from logging import NullHandler
