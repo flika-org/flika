@@ -177,7 +177,7 @@ class Window(QtWidgets.QWidget):
             self.sigTimeChanged.emit(t)
 
     def setIndex(self,index):
-        if self.image.ndim > 2 and index>=0 and index<len(self.image):
+        if hasattr(self, 'image') and self.image.ndim > 2 and index>=0 and index<len(self.image):
             self.imageview.setCurrentIndex(index)
 
     def showFrame(self,index):
@@ -319,14 +319,15 @@ class Window(QtWidgets.QWidget):
         self.menu = QtWidgets.QMenu(self)
 
         def updateMenu():
-            plotAllAct.setEnabled(self.image.ndim > 2)
-            pasteAct.setEnabled(isinstance(g.clipboard, (list, pg.ROI)))
+            #plotAllAct.setEnabled(self.image.ndim > 2)
+            from flika.roi import ROI_Wrapper
+            pasteAct.setEnabled(isinstance(g.clipboard, (list, ROI_Wrapper)))
 
         pasteAct = QtWidgets.QAction("&Paste", self, triggered=self.paste)
         plotAllAct = QtWidgets.QAction('&Plot All ROIs', self.menu, triggered=lambda : [roi.plot() for roi in self.rois if roi.traceWindow == None])
         copyAll = QtWidgets.QAction("Copy All ROIs", self.menu, triggered = lambda a: setattr(g, 'clipboard', self.rois))
         removeAll = QtWidgets.QAction("Remove All ROIs", self.menu, triggered = lambda : [a.delete() for a in self.rois[:]])
-        saveAct = QtWidgets.QAction("&Save ROIs",self, triggered=self.exportROIs) 
+        saveAct = QtWidgets.QAction("&Save All ROIs",self, triggered=self.exportROIs) 
 
         self.menu.addAction(plotAllAct)
         self.menu.addAction(pasteAct)
@@ -340,6 +341,9 @@ class Window(QtWidgets.QWidget):
         self.EEEE=ev
         if self.x is not None and self.y is not None and ev.button()==2 and not self.creatingROI:
             mm=g.settings['mousemode']
+            if modifiers == QtCore.Qt.ControlModifier:
+                self.menu.exec_(ev.screenPos().toQPoint())
+                return
             if mm=='point':
                 t=self.currentIndex
                 pointSize=g.m.settings['point_size']
@@ -348,11 +352,11 @@ class Window(QtWidgets.QWidget):
                 self.scatterPoints[t].append(position)
                 self.scatterPlot.addPoints(pos=[[self.x,self.y]], size=pointSize, brush=pg.mkBrush(*pointColor.getRgb()))
                 #  self.imageview.view.__class__.mouseClickEvent(self.imageview.view, ev)
-            elif modifiers != QtCore.Qt.ControlModifier and mm == 'rectangle' and g.settings['default_roi_on_click']:
+            elif mm == 'rectangle' and g.settings['default_roi_on_click']:
                     self.currentROI = ROI_Drawing(self, self.x - g.settings['rect_width']/2, self.y - g.settings['rect_height']/2, mm)
                     self.currentROI.extend(self.x + g.settings['rect_width']/2, self.y + g.settings['rect_height']/2)
                     self.currentROI.drawFinished()
-            elif modifiers != QtCore.Qt.ControlModifier and mm == 'freehand' and g.settings['default_roi_on_click']:
+            elif mm == 'freehand' and g.settings['default_roi_on_click']:
                 # Before using this script to get the outlines of cells from a raw movie of fluorescence, you need to do some processing.
                 # Get a good image of cells by averaging the movie using the zproject() function inside Flika. 
                 # Then threshold the image and use a combination of binary dilation and binary erosion to clean it up (all functions inside Flika)

@@ -89,7 +89,10 @@ def getSaveFileName(parent, title, initial='', filters=''):
     str: the file path selected, or empty string if none
     '''
     filename= QFileDialog.getSaveFileName(parent, title, initial, filters)
-    filename = str(filename[0] if isinstance(filename, tuple) else filename)
+    if isinstance(filename, tuple):
+        filename, ext = filename
+        if '.' not in filename:
+            filename += '.' + ext.rsplit('.')[-1]
     
     return filename
 

@@ -189,6 +189,7 @@ class SliderLabel(QWidget):
         self.label.valueChanged.connect(self.updateSlider)
         self.valueChanged=self.label.valueChanged
     @Slot(float)
+    @Slot(int)
     def updateSlider(self,value):
         self.slider.setValue(int(value*10**self.decimals))
     def updateLabel(self,value):

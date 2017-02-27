@@ -272,19 +272,14 @@ class FlikaApplication(QtWidgets.QMainWindow):
 
     def _make_recents(self):
         self.recentFileMenu.clear()
+        g.settings['recent_files'] = [f for f in g.settings['recent_files'] if os.path.exists(f)]
         if len(g.settings['recent_files']) == 0:
             noAction = QtWidgets.QAction('No Recent Files', self.recentFileMenu)
             noAction.setEnabled(False)
             self.recentFileMenu.addAction(noAction)
         else:
-            ind = len(g.settings['recent_files'])-1
-            while ind >= 0:
-                name = g.settings['recent_files'][ind]
-                if os.path.exists(name):
-                    self.recentFileMenu.addAction(g.settings['recent_files'][ind])
-                    ind -= 1
-                else:
-                    g.settings['recent_files'].remove(g.settings['recent_files'][ind])
+            for name in g.settings['recent_files'][::-1]:
+                self.recentFileMenu.addAction(name)
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls():

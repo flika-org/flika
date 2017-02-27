@@ -191,11 +191,13 @@ class TraceFig(QWidget):
         self.rois.append(dict({'roi':roi,'p1trace':p1trace,'p2trace':p2trace,'toBeRedrawn':False,'toBeRedrawnFull':False}))
 
     def removeROI(self,roi):
-        if isinstance(roi, (pg.ROI, pg.MultiRectROI)):
+        from flika.roi import ROI_Wrapper
+        if isinstance(roi, ROI_Wrapper):
             index=[r['roi'] for r in self.rois].index(roi) #this is the index of the roi in self.rois
         elif isinstance(roi, int):
             index = roi
         else:
+            g.alert("Failed to remove roi %s" % roi)
             return
         self.p1.removeItem(self.rois[index]['p1trace'])
         self.p2.removeItem(self.rois[index]['p2trace'])
