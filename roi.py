@@ -757,7 +757,14 @@ def makeROI(kind, pts, window=None, **kargs):
     return roi
 
 
-def load_roi(filename):
+def load_roi(filename=None):
+    from process.file_ import open_file_gui
+    if filename is not None:
+        filetypes = '*.txt'
+        prompt = 'Load ROIs from file'
+        filename = open_file_gui(filetypes, prompt)
+        if filename is None:
+            return None
     f = open(filename, 'r')
     text=f.read()
     f.close()

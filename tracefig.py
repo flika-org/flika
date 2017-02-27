@@ -219,14 +219,14 @@ class TraceFig(QWidget):
         return roi in [r['roi'] for r in self.rois] #return True if roi is plotted
 
     def export_gui(self):
-        filename=g.settings['filename']
-        directory=os.path.dirname(filename)
+        filename = g.settings['filename']
+        directory = os.path.dirname(filename)
         if filename is not None:
-            filename= QFileDialog.getSaveFileName(g.m, 'Save Traces', directory, '*.txt')
+            filename = QFileDialog.getSaveFileName(g.m, 'Save Traces', directory, '*.txt')
         else:
-            filename= QFileDialog.getSaveFileName(g.m, 'Save Traces', '*.txt')
-        filename=str(filename)
-        if filename=='':
+            filename = QFileDialog.getSaveFileName(g.m, 'Save Traces', '*.txt')
+        filename = str(filename)
+        if filename == '':
             return False
         else:
             self.export(filename)

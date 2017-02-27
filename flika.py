@@ -24,7 +24,7 @@ from process.filters import gaussian_blur, butterworth_filter,boxcar_differentia
 from process.binary import threshold, adaptive_threshold, canny_edge_detector, remove_small_blobs, logically_combine, binary_dilation, binary_erosion, generate_rois
 from process.roi import set_value
 from process.measure import measure
-from process.file_ import make_recent_menu, open_file_gui, save_file_gui, open_file, load_metadata, close, save_file, save_movie, save_movie_gui, save_points, load_points, save_current_frame, save_roi_traces
+from process.file_ import *
 from roi import load_roi, makeROI
 from process.overlay import time_stamp,background, scale_bar
 from script_editor.terminal_widget import ScriptEditor
@@ -47,13 +47,13 @@ def initializeMainGui():
     g.m.setGeometry(QtCore.QRect(15, 33, width_px, height_px))
     g.m.setFixedSize(326, 80)
     g.m.setWindowIcon(QtGui.QIcon('images/favicon.png'))
-    g.m.actionOpen.triggered.connect(lambda : open_file_gui(open_file, prompt='Open File', filetypes='Image Files (*.tif *.stk *.tiff *.nd2);;All Files (*.*)'))
-    g.m.actionSaveAs.triggered.connect(lambda : save_file_gui(save_file, prompt='Save File As Tif', filetypes='*.tif'))
-    g.m.actionExport_Movie.triggered.connect(save_movie_gui)
+    g.m.actionOpen.triggered.connect(open_file_from_gui)
+    g.m.actionSaveAs.triggered.connect(save_window)
+    g.m.actionExport_Movie.triggered.connect(export_movie_gui)
     g.m.actionSettings.triggered.connect(g.settings.gui)
-    g.m.actionExport_Points.triggered.connect(lambda : save_file_gui(save_points, prompt='Save Points', filetypes='*.txt'))
-    g.m.actionImport_Points.triggered.connect(lambda : open_file_gui(load_points, prompt='Load Points', filetypes='*.txt'))
-    g.m.actionImport_ROIs.triggered.connect(lambda : open_file_gui(load_roi, prompt='Load ROIs from file', filetypes='*.txt'))
+    g.m.actionExport_Points.triggered.connect(save_points)
+    g.m.actionImport_Points.triggered.connect(load_points)
+    g.m.actionImport_ROIs.triggered.connect(load_roi)
     g.m.freehand.clicked.connect(lambda: g.m.settings.setmousemode('freehand'))
     g.m.line.clicked.connect(lambda: g.m.settings.setmousemode('line'))
     g.m.rect_line.clicked.connect(lambda: g.m.settings.setmousemode('rect_line'))
@@ -110,6 +110,7 @@ def initializeMainGui():
     g.m.installEventFilter(mainWindowEventEater)
     g.m.show()
     QtWidgets.qApp.processEvents()
+
 
 
 class MainWindowEventEater(QtCore.QObject):
