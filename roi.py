@@ -759,24 +759,24 @@ def makeROI(kind, pts, window=None, **kargs):
 
 def load_roi(filename=None):
     from process.file_ import open_file_gui
-    if filename is not None:
+    if filename is None:
         filetypes = '*.txt'
         prompt = 'Load ROIs from file'
         filename = open_file_gui(filetypes, prompt)
         if filename is None:
             return None
     f = open(filename, 'r')
-    text=f.read()
+    text = f.read()
     f.close()
-    kind=None
-    pts=None
+    kind = None
+    pts = None
     for text_line in text.split('\n'):
         if kind is None:
             kind=text_line
             pts=[]
-        elif text_line=='':
+        elif text_line == '':
             makeROI(kind,pts)
-            kind=None
-            pts=None
+            kind = None
+            pts = None
         else:
             pts.append(tuple(int(float(i)) for i in text_line.split()))

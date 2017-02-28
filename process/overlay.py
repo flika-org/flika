@@ -9,7 +9,7 @@ import global_vars as g
 import pyqtgraph as pg
 from qtpy import QtWidgets, QtCore, QtGui
 
-from process.BaseProcess import BaseProcess, SliderLabel, WindowSelector,  MissingWindowError, CheckBox
+from process.BaseProcess import BaseProcess, SliderLabel, WindowSelector,  MissingWindowError, CheckBox, ComboBox
 
 __all__ = ['time_stamp','background','scale_bar']
      
@@ -165,19 +165,19 @@ class Scale_Bar(BaseProcess):
         
         font_size=QtWidgets.QSpinBox()
         
-        color=QtWidgets.QComboBox()
+        color=ComboBox()
         color.addItem("White")
         color.addItem("Black")
-        background=QtWidgets.QComboBox()
+        background=ComboBox()
         background.addItem('None')
         background.addItem('Black')
         background.addItem('White')
-        location=QtWidgets.QComboBox()
+        location=ComboBox()
         location.addItem('Lower Right')
         location.addItem('Lower Left')
         location.addItem('Top Right')
         location.addItem('Top Left')
-        show=CheckBox();
+        show=CheckBox()
         if hasattr(w,'scaleBarLabel') and w.scaleBarLabel is not None: #if the scaleBarLabel already exists
             props=w.scaleBarLabel.flika_properties
             width_microns.setValue(props['width_microns'])

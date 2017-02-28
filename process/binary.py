@@ -10,7 +10,7 @@ import global_vars as g
 import scipy.ndimage    
 from skimage import feature, measure
 from skimage.filters import threshold_adaptive
-from process.BaseProcess import BaseProcess, SliderLabel, WindowSelector,  MissingWindowError, CheckBox
+from process.BaseProcess import BaseProcess, SliderLabel, WindowSelector,  MissingWindowError, CheckBox, ComboBox
 from qtpy import QtCore, QtGui, QtWidgets  
 
 __all__ = ['threshold','remove_small_blobs','adaptive_threshold','logically_combine','binary_dilation','binary_erosion']
@@ -254,7 +254,7 @@ class Logically_combine(BaseProcess):
         self.gui_reset()
         window1=WindowSelector()
         window2=WindowSelector()
-        operator=QtWidgets.QComboBox()
+        operator=ComboBox()
         operator.addItem('AND')
         operator.addItem('OR')
         operator.addItem('XOR')

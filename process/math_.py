@@ -6,7 +6,7 @@ Created on Thu Jun 26 19:44:11 2014
 """
 import numpy as np
 import global_vars as g
-from process.BaseProcess import BaseProcess, CheckBox
+from process.BaseProcess import BaseProcess, CheckBox, ComboBox
 from qtpy import QtGui, QtWidgets, QtCore
 
 __all__ = ['subtract','multiply','power','ratio','absolute_value','subtract_trace','divide_trace']
@@ -224,7 +224,7 @@ class Ratio(BaseProcess):
         nFrames_spinbox.setMaximum(nFrames)
         nFrames_spinbox.setMinimum(1)
         self.items.append({'name':'nFrames','string':'Number of Frames','object':nFrames_spinbox})
-        ratio_type=QtWidgets.QComboBox()
+        ratio_type=ComboBox()
         ratio_type.addItem('average')
         ratio_type.addItem('standard deviation')
         self.items.append({'name':'ratio_type','string':'Ratio Type','object':ratio_type})
