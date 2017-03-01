@@ -8,18 +8,31 @@ import numpy as np
 fa = FlikaApplication()
 
 class TestPluginManager():
-	def setup_method(self):
+	@classmethod
+	def setup_method(cls):
 		PluginManager.show()
+		load_local_plugins()
 
-	def teardown_method(self):
+	@classmethod
+	def teardown_method(cls):
 		PluginManager.close()
 
 	def test_local_plugins(self):
-		load_local_plugins()
+		
 		local = set(plugin_list.keys())
 		plugins = set(PluginManager.plugins.keys())
 
-		assert local & plugins == local, "Local plugin list not loaded correctly"
+		assert (local & plugins) == plugins, "Local plugin list not loaded correctly"
+
+	#def test_install_plugin(self):
+	#	plugin_name = 'Detect Puffs'
+	#	if PluginManager.plugins[plugin_name].installed:
+	#		return
+	#	PluginManager.downloadPlugin(plugin_name)
+	#	assert PluginManager.plugins[plugin_name].menu is not None and PluginManager.plugins[plugin_name].installed, "Plugin install"
+	#	PluginManager.removePlugin(plugin_name)
+	#	assert PluginManager.plugins[plugin_name].menu is None and not PluginManager.plugins[plugin_name].installed, "Plugin uninstall"
+
 
 class TestScriptEditor():
 	def setup_method(self):

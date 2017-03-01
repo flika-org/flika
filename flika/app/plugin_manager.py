@@ -3,12 +3,13 @@ import os, sys
 
 from flika.utils import load_ui
 from flika.images import image_path
-from qtpy.QtCore import QUrl
+from qtpy.QtCore import QUrl, Signal
 from qtpy.QtWidgets import QListWidgetItem, QMenu, QMainWindow, QMessageBox, QAction, QAction, QApplication
 from qtpy.QtGui import QIcon, QDesktopServices
 import sys, difflib, zipfile, time, shutil, traceback
 from urllib.request import urlopen
 from pkg_resources import parse_version
+import threading
 
 import pip
 
@@ -147,7 +148,8 @@ class Plugin():
 
 class PluginManager(QMainWindow):
     plugins = {}
-
+    loadThread = None
+    sigPluginLoaded = Signal(str)
     '''
     PluginManager handles installed plugins and the online plugin database
     | show() : initializes a gui as a static variable of the class, if necessary, and displays it. Call in place of constructor
@@ -168,12 +170,18 @@ class PluginManager(QMainWindow):
 
     @staticmethod
     def load_online_plugins():
-        for p, url in plugin_list.items():
-            if p in PluginManager.plugins:
-                PluginManager.plugins[p].link_info_url(url)
-            else:
-                PluginManager.plugins[p] = Plugin(p, url)
-        PluginManager.gui.showPlugins()
+        if PluginManager.loadThread is not None and PluginManager.loadThread.is_alive():
+            return
+        def loadThread():
+            for p, url in plugin_list.items():
+                if p in PluginManager.plugins:
+                    PluginManager.plugins[p].link_info_url(url)
+                else:
+                    PluginManager.plugins[p] = Plugin(p, url)
+                PluginManager.sigPluginLoaded.emit(p)
+
+        PluginManager.loadThread = threading.Thread(None, loadThread)
+        PluginManager.loadThread.start()
 
     @staticmethod
     def close():
@@ -198,6 +206,9 @@ class PluginManager(QMainWindow):
         self.searchBox.textChanged.connect(self.showPlugins)
         self.searchButton.clicked.connect(lambda f: self.showPlugins(search_str=str(self.searchBox.text())))
         
+        self.refreshButton.pressed.connect(self.load_online_plugins)
+        self.sigPluginLoaded.connect(lambda a: self.showPlugins())
+
         self.setWindowTitle('Plugin Manager')
         self.showPlugins()
 
