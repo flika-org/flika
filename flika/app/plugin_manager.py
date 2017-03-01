@@ -183,6 +183,10 @@ class PluginManager(QMainWindow):
         PluginManager.loadThread = threading.Thread(None, loadThread)
         PluginManager.loadThread.start()
 
+    def closeEvent(self, ev):
+        if self.loadThread is not None and self.loadThread.is_alive():
+            self.loadThread.join(0)
+
     @staticmethod
     def close():
         if hasattr(PluginManager, 'gui'):

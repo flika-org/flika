@@ -8,17 +8,14 @@ import numpy as np
 fa = FlikaApplication()
 
 class TestPluginManager():
-	@classmethod
-	def setup_method(cls):
+	def setup_method(self, method):
 		PluginManager.show()
 		load_local_plugins()
-
-	@classmethod
-	def teardown_method(cls):
+		
+	def teardown_method(self, method):
 		PluginManager.close()
 
 	def test_local_plugins(self):
-		
 		local = set(plugin_list.keys())
 		plugins = set(PluginManager.plugins.keys())
 
@@ -35,10 +32,10 @@ class TestPluginManager():
 
 
 class TestScriptEditor():
-	def setup_method(self):
+	def setup_method(self, method):
 		ScriptEditor.show()
 
-	def teardown_method(self):
+	def teardown_method(self, method):
 		ScriptEditor.close()
 
 	def test_from_window(self):
