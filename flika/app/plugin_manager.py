@@ -88,12 +88,16 @@ class Plugin():
     def __init__(self, name, info_url=None):
         self.name = name
         self.url = None
+        self.author = None
         self.documentation = None
         self.version = ''
+        self.latest_version = ''
         self.menu = None
         self.listWidget = QListWidgetItem(self.name)
         self.installed = False
+        self.description = ''
         self.dependencies = []
+        self.loaded = False
         if info_url:
             self.info_url = info_url
             self.update_info()
@@ -120,6 +124,7 @@ class Plugin():
         p.menu = make_plugin_menu(p)
         p.listWidget = QListWidgetItem(p.name)
         p.listWidget.setIcon(QIcon(image_path('check.png')))
+        p.loaded = True
         return p
 
 
@@ -137,15 +142,8 @@ class Plugin():
             deps = new_info.pop('dependencies')['dependency']
             self.dependencies = [d['@name'] for d in deps] if isinstance(deps, list) else [deps['@name']]
         self.__dict__.update(new_info)
+        self.loaded = True
         
-
-    def update_icon(self):
-        if self.version == '':
-            self.listWidget.setIcon(QIcon())
-        elif parse_version(self.version) < parse_version(self.latest_version):
-            self.listWidget.setIcon(QIcon(image_path('exclamation.png')))
-        else:
-            self.listWidget.setIcon(QIcon(image_path('check.png')))
 
 class PluginManager(QMainWindow):
     plugins = {}
@@ -163,7 +161,6 @@ class PluginManager(QMainWindow):
         if not hasattr(PluginManager, 'gui'):
             PluginManager.gui = PluginManager()
         PluginManager.gui.showPlugins()
-        g.m.statusBar().showMessage('Loading plugin information...')
         PluginManager.load_online_plugins()
         QMainWindow.show(PluginManager.gui)
         if not os.access(plugin_path(), os.W_OK):
@@ -214,7 +211,10 @@ class PluginManager(QMainWindow):
         
         self.refreshButton.pressed.connect(self.load_online_plugins)
         def updatePlugin(a):
-            self.showPlugins()
+            if PluginManager.plugins[a].listWidget.isSelected():
+                PluginManager.gui.pluginSelected(a)
+            #else:
+                #self.showPlugins()
         self.sigPluginLoaded.connect(updatePlugin)
 
         self.setWindowTitle('Plugin Manager')
@@ -245,10 +245,16 @@ class PluginManager(QMainWindow):
             if self.pluginLabel.text():
                 self.pluginSelected(PluginManager.plugins[self.pluginLabel.text()].listWidget)
             return
-        s = str(item.text())
+        if isinstance(item, str):
+            s = item
+        else:
+            s = str(item.text())
         plugin = self.plugins[s]
         self.pluginLabel.setText(s)
-        info = 'By %s, Latest: %s' % (plugin.author, plugin.latest_version)
+        if not plugin.loaded:
+            info = "Loading information"
+        else:
+            info = 'By %s, Latest: %s' % (plugin.author, plugin.latest_version)
         version = parse_version(plugin.version)
         latest_version = parse_version(plugin.latest_version)
         if plugin.version and version < latest_version:
