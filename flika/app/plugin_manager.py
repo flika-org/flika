@@ -178,7 +178,7 @@ class PluginManager(QMainWindow):
                     PluginManager.plugins[p].link_info_url(url)
                 else:
                     PluginManager.plugins[p] = Plugin(p, url)
-                PluginManager.sigPluginLoaded.emit(p)
+                PluginManager.gui.sigPluginLoaded.emit(p)
 
         PluginManager.loadThread = threading.Thread(None, loadThread)
         PluginManager.loadThread.start()
