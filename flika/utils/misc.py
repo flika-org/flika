@@ -72,48 +72,46 @@ def load_ui(path, parent=None, directory=None):
 
     return loadUi(full_path, parent)
 
-def getSaveFileName(parent, title, initial='', filters=''):
+def getSaveFileName(title="Save file", initial='', filetypes=''):
     ''' File dialog for saving a new file, isolated to handle tuple/string return value
     Parameters
     ----------
-    parent : QWidget object
-        parent of the window to make
     title : str
         string to display at the top of the window
     initial : str
         initial path to save the file to
-    filters: str
+    filetypes: str
         argument for filtering file types separated by ;; (*.png) or (Images *.png);;(Other *.*)
     Returns
     -------
     str: the file path selected, or empty string if none
     '''
-    filename= QFileDialog.getSaveFileName(parent, title, initial, filters)
+    from flika.global_vars import m
+    filename= QFileDialog.getSaveFileName(m, title, initial, filetypes)
     if isinstance(filename, tuple):
         filename, ext = filename
-        if '.' not in filename:
+        if ext and '.' not in filename:
             filename += '.' + ext.rsplit('.')[-1]
     
-    return filename
+    return str(filename) if filename else None
 
-def getOpenFileName(parent, title, initial='', filters=''):
+def getOpenFileName(title="Open File", initial='', filetypes=''):
     ''' File dialog for opening an existing file, isolated to handle tuple/string return value
     Parameters
     ----------
-    parent : QWidget object
-        parent of the window to make
     title : str
         string to display at the top of the window
     initial : str
         initial path to open
-    filters: str
+    filetypes: str
         argument for filtering file types separated by ;; (*.png) or (Images *.png);;(Other *.*)
     Returns
     -------
     str: the file path selected, or empty string if none
     '''
-    filename= QFileDialog.getOpenFileName(parent, title, initial, filters)
+    from flika.global_vars import m
+    filename = QFileDialog.getOpenFileName(m, title, initial, filetypes)
     filename = str(filename[0] if isinstance(filename, tuple) else filename)
-    return filename
+    return filename if filename else None
 
 

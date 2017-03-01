@@ -6,7 +6,7 @@ from flika.window import Window
 import numpy as np
 
 fa = FlikaApplication()
-'''
+
 class TestPluginManager():
 	def setup_method(self):
 		PluginManager.show()
@@ -35,5 +35,5 @@ class TestScriptEditor():
 		ScriptEditor.gui.actionFrom_Window.trigger()
 		text = str(ScriptEditor.gui.currentTab().toPlainText())
 		assert text == "threshold(value=0.5, darkBackground=False, keepSourceWindow=False)", "From window command not expected"
-'''
+
 fa.close()

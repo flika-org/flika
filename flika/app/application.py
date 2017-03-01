@@ -211,19 +211,19 @@ class FlikaApplication(QtWidgets.QMainWindow):
 
     def _make_menu(self):
         fileMenu = self.menuBar().addMenu('File')
-        openAction = fileMenu.addAction("Open File", lambda : open_file_gui(open_file, '(All Files *.*);;(Image Files *.tif *.nd2 *.stk);;(Scripts *.py *.txt)'))
+        openAction = fileMenu.addAction("Open File", open_file_from_gui)
         
         self.recentFileMenu = fileMenu.addMenu('Recent Files')
         self.recentFileMenu.aboutToShow.connect(self._make_recents)
-        self.recentFileMenu.triggered.connect(lambda a: open_file(save_recent_file(a.text())))
+        self.recentFileMenu.triggered.connect(lambda a: open_file(a.text()))
 
-        fileMenu.addAction("Save As", lambda : save_file_gui(save_file, prompt='Save File As Tif', filetypes='*.tif'))
+        fileMenu.addAction("Save As", save_window)
         importMenu = fileMenu.addMenu("Import")
         exportMenu = fileMenu.addMenu("Export")
-        importMenu.addAction("Import ROIs", lambda : open_file_gui(load_rois, prompt='Load ROIs from file', filetypes='*.txt'))
-        importMenu.addAction("Import Points", lambda : open_file_gui(load_points, prompt='Load Points', filetypes='*.txt'))
-        exportMenu.addAction("Export Movie", save_movie_gui)
-        exportMenu.addAction("Export Points", lambda : save_file_gui(save_points, prompt='Save Points', filetypes='*.txt'))
+        importMenu.addAction("Import ROIs", load_rois)
+        importMenu.addAction("Import Points", load_points)
+        exportMenu.addAction("Export Movie", export_movie_gui)
+        exportMenu.addAction("Export Points", save_points)
 
         fileMenu.addAction("Settings", SettingsEditor.show)
         fileMenu.addAction("&Quit", self.close)#app.quit)

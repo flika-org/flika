@@ -137,15 +137,13 @@ class Plugin():
             deps = new_info.pop('dependencies')['dependency']
             self.dependencies = [d['@name'] for d in deps] if isinstance(deps, list) else [deps['@name']]
         self.__dict__.update(new_info)
-        
+        self.menu = make_plugin_menu(self.name, self.base_dir, menu_layout)
         if self.version == '':
             self.listWidget.setIcon(QIcon())
         elif parse_version(self.version) < parse_version(self.latest_version):
             self.listWidget.setIcon(QIcon(image_path('exclamation.png')))
         else:
             self.listWidget.setIcon(QIcon(image_path('check.png')))
-
-
 
 class PluginManager(QMainWindow):
     plugins = {}

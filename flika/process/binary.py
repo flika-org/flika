@@ -10,11 +10,11 @@ import flika.global_vars as g
 import scipy.ndimage
 from skimage import feature, measure
 from skimage.filters import threshold_adaptive
-from flika.app.BaseProcess import BaseProcess, SliderLabel, WindowSelector,  MissingWindowError, CheckBox
-from qtpy.QtWidgets import QSpinBox, QComboBox, qApp
+from flika.app.BaseProcess import BaseProcess, SliderLabel, WindowSelector,  MissingWindowError, CheckBox, ComboBox
+from qtpy.QtWidgets import QSpinBox, qApp
 
 
-__all__ = ['threshold','remove_small_blobs','adaptive_threshold','logically_combine','binary_dilation','binary_erosion', 'generate_rois']
+__all__ = ['threshold','remove_small_blobs','adaptive_threshold','logically_combine','binary_dilation','binary_erosion', 'generate_rois', 'canny_edge_detector']
      
      
 def convert2uint8(tif):
@@ -264,7 +264,7 @@ class Logically_combine(BaseProcess):
         self.gui_reset()
         window1=WindowSelector()
         window2=WindowSelector()
-        operator=QtWidgets.QComboBox()
+        operator=ComboBox()
         operator.addItem('AND')
         operator.addItem('OR')
         operator.addItem('XOR')

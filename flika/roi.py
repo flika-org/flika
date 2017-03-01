@@ -201,16 +201,21 @@ class ROI_Wrapper():
         '''
         Compute the average of the pixels within this ROI for the window of this ROI, return an array of average values, cropped by bounds
         '''
-        if self.window.image.ndim == 2:
-            g.alert("Cannot get the trace of an ROI on a 2D image.")
-            return
+        trace = None
+        if self.window.image.ndim == 4 or self.window.metadata['is_rgb']:
+            g.alert("Plotting trace of RGB movies is not supported. Try splitting the channels.")
+            return None
         s1, s2 = self.getMask()
         if np.size(s1) == 0 or np.size(s2) == 0:
-            trace = np.zeros(self.window.image.shape[0])
-        else:
+            trace = np.zeros(self.window.mt)
+
+        elif self.window.image.ndim == 3:
             trace = self.window.image[:, s1, s2]
             while trace.ndim > 1:
                 trace = np.average(trace, 1)
+        elif self.window.image.ndim == 2:
+            trace = self.window.image[s1, s2]
+            trace = [np.average(trace)]
 
         if bounds:
             trace = trace[bounds[0]:bounds[1]]
@@ -242,6 +247,8 @@ class ROI_Wrapper():
 
     def plot(self):
         self.traceWindow = roiPlot(self)
+        if self.traceWindow == None:
+            return
         self.traceWindow.indexChanged.connect(self.window.setIndex)
         self.plotSignal.emit()
         return self.traceWindow
@@ -274,7 +281,13 @@ class ROI_Wrapper():
         self.menu.popup(QtCore.QPoint(pos.x(), pos.y()))
     
     def makeMenu(self):
-        plotAct = QtWidgets.QAction("&Plot", self, triggered=lambda : self.plot() if plotAct.text() == "&Plot" else self.unplot())
+        def plotPressed():
+            if plotAct.text() == "&Plot":
+                self.plot()
+            else:
+                self.unplot()
+
+        plotAct = QtWidgets.QAction("&Plot", self, triggered=plotPressed)
         colorAct = QtWidgets.QAction("&Change Color",self,triggered=self.changeColor)
         copyAct = QtWidgets.QAction("&Copy", self, triggered=self.copy)
         remAct = QtWidgets.QAction("&Delete", self, triggered=self.delete)
@@ -290,6 +303,7 @@ class ROI_Wrapper():
         self.menu.addAction(copyAct)
         self.menu.addAction(remAct)
         self.menu.aboutToShow.connect(updateMenu)
+
 
     def delete(self):
         self.unplot()
@@ -383,8 +397,8 @@ class ROI_line(ROI_Wrapper, pg.LineSegmentROI):
         x=np.array([p[0] for p in self.pts], dtype=int)
         y=np.array([p[1] for p in self.pts], dtype=int)
         xx, yy = line(x[0],y[0],x[1],y[1])
-        xx = xx[xx < self.window.imageview.getImageItem().image.shape[0]]
-        yy = yy[yy < self.window.imageview.getImageItem().image.shape[1]]
+        xx = xx[xx < self.window.mx]
+        yy = yy[yy < self.window.my]
         return xx, yy
 
     def getPoints(self):
@@ -393,10 +407,14 @@ class ROI_line(ROI_Wrapper, pg.LineSegmentROI):
     def makeMenu(self):
         ROI_Wrapper.makeMenu(self)
         self.menu.addAction(self.kymographAct)
-        self.kymographAct.setEnabled(self.window.image.ndim > 2)
+        self.kymographAct.setEnabled(self.window.image.ndim == 3 and not self.window.metadata['is_rgb'])
 
     def update_kymograph(self):
         tif=self.window.image
+        if tif.ndim != 3:
+            g.alert("Can only kymograph a 3d movie")
+            return
+
         xx, yy = self.getMask()
         mt = len(tif)
         if len(xx) == 0:
@@ -467,15 +485,13 @@ class ROI_rectangle(ROI_Wrapper, pg.ROI):
         return np.array([self.state['pos'], self.state['size']], dtype=int)
 
     def getMask(self):
-        ii = self.window.imageview.getImageItem()
         x, y = self.state['pos']
         w, h = self.state['size']
 
-        mx, my = ii.image.shape
         xmin = max(x, 0)
         ymin = max(y, 0)
-        xmax = min(x+w, mx)
-        ymax = min(y+h, my)
+        xmax = min(x+w, self.window.mx)
+        ymax = min(y+h, self.window.my)
 
         xx, yy = np.meshgrid(np.arange(xmin, xmax, dtype=int), np.arange(ymin, ymax, dtype=int))
 
@@ -516,7 +532,16 @@ class ROI_rectangle(ROI_Wrapper, pg.ROI):
             if y2>=my: y2=my-1
             mx,my=tif.shape
             newtif=tif[x1:x2,y1:y2]
-            
+        elif tif.ndim==4:
+            mt,mx,my,mc=tif.shape
+            if x1<0: x1=0
+            if y1<0: y1=0
+            if x2>=mx: x2=mx-1
+            if y2>=my: y2=my-1
+            newtif=tif[:,x1:x2,y1:y2]
+        else:
+            g.alert("Image dimensions not understood")
+            return None
         return Window(newtif,self.window.name+' Cropped',metadata=self.window.metadata)
 
 class ROI(ROI_Wrapper, pg.PolyLineROI):
@@ -639,10 +664,16 @@ class ROI_rect_line(ROI_Wrapper, QtWidgets.QGraphicsObject):
         self.pts = pts
 
     def getTrace(self, bounds=None):
-        ax = (0, 1) if self.window.image.ndim == 2 else (1, 2)
-        region = self.getArrayRegion(self.window.imageview.image, self.window.imageview.getImageItem(), ax)
-        while region.ndim > 1:
-            region = np.average(region, 1)
+        if self.window.image.ndim > 3 or self.window.metadata['is_rgb']:
+            g.alert("Plotting trace of RGB movies is not supported. Try splitting the channels.")
+            return None
+        if self.window.image.ndim == 3:
+            region = self.getArrayRegion(self.window.imageview.image, self.window.imageview.getImageItem(), (1, 2))
+            while region.ndim > 1:
+                region = np.average(region, 1)
+        elif self.window.image.ndim == 2:
+            region = self.getArrayRegion(self.window.imageview.image, self.window.imageview.getImageItem(), (0, 1))
+            region = np.average(region)
 
         if bounds:
             region = region[bounds[0]:bounds[1]]
@@ -808,8 +839,8 @@ class ROI_rect_line(ROI_Wrapper, QtWidgets.QGraphicsObject):
         for i in range(len(self.pts)-1):
             p1, p2 = self.pts[i], self.pts[i+1]
             xx, yy = line(int(p1[0]), int(p1[1]), int(p2[0]), int(p2[1]))
-            xx = xx[xx < self.window.imageview.getImageItem().image.shape[0]]
-            yy = yy[yy < self.window.imageview.getImageItem().image.shape[1]]
+            xx = xx[xx < self.window.mx]
+            yy = yy[yy < self.window.my]
             xxs.extend(xx)
             yys.extend(yy)
 
@@ -852,6 +883,9 @@ class ROI_rect_line(ROI_Wrapper, QtWidgets.QGraphicsObject):
 
     def update_kymograph(self):
         tif=self.window.image
+        if tif.ndim != 3:
+            g.alert("Can only kymograph on 3D movies")
+            return
         
         if self.width == 1:
             w, h = self.window.imageDimensions()
@@ -923,20 +957,26 @@ def makeROI(kind, pts, window=None, **kargs):
     roi.setPen(pen)
     return roi
 
-def load_rois(filename):
+def load_rois(filename=None):
+    if filename is None:
+        filetypes = '*.txt'
+        prompt = 'Load ROIs from file'
+        filename = getSaveFileName(prompt, filetypes=filetypes)
+        if filename is None:
+            return None
     text = open(filename, 'r').read()
     rois = []
-    kind=None
-    pts=None
+    kind = None
+    pts = None
     for text_line in text.split('\n'):
         if kind is None:
             kind=text_line
             pts=[]
-        elif text_line=='':
+        elif text_line == '':
             roi = makeROI(kind,pts)
             rois.append(roi)
-            kind=None
-            pts=None
+            kind = None
+            pts = None
         else:
             pts.append(tuple(int(float(i)) for i in text_line.split()))
 

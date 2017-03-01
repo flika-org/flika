@@ -160,6 +160,7 @@ Useful variables:
 
     def closeTab(self, index):
         self.scriptTabs.removeTab(index)
+        #self.addEditor()
 
     def saveCurrentScript(self):
         cw = self.currentTab()

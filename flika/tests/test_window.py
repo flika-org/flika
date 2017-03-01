@@ -10,11 +10,13 @@ import pytest
 from flika.roi import makeROI
 import pyqtgraph as pg
 from qtpy import QtGui
+im = np.random.random([120, 90, 90])
+fa = None
 
-fa = FlikaApplication()
-im = np.random.random([150, 60, 60])
-
-'''
+def setup_method():
+	global fa
+	fa = FlikaApplication()
+	
 class TestWindow():
 	def setup_method(self, obj):
 		self.win1 = Window(im)
@@ -36,15 +38,15 @@ class TestWindow():
 		assert self.win1.currentIndex != win2.currentIndex, "Unlinked windows failure"
 		win2.close()
 		assert len(self.win1.linkedWindows) == 0, "Closed window is not unlinked"
-'''
 
 class ROITest():
 	TYPE=None
 	POINTS=[]
 	MASK=[]
 
-	def setup_method(self, obj):
-		self.win1 = Window(im)
+
+	def setup_method(self):
+		self.win1 = Window(self.img)
 		self.changed = False
 		self.changeFinished = False
 		self.roi = makeROI(self.TYPE, self.POINTS, window=self.win1)
@@ -67,18 +69,23 @@ class ROITest():
 	def checkChangeFinished(self):
 		assert self.changeFinished, "ChangeFinished signal was not sent"
 		self.changeFinished = False
-		
-	def teardown_method(self, obj):
+	
+
+	def teardown_method(self):
 		self.roi.plot()
 		self.roi.delete()
 		assert self.roi not in self.win1.rois, "ROI deleted but still in window.rois"
-		assert g.currentTrace == None, "Trace closed"
+		#assert g.currentTrace == None, "Trace closed"
 		self.win1.close()
 
-	def check_placement(self):
-		assert np.array_equal(self.roi.getMask(), self.MASK), "Mask differs on creation. %s != %s" % (self.roi.getMask(), self.MASK)
-		assert np.array_equal(self.roi.pts, self.POINTS), "pts differs on creation. %s != %s" % (self.roi.pts, self.POINTS)
-		assert np.array_equal(self.roi.getPoints(), self.POINTS), "getPoints differs on creation. %s != %s" % (self.roi.getPoints(), self.POINTS)
+	def check_placement(self, mask=None, points=None):
+		if mask is None:
+			mask = self.MASK
+		if points is None:
+			points = self.POINTS
+		assert np.array_equal(self.roi.getMask(), mask), "Mask differs on creation. %s != %s" % (self.roi.getMask(), self.MASK)
+		assert np.array_equal(self.roi.pts, points), "pts differs on creation. %s != %s" % (self.roi.pts, self.POINTS)
+		assert np.array_equal(self.roi.getPoints(), points), "getPoints differs on creation. %s != %s" % (self.roi.getPoints(), self.POINTS)
 
 	def check_similar(self, other):
 		mask1 = self.roi.getMask()
@@ -92,7 +99,7 @@ class ROITest():
 		roi1 = self.win1.paste()
 		assert roi1 == None and len(self.win1.rois) == 1, "Copying ROI to same window"
 		
-		w2 = Window(im)
+		w2 = Window(self.img)
 		roi2 = w2.paste()
 		assert self.roi in roi2.linkedROIs and roi2 in self.roi.linkedROIs, "Linked ROI on paste"
 		self.check_similar(roi2)
@@ -121,10 +128,14 @@ class ROITest():
 	def test_plot(self):
 		self.roi.unplot()
 		trace = self.roi.plot()
+		if trace is None:
+			assert self.win1.image.ndim == 4, "Trace failed on non-4D image"
+			return
 		assert self.roi.traceWindow != None, "ROI plotted, roi traceWindow set"
 		assert g.m.currentTrace == trace, "ROI plotted, but currentTrace is still None"
 		ind = trace.get_roi_index(self.roi)
-		assert trace.rois[ind]['p1trace'].opts['pen'].color().name() == self.roi.pen.color().name(), "Color not changed. %s != %s" % (trace.rois[ind]['p1trace'].opts['pen'].color().name(), self.roi.pen.color().name())
+		if trace.rois[ind]['p1trace'].opts['pen'] != None:
+			assert trace.rois[ind]['p1trace'].opts['pen'].color().name() == self.roi.pen.color().name(), "Color not changed. %s != %s" % (trace.rois[ind]['p1trace'].opts['pen'].color().name(), self.roi.pen.color().name())
 		self.roi.unplot()
 		assert self.roi.traceWindow == None, "ROI unplotted, roi traceWindow cleared"
 		assert g.m.currentTrace == None, "ROI unplotted, currentTrace cleared"
@@ -146,6 +157,9 @@ class ROITest():
 
 	def test_plot_translate(self):
 		trace = self.roi.plot()
+		if trace is None:
+			assert self.win1.image.ndim == 4, "Trace failed on non-4D image"
+			return
 		assert self.roi.traceWindow != None, "ROI plotted, roi traceWindow set. %s should not be None" % (self.roi.traceWindow)
 		assert g.m.currentTrace == self.roi.traceWindow, "ROI plotted, currentTrace not set. %s != %s" % (g.m.currentTrace, self.roi.traceWindow) 
 		ind = trace.get_roi_index(self.roi)
@@ -177,7 +191,7 @@ class ROITest():
 		assert self.roi.pen.color().name() == color.name(), "Color not changed. %s != %s" % (self.roi.pen.color().name(), color.name())
 		self.roi.unplot()
 
-class TestROI_Rectangle(ROITest):
+class ROI_Rectangle(ROITest):
 	TYPE = "rectangle"
 	POINTS = [[3, 2], [5, 2]]
 	MASK = [[3, 4, 5, 6, 7, 3, 4, 5, 6, 7], [2, 2, 2, 2, 2, 3, 3, 3, 3, 3]]
@@ -185,7 +199,11 @@ class TestROI_Rectangle(ROITest):
 	def test_crop(self):
 		w2 = self.roi.crop()
 		bound = self.roi.boundingRect()
-		assert w2.image.shape[1] == bound.width() and w2.image.shape[2] == bound.height(), "Croppped image different size (%s, %s) != (%s, %s)" % (bound.width(), bound.height(), w2.image.shape[1], w2.image.shape[2])
+
+		xdim = 1 if self.win1.image.ndim > 2 else 0
+		ydim = xdim+1
+
+		assert w2.image.shape[xdim] == bound.width() and w2.image.shape[ydim] == bound.height(), "Croppped image different size (%s, %s) != (%s, %s)" % (bound.width(), bound.height(), w2.image.shape[xdim], w2.image.shape[ydim])
 		w2.close()
 
 	def test_resize(self):
@@ -194,17 +212,19 @@ class TestROI_Rectangle(ROITest):
 		self.checkChanged()
 		self.checkChangeFinished()
 		
-		self.POINTS[1] = [6, 2]
-		self.MASK = [[3, 4, 5, 6, 7, 8, 3, 4, 5, 6, 7, 8], [2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3]]
-		self.check_placement()
+		points = [self.POINTS[0], [6, 2]]
+		mask = [[3, 4, 5, 6, 7, 8, 3, 4, 5, 6, 7, 8], [2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3]]
+		self.check_placement(points=points, mask=mask)
 
-class TestROI_Line(ROITest):
+class ROI_Line(ROITest):
 	TYPE="line"
 	POINTS = [[3, 2], [8, 4]]
 	MASK = [[3, 4, 5, 6, 7, 8], [2, 2, 3, 3, 4, 4]]
 
 	def test_kymograph(self):
 		self.roi.update_kymograph()
+		if self.roi.kymograph is None and self.win1.image.ndim != 3:
+			return
 		kymo = self.roi.kymograph
 		assert kymo.image.shape[1] == self.win1.image.shape[0]
 		kymo.close()
@@ -225,13 +245,13 @@ class TestROI_Line(ROITest):
 		self.checkChangeFinished()
 
 
-class TestROI_Freehand(ROITest):
+class ROI_Freehand(ROITest):
 	TYPE="freehand"
 	POINTS = [3, 2], [5, 6], [2, 4]
 	MASK = [[3, 3, 3, 4, 4], [2, 3, 4, 4, 5]]
 
 
-class TestROI_Rect_Line(ROITest):
+class ROI_Rect_Line(ROITest):
 	TYPE="rect_line"
 	POINTS = [[3, 2], [5, 4], [4, 8]]
 	MASK = [[3, 4, 5, 5, 5, 4, 4, 4], [2, 3, 4, 4, 5, 6, 7, 8]]
@@ -250,6 +270,8 @@ class TestROI_Rect_Line(ROITest):
 
 	def test_kymograph(self):
 		self.roi.update_kymograph()
+		if self.roi.kymograph is None and self.win1.image.ndim != 3:
+			return
 		kymo = self.roi.kymograph
 		assert kymo.image.shape[1] == self.win1.image.shape[0]
 		kymo.close()
@@ -260,7 +282,7 @@ class TestROI_Rect_Line(ROITest):
 		roi1 = self.win1.paste()
 		assert roi1 == None and len(self.win1.rois) == 1, "Copying ROI to same window"
 		
-		w2 = Window(im)
+		w2 = Window(self.img)
 		roi2 = w2.paste()
 		assert self.roi in roi2.linkedROIs and roi2 in self.roi.linkedROIs, "Linked ROI on paste"
 		self.check_similar(roi2)
@@ -274,7 +296,38 @@ class TestROI_Rect_Line(ROITest):
 
 		w2.close()
 		self.win1.setAsCurrentWindow()
-'''
+
+class Test_Rectangle_2D(ROI_Rectangle):
+	img = np.random.random([20, 20])
+class Test_Rectangle_3D(ROI_Rectangle):
+	img = np.random.random([10, 20, 20])
+class Test_Rectangle_4D(ROI_Rectangle):
+	img = np.random.random([10, 20, 20, 3])
+
+class Test_Line_2D(ROI_Line):
+	img = np.random.random([20, 20])
+class Test_Line_3D(ROI_Line):
+	img = np.random.random([10, 20, 20])
+class Test_Line_4D(ROI_Line):
+	img = np.random.random([10, 20, 20, 3])
+
+class Test_Freehand_2D(ROI_Freehand):
+	img = np.random.random([20, 20])
+class Test_Freehand_3D(ROI_Freehand):
+	img = np.random.random([10, 20, 20])
+class Test_Freehand_4D(ROI_Freehand):
+	img = np.random.random([10, 20, 20, 3])
+
+class Test_Line_2D(ROI_Line):
+	img = np.random.random([20, 20])
+class Test_Line_3D(ROI_Line):
+	img = np.random.random([10, 20, 20])
+class Test_Line_4D(ROI_Line):
+	img = np.random.random([10, 20, 20, 3])
+
+
+
+
 class TestTracefig():
 	def setup_method(self):
 		self.w1 = Window(im)
@@ -291,9 +344,9 @@ class TestTracefig():
 	def test_export(self):
 		self.rect.window.exportROIs('tempROI.txt')
 		t = open('tempROI.txt').read()
-		assert t == 'rectangle\n3 2\n7 2\n7 7\n3 7\n'
+		assert t == 'rectangle\n3 2\n4 5\n'
 		os.remove('tempROI.txt')
-'''
 
-
-fa.close()
+def teardown_method():
+	fa.close()
+	assert len(g.dialogs) == 0 and len(g.windows) == 0, "Not all dialogs and windows closed"

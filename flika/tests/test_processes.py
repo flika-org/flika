@@ -50,7 +50,7 @@ image_calculator.ui.close()
     (np.random.random([10, 20, 20]).astype('float16')),
     (np.random.random([10, 20, 20]).astype('float32')),
     (np.random.random([10, 20, 20]).astype('float64')),
-    ((np.random.random([10, 20, 20, 3])*10).astype("uint8")),
+   	((np.random.random([10, 20, 20, 3])*10).astype("uint8")),
     ((np.random.random([10, 20, 20, 3])*10).astype("uint16")),
     ((np.random.random([10, 20, 20, 3])*10).astype("uint32")),
     ((np.random.random([10, 20, 20, 3])*10).astype("uint64")),
@@ -61,7 +61,7 @@ image_calculator.ui.close()
     (np.random.random([10, 20, 20, 3]).astype('float16')),
     (np.random.random([10, 20, 20, 3]).astype('float32')),
     (np.random.random([10, 20, 20, 3]).astype('float64')),
-    ((np.random.random([20, 20])*10).astype("uint8")),
+   	((np.random.random([20, 20])*10).astype("uint8")),
     ((np.random.random([20, 20])*10).astype("uint16")),
     ((np.random.random([20, 20])*10).astype("uint32")),
     ((np.random.random([20, 20])*10).astype("uint64")),
@@ -72,7 +72,7 @@ image_calculator.ui.close()
     (np.random.random([20, 20]).astype('float16')),
     (np.random.random([20, 20]).astype('float32')),
     (np.random.random([20, 20]).astype('float64')),
-    ((np.random.random([20, 20, 3])*10).astype("uint8")),
+   	((np.random.random([20, 20, 3])*10).astype("uint8")),
     ((np.random.random([20, 20, 3])*10).astype("uint16")),
     ((np.random.random([20, 20, 3])*10).astype("uint32")),
     ((np.random.random([20, 20, 3])*10).astype("uint64")),
@@ -86,7 +86,7 @@ image_calculator.ui.close()
 ])
 class ProcessTest:
 	pass
-'''
+
 class TestBinary(ProcessTest):
 	
 	def test_threshold(self, img):
@@ -191,15 +191,17 @@ class TestMath(ProcessTest):
 	def test_subtract_trace(self, img):
 		w1 = Window(img)
 		roi1 = makeROI('rectangle', [[3, 3], [5, 6]])
-		roi1.plot()
-		subtract_trace()
+		tr = roi1.plot()
+		if tr:
+			subtract_trace()
 		fa.clear()
 
 	def test_divide_trace(self, img):
 		w1 = Window(img)
 		roi1 = makeROI('rectangle', [[3, 3], [5, 6]])
-		roi1.plot()
-		divide_trace()
+		tr = roi1.plot()
+		if tr:
+			divide_trace()
 		fa.clear()
 
 	def test_multiply(self, img):
@@ -299,6 +301,6 @@ class TestStacks(ProcessTest):
 		w1 = Window(img)
 		resize(2)
 		fa.clear()
-'''
+
 
 fa.close()

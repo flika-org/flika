@@ -174,6 +174,8 @@ class TraceFig(QWidget):
         if self.hasROI(roi):
             return
         trace=roi.getTrace()
+        if trace is None:
+            raise InvalidTraceException()
         pen=QPen(roi.pen)
         pen.setWidth(0)
         if len(trace)==1:
@@ -214,13 +216,13 @@ class TraceFig(QWidget):
         return roi in [r['roi'] for r in self.rois] #return True if roi is plotted
 
     def export_gui(self):
-        filename=g.settings['filename']
-        directory=os.path.dirname(filename)
+        filename = g.settings['filename']
+        directory = os.path.dirname(filename)
         if filename is not None:
             filename = getSaveFileName(g.m, 'Save Traces', directory, '*.txt')
         else:
             filename = getSaveFileName(g.m, 'Save Traces', '', '*.txt')
-        if filename=='':
+        if filename == '':
             return False
         else:
             self.export(filename)
@@ -248,7 +250,13 @@ def roiPlot(roi):
         win = TraceFig()
     else:
         win = g.currentTrace
-    win.addROI(roi)
+
+    try:
+        win.addROI(roi)
+    except InvalidTraceException:
+        if len(win.rois) == 0:
+            win.close()
+            return None
     return win
 
 
@@ -312,3 +320,5 @@ class RedrawPartialThread(QtCore.QThread):
                 qApp.processEvents()
             self.redrawCompleted=True
             
+class InvalidTraceException(Exception):
+    pass

@@ -19,7 +19,7 @@ class Window(QtWidgets.QWidget):
         self.commands = commands #commands is a list of the commands used to create this window, starting with loading the file
         self.metadata = metadata
         if 'is_rgb' not in metadata.keys():
-            metadata['is_rgb']=tif.ndim == 4 or (tif.ndim == 3 and tif.shape[2] == 3)
+            metadata['is_rgb'] = tif.ndim == 4
 
         if g.currentWindow is None:
             width = 684
@@ -327,14 +327,28 @@ class Window(QtWidgets.QWidget):
         plotAllAct = QtWidgets.QAction('&Plot All ROIs', self.menu, triggered=lambda : [roi.plot() for roi in self.rois if roi.traceWindow == None])
         copyAll = QtWidgets.QAction("Copy All ROIs", self.menu, triggered = lambda a: setattr(g, 'clipboard', self.rois))
         removeAll = QtWidgets.QAction("Remove All ROIs", self.menu, triggered = lambda : [a.delete() for a in self.rois[:]])
-        saveAct = QtWidgets.QAction("&Save All ROIs",self, triggered=self.exportROIs) 
+        saveAll = QtWidgets.QAction("&Save All ROIs",self, triggered=self.exportROIs) 
 
         self.menu.addAction(plotAllAct)
         self.menu.addAction(pasteAct)
         self.menu.addAction(copyAll)
-        self.menu.addAction(saveAct)
+        self.menu.addAction(saveAll)
         self.menu.addAction(removeAll)
         self.menu.aboutToShow.connect(updateMenu)
+
+    def addPoint(self, p=None):
+        if p is None:
+            p = [self.currentIndex, self.x, self.y]
+        elif len(p) != 3:
+            raise Exception("addPoint takes a 3-tuple (t, x, y) as argument")
+        
+        t, x, y = p
+
+        pointSize=g.m.settings['point_size']
+        pointColor = QtGui.QColor(g.settings['point_color'])
+        position=[x, y, pointColor, pointSize]
+        self.scatterPoints[t].append(position)
+        self.scatterPlot.addPoints(pos=[[x, y]], size=pointSize, brush=pg.mkBrush(*pointColor.getRgb()))
 
     def mouseClickEvent(self,ev):
         modifiers = QtWidgets.QApplication.keyboardModifiers()
@@ -345,12 +359,7 @@ class Window(QtWidgets.QWidget):
                 self.menu.exec_(ev.screenPos().toQPoint())
                 return
             if mm=='point':
-                t=self.currentIndex
-                pointSize=g.m.settings['point_size']
-                pointColor = QtGui.QColor(g.settings['point_color'])
-                position=[self.x,self.y, pointColor, pointSize]
-                self.scatterPoints[t].append(position)
-                self.scatterPlot.addPoints(pos=[[self.x,self.y]], size=pointSize, brush=pg.mkBrush(*pointColor.getRgb()))
+                self.addPoint()
                 #  self.imageview.view.__class__.mouseClickEvent(self.imageview.view, ev)
             elif mm == 'rectangle' and g.settings['default_roi_on_click']:
                     self.currentROI = ROI_Drawing(self, self.x - g.settings['rect_width']/2, self.y - g.settings['rect_height']/2, mm)

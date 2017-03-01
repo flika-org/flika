@@ -7,11 +7,11 @@ Created on Thu Jun 26 16:18:16 2014
 from flika.window import Window
 import numpy as np
 import flika.global_vars as g
-from flika.app.BaseProcess import BaseProcess, WindowSelector, MissingWindowError, CheckBox, BaseProcess_noPriorWindow, SliderLabel
-from qtpy.QtWidgets import QSpinBox, QComboBox
+from flika.app.BaseProcess import BaseProcess, WindowSelector, MissingWindowError, CheckBox, BaseProcess_noPriorWindow, SliderLabel, ComboBox
+from qtpy.QtWidgets import QSpinBox
 from flika.tracefig import TraceFig
 
-__all__ = ['deinterleave','trim','zproject','image_calculator', 'pixel_binning', 'frame_binning', 'resize', 'duplicate', 'generate_random_image']
+__all__ = ['deinterleave','trim','zproject','image_calculator', 'pixel_binning', 'frame_binning', 'resize', 'concatenate_stacks', 'duplicate', 'generate_random_image', 'change_datatype']
 
 def duplicate():
     old = g.m.currentWindow
@@ -286,7 +286,7 @@ class ZProject(BaseProcess):
         lastFrame.setRange(1,nFrames-1)
         lastFrame.setValue(nFrames-1)
         self.items.append({'name':'lastFrame','string':'Last Frame','object':lastFrame})
-        projection_type=QComboBox()
+        projection_type=ComboBox()
         projection_type.addItem('Average')
         projection_type.addItem('Max Intensity')
         projection_type.addItem('Min Intensity')
@@ -335,7 +335,7 @@ class Image_calculator(BaseProcess):
         self.gui_reset()
         window1=WindowSelector()
         window2=WindowSelector()      
-        operation=QComboBox()
+        operation=ComboBox()
         operation.addItems(['Add','Subtract','Multiply','Divide','AND','OR','XOR','Min','Max','Average'])
         self.items.append({'name':'window1','string':'Window 1','object':window1})
         self.items.append({'name':'window2','string':'Window 2','object':window2})
@@ -479,7 +479,7 @@ class Change_datatype(BaseProcess):
 
     def gui(self):
         self.gui_reset()
-        dtype = QComboBox()
+        dtype = ComboBox()
         dtype_strs = ['uint8', 'uint16', 'uint32', 'uint64', 'int8','int16', 'int32', 'int64', 'float16', 'float32', 'float64']
         for d in dtype_strs:
             dtype.addItem(d)

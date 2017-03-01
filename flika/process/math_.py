@@ -6,8 +6,8 @@ Created on Thu Jun 26 19:44:11 2014
 """
 import numpy as np
 import flika.global_vars as g
-from flika.app.BaseProcess import BaseProcess
-from qtpy.QtWidgets import QSpinBox, QComboBox, QDoubleSpinBox
+from flika.app.BaseProcess import BaseProcess, ComboBox, CheckBox
+from qtpy.QtWidgets import QSpinBox, QDoubleSpinBox
 
 __all__ = ['subtract','multiply','power','ratio','absolute_value','subtract_trace','divide_trace']
 from flika.window import Window
@@ -224,7 +224,7 @@ class Ratio(BaseProcess):
         nFrames_spinbox.setMaximum(nFrames)
         nFrames_spinbox.setMinimum(1)
         self.items.append({'name':'nFrames','string':'Number of Frames','object':nFrames_spinbox})
-        ratio_type=QComboBox()
+        ratio_type=ComboBox()
         ratio_type.addItem('average')
         ratio_type.addItem('standard deviation')
         self.items.append({'name':'ratio_type','string':'Ratio Type','object':ratio_type})
