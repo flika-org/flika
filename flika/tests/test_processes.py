@@ -85,7 +85,12 @@ image_calculator.ui.close()
     (np.random.random([20, 20, 3]).astype('float64')),
 ])
 class ProcessTest:
-	pass
+	def teardown_method(self, method):
+		for d in g.dialogs[:]:
+			d.close()
+		for w in g.windows[:]:
+			w.close()
+
 
 class TestBinary(ProcessTest):
 	

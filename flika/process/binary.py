@@ -478,7 +478,7 @@ class Generate_ROIs(BaseProcess):
         if np.any(im < 0) or np.any(im > 1):
             raise Exception("The current image is not a binary image. Threshold first")
 
-        from roi import makeROI
+        from flika.roi import makeROI
         thresholded_image = np.squeeze(im)
         labelled=measure.label(thresholded_image)
         ROIs = []
@@ -502,7 +502,7 @@ class Generate_ROIs(BaseProcess):
         if np.any(im < 0) or np.any(im > 1):
             raise Exception("The current image is not a binary image. Threshold first")
 
-        from roi import ROI_Drawing
+        from flika.roi import ROI_Drawing
         level = self.getValue('level')
         minDensity = self.getValue('minDensity')
         thresholded_image = np.squeeze(im)

@@ -21,14 +21,22 @@ class TestPluginManager():
 
 		assert (local & plugins) == plugins, "Local plugin list not loaded correctly"
 
-	#def test_install_plugin(self):
-	#	plugin_name = 'Detect Puffs'
-	#	if PluginManager.plugins[plugin_name].installed:
-	#		return
-	#	PluginManager.downloadPlugin(plugin_name)
-	#	assert PluginManager.plugins[plugin_name].menu is not None and PluginManager.plugins[plugin_name].installed, "Plugin install"
-	#	PluginManager.removePlugin(plugin_name)
-	#	assert PluginManager.plugins[plugin_name].menu is None and not PluginManager.plugins[plugin_name].installed, "Plugin uninstall"
+	def test_install_plugin(self):
+		load_local_plugins()
+		plugin_name = 'Detect Puffs'
+		if PluginManager.plugins[plugin_name].installed:
+			return
+		PluginManager.load_online_plugins()
+		i = 0
+		while PluginManager.plugins[plugin_name].url == None:
+			i += 1
+			if i == 1000:
+				return
+			continue
+		PluginManager.downloadPlugin(plugin_name)
+		assert PluginManager.plugins[plugin_name].menu is not None and PluginManager.plugins[plugin_name].installed, "Plugin install"
+		PluginManager.removePlugin(plugin_name)
+		assert PluginManager.plugins[plugin_name].menu is None and not PluginManager.plugins[plugin_name].installed, "Plugin uninstall"
 
 
 class TestScriptEditor():

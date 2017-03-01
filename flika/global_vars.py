@@ -62,12 +62,12 @@ class Registry(object):
         """
         self._lazy_members.append(value)
 
-    def _load_lazy_members(self):
-        return
-        from plugins import load_plugin
-        while self._lazy_members:
-            plugin = self._lazy_members.pop()
-            load_plugin(plugin)
+    #def _load_lazy_members(self):
+    #    return
+    #    from plugins import load_plugin
+    #    while self._lazy_members:
+    #        plugin = self._lazy_members.pop()
+    #        load_plugin(plugin)
 
     def __iter__(self):
         return iter(self.members)

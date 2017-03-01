@@ -44,7 +44,6 @@ class ROITest():
 	POINTS=[]
 	MASK=[]
 
-
 	def setup_method(self):
 		self.win1 = Window(self.img)
 		self.changed = False
@@ -70,7 +69,6 @@ class ROITest():
 		assert self.changeFinished, "ChangeFinished signal was not sent"
 		self.changeFinished = False
 	
-
 	def teardown_method(self):
 		self.roi.plot()
 		self.roi.delete()

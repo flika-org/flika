@@ -55,7 +55,7 @@ class TraceFig(QWidget):
         self.p1.plotItem.sigRangeChanged.connect(self.updateRegion)
         self.region.setRegion([0, 200])
 
-        from process.measure import measure
+        from flika.process.measure import measure
         self.measure=measure
         self.p1.scene().sigMouseClicked.connect(self.measure.pointclicked)
         self.p1.scene().sigMouseClicked.connect(self.setCurrentTraceWindow)

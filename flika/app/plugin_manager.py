@@ -79,9 +79,9 @@ def build_submenu(module_name, parent_menu, layout_dict):
                 action = QAction(od['#text'], parent_menu, triggered = get_lambda(module_name, od['@location'], od['@function']))
                 parent_menu.addAction(action)
 
-def make_plugin_menu(plugin_name, base_dir, menu_layout):
-    menu = QMenu(plugin_name)
-    build_submenu(base_dir, menu, menu_layout)
+def make_plugin_menu(plugin):
+    menu = QMenu(plugin.name)
+    build_submenu(plugin.base_dir, menu, plugin.menu_layout)
     return menu
 
 class Plugin():
@@ -95,7 +95,8 @@ class Plugin():
         self.installed = False
         self.dependencies = []
         if info_url:
-            self.link_info_url(info_url)
+            self.info_url = info_url
+            self.update_info()
         
 
     @staticmethod
@@ -115,21 +116,19 @@ class Plugin():
         if 'dependencies' in info and 'dependency' in info['dependencies']:
             deps = info['dependencies']['dependency']
             p.dependencies = [d['@name'] for d in deps] if isinstance(deps, list) else [deps['@name']]
-        p.menu = make_plugin_menu(p.name, p.base_dir, info['menu_layout'])
+        p.menu_layout = info.pop('menu_layout')
+        p.menu = make_plugin_menu(p)
         p.listWidget = QListWidgetItem(p.name)
         p.listWidget.setIcon(QIcon(image_path('check.png')))
         return p
 
-    def link_info_url(self, url):
-        self.info_url = url
-        self.update_info()
 
     def update_info(self):
         if self.info_url == None:
             return False
         txt = urlopen(self.info_url).read()
         new_info = parse(txt)
-        menu_layout = new_info.pop('menu_layout')
+        self.menu_layout = new_info.pop('menu_layout')
         if 'date' in new_info:
             new_info['version'] = '.'.join(new_info['date'].split('/')[2:] + new_info['date'].split('/')[:2])
             new_info.pop('date')
@@ -138,7 +137,9 @@ class Plugin():
             deps = new_info.pop('dependencies')['dependency']
             self.dependencies = [d['@name'] for d in deps] if isinstance(deps, list) else [deps['@name']]
         self.__dict__.update(new_info)
-        self.menu = make_plugin_menu(self.name, self.base_dir, menu_layout)
+        
+
+    def update_icon(self):
         if self.version == '':
             self.listWidget.setIcon(QIcon())
         elif parse_version(self.version) < parse_version(self.latest_version):
@@ -161,9 +162,9 @@ class PluginManager(QMainWindow):
         
         if not hasattr(PluginManager, 'gui'):
             PluginManager.gui = PluginManager()
+        PluginManager.gui.showPlugins()
         g.m.statusBar().showMessage('Loading plugin information...')
         PluginManager.load_online_plugins()
-        g.m.statusBar().showMessage('%d plugins successfully loaded' % (len(PluginManager.plugins)))
         QMainWindow.show(PluginManager.gui)
         if not os.access(plugin_path(), os.W_OK):
             g.alert("Plugin folder write permission denied. Restart Flika as administrator to enable plugin installation.")
@@ -173,12 +174,13 @@ class PluginManager(QMainWindow):
         if PluginManager.loadThread is not None and PluginManager.loadThread.is_alive():
             return
         def loadThread():
+            PluginManager.gui.statusBar.showMessage('Loading plugin information...')
             for p, url in plugin_list.items():
-                if p in PluginManager.plugins:
-                    PluginManager.plugins[p].link_info_url(url)
-                else:
-                    PluginManager.plugins[p] = Plugin(p, url)
+                plug = PluginManager.plugins[p]
+                plug.info_url = url
+                plug.update_info()
                 PluginManager.gui.sigPluginLoaded.emit(p)
+            PluginManager.gui.statusBar.showMessage('Plugin information loaded successfully')
 
         PluginManager.loadThread = threading.Thread(None, loadThread)
         PluginManager.loadThread.start()
@@ -211,7 +213,9 @@ class PluginManager(QMainWindow):
         self.searchButton.clicked.connect(lambda f: self.showPlugins(search_str=str(self.searchBox.text())))
         
         self.refreshButton.pressed.connect(self.load_online_plugins)
-        self.sigPluginLoaded.connect(lambda a: self.showPlugins())
+        def updatePlugin(a):
+            self.showPlugins()
+        self.sigPluginLoaded.connect(updatePlugin)
 
         self.setWindowTitle('Plugin Manager')
         self.showPlugins()
@@ -281,7 +285,14 @@ class PluginManager(QMainWindow):
             names = sorted(d.keys(), key=lambda a: d[a])
             print(d)
         for name in names:
-            self.pluginList.addItem(PluginManager.plugins[name].listWidget)
+            plug = PluginManager.plugins[name]
+            if plug.version == '':
+                plug.listWidget.setIcon(QIcon())
+            elif parse_version(plug.version) < parse_version(plug.latest_version):
+                plug.listWidget.setIcon(QIcon(image_path('exclamation.png')))
+            else:
+                plug.listWidget.setIcon(QIcon(image_path('check.png')))
+            self.pluginList.addItem(plug.listWidget)
 
     @staticmethod
     def removePlugin(plugin):
@@ -300,9 +311,14 @@ class PluginManager(QMainWindow):
 
     @staticmethod
     def downloadPlugin(plugin):
+        if isinstance(plugin, str):
+            if plugin in PluginManager.plugins:
+                plugin = PluginManager.plugins[plugin]
+            else:
+
+                return
         if plugin.url == None:
             return
-        
         failed = []
         dists = [a.project_name for a in pip.get_installed_distributions()]
         PluginManager.gui.statusBar.showMessage("Installing dependencies for %s" % plugin.name)
@@ -355,13 +371,14 @@ class PluginManager(QMainWindow):
         PluginManager.gui.statusBar.showMessage('Extracting  %s' % plugin.name)
         plugin.version = plugin.latest_version
         plugin.listWidget.setIcon(QIcon(image_path("check.png")))
-
+        plugin.menu = make_plugin_menu(plugin)
         
         PluginManager.gui.statusBar.showMessage('Successfully installed %s and it\'s plugins' % plugin.name)
         PluginManager.gui.pluginSelected(plugin.listWidget)
         plugin.installed = True
 
 def load_local_plugins():
+    PluginManager.plugins = {n: Plugin(n) for n in plugin_list}
     for plugin in PluginManager.local_plugin_paths():
         try:
             text = open(os.path.join(plugin, 'info.xml'), 'r').read()
@@ -369,4 +386,4 @@ def load_local_plugins():
             p.installed = True
             PluginManager.plugins[p.name] = p
         except Exception as e:
-            g.alert(title="Menu Creation Error", message="Could not load %s. %s" % (plugin, traceback.format_exc()))
+            g.alert("Could not load %s. %s" % (plugin, traceback.format_exc()), title="Menu Creation Error")
