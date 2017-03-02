@@ -59,13 +59,6 @@ def str2func(plugin_name, file_location, function):
             g.alert("Failed to import %s from module %s. Check name and try again." % (levels[i], module)) # only alerts on python 3?
     return module
 
-def get_lambda(mod_name, path, func):
-    def get_func():
-        fun = lambda : str2func(mod_name, path, func)
-        if fun:
-            return fun()
-    return get_func
-
 def build_submenu(module_name, parent_menu, layout_dict):
     for key, value in layout_dict.items():
         if type(value) != list:
@@ -76,7 +69,8 @@ def build_submenu(module_name, parent_menu, layout_dict):
                 build_plugin_submenu(module_name, menu, v)
         elif key == 'action':
             for od in value:
-                action = QAction(od['#text'], parent_menu, triggered = get_lambda(module_name, od['@location'], od['@function']))
+                method = str2func(module_name, od['@location'], od['@function'])
+                action = QAction(od['#text'], parent_menu, triggered = method)
                 parent_menu.addAction(action)
 
 def make_plugin_menu(plugin):
