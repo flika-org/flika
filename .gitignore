@@ -122,3 +122,5 @@ fabric.properties
 
 .idea/
 /.idea
+
+flika.egg-info

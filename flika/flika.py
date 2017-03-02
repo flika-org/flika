@@ -86,7 +86,6 @@ def load_files(files):
         open_file(f)
 
 def start_flika(files=[]):
-    print('Launching Flika')
     """Run a flika session and exit
 
     Parameters

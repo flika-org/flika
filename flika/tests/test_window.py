@@ -268,6 +268,10 @@ class ROI_Rect_Line(ROITest):
 			return
 		kymo = self.roi.kymograph
 		assert kymo.image.shape[1] == self.win1.image.shape[0]
+		
+		self.roi.setWidth(3)
+		assert kymo.image.shape[1] == self.win1.image.shape[0]
+
 		kymo.close()
 		self.win1.setAsCurrentWindow()
 
