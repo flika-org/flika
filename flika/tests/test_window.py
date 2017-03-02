@@ -11,11 +11,7 @@ from flika.roi import makeROI
 import pyqtgraph as pg
 from qtpy import QtGui
 im = np.random.random([120, 90, 90])
-fa = None
-
-def setup_method():
-	global fa
-	fa = FlikaApplication()
+fa = FlikaApplication()
 	
 class TestWindow():
 	def setup_method(self, obj):
