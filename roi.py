@@ -593,8 +593,8 @@ class ROI_rectangle(ROI_Wrapper, pg.ROI):
         r = self.boundingRect()
         p1 = r.topLeft() + self.state['pos']
         p2 = r.bottomRight() + self.state['pos']
-        x1, y1 = p1.x(), p1.y()
-        x2, y2 = p2.x(), p2.y()
+        x1, y1 = int(p1.x()), int(p1.y())
+        x2, y2 = int(p2.x()), int(p2.y())
 
         tif=self.window.image
         if len(tif.shape)==3:
