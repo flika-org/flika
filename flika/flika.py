@@ -27,8 +27,8 @@ from process.measure import measure
 from process.file_ import *
 from roi import load_roi, makeROI
 from process.overlay import time_stamp,background, scale_bar
-from script_editor.terminal_widget import ScriptEditor
-from plugins.plugin_manager import PluginManager
+from app.terminal_widget import ScriptEditor
+from app.plugin_manager import PluginManager
 try:
     os.chdir(os.path.split(os.path.realpath(__file__))[0])
 except NameError:
@@ -40,7 +40,7 @@ def initializeMainGui():
     if g.mainGuiInitialized:
         return 0 
     g.app = QtWidgets.QApplication(sys.argv)
-    g.init('gui/main.ui')
+    g.init('app/main.ui')
     desktop = QtWidgets.QApplication.desktop()
     width_px=int(desktop.logicalDpiX()*3.4)
     height_px=int(desktop.logicalDpiY()*.9)

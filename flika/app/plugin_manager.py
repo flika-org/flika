@@ -14,7 +14,7 @@ import zipfile
 import time, shutil
 import os.path
 import traceback
-from plugins.plugin_data import plugin_list
+from app.plugin_data import plugin_list
 import pip
 from xmltodict import parse
 sep = os.path.sep
@@ -150,7 +150,7 @@ class PluginManager(QMainWindow):
 
     def __init__(self):
         super(QMainWindow,self).__init__()
-        uic.loadUi("gui/plugin_manager.ui", self)
+        uic.loadUi("app/plugin_manager.ui", self)
         self.setWindowIcon(QIcon('images/favicon.png'))
         self.dl_link = None
         self.docs_link = None

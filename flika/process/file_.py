@@ -22,7 +22,7 @@ import json
 import re
 import nd2reader
 import datetime
-from script_editor.terminal_widget import ScriptEditor
+from app.terminal_widget import ScriptEditor
 from process.BaseProcess import BaseDialog
 import json
 
