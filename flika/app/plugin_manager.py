@@ -140,7 +140,7 @@ class Plugin():
 class PluginManager(QtWidgets.QMainWindow):
     plugins = {}
     loadThread = None
-    sigPluginLoaded = Signal(str)
+    sigPluginLoaded = QtCore.Signal(str)
     '''
     PluginManager handles installed plugins and the online plugin database
     | show() : initializes a gui as a static variable of the class, if necessary, and displays it. Call in place of constructor

@@ -167,7 +167,7 @@ class ColorSelector(QtWidgets.QWidget):
 
 
 class SliderLabel(QtWidgets.QWidget):
-    changeSignal=Signal(int)
+    changeSignal=QtCore.Signal(int)
     def __init__(self,decimals=0): #decimals specifies the resolution of the slider.  0 means only integers,  1 means the tens place, etc.
         QtWidgets.QWidget.__init__(self)
         self.slider=QtWidgets.QSlider(QtCore.Qt.Horizontal)
