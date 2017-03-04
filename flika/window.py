@@ -4,9 +4,7 @@ Created on Thu Jun 26 16:10:00 2014
 
 @author: Kyle Ellefsen
 """
-from qtpy.QtCore import Signal, QEvent, QRect, Qt
-from qtpy.QtGui import QIcon
-from qtpy.QtWidgets import QWidget, QPushButton, QAction, QVBoxLayout, qApp, QApplication
+from qtpy import QtCore, QtGui, QtWidgets
 import pyqtgraph as pg
 pg.setConfigOptions(useWeave=False)
 import os, time
@@ -15,15 +13,15 @@ from tracefig import TraceFig
 import global_vars as g
 from roi import *
 
-class Window(QWidget):
-    closeSignal = Signal()
-    keyPressSignal = Signal(QEvent)
-    sigTimeChanged = Signal(int)
-    gainedFocusSignal = Signal()
-    lostFocusSignal = Signal()
+class Window(QtWidgets.QWidget):
+    closeSignal = QtCore.Signal()
+    keyPressSignal = QtCore.Signal(QtCore.QEvent)
+    sigTimeChanged = QtCore.Signal(int)
+    gainedFocusSignal = QtCore.Signal()
+    lostFocusSignal = QtCore.Signal()
 
     def __init__(self, tif, name='Flika', filename='', commands=[], metadata=dict()):
-        QWidget.__init__(self)
+        QtWidgets.QWidget.__init__(self)
         self.commands = commands #commands is a list of the commands used to create this window, starting with loading the file
         self.metadata = metadata
         if 'is_rgb' not in metadata.keys():
@@ -45,20 +43,20 @@ class Window(QWidget):
         self.filename=filename
         self.setAsCurrentWindow()
         self.setWindowTitle(name)
-        self.setWindowIcon(QIcon('images/favicon.png'))
+        self.setWindowIcon(QtGui.QIcon('images/favicon.png'))
         self.imageview=pg.ImageView(self)
         self.imageview.setMouseTracking(True)
         self.imageview.installEventFilter(self)
         self.imageview.ui.menuBtn.setParent(None)
         self.imageview.ui.roiBtn.setParent(None) # gets rid of 'roi' button that comes with ImageView
-        self.imageview.ui.normLUTbtn = QPushButton(self.imageview.ui.layoutWidget)
+        self.imageview.ui.normLUTbtn = QtWidgets.QPushButton(self.imageview.ui.layoutWidget)
         self.imageview.ui.normLUTbtn.setObjectName("LUT norm")
         self.imageview.ui.normLUTbtn.setText("LUT norm")
         self.imageview.ui.gridLayout.addWidget(self.imageview.ui.normLUTbtn, 1, 1, 1, 1)
 
         self.imageview.ui.normLUTbtn.pressed.connect(self.normLUT)
         rp = self.imageview.ui.roiPlot.getPlotItem()
-        self.linkMenu = QMenu("Link frame")
+        self.linkMenu = QtWidgets.QMenu("Link frame")
         rp.ctrlMenu = self.linkMenu
         self.linkMenu.aboutToShow.connect(self.make_link_menu)
 
@@ -98,10 +96,10 @@ class Window(QWidget):
         self.imageview.timeLine.sigPositionChanged.connect(self.updateindex)
         self.currentIndex=self.imageview.currentIndex
         self.normLUT()
-        self.layout = QVBoxLayout(self)
+        self.layout = QtWidgets.QVBoxLayout(self)
         self.layout.addWidget(self.imageview)
         self.layout.setContentsMargins(0,0,0,0)
-        self.setGeometry(QRect(x, y, width, height))
+        self.setGeometry(QtCore.QRect(x, y, width, height))
         self.imageview.scene.sigMouseMoved.connect(self.mouseMoved)
         self.imageview.view.mouseDragEvent=self.mouseDragEvent
         self.imageview.view.mouseClickEvent=self.mouseClickEvent
@@ -110,15 +108,15 @@ class Window(QWidget):
         self.currentROIs={}
         self.creatingROI=False
         pointSize=g.settings['point_size']
-        pointColor = QColor(g.settings['point_color'])
+        pointColor = QtGui.QColor(g.settings['point_color'])
         self.scatterPlot=pg.ScatterPlotItem(size=pointSize, pen=pg.mkPen([0,0,0,255]), brush=pg.mkBrush(*pointColor.getRgb()))  #this is the plot that all the red points will be drawn on
         self.scatterPoints=[[] for _ in np.arange(mt)]
         self.scatterPlot.sigClicked.connect(self.clickedScatter)
         self.imageview.addItem(self.scatterPlot)
-        self.pasteAct = QAction("&Paste", self, triggered=self.paste)
+        self.pasteAct = QtWidgets.QAction("&Paste", self, triggered=self.paste)
         if g.settings['show_windows']:
             self.show()
-            qApp.processEvents()
+            QtWidgets.qApp.processEvents()
         self.sigTimeChanged.connect(self.showFrame)
         if self not in g.m.windows:
             g.m.windows.append(self)
@@ -171,7 +169,7 @@ class Window(QWidget):
         for win in g.m.windows:
             if win == self or not win.isVisible():
                 continue
-            win_action = QAction("%s" % win.name, self.linkMenu, checkable=True)
+            win_action = QtWidgets.QAction("%s" % win.name, self.linkMenu, checkable=True)
             win_action.setChecked(win in self.linkedWindows)
             win_action.toggled.connect(self.link_toggled(win))
             self.linkMenu.addAction(win_action)
@@ -345,14 +343,14 @@ class Window(QWidget):
             if mm=='point':
                 t=self.currentIndex
                 pointSize=g.m.settings['point_size']
-                pointColor = QColor(g.m.settings['point_color'])
+                pointColor = QtGui.QColor(g.m.settings['point_color'])
                 position=[self.x,self.y, pointColor, pointSize]
                 self.scatterPoints[t].append(position)
                 self.scatterPlot.addPoints(pos=[[self.x,self.y]], size=pointSize, brush=pg.mkBrush(*pointColor.getRgb()))
                 #  self.imageview.view.__class__.mouseClickEvent(self.imageview.view, ev)
                         
             elif g.m.clipboard is not None:
-                self.menu = QMenu(self)
+                self.menu = QtWidgets.QMenu(self)
                 self.menu.addAction(self.pasteAct)
                 self.menu.exec_(ev.screenPos().toQPoint())
         elif self.creatingROI:
@@ -362,18 +360,18 @@ class Window(QWidget):
                         
     
     def keyPressEvent(self,ev):
-        if ev.key() == Qt.Key_Delete:
+        if ev.key() == QtCore.Qt.Key_Delete:
             if self.currentROI is not None:
                 self.currentROI.delete()
         self.keyPressSignal.emit(ev)
         
     def mouseMoved(self,point):
         point=self.imageview.getImageItem().mapFromScene(point)
-        self.point=point
-        self.x=point.x()
-        self.y=point.y()
+        self.point = point
+        self.x = point.x()
+        self.y = point.y()
         image=self.imageview.getImageItem().image
-        if self.x<0 or self.y<0 or self.x>=image.shape[0] or self.y>=image.shape[1]:
+        if self.x < 0 or self.y < 0 or self.x >= image.shape[0] or self.y>=image.shape[1]:
             pass# if we are outside the image
         else:
             z=self.imageview.currentIndex
@@ -382,29 +380,29 @@ class Window(QWidget):
         
 
     def mouseDragEvent(self, ev):
-        modifiers = QApplication.keyboardModifiers()
-        if modifiers == Qt.ShiftModifier:
+        modifiers = QtWidgets.QApplication.keyboardModifiers()
+        if modifiers == QtCore.Qt.ShiftModifier:
             pass #This is how I detect that the shift key is held down.
-        if ev.button() == Qt.LeftButton:
+        if ev.button() == QtCore.Qt.LeftButton:
             ev.accept()
             difference=self.imageview.getImageItem().mapFromScene(ev.lastScenePos())-self.imageview.getImageItem().mapFromScene(ev.scenePos())
             self.imageview.view.translateBy(difference)
-        if ev.button() == Qt.RightButton:
+        if ev.button() == QtCore.Qt.RightButton:
             ev.accept()
             mm=g.m.settings['mousemode']
             if mm in ('freehand', 'line', 'rectangle', 'rect_line'):
                 if ev.isStart():
-                    self.ev=ev
-                    pt=self.imageview.getImageItem().mapFromScene(ev.buttonDownScenePos())
-                    self.x=pt.x() # this sets x and y to the button down position, not the current position
-                    self.y=pt.y()
-                    self.creatingROI=True
-                    self.currentROI=ROI_Drawing(self,self.x,self.y, mm)
+                    self.ev = ev
+                    pt = self.imageview.getImageItem().mapFromScene(ev.buttonDownScenePos())
+                    self.x = pt.x() # this sets x and y to the button down position, not the current position
+                    self.y = pt.y()
+                    self.creatingROI = True
+                    self.currentROI = ROI_Drawing(self,self.x,self.y, mm)
                 if ev.isFinish():
                     if self.creatingROI:   
-                        if ev._buttons | Qt.RightButton != ev._buttons:
+                        if ev._buttons | QtCore.Qt.RightButton != ev._buttons:
                             self.currentROI = self.currentROI.drawFinished()
-                            self.creatingROI=False
+                            self.creatingROI = False
                         else:
                             self.currentROI.cancel()
                             self.creatingROI = False
@@ -414,22 +412,22 @@ class Window(QWidget):
                 else: # if we are in the middle of the drag between starting and finishing
                     #if inImage:
                     if self.creatingROI:
-                        self.currentROI.extend(self.x,self.y)
+                        self.currentROI.extend(self.x, self.y)
                     else:
-                        difference=self.imageview.getImageItem().mapFromScene(ev.scenePos())-self.imageview.getImageItem().mapFromScene(ev.lastScenePos())
+                        difference = self.imageview.getImageItem().mapFromScene(ev.scenePos()) - self.imageview.getImageItem().mapFromScene(ev.lastScenePos())
                         if difference.isNull():
                             return
                         for r in self.currentROIs:
                             r.translate(difference,self.imageview.getImageItem().mapFromScene(ev.lastScenePos()))
     def updateTimeStampLabel(self,frame):
-        label=self.timeStampLabel
-        if self.framerate==0:
+        label = self.timeStampLabel
+        if self.framerate == 0:
             label.setHtml("<span style='font-size: 12pt;color:white;background-color:None;'>Frame rate is 0 Hz</span>" )
             return False
-        ttime=frame/self.framerate
+        ttime = frame/self.framerate
         
         if ttime<1:
-            ttime=ttime*1000
+            ttime = ttime*1000
             label.setHtml("<span style='font-size: 12pt;color:white;background-color:None;'>{:.0f} ms</span>".format(ttime))
         elif ttime<60:
             label.setHtml("<span style='font-size: 12pt;color:white;background-color:None;'>{:.3f} s</span>".format(ttime))
@@ -438,8 +436,8 @@ class Window(QWidget):
             seconds=ttime % 60
             label.setHtml("<span style='font-size: 12pt;color:white;background-color:None;'>{}m {:.3f} s</span>".format(minutes,seconds))
         else:
-            hours=int(np.floor(ttime/3600))
-            mminutes=ttime-hours*3600
-            minutes=int(np.floor(mminutes/60))
-            seconds=mminutes-minutes*60
+            hours = int(np.floor(ttime/3600))
+            mminutes = ttime-hours*3600
+            minutes = int(np.floor(mminutes/60))
+            seconds = mminutes-minutes*60
             label.setHtml("<span style='font-size: 12pt;color:white;background-color:None;'>{}h {}m {:.3f} s</span>".format(hours,minutes,seconds))

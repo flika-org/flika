@@ -1,6 +1,4 @@
-from qtpy.QtWidgets import QAction, QMenu, QColorDialog, QInputDialog, QFileDialog
-from qtpy.QtGui import QColor, QPen, QPainterPath
-from qtpy.QtCore import Signal, QPoint, QPointF, QRect, QRectF
+from qtpy import QtCore, QtGui, QtWidgets
 import global_vars as g
 import pyqtgraph as pg
 from skimage.draw import polygon, line
@@ -13,8 +11,8 @@ import process
 
 SHOW_MASK = False
 
-ROI_COLOR = QColor(255, 255, 0)
-HOVER_COLOR = QColor(255, 0, 0)
+ROI_COLOR = QtGui.QColor(255, 255, 0)
+HOVER_COLOR = QtGui.QColor(255, 0, 0)
 
 class ROI_Drawing(pg.GraphicsObject):
     def __init__(self, window, x, y, type):
@@ -65,7 +63,7 @@ class ROI_Drawing(pg.GraphicsObject):
         self.update()
 
     def paint(self, p, *args):
-        p.setPen(QPen(ROI_COLOR))
+        p.setPen(QtGui.QPen(ROI_COLOR))
         if self.type == 'freehand':
             p.drawPolyline(*self.pts)
         elif self.type == 'rectangle':
@@ -94,14 +92,14 @@ class ROI_Drawing(pg.GraphicsObject):
         return pg.GraphicsObject.contains(self, *args)
 
     def boundingRect(self):
-        return QRectF(self.state['pos'].x(), self.state['pos'].y(), self.state['size'].x(), self.state['size'].y())
+        return QtCore.QRectF(self.state['pos'].x(), self.state['pos'].y(), self.state['size'].x(), self.state['size'].y())
 
 
 class ROI_Wrapper():
     init_args = {'removable': True, 'translateSnap': True, 'pen':ROI_COLOR}
     def __init__(self):
         self.getMenu()
-        self.colorDialog=QColorDialog()
+        self.colorDialog=QtWidgets.QColorDialog()
         self.colorDialog.colorSelected.connect(self.colorSelected)
         self.window.closeSignal.connect(self.delete)
         self.window.currentROI = self
@@ -110,7 +108,7 @@ class ROI_Wrapper():
         self.linkedROIs = set()
         self.sigRegionChanged.connect(self.onRegionChange)
         self.sigRegionChangeFinished.connect(self.finish_translate)
-        if isinstance(self.pen, QColor):
+        if isinstance(self.pen, QtGui.QColor):
             self.color = self.pen
         else:
             #self.pen.setWidth(2)
@@ -162,16 +160,16 @@ class ROI_Wrapper():
         
     def colorSelected(self, color):
         if color.isValid():
-            self.setPen(QColor(color.name()))
+            self.setPen(QtGui.QColor(color.name()))
             self.translate_done.emit()
         self.color = color
 
     def save_gui(self):
         filename=g.settings['filename'].split('.')[0]
         if filename is not None and os.path.isfile(filename):
-            filename= QFileDialog.getSaveFileName(g.m, 'Save ROI', filename, "Text Files (*.txt);;All Files (*.*)")
+            filename= QtWidgets.QFileDialog.getSaveFileName(g.m, 'Save ROI', filename, "Text Files (*.txt);;All Files (*.*)")
         else:
-            filename= QFileDialog.getSaveFileName(g.m, 'Save ROI', '', "Text Files (*.txt);;All Files (*.*)")
+            filename= QtWidgets.QFileDialog.getSaveFileName(g.m, 'Save ROI', '', "Text Files (*.txt);;All Files (*.*)")
         filename=str(filename) if not isinstance(filename, tuple) else str(filename[0])
         if filename != '':
             reprs = [roi.str() for roi in self.window.rois]
@@ -203,16 +201,16 @@ class ROI_Wrapper():
     def raiseContextMenu(self, ev):
         pos = ev.screenPos()
         self.plotAct.setText("&Plot" if self.traceWindow == None else "&Unplot")
-        self.menu.popup(QPoint(pos.x(), pos.y()))
+        self.menu.popup(QtCore.QPoint(pos.x(), pos.y()))
     
     def getMenu(self):
-        self.plotAct = QAction("&Plot", self, triggered=lambda : self.plot() if self.plotAct.text() == "&Plot" else self.unplot())
-        self.plotAllAct = QAction('&Plot All', self, triggered=lambda : [roi.plot() for roi in self.window.rois])
-        self.colorAct = QAction("&Change Color",self,triggered=self.changeColor)
-        self.copyAct = QAction("&Copy", self, triggered=self.copy)
-        self.remAct = QAction("&Delete", self, triggered=self.delete)
-        self.saveAct = QAction("&Save ROIs",self,triggered=self.save_gui)        
-        self.menu = QMenu("ROI Menu")
+        self.plotAct = QtWidgets.QAction("&Plot", self, triggered=lambda : self.plot() if self.plotAct.text() == "&Plot" else self.unplot())
+        self.plotAllAct = QtWidgets.QAction('&Plot All', self, triggered=lambda : [roi.plot() for roi in self.window.rois])
+        self.colorAct = QtWidgets.QAction("&Change Color",self,triggered=self.changeColor)
+        self.copyAct = QtWidgets.QAction("&Copy", self, triggered=self.copy)
+        self.remAct = QtWidgets.QAction("&Delete", self, triggered=self.delete)
+        self.saveAct = QtWidgets.QAction("&Save ROIs",self,triggered=self.save_gui)
+        self.menu = QtWidgets.QMenu("ROI Menu")
         
         self.menu.addAction(self.plotAct)
         self.menu.addAction(self.plotAllAct)
@@ -274,15 +272,15 @@ class ROI_Wrapper():
 
 class ROI_line(ROI_Wrapper, pg.LineSegmentROI):
     kind = 'line'
-    plotSignal = Signal()
-    translated = Signal()
-    translate_done = Signal()
+    plotSignal = QtCore.Signal()
+    translated = QtCore.Signal()
+    translate_done = QtCore.Signal()
     def __init__(self, window, pos, *args, **kargs):
         self.init_args.update(kargs)
         self.window = window
         self.pts = pos
         pg.LineSegmentROI.__init__(self, positions=pos, *args, **self.init_args)
-        self.kymographAct = QAction("&Kymograph", self, triggered=self.update_kymograph)
+        self.kymographAct = QtWidgets.QAction("&Kymograph", self, triggered=self.update_kymograph)
         self.kymograph = None
         ROI_Wrapper.__init__(self)
 
@@ -345,9 +343,9 @@ class ROI_line(ROI_Wrapper, pg.LineSegmentROI):
 
 class ROI_rect_line(ROI_Wrapper, pg.MultiRectROI):
     kind = 'rect_line'
-    plotSignal = Signal()
-    translated = Signal()
-    translate_done = Signal()
+    plotSignal = QtCore.Signal()
+    translated = QtCore.Signal()
+    translate_done = QtCore.Signal()
     def __init__(self, window, pts, width=1, *args, **kargs):
         self.init_args.update(kargs)
         self.window = window
@@ -355,7 +353,7 @@ class ROI_rect_line(ROI_Wrapper, pg.MultiRectROI):
         self.pts = pts
         pg.MultiRectROI.__init__(self, pts, width, *args, **self.init_args)
         self.blockSignals(True)
-        self.kymographAct = QAction("&Kymograph", self, triggered=self.update_kymograph)
+        self.kymographAct = QtWidgets.QAction("&Kymograph", self, triggered=self.update_kymograph)
         ROI_Wrapper.__init__(self)
         self.maskProxy = pg.SignalProxy(self.sigRegionChanged, rateLimit=5, slot=self.onRegionChange) #This will only update 3 Hz
         self.kymograph = None
@@ -388,7 +386,7 @@ class ROI_rect_line(ROI_Wrapper, pg.MultiRectROI):
     def hoverEvent(self, l, ev):
         self.currentLine = l
         if ev.enter:
-            self.setCurrentPen(QPen(HOVER_COLOR))
+            self.setCurrentPen(QtGui.QPen(HOVER_COLOR))
         elif ev.exit:
             self.setCurrentPen(l.pen)
 
@@ -403,8 +401,8 @@ class ROI_rect_line(ROI_Wrapper, pg.MultiRectROI):
 
     def getMenu(self):
         ROI_Wrapper.getMenu(self)
-        removeLinkAction = QAction('Remove Link', self, triggered=self.removeLink)
-        setWidthAction = QAction("Set Width", self, triggered=lambda: self.setWidth())
+        removeLinkAction = QtWidgets.QAction('Remove Link', self, triggered=self.removeLink)
+        setWidthAction = QtWidgets.QAction("Set Width", self, triggered=lambda: self.setWidth())
         self.menu.addAction(removeLinkAction)
         self.menu.addAction(setWidthAction)
         self.menu.addAction(self.kymographAct)
@@ -412,7 +410,7 @@ class ROI_rect_line(ROI_Wrapper, pg.MultiRectROI):
     def setWidth(self, newWidth=None):
         s = True
         if newWidth == None:
-            newWidth, s = QInputDialog.getInt(None, "Enter a width value", 'Float Value', value = self.width)
+            newWidth, s = QtWidgets.QInputDialog.getInt(None, "Enter a width value", 'Float Value', value = self.width)
         if not s:
             return
         self.lines[0].scale([1.0, newWidth/self.width], center=[0.5,0.5])
@@ -456,7 +454,7 @@ class ROI_rect_line(ROI_Wrapper, pg.MultiRectROI):
         l.hoverEvent = lambda ev: self.hoverEvent(l, ev)
         def boundingRect():
             w = max(8, self.width)
-            return QRectF(0, -w / 2, l.state['size'][0], w)
+            return QtCore.QRectF(0, -w / 2, l.state['size'][0], w)
         def contains(pos):
             return l.boundingRect().contains(pos)
         l.boundingRect = boundingRect
@@ -519,7 +517,7 @@ class ROI_rect_line(ROI_Wrapper, pg.MultiRectROI):
         from window import Window
         if self.width == 1:
             w, h = self.window.imageDimensions()
-            r = QRect(0, 0, w, h)
+            r = QtCore.QRect(0, 0, w, h)
             xx, yy = np.transpose([p for p in self.mask if r.contains(p[0], p[1])])
             mn = tif[:, xx, yy].T
         else:
@@ -559,9 +557,9 @@ class ROI_rect_line(ROI_Wrapper, pg.MultiRectROI):
 
 class ROI_rectangle(ROI_Wrapper, pg.ROI):
     kind = 'rectangle'
-    plotSignal = Signal()
-    translated = Signal()
-    translate_done = Signal()
+    plotSignal = QtCore.Signal()
+    translated = QtCore.Signal()
+    translate_done = QtCore.Signal()
     def __init__(self, window, pos, size=(1, 1), resizable=True, *args, **kargs):
         self.init_args.update(kargs)
         self.window = window
@@ -571,7 +569,7 @@ class ROI_rectangle(ROI_Wrapper, pg.ROI):
             self.addScaleHandle([1, 0], [0, 1])
             self.addScaleHandle([0, 0], [1, 1])
             self.addScaleHandle([1, 1], [0, 0])
-        self.cropAction = QAction('&Crop', self, triggered=self.crop)
+        self.cropAction = QtWidgets.QAction('&Crop', self, triggered=self.crop)
         ROI_Wrapper.__init__(self)
 
     def draw_from_points(self, pts):
@@ -660,23 +658,23 @@ class ROI_rectangle(ROI_Wrapper, pg.ROI):
             
     def contains(self, *pos, **kwargs):  # pyqtgraph ROI uses this function for mouse interaction. Set corrected=False to use
         corrected = kwargs.pop('corrected',True)
-        if isinstance(pos[0], QPointF):
+        if isinstance(pos[0], QtCore.QPointF):
             pos = pos[0]
         elif len(pos) == 2:
-            pos = QPointF(pos[0], pos[1])
+            pos = QtCore.QPointF(pos[0], pos[1])
         if not corrected:  # 'corrected' means relative to the top left corner of the ROI. 'Not corrected' means relative to the top left corner of the image.
-            top_left = QPointF(self.pos())
-            bottom_right = QPointF(*np.ptp(self.pts, 0)+np.array(self.pos()))
-            return QRectF(top_left, bottom_right).contains(pos)
+            top_left = QtCore.QPointF(self.pos())
+            bottom_right = QtCore.QPointF(*np.ptp(self.pts, 0)+np.array(self.pos()))
+            return QtCore.QRectF(top_left, bottom_right).contains(pos)
         else:
             return pg.ROI.contains(self, pos)
 
 
 class ROI(ROI_Wrapper, pg.ROI):
     kind = 'freehand'
-    plotSignal = Signal()
-    translated = Signal()
-    translate_done = Signal()
+    plotSignal = QtCore.Signal()
+    translated = QtCore.Signal()
+    translate_done = QtCore.Signal()
     def __init__(self, window, pts, *args, **kargs):
         self.init_args.update(kargs)
         self.window = window
@@ -699,7 +697,7 @@ class ROI(ROI_Wrapper, pg.ROI):
     def contains(self, *pos):
         if len(pos) == 2:
             pos = [pg.Point(*pos)]
-        p = QPainterPath()
+        p = QtGui.QPainterPath()
 
         p.moveTo(self.pts[0])
         for i in range(len(self.pts)):

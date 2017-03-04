@@ -8,9 +8,7 @@ import os.path
 import global_vars as g
 import numpy as np
 import window
-from qtpy.QtGui import QIcon
-from qtpy.QtWidgets import *
-from qtpy.QtCore import Signal, Slot, QUrl, Qt
+from qtpy import QtCore, QtGui, QtWidgets
 import pyqtgraph as pg
 import sys
 import inspect
@@ -26,18 +24,18 @@ class MissingWindowError(Exception):
         return repr(self.value)
 
 
-class WindowSelector(QWidget):
+class WindowSelector(QtWidgets.QWidget):
     """
     This widget is a button with a label.  Once you click the button, the widget waits for you to click a Window object.  Once you do, it sets self.window to be the window, and it sets the label to be the widget name.
     """
-    valueChanged=Signal()
+    valueChanged=QtCore.Signal()
     def __init__(self):
-        QWidget.__init__(self)
-        self.button=QPushButton('Select Window')
+        QtWidgets.QWidget.__init__(self)
+        self.button = QtWidgets.QPushButton('Select Window')
         self.button.setCheckable(True)
-        self.label=QLabel('None')
-        self.window=None
-        self.layout=QHBoxLayout()
+        self.label = QtWidgets.QLabel('None')
+        self.window = None
+        self.layout = QtWidgets.QHBoxLayout()
         self.layout.addWidget(self.button)
         self.layout.addWidget(self.label)
         self.setLayout(self.layout)
@@ -68,17 +66,17 @@ class WindowSelector(QWidget):
         self.setWindow(window)
 
 
-class FileSelector(QWidget):
+class FileSelector(QtWidgets.QWidget):
     """
     This widget is a button with a label.  Once you click the button, the widget waits for you to select a file to save.  Once you do, it sets self.filename and it sets the label.
     """
-    valueChanged=Signal()
+    valueChanged=QtCore.Signal()
     def __init__(self,filetypes='*.*'):
-        QWidget.__init__(self)
-        self.button=QPushButton('Select Filename')
-        self.label=QLabel('None')
+        QtWidgets.QWidget.__init__(self)
+        self.button=QtWidgets.QPushButton('Select Filename')
+        self.label=QtWidgets.QLabel('None')
         self.window=None
-        self.layout=QHBoxLayout()
+        self.layout=QtWidgets.QHBoxLayout()
         self.layout.addWidget(self.button)
         self.layout.addWidget(self.label)
         self.setLayout(self.layout)
@@ -94,9 +92,9 @@ class FileSelector(QWidget):
             directory=''
         prompt='testing fileSelector'
         if filename is not None and directory != '':
-            filename= QFileDialog.getSaveFileName(self, prompt, directory, self.filetypes)
+            filename= QtWidgets.QFileDialog.getSaveFileName(self, prompt, directory, self.filetypes)
         else:
-            filename= QFileDialog.getSaveFileName(self, prompt, self.filetypes)
+            filename= QtWidgets.QFileDialog.getSaveFileName(self, prompt, self.filetypes)
         filename=str(filename)        
         self.filename=str(filename)
         self.label.setText('...'+os.path.split(self.filename)[-1][-20:])
@@ -110,23 +108,23 @@ class FileSelector(QWidget):
         self.label.setText('...' + os.path.split(self.filename)[-1][-20:])
 
 
-class ColorSelector(QWidget):
+class ColorSelector(QtWidgets.QWidget):
     """
     This widget is a button with a label.  Once you click the button, the widget waits for you to select a color.  Once you do, it sets self.color and it sets the label.
     """
-    valueChanged=Signal()
+    valueChanged=QtCore.Signal()
     def __init__(self):
-        QWidget.__init__(self)
-        self.button=QPushButton('Select Color')
-        self.label=QLabel('None')
+        QtWidgets.QWidget.__init__(self)
+        self.button=QtWidgets.QPushButton('Select Color')
+        self.label=QtWidgets.QLabel('None')
         self.window=None
-        self.layout=QHBoxLayout()
+        self.layout=QtWidgets.QHBoxLayout()
         self.layout.addWidget(self.button)
         self.layout.addWidget(self.label)
         self.setLayout(self.layout)
         self.button.clicked.connect(self.buttonclicked)
         self.color=''
-        self.colorDialog=QColorDialog()
+        self.colorDialog=QtWidgets.QColorDialog()
         self.colorDialog.colorSelected.connect(self.colorSelected)
         
     def buttonclicked(self):
@@ -142,18 +140,18 @@ class ColorSelector(QWidget):
             self.valueChanged.emit()
 
 
-class SliderLabel(QWidget):
-    changeSignal=Signal(int)
+class SliderLabel(QtWidgets.QWidget):
+    changeSignal=QtCore.Signal(int)
     def __init__(self,decimals=0): #decimals specifies the resolution of the slider.  0 means only integers,  1 means the tens place, etc.
-        QWidget.__init__(self)
-        self.slider=QSlider(Qt.Horizontal)
+        QtWidgets.QWidget.__init__(self)
+        self.slider=QtWidgets.QSlider(QtCore.Qt.Horizontal)
         self.decimals=decimals
         if self.decimals<=0:
-            self.label=QSpinBox()
+            self.label=QtWidgets.QSpinBox()
         else:
-            self.label=QDoubleSpinBox()
+            self.label=QtWidgets.QDoubleSpinBox()
             self.label.setDecimals(self.decimals)
-        self.layout=QHBoxLayout()
+        self.layout=QtWidgets.QHBoxLayout()
         self.layout.addWidget(self.slider)
         self.layout.addWidget(self.label)
         self.layout.setContentsMargins(0,0,0,0)
@@ -161,7 +159,7 @@ class SliderLabel(QWidget):
         self.slider.valueChanged.connect(lambda val: self.updateLabel(val/10**self.decimals))
         self.label.valueChanged.connect(self.updateSlider)
         self.valueChanged=self.label.valueChanged
-    @Slot(float)
+    @QtCore.Slot(float)
     def updateSlider(self,value):
         self.slider.setValue(int(value*10**self.decimals))
     def updateLabel(self,value):
@@ -191,7 +189,7 @@ class SliderLabelOdd(SliderLabel):
     '''This is a modified SliderLabel class that forces the user to only choose odd numbers.'''
     def __init__(self):
         SliderLabel.__init__(self,decimals=0)
-    @Slot(int)
+    @QtCore.Slot(int)
     def updateSlider(self,value):
         value=int(value)
         if value%2==0: #if value is even
@@ -204,19 +202,19 @@ class SliderLabelOdd(SliderLabel):
         self.label.setValue(value)
 
 
-class CheckBox(QCheckBox):
+class CheckBox(QtWidgets.QCheckBox):
     ''' I overwrote the QCheckBox class so that every graphical element has the method 'setValue'
     '''
     def __init__(self,parent=None):
-        QCheckBox.__init__(self,parent)
+        QtWidgets.QCheckBox.__init__(self,parent)
     def setValue(self,value):
         self.setChecked(value)
 
-class ComboBox(QComboBox):
+class ComboBox(QtWidgets.QComboBox):
     ''' I overwrote the QComboBox class so that every graphical element has the method 'setValue'
     '''
     def __init__(self, parent=None):
-        QComboBox.__init__(self, parent)
+        QtWidgets.QComboBox.__init__(self, parent)
     def setValue(self, value):
         if isinstance(value, str):
             idx = self.findText(value)
@@ -225,25 +223,25 @@ class ComboBox(QComboBox):
         if idx != -1:
             self.setCurrentIndex(idx)
 
-class BaseDialog(QDialog):
-    changeSignal=Signal()
-    closeSignal=Signal()
+class BaseDialog(QtWidgets.QDialog):
+    changeSignal=QtCore.Signal()
+    closeSignal=QtCore.Signal()
     def __init__(self, items, title, docstring, parent=None):
-        QDialog.__init__(self)
+        QtWidgets.QDialog.__init__(self)
         self.parent = parent
         self.setWindowTitle(title)
-        self.setWindowIcon(QIcon('images/favicon.png'))
-        self.formlayout = QFormLayout()
-        self.formlayout.setLabelAlignment(Qt.AlignRight)
+        self.setWindowIcon(QtGui.QIcon('images/favicon.png'))
+        self.formlayout = QtWidgets.QFormLayout()
+        self.formlayout.setLabelAlignment(QtCore.Qt.AlignRight)
         self.items = items
         self.setupitems()
         self.connectToChangeSignal()
-        self.bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        self.bbox = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
         self.bbox.accepted.connect(self.accept)
         self.bbox.rejected.connect(self.reject)
-        self.docstring = QLabel(docstring)
+        self.docstring = QtWidgets.QLabel(docstring)
         self.docstring.setWordWrap(True)
-        self.layout = QVBoxLayout()
+        self.layout = QtWidgets.QVBoxLayout()
         self.layout.addWidget(self.docstring)
         self.layout.addLayout(self.formlayout)
         self.layout.addWidget(self.bbox)
@@ -343,8 +341,8 @@ class BaseProcess(object):
     def gui(self):
         self.ui=BaseDialog(self.items,self.__name__,self.__doc__, self)
         if hasattr(self, '__url__'):
-            self.ui.bbox.addButton(QDialogButtonBox.Help)
-            self.ui.bbox.helpRequested.connect(lambda : QDesktopServices.openUrl(QUrl(self.__url__)))
+            self.ui.bbox.addButton(QtWidgets.QDialogButtonBox.Help)
+            self.ui.bbox.helpRequested.connect(lambda : QtWidgets.QDesktopServices.openUrl(QtCore.QUrl(self.__url__)))
         self.proxy= pg.SignalProxy(self.ui.changeSignal,rateLimit=60, slot=self.preview)
         if g.m.currentWindow is not None:
             self.ui.rejected.connect(g.m.currentWindow.reset)

@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Jun 26 16:18:16 2014
-
+Flika 2017
 @author: Kyle Ellefsen
+@author: Brett Settle
+@license:
 """
+
 from window import Window
 import numpy as np
 import global_vars as g
