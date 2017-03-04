@@ -3,9 +3,7 @@ import os, sys
 
 from flika.utils import load_ui
 from flika.images import image_path
-from qtpy.QtCore import QUrl
-from qtpy.QtWidgets import QListWidgetItem, QMenu, QMainWindow, QMessageBox, QAction, QAction, QApplication
-from qtpy.QtGui import QIcon, QDesktopServices
+from qtpy import QtGui, QtWidgets, QtCore
 import sys, difflib, zipfile, time, shutil, traceback
 from urllib.request import urlopen
 from pkg_resources import parse_version
@@ -75,11 +73,11 @@ def build_submenu(module_name, parent_menu, layout_dict):
                 build_plugin_submenu(module_name, menu, v)
         elif key == 'action':
             for od in value:
-                action = QAction(od['#text'], parent_menu, triggered = get_lambda(module_name, od['@location'], od['@function']))
+                action = QtWidgets.QAction(od['#text'], parent_menu, triggered = get_lambda(module_name, od['@location'], od['@function']))
                 parent_menu.addAction(action)
 
 def make_plugin_menu(plugin_name, base_dir, menu_layout):
-    menu = QMenu(plugin_name)
+    menu = QtWidgets.QMenu(plugin_name)
     build_submenu(base_dir, menu, menu_layout)
     return menu
 
@@ -90,7 +88,7 @@ class Plugin():
         self.documentation = None
         self.version = ''
         self.menu = None
-        self.listWidget = QListWidgetItem(self.name)
+        self.listWidget = QtWidgets.QListWidgetItem(self.name)
         self.installed = False
         self.dependencies = []
         if info_url:
@@ -115,8 +113,8 @@ class Plugin():
             deps = info['dependencies']['dependency']
             p.dependencies = [d['@name'] for d in deps] if isinstance(deps, list) else [deps['@name']]
         p.menu = make_plugin_menu(p.name, p.base_dir, info['menu_layout'])
-        p.listWidget = QListWidgetItem(p.name)
-        p.listWidget.setIcon(QIcon(image_path('check.png')))
+        p.listWidget = QtWidgets.QListWidgetItem(p.name)
+        p.listWidget.setIcon(QtGui.QIcon(image_path('check.png')))
         return p
 
     def link_info_url(self, url):
@@ -139,13 +137,13 @@ class Plugin():
         self.__dict__.update(new_info)
         self.menu = make_plugin_menu(self.name, self.base_dir, menu_layout)
         if self.version == '':
-            self.listWidget.setIcon(QIcon())
+            self.listWidget.setIcon(QtGui.QIcon())
         elif parse_version(self.version) < parse_version(self.latest_version):
-            self.listWidget.setIcon(QIcon(image_path('exclamation.png')))
+            self.listWidget.setIcon(QtGui.QIcon(image_path('exclamation.png')))
         else:
-            self.listWidget.setIcon(QIcon(image_path('check.png')))
+            self.listWidget.setIcon(QtGui.QIcon(image_path('check.png')))
 
-class PluginManager(QMainWindow):
+class PluginManager(QtWidgets.QMainWindow):
     plugins = {}
 
     '''
@@ -162,7 +160,7 @@ class PluginManager(QMainWindow):
         g.m.statusBar().showMessage('Loading plugin information...')
         PluginManager.load_online_plugins()
         g.m.statusBar().showMessage('%d plugins successfully loaded' % (len(PluginManager.plugins)))
-        QMainWindow.show(PluginManager.gui)
+        QtWidgets.QMainWindow.show(PluginManager.gui)
         if not os.access(plugin_path(), os.W_OK):
             g.alert("Plugin folder write permission denied. Restart Flika as administrator to enable plugin installation.")
 
@@ -178,12 +176,12 @@ class PluginManager(QMainWindow):
     @staticmethod
     def close():
         if hasattr(PluginManager, 'gui'):
-            QMainWindow.close(PluginManager.gui)
+            QtWidgets.QMainWindow.close(PluginManager.gui)
 
     def __init__(self):
         super(PluginManager,self).__init__()
         load_ui("plugin_manager.ui", self, directory = os.path.dirname(__file__))
-        self.setWindowIcon(QIcon(image_path('favicon.png')))
+        self.setWindowIcon(QtGui.QIcon(image_path('favicon.png')))
         try:
             self.scrollAreaWidgetContents.setContentsMargins(10, 10, 10, 10)
         except:
@@ -213,7 +211,7 @@ class PluginManager(QMainWindow):
         p = str(self.pluginList.currentItem().text())
         plugin = self.plugins[p]
         if hasattr(plugin, "documentation"):
-            QDesktopServices.openUrl(QUrl(plugin.documentation))
+            QtGui.QDesktopServices.openUrl(QtCore.QUrl(plugin.documentation))
 
     def updateClicked(self):
         p = str(self.pluginList.currentItem().text())
@@ -275,10 +273,10 @@ class PluginManager(QMainWindow):
             shutil.rmtree(os.path.join('plugins', plugin.base_dir), ignore_errors=True)
             plugin.version = ''
             plugin.menu = None
-            plugin.listWidget.setIcon(QIcon())
+            plugin.listWidget.setIcon(QtGui.QIcon())
             PluginManager.gui.statusBar.showMessage('%s successfully uninstalled' % plugin.name)
         except Exception as e:
-            g.alert(title="Plugin Uninstall Failed", msg="Unable to remove the folder at %s\n%s\nDelete the folder manually to uninstall the plugin" % (plugin.name, e), icon=QMessageBox.Warning)
+            g.alert(title="Plugin Uninstall Failed", msg="Unable to remove the folder at %s\n%s\nDelete the folder manually to uninstall the plugin" % (plugin.name, e), icon=QtWidgets.QMessageBox.Warning)
 
         PluginManager.gui.pluginSelected(plugin.listWidget)
         plugin.installed = False
@@ -312,7 +310,7 @@ class PluginManager(QMainWindow):
         try:
             data = urlopen(plugin.url).read()
         except:
-            g.alert(title="Download Error", msg="Failed to connect to %s to install the %s Flika Plugin. Check your internet connection and try again, or download the plugin manually." % (PluginManager.gui.link, plugin_name), icon=QMessageBox.Warning)
+            g.alert(title="Download Error", msg="Failed to connect to %s to install the %s Flika Plugin. Check your internet connection and try again, or download the plugin manually." % (PluginManager.gui.link, plugin_name), icon=QtWidgets.QMessageBox.Warning)
             return
 
         try:
@@ -339,7 +337,7 @@ class PluginManager(QMainWindow):
         
         PluginManager.gui.statusBar.showMessage('Extracting  %s' % plugin.name)
         plugin.version = plugin.latest_version
-        plugin.listWidget.setIcon(QIcon(image_path("check.png")))
+        plugin.listWidget.setIcon(QtGui.QIcon(image_path("check.png")))
 
         
         PluginManager.gui.statusBar.showMessage('Successfully installed %s and it\'s plugins' % plugin.name)

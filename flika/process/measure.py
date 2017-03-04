@@ -10,7 +10,6 @@ import flika.global_vars as g
 from flika.app.BaseProcess import BaseProcess
 import pyqtgraph as pg
 from qtpy import QtWidgets, QtCore, QtGui
-from qtpy.QtCore import Qt, QPointF
 from flika.utils import getSaveFileName
 
 __all__ = ['measure']
@@ -87,7 +86,7 @@ class Measure(BaseProcess):
                 self.fig = window
                 self.viewbox = self.fig.imageview.view
                 self.pathitem=QtWidgets.QGraphicsPathItem(self.viewbox)
-                self.pathitem.setPen(QtGui.QPen(Qt.red))
+                self.pathitem.setPen(QtGui.QPen(QtCore.Qt.red))
                 self.viewbox.addItem(self.pathitem,ignoreBounds=True)
             mousePoint = self.fig.imageview.getImageItem().mapFromScene(pos)
             pos = np.array([mousePoint.y(),mousePoint.x()])
@@ -99,7 +98,7 @@ class Measure(BaseProcess):
                 if not g.m.currentTrace.p1.plotItem.sceneBoundingRect().contains(pos):
                     return
                 self.pathitem=QtWidgets.QGraphicsPathItem(self.viewbox)
-                self.pathitem.setPen(QtGui.QPen(Qt.red))
+                self.pathitem.setPen(QtGui.QPen(QtCore.Qt.red))
                 self.viewbox.addItem(self.pathitem,ignoreBounds=True)
             mousePoint = self.viewbox.mapSceneToView(pos) if not overwrite else pos
             pos = np.array([mousePoint.x(),mousePoint.y()])
@@ -110,7 +109,7 @@ class Measure(BaseProcess):
     def update(self, point):
         
         modifiers = QtWidgets.QApplication.keyboardModifiers()
-        if modifiers == Qt.ShiftModifier:
+        if modifiers == QtCore.Qt.ShiftModifier:
             point=self.getNearestPoint(point)
         if self.currentPoint==0:
             self.currentPoint=1
@@ -137,9 +136,9 @@ class Measure(BaseProcess):
     def draw(self,points):
         if type(self.fig) != type(g.m.currentTrace):
             points = [p[::-1] for p in points]
-        path=QtGui.QPainterPath(QPointF(*points[0]))
+        path=QtGui.QPainterPath(QtCore.QPointF(*points[0]))
         for i in np.arange(1,len(points)):
-            path.lineTo(QPointF(*points[i]))
+            path.lineTo(QtCore.QPointF(*points[i]))
         self.pathitem.setPath(path)
         
     def close(self):

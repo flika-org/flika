@@ -1,7 +1,5 @@
 from __future__ import absolute_import, division, print_function
-from qtpy.uic import loadUi
-from qtpy.QtGui import QColor
-from qtpy.QtWidgets import QFileDialog
+from qtpy import uic, QtGui, QtWidgets
 import os
 import random
 import numpy as np
@@ -41,7 +39,7 @@ def random_color():
     (188,143,143), (255,228,181), (255,222,173), (255,218,185), (255,228,225), (255,240,245), (250,240,230), (253,245,230), (255,239,213), (255,245,238),
     (245,255,250), (176,196,222), (230,230,250), (240,248,255), (248,248,255), (240,255,240)]
     ind = np.random.choice(range(len(colors)))
-    return QColor(*colors[ind])
+    return QtGui.QColor(*colors[ind])
 
 def load_ui(path, parent=None, directory=None):
     """
@@ -70,7 +68,7 @@ def load_ui(path, parent=None, directory=None):
         # Workaround for Mac app
         full_path = os.path.join(full_path.replace('site-packages.zip', 'flika'))
 
-    return loadUi(full_path, parent)
+    return uic.loadUi(full_path, parent)
 
 def getSaveFileName(title="Save file", initial='', filetypes=''):
     ''' File dialog for saving a new file, isolated to handle tuple/string return value
@@ -87,7 +85,7 @@ def getSaveFileName(title="Save file", initial='', filetypes=''):
     str: the file path selected, or empty string if none
     '''
     from flika.global_vars import m
-    filename= QFileDialog.getSaveFileName(m, title, initial, filetypes)
+    filename= QtWidgets.QFileDialog.getSaveFileName(m, title, initial, filetypes)
     if isinstance(filename, tuple):
         filename, ext = filename
         if ext and '.' not in filename:
@@ -110,7 +108,7 @@ def getOpenFileName(title="Open File", initial='', filetypes=''):
     str: the file path selected, or empty string if none
     '''
     from flika.global_vars import m
-    filename = QFileDialog.getOpenFileName(m, title, initial, filetypes)
+    filename = QtWidgets.QFileDialog.getOpenFileName(m, title, initial, filetypes)
     filename = str(filename[0] if isinstance(filename, tuple) else filename)
     return filename if filename else None
 

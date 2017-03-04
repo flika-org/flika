@@ -1,6 +1,4 @@
-from qtpy.QtWidgets import QWidget, QPushButton, QVBoxLayout, qApp, QApplication
-from qtpy.QtGui import QPen, QIcon, QIcon
-from qtpy import QtCore
+from qtpy import QtCore, QtGui, QtWidgets
 import pyqtgraph as pg
 pg.setConfigOptions(useWeave=False)
 import numpy as np
@@ -9,7 +7,7 @@ from flika.utils import getSaveFileName
 import os
 import time
 
-class TraceFig(QWidget):
+class TraceFig(QtWidgets.QWidget):
     indexChanged=QtCore.Signal(int)
     finishedDrawingSignal=QtCore.Signal()
     keyPressSignal=QtCore.Signal(QtCore.QEvent)
@@ -24,15 +22,15 @@ class TraceFig(QWidget):
         if 'tracefig_settings' in g.settings and 'coords' in g.settings['tracefig_settings']:
             self.setGeometry(QtCore.QRect(*g.settings['tracefig_settings']['coords']))
         self.setWindowTitle('Flika')
-        self.setWindowIcon(QIcon('images/favicon.png'))
+        self.setWindowIcon(QtGui.QIcon('images/favicon.png'))
         
-        self.l = QVBoxLayout()
+        self.l = QtWidgets.QVBoxLayout()
         self.setLayout(self.l)
         self.p1=pg.PlotWidget()
         self.p2=pg.PlotWidget()
         self.p1.getPlotItem().axes['left']['item'].setGrid(100) #this makes faint horizontal lines
         self.p2.setMaximumHeight(50)
-        self.export_button = QPushButton("Export")
+        self.export_button = QtWidgets.QPushButton("Export")
         self.export_button.setMaximumWidth(100)
         self.export_button.clicked.connect(self.export_gui)
         
@@ -121,7 +119,7 @@ class TraceFig(QWidget):
         return bounds
 
     def mouseMoved(self,evt):
-        modifiers = QApplication.keyboardModifiers()
+        modifiers = QtWidgets.QApplication.keyboardModifiers()
         if modifiers == QtCore.Qt.ShiftModifier:
             pass
         else:
@@ -165,7 +163,7 @@ class TraceFig(QWidget):
         self.update_trace_full(roi_index,trace)
 
     def update_trace_full(self,roi_index,trace):
-        pen=QPen(self.rois[roi_index]['roi'].pen)
+        pen=QtGui.QPen(self.rois[roi_index]['roi'].pen)
         self.rois[roi_index]['p1trace'].setData(trace,pen=pen)
         self.rois[roi_index]['p2trace'].setData(trace,pen=pen)
         self.finishedDrawingSignal.emit()
@@ -176,7 +174,7 @@ class TraceFig(QWidget):
         trace=roi.getTrace()
         if trace is None:
             raise InvalidTraceException()
-        pen=QPen(roi.pen)
+        pen=QtGui.QPen(roi.pen)
         pen.setWidth(0)
         if len(trace)==1:
             p1trace=self.p1.plot(trace, pen=None, symbol='o')
@@ -305,7 +303,7 @@ class RedrawPartialThread(QtCore.QThread):
                 traces.append(trace)
             for i, roi_index in enumerate(idxs):
                 trace=traces[i] #This function can sometimes take a long time.  
-                pen=QPen(self.tracefig.rois[roi_index]['roi'].pen)
+                pen=QtGui.QPen(self.tracefig.rois[roi_index]['roi'].pen)
                 bb=self.tracefig.getBounds()
                 curve=self.tracefig.rois[roi_index]['p1trace']
                 newtrace=curve.getData()[1]
@@ -317,7 +315,7 @@ class RedrawPartialThread(QtCore.QThread):
                 curve.setData(newtrace,pen=pen)
 
                 self.alert.emit("CURVE %d redrawn" % roi_index)
-                qApp.processEvents()
+                QtWidgets.qApp.processEvents()
             self.redrawCompleted=True
             
 class InvalidTraceException(Exception):

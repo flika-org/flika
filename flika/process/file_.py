@@ -1,8 +1,6 @@
 
-from qtpy.QtWidgets import qApp
-from qtpy import uic
-from qtpy.QtCore import Qt
-from qtpy.QtGui import QColor
+
+from qtpy import uic, QtCore, QtWidgets, QtGui
 import pyqtgraph as pg
 import pyqtgraph.exporters
 import time, codecs, shutil, subprocess, json, re, nd2reader, datetime
@@ -139,7 +137,7 @@ def export_movie(rate, filename=None):
     for i in np.arange(0, nFrames):
         win.setIndex(i)
         exporter.export(os.path.join(tmpdir, '{:03}.jpg'.format(i)))
-        qApp.processEvents()
+        QtWidgets.qApp.processEvents()
     win.top_left_label.show()
     olddir = os.getcwd()
     os.chdir(tmpdir)
@@ -220,7 +218,7 @@ def open_file(filename=None, from_gui=False):
             if percent < int(100 * float(frame) / mt):
                 percent = int(100 * float(frame) / mt)
                 g.m.statusBar().showMessage('Loading file {}%'.format(percent))
-                qApp.processEvents()
+                QtWidgets.qApp.processEvents()
         metadata = get_metadata_nd2(nd2)
     elif ext == '.py':
         ScriptEditor.importScript(filename)
@@ -249,7 +247,7 @@ def load_points(filename=None):
     pts = np.loadtxt(filename)
     nCols = pts.shape[1]
     pointSize = g.m.settings['point_size']
-    pointColor = QColor(g.m.settings['point_color'])
+    pointColor = QtGui.QColor(g.m.settings['point_color'])
     if nCols == 3:
         for pt in pts:
             t = int(pt[0])

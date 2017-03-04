@@ -7,7 +7,7 @@ Created on Mon Jul 21 09:53:16 2014
 import numpy as np
 import flika.global_vars as g
 from flika.app.BaseProcess import BaseProcess, CheckBox
-from qtpy.QtWidgets import QSpinBox, QDoubleSpinBox
+from qtpy import QtWidgets
 import skimage
 
 __all__ = ['set_value']
@@ -28,13 +28,13 @@ class Set_value(BaseProcess):
         super().__init__()
     def gui(self):
         self.gui_reset()
-        value=QDoubleSpinBox()
+        value=QtWidgets.QDoubleSpinBox()
         if g.currentWindow is not None:
             value.setRange(-2**64,2**64)
             value.setValue(0)
-            firstFrame=QSpinBox()
+            firstFrame=QtWidgets.QSpinBox()
             firstFrame.setRange(0,len(g.currentWindow.image)-1)
-            lastFrame=QSpinBox()
+            lastFrame=QtWidgets.QSpinBox()
             lastFrame.setRange(0,len(g.currentWindow.image)-1)
             lastFrame.setValue(len(g.currentWindow.image)-1)
         self.items.append({'name':'value','string':'Value','object':value})

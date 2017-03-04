@@ -11,7 +11,7 @@ import scipy.ndimage
 from skimage import feature, measure
 from skimage.filters import threshold_adaptive
 from flika.app.BaseProcess import BaseProcess, SliderLabel, WindowSelector,  MissingWindowError, CheckBox, ComboBox
-from qtpy.QtWidgets import QSpinBox, qApp
+from qtpy import QtWidgets
 
 
 __all__ = ['threshold','remove_small_blobs','adaptive_threshold','logically_combine','binary_dilation','binary_erosion', 'generate_rois', 'canny_edge_detector']
@@ -451,7 +451,7 @@ class Generate_ROIs(BaseProcess):
         level=SliderLabel(2)
         level.setRange(0,1)
         level.setValue(.5)
-        minDensity=QSpinBox()
+        minDensity=QtWidgets.QSpinBox()
         minDensity.setRange(4, 1000)
         self.items.append({'name':'level','string':'Contour Level','object':level})
         self.items.append({'name':'minDensity','string':'Minimum Density','object':minDensity})
@@ -512,7 +512,7 @@ class Generate_ROIs(BaseProcess):
         self.ROIs = []
 
         for i in range(1, np.max(labelled)+1):
-            qApp.processEvents()
+            QtWidgets.qApp.processEvents()
             if np.sum(labelled == i) >= minDensity:
                 im = scipy.ndimage.morphology.binary_dilation(scipy.ndimage.morphology.binary_closing(labelled == i))
                 outline_coords = measure.find_contours(im, level)
@@ -522,7 +522,7 @@ class Generate_ROIs(BaseProcess):
                 self.ROIs.append(ROI_Drawing(g.m.currentWindow, outline_coords[0][0], outline_coords[0][1], 'freehand'))
                 for p in outline_coords[1:]:
                     self.ROIs[-1].extend(p[0], p[1])
-                    qApp.processEvents()
+                    QtWidgets.qApp.processEvents()
 
         self.previewing = False
         if self.toPreview:

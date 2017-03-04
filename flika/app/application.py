@@ -1,8 +1,7 @@
 from __future__ import absolute_import, division, print_function
 
 import sys, os, time
-from qtpy import QtCore, QtWidgets, QtGui, compat
-from qtpy.QtCore import Qt, QObject, Signal
+from qtpy import QtCore, QtWidgets, QtGui
 from flika.utils import nonpartial, get_qapp
 
 from flika.process import setup_menus
@@ -39,7 +38,7 @@ def status_pixmap(attention=False):
     A small icon to grab attention
     :param attention: If True, return attention-grabbing pixmap
     """
-    color = Qt.red if attention else Qt.lightGray
+    color = QtCore.Qt.red if attention else QtCore.Qt.lightGray
 
     pm = QtGui.QPixmap(15, 15)
     p = QtGui.QPainter(pm)
@@ -57,10 +56,10 @@ class ClickableLabel(QtWidgets.QLabel):
     def mousePressEvent(self, event):
         self.clicked.emit()
 
-class XStream(QObject):
+class XStream(QtCore.QObject):
     _stderr = None
 
-    messageWritten = Signal(str)
+    messageWritten = QtCore.Signal(str)
 
     def flush( self ):
         pass
@@ -88,7 +87,7 @@ class Logger(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(Logger, self).__init__(parent)
         self._text = QtWidgets.QTextEdit()
-        self._text.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        self._text.setTextInteractionFlags(QtCore.Qt.TextSelectableByMouse)
 
         clear = QtWidgets.QPushButton("Clear")
         clear.clicked.connect(nonpartial(self._clear))
@@ -166,7 +165,7 @@ class Logger(QtWidgets.QWidget):
         """
         Hide window on escape key
         """
-        if event.key() == Qt.Key_Escape:
+        if event.key() == QtCore.Qt.Key_Escape:
             self.hide()
 
 

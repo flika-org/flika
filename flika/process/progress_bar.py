@@ -1,7 +1,5 @@
 import sys, time
-from qtpy.QtCore import Qt, Signal, QThread, QTimer, QEventLoop
-from qtpy.QtGui import QIcon
-from qtpy.QtWidgets import QWidget, QLabel, QDialog, QPushButton, QGridLayout, QProgressBar, qApp, QApplication
+from qtpy import QtCore, QtGui, QtWidgets
 from multiprocessing import Process, Queue, cpu_count, Pipe
 import os
 import numpy as np
@@ -10,10 +8,10 @@ __all__ = []
 
 tic=time.time()
 
-class ProcessLauncher(QThread):
-    status_update=Signal(str)
+class ProcessLauncher(QtCore.QThread):
+    status_update=QtCore.Signal(str)
     def __init__(self,parent):
-        QThread.__init__(self)
+        QtCore.QThread.__init__(self)
         self.parent=parent
         self.nCores=parent.nCores
     def __del__(self):
@@ -63,8 +61,8 @@ class ProcessLauncher(QThread):
 
         
     
-class ProgressBar(QWidget):
-    finished_sig=Signal()
+class ProgressBar(QtWidgets.QWidget):
+    finished_sig=QtCore.Signal()
     def __init__(self, outerfunc, data, args, nCores, msg='Performing Operations', parent=None ):
         super(ProgressBar, self).__init__(parent)
         self.outerfunc=outerfunc
@@ -74,17 +72,17 @@ class ProgressBar(QWidget):
         self.msg=msg
         
         # GUI
-        self.setWindowIcon(QIcon('images/favicon.png'))
-        self.label=QLabel(msg)
+        self.setWindowIcon(QtGui.QIcon('images/favicon.png'))
+        self.label=QtWidgets.QLabel(msg)
         #self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         self.progress_bars=[]
-        self.button = QPushButton('Stop')
+        self.button = QtWidgets.QPushButton('Stop')
         self.button.clicked.connect(self.handleButton)
-        main_layout = QGridLayout()
+        main_layout = QtWidgets.QGridLayout()
         main_layout.addWidget(self.label,0,0)
         main_layout.addWidget(self.button, 0, 1)
         for i in range(nCores):
-            bar=QProgressBar()
+            bar=QtWidgets.QProgressBar()
             bar.setMinimum(1)
             bar.setMaximum(100)
             main_layout.addWidget(bar, 1+i, 0)
@@ -93,7 +91,7 @@ class ProgressBar(QWidget):
         self.setWindowTitle(msg)
         self.stopPressed = False
         self.show()
-        qApp.processEvents()
+        QtWidgets.qApp.processEvents()
         
         self.results=[None for i in range(nCores)]
         self.process_finished=[False for i in range(nCores)]
@@ -106,11 +104,11 @@ class ProgressBar(QWidget):
         self.processLauncher.status_update.connect(self.status_updated)
         self.processLauncher.start()
         
-        self.timer=QTimer()
+        self.timer=QtCore.QTimer()
         self.timer.timeout.connect(self.check_if_finished)
         self.timer.start(50)
         
-        self.loop = QEventLoop()
+        self.loop = QtCore.QEventLoop()
         self.finished=False
         self.finished_sig.connect(self.loop.quit)
         self.finished_sig.connect(self.update_finished_status)
@@ -118,7 +116,7 @@ class ProgressBar(QWidget):
         
         while self.finished is False: #the exec_() loop doesn't wait for loop.quit when running in spyder for some reason.  This is the workaround
             time.sleep(.01)
-            qApp.processEvents()
+            QtWidgets.qApp.processEvents()
         self.close()
         
     def check_if_finished(self):
@@ -132,7 +130,7 @@ class ProgressBar(QWidget):
                 self.results[i]=self.q_results[i].get()
                 self.process_finished[i]=True
                 self.processes[i].join(1)
-        qApp.processEvents()
+        QtWidgets.qApp.processEvents()
         if all(self.process_finished):
             if any(r is None for r in self.results):
                 self.results=None
@@ -168,31 +166,7 @@ class ProgressBar(QWidget):
                 delattr(self, attr)
             except Exception:
                 pass
-        
-#    def closeEvent(self, event):
-#        for child in self.findChildren(QtGui.QDialog):
-#            if child is not widget:
-#                child.deleteLater()
-#                    
-#        if self.closed:
-#            print('This window was already closed')
-#            event.accept()
-#        else:
-#            self.closeSignal.emit()
-#            if hasattr(self,'image'):
-#                del self.image
-#            self.imageview.setImage(np.zeros((2,2))) #clear the memory
-#            self.imageview.close()
-#            del self.imageview
-#            g.m.setWindowTitle("FLIKA")
-#            if g.currentWindow==self:
-#                g.currentWindow=None
-#            if self in g.m.windows:
-#                g.m.windows.remove(self)
-#            self.closed=True
-#            event.accept() # let the window close
-        
-        
+           
         
 '''
 When using the Progress Bar, you need to write two functions:
@@ -262,7 +236,7 @@ def inner_func(q_results, q_progress, q_status, child_conn, args):
 
         
 if __name__ == '__main__':
-    app = QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     result=outer_func()
     print(result)
 

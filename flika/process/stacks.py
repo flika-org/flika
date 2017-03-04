@@ -8,7 +8,7 @@ from flika.window import Window
 import numpy as np
 import flika.global_vars as g
 from flika.app.BaseProcess import BaseProcess, WindowSelector, MissingWindowError, CheckBox, BaseProcess_noPriorWindow, SliderLabel, ComboBox
-from qtpy.QtWidgets import QSpinBox
+from qtpy import QtWidgets
 from flika.tracefig import TraceFig
 
 __all__ = ['deinterleave','trim','zproject','image_calculator', 'pixel_binning', 'frame_binning', 'resize', 'concatenate_stacks', 'duplicate', 'generate_random_image', 'change_datatype']
@@ -58,7 +58,7 @@ class Deinterleave(BaseProcess):
         super().__init__()
     def gui(self):
         self.gui_reset()
-        nChannels=QSpinBox()
+        nChannels=QtWidgets.QSpinBox()
         nChannels.setMinimum(2)
         self.items.append({'name':'nChannels','string':'How many Channels?','object':nChannels})
         super().gui()
@@ -91,7 +91,7 @@ class Pixel_binning(BaseProcess):
         super().__init__()
     def gui(self):
         self.gui_reset()
-        nPixels=QSpinBox()
+        nPixels=QtWidgets.QSpinBox()
         nPixels.setMinimum(2)
         nPixels.setMaximum(2)
         self.items.append({'name':'nPixels','string':'How many adjacent pixels to bin?','object':nPixels})
@@ -147,7 +147,7 @@ class Frame_binning(BaseProcess):
         super().__init__()
     def gui(self):
         self.gui_reset()
-        nFrames=QSpinBox()
+        nFrames=QtWidgets.QSpinBox()
         nFrames.setMinimum(2)
         nFrames.setMaximum(10000)
         self.items.append({'name':'nFrames','string':'How many frames to bin?','object':nFrames})
@@ -176,7 +176,7 @@ class Resize(BaseProcess):
         super().__init__()
     def gui(self):
         self.gui_reset()
-        factor=QSpinBox()
+        factor=QtWidgets.QSpinBox()
         factor.setMinimum(2)
         factor.setMaximum(100)
         self.items.append({'name':'factor','string':'By what factor to resize the image?','object':factor})
@@ -227,12 +227,12 @@ class Trim(BaseProcess):
         nFrames=1
         if g.currentWindow is not None:
             nFrames=g.currentWindow.image.shape[0]
-        firstFrame=QSpinBox()
+        firstFrame=QtWidgets.QSpinBox()
         firstFrame.setMaximum(nFrames-1)
-        lastFrame=QSpinBox()
+        lastFrame=QtWidgets.QSpinBox()
         lastFrame.setRange(0,nFrames-1)
         lastFrame.setValue(nFrames-1)
-        increment=QSpinBox()
+        increment=QtWidgets.QSpinBox()
         increment.setMaximum(nFrames)
         increment.setMinimum(1)
         delete = CheckBox()
@@ -279,10 +279,10 @@ class ZProject(BaseProcess):
             return False
         if g.currentWindow is not None:
             nFrames=g.currentWindow.image.shape[0]
-        firstFrame=QSpinBox()
+        firstFrame=QtWidgets.QSpinBox()
         firstFrame.setMaximum(nFrames)
         self.items.append({'name':'firstFrame','string':'First Frame','object':firstFrame})
-        lastFrame=QSpinBox()
+        lastFrame=QtWidgets.QSpinBox()
         lastFrame.setRange(1,nFrames-1)
         lastFrame.setValue(nFrames-1)
         self.items.append({'name':'lastFrame','string':'Last Frame','object':lastFrame})

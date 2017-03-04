@@ -9,7 +9,7 @@ import skimage
 import skimage.filters
 import flika.global_vars as g
 from flika.app.BaseProcess import BaseProcess, SliderLabel, SliderLabelOdd, CheckBox
-from qtpy.QtWidgets import QSpinBox, QDoubleSpinBox
+from qtpy import QtWidgets
 import time
 from flika.process.progress_bar import ProgressBar
 
@@ -106,7 +106,7 @@ class Butterworth_filter(BaseProcess):
 
     def gui(self):
         self.gui_reset()
-        filter_order=QSpinBox()
+        filter_order=QtWidgets.QSpinBox()
         filter_order.setRange(1,10)
         low=SliderLabel(5)
         low.setRange(0,1)
@@ -380,7 +380,7 @@ class Fourier_filter(BaseProcess):
         super().__init__()
     def gui(self):
         self.gui_reset()
-        frame_rate=QDoubleSpinBox()
+        frame_rate=QtWidgets.QDoubleSpinBox()
         frame_rate.setRange(.01,1000)
         frame_rate.setValue(200)
         low=SliderLabel(5)

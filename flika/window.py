@@ -1,5 +1,4 @@
 from qtpy import QtCore, QtWidgets, QtGui
-from qtpy.QtCore import Signal
 import pyqtgraph as pg
 pg.setConfigOptions(useWeave=False)
 import numpy as np
@@ -9,11 +8,11 @@ from flika.utils import getSaveFileName
 import os
 
 class Window(QtWidgets.QWidget):
-    closeSignal = Signal()
-    keyPressSignal = Signal(QtCore.QEvent)
-    sigTimeChanged = Signal(int)
-    gainedFocusSignal = Signal()
-    lostFocusSignal = Signal()
+    closeSignal = QtCore.Signal()
+    keyPressSignal = QtCore.Signal(QtCore.QEvent)
+    sigTimeChanged = QtCore.Signal(int)
+    gainedFocusSignal = QtCore.Signal()
+    lostFocusSignal = QtCore.Signal()
     def __init__(self, tif, name='Flika', filename='', commands=[], metadata=dict()):
         QtWidgets.QWidget.__init__(self)
         self.commands = commands #commands is a list of the commands used to create this window, starting with loading the file

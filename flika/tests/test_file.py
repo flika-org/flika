@@ -17,6 +17,7 @@ im = np.random.random([150, 60, 60])
 
 class Test_File():
 	def test_open(self):
+		if 
 		w = open_file()
 		w.close()
 
