@@ -11,11 +11,7 @@ from flika.roi import makeROI
 import pyqtgraph as pg
 from qtpy import QtGui
 im = np.random.random([120, 90, 90])
-fa = None
-
-def setup_method():
-	global fa
-	fa = FlikaApplication()
+fa = FlikaApplication()
 	
 class TestWindow():
 	def setup_method(self, obj):
@@ -44,7 +40,6 @@ class ROITest():
 	POINTS=[]
 	MASK=[]
 
-
 	def setup_method(self):
 		self.win1 = Window(self.img)
 		self.changed = False
@@ -70,7 +65,6 @@ class ROITest():
 		assert self.changeFinished, "ChangeFinished signal was not sent"
 		self.changeFinished = False
 	
-
 	def teardown_method(self):
 		self.roi.plot()
 		self.roi.delete()
@@ -274,6 +268,10 @@ class ROI_Rect_Line(ROITest):
 			return
 		kymo = self.roi.kymograph
 		assert kymo.image.shape[1] == self.win1.image.shape[0]
+		
+		self.roi.setWidth(3)
+		assert kymo.image.shape[1] == self.win1.image.shape[0]
+
 		kymo.close()
 		self.win1.setAsCurrentWindow()
 

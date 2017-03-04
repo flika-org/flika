@@ -894,7 +894,7 @@ class ROI_rect_line(ROI_Wrapper, QtWidgets.QGraphicsObject):
             mn = tif[:, xx, yy].T
         else:
             region = self.getArrayRegion(self.window.imageview.image, self.window.imageview.getImageItem(), (1, 2))
-            mn = np.average(region, 1)
+            mn = np.average(region, 2).T
 
 
         if self.kymograph is None:

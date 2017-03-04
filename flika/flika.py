@@ -6,7 +6,7 @@ import sys, os
 import optparse
 
 # for development purposes, add this if flika is not in your site-packages
-os.chdir(os.path.dirname(__file__))
+#os.chdir(os.path.dirname(__file__))
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from flika import __version__
@@ -86,7 +86,6 @@ def load_files(files):
         open_file(f)
 
 def start_flika(files=[]):
-    print('Launching Flika')
     """Run a flika session and exit
 
     Parameters

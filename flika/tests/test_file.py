@@ -17,21 +17,16 @@ im = np.random.random([150, 60, 60])
 
 class Test_File():
 	def test_open(self):
-		if 
+		if len(g.settings['recent_files']) == 0:
+			g.settings['recent_files'].append('tests')
 		w = open_file()
 		w.close()
-
-	def test_open_gui(self):
-		w = open_file_from_gui()
-		if w:
-			w.close()
 
 	def test_open_recent(self):
 		g.m._make_recents()
 		if len(g.m.recentFileMenu.actions()) > 0:
 			g.m.recentFileMenu.actions()[0].trigger()
-		g.currentWindow.close()
-
+			g.currentWindow.close()
 
 	def test_save_as(self):
 		w = Window(im)
