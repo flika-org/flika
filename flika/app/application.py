@@ -176,12 +176,12 @@ class FlikaApplication(QtWidgets.QMainWindow):
         super(FlikaApplication, self).__init__()
         self.app.setQuitOnLastWindowClosed(True)
         setup_menus()
-        load_local_plugins()
+        
         load_ui('main.ui', self, directory=os.path.dirname(__file__))
 
         g.m = self
         g.settings = g.Settings()
-
+        
         desktop = QtWidgets.QApplication.desktop()
         width_px=int(desktop.logicalDpiX()*3.4)
         height_px=int(desktop.logicalDpiY()*.9)
@@ -202,6 +202,8 @@ class FlikaApplication(QtWidgets.QMainWindow):
         self.statusBar().setSizeGripEnabled(False)
         self.setCurrentWindowSignal = SetCurrentWindowSignal(self)
         self.setAcceptDrops(True)
+        
+        load_local_plugins()
 
     def start(self):
         self.show()
