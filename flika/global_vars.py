@@ -190,7 +190,7 @@ class Settings:
             d = {k:d[k] for k in d if d[k] != None}
             self.d.update(d)
         except Exception as e:
-            from logger import logger
+            from flika.logger import logger
             logger.info("Failed to load settings file. %s\nDefault settings restored." % e)
             self.save()
         self.d['mousemode'] = 'rectangle' # don't change initial mousemode
