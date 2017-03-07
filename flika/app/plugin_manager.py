@@ -114,8 +114,8 @@ class Plugin():
             p.dependencies = [d['@name'] for d in deps] if isinstance(deps, list) else [deps['@name']]
         p.menu_layout = info.pop('menu_layout')
         p.menu = make_plugin_menu(p)
-        p.listWidget = QListWidgetItem(p.name)
-        p.listWidget.setIcon(QIcon(image_path('check.png')))
+        p.listWidget = QtWidgets.QListWidgetItem(p.name)
+        p.listWidget.setIcon(QtGui.QIcon(image_path('check.png')))
         p.loaded = True
         return p
 
@@ -285,11 +285,11 @@ class PluginManager(QtWidgets.QMainWindow):
         for name in names:
             plug = PluginManager.plugins[name]
             if plug.version == '':
-                plug.listWidget.setIcon(QIcon())
+                plug.listWidget.setIcon(QtGui.QIcon())
             elif parse_version(plug.version) < parse_version(plug.latest_version):
-                plug.listWidget.setIcon(QIcon(image_path('exclamation.png')))
+                plug.listWidget.setIcon(QtGui.QIcon(image_path('exclamation.png')))
             else:
-                plug.listWidget.setIcon(QIcon(image_path('check.png')))
+                plug.listWidget.setIcon(QtGui.QIcon(image_path('check.png')))
             self.pluginList.addItem(plug.listWidget)
 
     @staticmethod
