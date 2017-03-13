@@ -1,11 +1,18 @@
+# -*- coding: utf-8 -*-
+"""
+Flika
+@author: Kyle Ellefsen
+@author: Brett Settle
+@license: MIT
+"""
 from qtpy import QtCore, QtGui, QtWidgets
 import pyqtgraph as pg
 pg.setConfigOptions(useWeave=False)
 import numpy as np
-import flika.global_vars as g
-from flika.utils import getSaveFileName
 import os
 import time
+import flika.global_vars as g
+from flika.utils import getSaveFileName
 
 class TraceFig(QtWidgets.QWidget):
     indexChanged=QtCore.Signal(int)
@@ -18,12 +25,10 @@ class TraceFig(QtWidgets.QWidget):
         super(TraceFig,self).__init__()
         g.traceWindows.append(self)
         self.setCurrentTraceWindow()
-
         if 'tracefig_settings' in g.settings and 'coords' in g.settings['tracefig_settings']:
             self.setGeometry(QtCore.QRect(*g.settings['tracefig_settings']['coords']))
         self.setWindowTitle('Flika')
         self.setWindowIcon(QtGui.QIcon('images/favicon.png'))
-        
         self.l = QtWidgets.QVBoxLayout()
         self.setLayout(self.l)
         self.p1=pg.PlotWidget()
@@ -33,7 +38,6 @@ class TraceFig(QtWidgets.QWidget):
         self.export_button = QtWidgets.QPushButton("Export")
         self.export_button.setMaximumWidth(100)
         self.export_button.clicked.connect(self.export_gui)
-        
         self.l.addWidget(self.p1, 1)
         self.l.addWidget(self.p2, 1)
         self.l.addWidget(self.export_button, 0)
@@ -107,7 +111,6 @@ class TraceFig(QtWidgets.QWidget):
         minX, maxX = self.region.getRegion()
         self.p1.plotItem.setXRange(minX, maxX, padding=0, update=False)    
         self.p1.plotItem.axes['bottom']['item'].setRange(minX,maxX)
-        
 
     def updateRegion(self,window, viewRange):
         rgn = viewRange[0]
@@ -142,17 +145,15 @@ class TraceFig(QtWidgets.QWidget):
     def translated(self,roi):
         index=self.get_roi_index(roi)
         self.rois[index]['toBeRedrawn']=True
-        
         if self.redrawPartialThread is None or self.redrawPartialThread.isFinished():
-           self.alert('Launching redrawPartialThread')
-           self.redrawPartialThread=RedrawPartialThread(self)
-           self.redrawPartialThread.alert.connect(self.alert)
-           self.redrawPartialThread.start()
-           self.redrawPartialThread.updated.connect(self.partialThreadUpdatedSignal.emit)
+            self.alert('Launching redrawPartialThread')
+            self.redrawPartialThread = RedrawPartialThread(self)
+            self.redrawPartialThread.alert.connect(self.alert)
+            self.redrawPartialThread.start()
+            self.redrawPartialThread.updated.connect(self.partialThreadUpdatedSignal.emit)
             
     def translateFinished(self,roi):
-        roi_index=self.get_roi_index(roi)
-
+        roi_index = self.get_roi_index(roi)
         if self.redrawPartialThread is not None and self.redrawPartialThread.isRunning():
             self.redrawPartialThread.quit_loop = True
             #self.redrawPartialThread.finished_sig.emit() #tell the thread to finish
@@ -197,7 +198,7 @@ class TraceFig(QtWidgets.QWidget):
         elif isinstance(roi, int):
             index = roi
         else:
-            g.alert("Failed to remove roi %s" % roi)
+            g.alert("Failed to remove roi {}".format(roi))
             return
         self.p1.removeItem(self.rois[index]['p1trace'])
         self.p2.removeItem(self.rois[index]['p2trace'])
@@ -244,11 +245,10 @@ def roiPlot(roi):
     '''
     returns tracefig that is used to plot roi
     '''
-    if g.settings['multipleTraceWindows'] or g.currentTrace == None:
+    if g.settings['multipleTraceWindows'] or g.currentTrace is None:
         win = TraceFig()
     else:
         win = g.currentTrace
-
     try:
         win.addROI(roi)
     except InvalidTraceException:
@@ -313,10 +313,12 @@ class RedrawPartialThread(QtCore.QThread):
                     return
                 newtrace[bb[0]:bb[1]]=trace
                 curve.setData(newtrace,pen=pen)
-
-                self.alert.emit("CURVE %d redrawn" % roi_index)
+                self.alert.emit("CURVE {} redrawn".format(roi_index))
                 QtWidgets.qApp.processEvents()
             self.redrawCompleted=True
-            
+
 class InvalidTraceException(Exception):
     pass
+
+
+
