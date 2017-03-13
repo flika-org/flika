@@ -300,6 +300,7 @@ class Window(QtWidgets.QWidget):
             g.currentWindow.setStyleSheet("border:1px solid rgb(0, 0, 0); ")
             g.currentWindow.lostFocusSignal.emit()
         g.currentWindow=self
+        g.m.currentWindow = g.currentWindow
         g.m.setWindowTitle("Flika - {}".format(self.name))
         self.setStyleSheet("border:1px solid rgb(0, 255, 0); ")
         g.m.setCurrentWindowSignal.sig.emit()

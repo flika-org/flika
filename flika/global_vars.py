@@ -295,6 +295,14 @@ def init(filename):
     m.setAcceptDrops(True)
     m.closeEvent = mainguiClose
 
+    # These are all added for backwards compatibility for plugins
+    m.windows = windows
+    m.traceWindows = traceWindows
+    m.dialogs = dialogs
+    m.currentWindow = currentWindow
+    m.currentTrace = currentTrace
+    m.clipboard = clipboard
+
 
 m = None  # will be main window
 menus = []
