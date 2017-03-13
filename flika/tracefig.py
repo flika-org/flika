@@ -24,12 +24,10 @@ class TraceFig(QtWidgets.QWidget):
         super(TraceFig,self).__init__()
         g.traceWindows.append(self)
         self.setCurrentTraceWindow()
-        #roi.translated.connect(lambda: self.translated(roi))
         if 'tracefig_settings' in g.settings.d.keys() and 'coords' in g.settings['tracefig_settings']:
             self.setGeometry(QtCore.QRect(*g.settings['tracefig_settings']['coords']))
         self.setWindowTitle('Flika')
         self.setWindowIcon(QtGui.QIcon('images/favicon.png'))
-        #self.label = pg.LabelItem(justify='right')
         self.l = QtWidgets.QVBoxLayout()
         self.setLayout(self.l)
         self.p1=pg.PlotWidget()
@@ -39,7 +37,6 @@ class TraceFig(QtWidgets.QWidget):
         self.export_button = QtWidgets.QPushButton("Export")
         self.export_button.setMaximumWidth(100)
         self.export_button.clicked.connect(self.export_gui)
-        #self.l.addItem(self.label)
         self.l.addWidget(self.p1, 1)
         self.l.addWidget(self.p2, 1)
         self.l.addWidget(self.export_button, 0)
@@ -57,9 +54,8 @@ class TraceFig(QtWidgets.QWidget):
         self.region.sigRegionChanged.connect(self.update)
         self.p1.plotItem.sigRangeChanged.connect(self.updateRegion)
         self.region.setRegion([0, 200])
-        #self.proxy2= pg.SignalProxy(self.redrawROIsPartialSlot,rateLimit=60, slot=self.redrawROIsPartial)
         self.redrawPartialThread=None
-        from process.measure import measure
+        from .process.measure import measure
         self.measure=measure
         self.p1.scene().sigMouseClicked.connect(self.measure.pointclicked)
         self.p1.scene().sigMouseClicked.connect(self.setCurrentTraceWindow)
@@ -185,11 +181,9 @@ class TraceFig(QtWidgets.QWidget):
         
         roi.translated.connect(lambda: self.translated(roi))
         roi.translate_done.connect(lambda: self.translate_done(roi))
-        #proxy= pg.SignalProxy(roi.translated,rateLimit=60, slot=self.redrawROIs)
         if len(self.rois)==0:
             self.region.setRegion([0, len(trace)-1])
         self.rois.append(dict({'roi':roi,'p1trace':p1trace,'p2trace':p2trace,'toBeRedrawn':False,'toBeRedrawnFull':False}))
-        #self.rois.append([roi,p1data,p2data,proxy])
 
     def removeROI(self,roi):
         if isinstance(roi, (pg.ROI, pg.MultiRectROI)):
@@ -251,7 +245,8 @@ def roiPlot(roi):
         win = g.currentTrace
     win.addROI(roi)
     return win
-    
+
+
 class RedrawPartialThread(QtCore.QThread):
     finished=QtCore.Signal() #this announces that the thread has finished
     finished_sig=QtCore.Signal() #This tells the thread to finish
@@ -307,6 +302,7 @@ class RedrawPartialThread(QtCore.QThread):
                     return
                 newtrace[bb[0]:bb[1]]=trace
                 curve.setData(newtrace,pen=pen)
+                self.alert.emit("CURVE {} redrawn".format(roi_index))
                 QtWidgets.qApp.processEvents()
             self.redrawCompleted=True
 

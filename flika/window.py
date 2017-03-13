@@ -123,7 +123,7 @@ class Window(QtWidgets.QWidget):
             g.windows.append(self)
         self.closed=False
 
-        from process.measure import measure
+        from .process.measure import measure
         self.measure=measure
         def clicked(evt):
             self.measure.pointclicked(evt, window=self)
