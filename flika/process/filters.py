@@ -1,17 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sat Jun 28 14:38:26 2014
-
+Flika
 @author: Kyle Ellefsen
+@author: Brett Settle
+@license: MIT
 """
 import numpy as np
 import skimage
 import skimage.filters
-import global_vars as g
-from process.BaseProcess import BaseProcess, SliderLabel, SliderLabelOdd, CheckBox
 from qtpy import QtWidgets, QtGui, QtCore
 import time
-from process.progress_bar import ProgressBar
+from .. import global_vars as g
+from .BaseProcess import BaseProcess, SliderLabel, SliderLabelOdd, CheckBox
+from .progress_bar import ProgressBar
 
 __all__ = ['gaussian_blur','mean_filter','median_filter','butterworth_filter','boxcar_differential_filter','wavelet_filter','difference_filter', 'fourier_filter', 'bilateral_filter']
 ###############################################################################

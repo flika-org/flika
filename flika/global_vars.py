@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+Flika
+@author: Kyle Ellefsen
+@author: Brett Settle
+@license: MIT
+"""
 from qtpy import uic, QtWidgets, QtGui, QtCore
 from qtpy.QtCore import Signal
 import sys, os, atexit
@@ -6,14 +13,16 @@ from urllib.request import urlopen
 from os.path import expanduser
 import numpy as np
 from pyqtgraph.dockarea import *
-from process.BaseProcess import BaseDialog, ColorSelector
 import pyqtgraph as pg
-from app.plugin_manager import PluginManager, load_plugin_menu
-from app.terminal_widget import ScriptEditor
 from multiprocessing import cpu_count
 import re, time, datetime, zipfile, shutil, subprocess, os
 from sys import executable
 from subprocess import Popen
+
+from .process.BaseProcess import BaseDialog, ColorSelector
+from .app.plugin_manager import PluginManager, load_plugin_menu
+from .app.terminal_widget import ScriptEditor
+
 
 data_types = ['uint8', 'uint16', 'uint32', 'uint64', 'int8', 'int16', 'int32', 'int64', 'float16', 'float32', 'float64']
 mainGuiInitialized = False

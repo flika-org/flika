@@ -1,8 +1,11 @@
-'''
+# -*- coding: utf-8 -*-
+"""
+Flika
+@author: Kyle Ellefsen
 @author: Brett Settle
-'''
+@license: MIT
+"""
 from glob import glob
-import global_vars as g
 from qtpy.QtWidgets import QWidget, QMainWindow, QAction
 from qtpy.QtGui import QIcon, QDesktopServices
 from qtpy import QtGui, QtWidgets
@@ -14,9 +17,12 @@ import zipfile
 import time, shutil
 import os.path
 import traceback
-from app.plugin_data import plugin_list
 import pip
 from xmltodict import parse
+
+from .. import global_vars as g
+from .plugin_data import plugin_list
+
 sep = os.path.sep
     
 def str2func(plugin_name, file_location, function):

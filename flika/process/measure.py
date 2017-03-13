@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Aug 28 12:54:12 2014
-
+Flika
 @author: Kyle Ellefsen
+@author: Brett Settle
+@license: MIT
 """
 import os
 import numpy as np
-import global_vars as g
-from process.BaseProcess import BaseProcess
 import pyqtgraph as pg
 from qtpy import QtWidgets, QtCore, QtGui
+from .. import global_vars as g
+from .BaseProcess import BaseProcess
 
 __all__ = ['measure']
 

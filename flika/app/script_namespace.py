@@ -1,17 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Jul 23 12:05:56 2014
-
+Flika
 @author: Kyle Ellefsen
+@author: Brett Settle
+@license: MIT
 """
 from inspect import getmembers, ismodule
-import process
-import global_vars as g
 import numpy as np
 import scipy
 import pyqtgraph as pg
-import window
-from roi import load_roi
+from .. import process
+from .. import global_vars as g
+from .. import window
+from ..roi import load_roi
 
 
 def getnamespace():

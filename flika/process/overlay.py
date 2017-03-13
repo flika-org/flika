@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Sep 17 15:10:30 2014
-
+Flika
 @author: Kyle Ellefsen
+@author: Brett Settle
+@license: MIT
 """
 import numpy as np
-import global_vars as g
 import pyqtgraph as pg
 from qtpy import QtWidgets, QtCore, QtGui
-
-from process.BaseProcess import BaseProcess, SliderLabel, WindowSelector,  MissingWindowError, CheckBox, ComboBox
+from .. import global_vars as g
+from .BaseProcess import BaseProcess, SliderLabel, WindowSelector,  MissingWindowError, CheckBox, ComboBox
 
 __all__ = ['time_stamp','background','scale_bar']
      

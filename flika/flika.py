@@ -1,30 +1,32 @@
 """
+Flika
 version=0.0.7
-Created on Thu Jun 26 14:17:38 2014
-Latest Update: 2016.02.23
-@author: Kyle Ellefsen and Brett Settle
+Latest Update: 2017.03.13
+@author: Kyle Ellefsen
+@author: Brett Settle
+@license: MIT
 """
 print('Launching Flika')
 import os
 import sys
 from qtpy import QtCore, QtGui, QtWidgets
-
-import global_vars as g
 import matplotlib.cm
-from window import Window
-from process.stacks import deinterleave, trim, zproject, image_calculator, pixel_binning, frame_binning, resize, change_datatype, concatenate_stacks, duplicate, generate_random_image
-from process.color import split_channels
 
-from process.math_ import multiply, subtract, power, ratio, absolute_value, subtract_trace, divide_trace
-from process.filters import gaussian_blur, butterworth_filter,boxcar_differential_filter, wavelet_filter, difference_filter, fourier_filter, mean_filter, median_filter, bilateral_filter
-from process.binary import threshold, adaptive_threshold, canny_edge_detector, remove_small_blobs, logically_combine, binary_dilation, binary_erosion, generate_rois
-from process.roi import set_value
-from process.measure import measure
-from process.file_ import *
-from roi import load_roi, makeROI
-from process.overlay import time_stamp,background, scale_bar
-from app.terminal_widget import ScriptEditor
-from app.plugin_manager import PluginManager
+from .import global_vars as g
+from .window import Window
+from .process.stacks import deinterleave, trim, zproject, image_calculator, pixel_binning, frame_binning, resize, change_datatype, concatenate_stacks, duplicate, generate_random_image
+from .process.color import split_channels
+
+from .process.math_ import multiply, subtract, power, ratio, absolute_value, subtract_trace, divide_trace
+from .process.filters import gaussian_blur, butterworth_filter,boxcar_differential_filter, wavelet_filter, difference_filter, fourier_filter, mean_filter, median_filter, bilateral_filter
+from .process.binary import threshold, adaptive_threshold, canny_edge_detector, remove_small_blobs, logically_combine, binary_dilation, binary_erosion, generate_rois
+from .process.roi import set_value
+from .process.measure import measure
+from .process.file_ import *
+from .roi import load_roi, makeROI
+from .process.overlay import time_stamp,background, scale_bar
+from .app.terminal_widget import ScriptEditor
+from .app.plugin_manager import PluginManager
 try:
     os.chdir(os.path.split(os.path.realpath(__file__))[0])
 except NameError:

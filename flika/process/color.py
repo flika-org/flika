@@ -1,8 +1,16 @@
+# -*- coding: utf-8 -*-
+"""
+Flika
+@author: Kyle Ellefsen
+@author: Brett Settle
+@license: MIT
+"""
+
 import numpy as np
-from window import Window
-import global_vars as g
-from process.BaseProcess import BaseProcess, WindowSelector, MissingWindowError, CheckBox
 from qtpy import QtWidgets, QtCore, QtGui
+from .. import global_vars as g
+from ..window import Window
+from .BaseProcess import BaseProcess, WindowSelector, MissingWindowError, CheckBox
 
 __all__ = ['split_channels']
 

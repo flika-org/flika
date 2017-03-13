@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 """
+Flika
+@author: Kyle Ellefsen
 @author: Brett Settle
+@license: MIT
 """
 from qtpy import QtGui, QtCore, QtWidgets, uic
 import os
 
-import global_vars as g
+from .. import global_vars as g
 from .terminal import ipython_terminal
 from .script_namespace import getnamespace
 from .syntax import PythonHighlighter

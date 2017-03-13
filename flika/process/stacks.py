@@ -1,17 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-Flika 2017
+Flika
 @author: Kyle Ellefsen
 @author: Brett Settle
-@license:
+@license: MIT
 """
 
-from window import Window
 import numpy as np
-import global_vars as g
-from process.BaseProcess import BaseProcess, BaseProcess_noPriorWindow, WindowSelector, MissingWindowError, CheckBox, SliderLabel, ComboBox
-from tracefig import TraceFig
 from qtpy import QtWidgets
+from ..window import Window
+from .. import global_vars as g
+from .BaseProcess import BaseProcess, BaseProcess_noPriorWindow, WindowSelector, MissingWindowError, CheckBox, SliderLabel, ComboBox
+from ..tracefig import TraceFig
+
 
 __all__ = ['deinterleave','trim','zproject','image_calculator', 'pixel_binning', 'frame_binning', 'resize', 'duplicate']
 

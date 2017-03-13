@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Jun 26 14:43:19 2014
-
+Flika
 @author: Kyle Ellefsen
+@author: Brett Settle
+@license: MIT
 """
 
 import pyqtgraph as pg
@@ -11,8 +12,6 @@ import time
 import os.path
 import numpy as np
 from skimage.io import imread, imsave
-from window import Window
-import global_vars as g
 from qtpy import uic, QtGui, QtCore, QtWidgets
 from qtpy.QtWidgets import qApp
 import codecs
@@ -22,10 +21,12 @@ import json
 import re
 import nd2reader
 import datetime
-from app.terminal_widget import ScriptEditor
-from process.BaseProcess import BaseDialog
 import json
 
+from .. import global_vars as g
+from ..app.terminal_widget import ScriptEditor
+from .BaseProcess import BaseDialog
+from ..window import Window
 
 __all__ = ['save_window', 'save_points', 'export_movie_gui', 'open_file_from_gui', 'open_file', 'load_points', 'close', 'make_recent_menu']
 

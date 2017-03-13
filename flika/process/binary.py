@@ -1,17 +1,19 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Jul 03 09:40:19 2014
-
+Flika
 @author: Kyle Ellefsen
+@author: Brett Settle
+@license: MIT
 """
 import numpy as np
 import scipy
-import global_vars as g
 import scipy.ndimage    
 from skimage import feature, measure
 from skimage.filters import threshold_adaptive
-from process.BaseProcess import BaseProcess, SliderLabel, WindowSelector,  MissingWindowError, CheckBox, ComboBox
-from qtpy import QtCore, QtGui, QtWidgets  
+from qtpy import QtCore, QtGui, QtWidgets
+from .. import global_vars as g
+from .BaseProcess import BaseProcess, SliderLabel, WindowSelector,  MissingWindowError, CheckBox, ComboBox
+
 
 __all__ = ['threshold','remove_small_blobs','adaptive_threshold','logically_combine','binary_dilation','binary_erosion']
      

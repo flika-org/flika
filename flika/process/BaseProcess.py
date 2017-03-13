@@ -1,17 +1,19 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sat Jul 19 07:53:38 2014
-
+Flika
 @author: Kyle Ellefsen
+@author: Brett Settle
+@license: MIT
 """
 import os.path
-import global_vars as g
 import numpy as np
-import window
 from qtpy import QtCore, QtGui, QtWidgets
 import pyqtgraph as pg
 import sys
 import inspect
+
+from .. import global_vars as g
+from .. import window
 
 __all__ = []
 

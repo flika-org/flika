@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+Flika
+@author: Kyle Ellefsen
+@author: Brett Settle
+@license: MIT
+"""
 import sys, time
 from qtpy import QtWidgets, QtCore, QtGui
 from qtpy.QtCore import QThread, Signal

@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sun Jun 29 13:13:59 2014
-
+Flika
 @author: Kyle Ellefsen
+@author: Brett Settle
+@license: MIT
 """
 from qtpy import QtCore, QtGui, QtWidgets
 import pyqtgraph as pg
 pg.setConfigOptions(useWeave=False)
 import numpy as np
-import global_vars as g
 import os
 import time
+from . import global_vars as g
 
 class TraceFig(QtWidgets.QWidget):
     indexChanged=QtCore.Signal(int)

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Flika 2017
+Flika
 @author: Kyle Ellefsen
 @author: Brett Settle
 @license: MIT
@@ -10,9 +10,9 @@ import pyqtgraph as pg
 pg.setConfigOptions(useWeave=False)
 import os, time
 import numpy as np
-from tracefig import TraceFig
-import global_vars as g
-from roi import *
+from .tracefig import TraceFig
+from . import global_vars as g
+from .roi import *
 
 class Window(QtWidgets.QWidget):
     closeSignal = QtCore.Signal()

@@ -1,13 +1,22 @@
+# -*- coding: utf-8 -*-
+"""
+Flika
+@author: Kyle Ellefsen
+@author: Brett Settle
+@license: MIT
+"""
 from qtpy import QtCore, QtGui, QtWidgets
-import global_vars as g
 import pyqtgraph as pg
 from skimage.draw import polygon, line
 import numpy as np
-from tracefig import roiPlot
 import os
 import threading
 from scipy.ndimage.interpolation import rotate
-import process
+from . import global_vars as g
+from . import process
+from .tracefig import roiPlot
+
+
 
 SHOW_MASK = False
 

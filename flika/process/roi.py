@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon Jul 21 09:53:16 2014
-
+Flika
 @author: Kyle Ellefsen
+@author: Brett Settle
+@license: MIT
 """
+
 import numpy as np
-import global_vars as g
-from process.BaseProcess import BaseProcess, CheckBox
 import skimage
 from qtpy import QtWidgets
+from .. import global_vars as g
+from .BaseProcess import BaseProcess, CheckBox
+
 
 __all__ = ['set_value']
 
