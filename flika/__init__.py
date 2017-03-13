@@ -1,6 +1,7 @@
 from flika.flika import start_flika
 import flika.global_vars as g
 from flika.window import Window
+from flika.version import __version__
 
 # import modules that are commonly used inside Flika
 import numpy as np

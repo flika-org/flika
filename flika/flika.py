@@ -11,7 +11,7 @@ import os
 import sys
 from qtpy import QtCore, QtGui, QtWidgets
 import matplotlib.cm
-
+from .version import __version__
 from .import global_vars as g
 from .window import Window
 from .process.stacks import deinterleave, trim, zproject, image_calculator, pixel_binning, frame_binning, resize, change_datatype, concatenate_stacks, duplicate, generate_random_image
