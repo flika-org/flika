@@ -22,7 +22,7 @@ class TraceFig(QtWidgets.QWidget):
 
     def __init__(self):
         super(TraceFig,self).__init__()
-        g.m.traceWindows.append(self)
+        g.traceWindows.append(self)
         self.setCurrentTraceWindow()
         #roi.translated.connect(lambda: self.translated(roi))
         if 'tracefig_settings' in g.settings.d.keys() and 'coords' in g.settings['tracefig_settings']:
@@ -48,9 +48,7 @@ class TraceFig(QtWidgets.QWidget):
         self.region.setZValue(10)
         self.p2.plotItem.addItem(self.region, ignoreBounds=True)
         self.p1.setAutoVisible(y=True)
-        #self.traces=[]
         self.rois=[] # roi in this list is a dict: {roi, p1trace,p2trace, sigproxy}
-        #self.sigproxies=[]
         self.vb = self.p1.plotItem.getViewBox()
         
         self.proxy = pg.SignalProxy(self.p1.scene().sigMouseMoved, rateLimit=60, slot=self.mouseMoved)
@@ -73,7 +71,7 @@ class TraceFig(QtWidgets.QWidget):
             try:
                 g.settings['tracefig_settings']['coords']=self.geometry().getRect()
             except Exception as e:
-                print(e)
+                g.alert(e)
         self.show()
         
     def onResize(self,event):
@@ -105,8 +103,8 @@ class TraceFig(QtWidgets.QWidget):
             self.p1.scene().sigMouseClicked.disconnect(self.setCurrentTraceWindow)
         except:
             pass
-        if self in g.m.traceWindows:
-            g.m.traceWindows.remove(self)
+        if self in g.traceWindows:
+            g.traceWindows.remove(self)
         g.currentTrace = None
         event.accept() # let the window close
 
@@ -115,7 +113,6 @@ class TraceFig(QtWidgets.QWidget):
         minX, maxX = self.region.getRegion()
         self.p1.plotItem.setXRange(minX, maxX, padding=0, update=False)    
         self.p1.plotItem.axes['bottom']['item'].setRange(minX,maxX)
-        #self.p1.plotItem.update()
 
     def updateRegion(self,window, viewRange):
         rgn = viewRange[0]
@@ -123,7 +120,7 @@ class TraceFig(QtWidgets.QWidget):
 
     def getBounds(self):
         bounds=self.region.getRegion()
-        bounds=[int(np.floor(bounds[0])),int(np.ceil(bounds[1]))]
+        bounds=[int(np.floor(bounds[0])),int(np.ceil(bounds[1]))+1]
         return bounds
 
     def mouseMoved(self,evt):
@@ -143,15 +140,16 @@ class TraceFig(QtWidgets.QWidget):
     def get_roi_index(self,roi):
         return [r['roi'] for r in self.rois].index(roi)
         
-    def alert(self,msg):
-        pass  # print(msg)
-        
+    def alert(self, msg):
+        #print(msg)
+        pass
+
     def translated(self,roi):
         index=self.get_roi_index(roi)
         self.rois[index]['toBeRedrawn']=True
         if self.redrawPartialThread is None or self.redrawPartialThread.isFinished():
             self.alert('Launching redrawPartialThread')
-            self.redrawPartialThread=RedrawPartialThread(self)
+            self.redrawPartialThread = RedrawPartialThread(self)
             self.redrawPartialThread.alert.connect(self.alert)
             self.redrawPartialThread.start()
             self.redrawPartialThread.updated.connect(self.partialThreadUpdatedSignal.emit)
@@ -180,7 +178,7 @@ class TraceFig(QtWidgets.QWidget):
         pen=QtGui.QPen(roi.pen)
         if len(trace)==1:
             p1trace=self.p1.plot(trace, pen=None, symbol='o')
-            p2trace=self.p2.plot(trace, pen=None, symbol='o') 
+            p2trace=self.p2.plot(trace, pen=None, symbol='o')
         else:
             p1trace=self.p1.plot(trace, pen=pen)
             p2trace=self.p2.plot(trace, pen=pen) 
@@ -272,7 +270,7 @@ class RedrawPartialThread(QtCore.QThread):
             time.sleep(.05)
             self.redraw()
             self.updated.emit()
-
+        self.alert.emit("Finished Redraw")
         self.finished.emit()
         
     def request_quit_loop(self):
@@ -312,7 +310,8 @@ class RedrawPartialThread(QtCore.QThread):
                 QtWidgets.qApp.processEvents()
             self.redrawCompleted=True
 
-
+class InvalidTraceException(Exception):
+    pass
 
 
 
