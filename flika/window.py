@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Jun 26 16:10:00 2014
-
+Flika 2017
 @author: Kyle Ellefsen
+@author: Brett Settle
+@license: MIT
 """
 from qtpy import QtCore, QtGui, QtWidgets
 import pyqtgraph as pg
@@ -25,7 +26,7 @@ class Window(QtWidgets.QWidget):
         self.commands = commands #commands is a list of the commands used to create this window, starting with loading the file
         self.metadata = metadata
         if 'is_rgb' not in metadata.keys():
-            metadata['is_rgb']=False
+            metadata['is_rgb'] = tif.ndim == 4
 
         if g.m.currentWindow is None:
             width = 684
@@ -34,17 +35,17 @@ class Window(QtWidgets.QWidget):
             x = 10+10*nwindows
             y = 484+10*nwindows
         else:
-            oldGeometry=g.m.currentWindow.geometry()
-            width=oldGeometry.width()
-            height=oldGeometry.height()
-            x=oldGeometry.x()+10
-            y=oldGeometry.y()+10
-        self.name=name
-        self.filename=filename
+            oldGeometry = g.m.currentWindow.geometry()
+            width = oldGeometry.width()
+            height = oldGeometry.height()
+            x = oldGeometry.x()+10
+            y = oldGeometry.y()+10
+        self.name = name
+        self.filename = filename
         self.setAsCurrentWindow()
         self.setWindowTitle(name)
         self.setWindowIcon(QtGui.QIcon('images/favicon.png'))
-        self.imageview=pg.ImageView(self)
+        self.imageview = pg.ImageView(self)
         self.imageview.setMouseTracking(True)
         self.imageview.installEventFilter(self)
         self.imageview.ui.menuBtn.setParent(None)
@@ -53,7 +54,6 @@ class Window(QtWidgets.QWidget):
         self.imageview.ui.normLUTbtn.setObjectName("LUT norm")
         self.imageview.ui.normLUTbtn.setText("LUT norm")
         self.imageview.ui.gridLayout.addWidget(self.imageview.ui.normLUTbtn, 1, 1, 1, 1)
-
         self.imageview.ui.normLUTbtn.pressed.connect(self.normLUT)
         rp = self.imageview.ui.roiPlot.getPlotItem()
         self.linkMenu = QtWidgets.QMenu("Link frame")
@@ -63,6 +63,7 @@ class Window(QtWidgets.QWidget):
         if np.any(np.isinf(tif)):
             tif[np.isinf(tif)] = 0
             g.alert('Some array values were inf. Setting those values to 0')
+
         self.imageview.setImage(tif)
         self.image = tif
         self.volume = None  # When attaching a 4D array to this Window object, where self.image is a 3D slice of this volume, attach it here. This will remain None for all 3D Windows
@@ -70,21 +71,21 @@ class Window(QtWidgets.QWidget):
         self.nDims = len(np.shape(self.image))
         if self.nDims == 3:
             if metadata['is_rgb']:
-                mx,my,mc=tif.shape
+                mx,my,mc = tif.shape
                 mt = 1
-                dimensions_txt="{}x{} pixels; {} colors; ".format(mx,my,mc)
+                dimensions_txt = "{}x{} pixels; {} colors; ".format(mx,my,mc)
             else:
-                mt, mx, my=tif.shape
-                dimensions_txt="{} frames; {}x{} pixels; ".format(mt, mx, my)
+                mt, mx, my = tif.shape
+                dimensions_txt = "{} frames; {}x{} pixels; ".format(mt, mx, my)
         elif self.nDims == 4:
             mt,mx,my,mc = tif.shape
-            dimensions_txt = "{} frames; {}x{} pixels; {} colors; ".format(mt,mx,my,mc)
+            dimensions_txt = "{} frames; {}x{} pixels; {} colors; ".format(mt, mx, my, mc)
         elif self.nDims == 2:
-            mt=1
-            mx,my=tif.shape
-            dimensions_txt="{}x{} pixels; ".format(mx,my)
+            mt = 1
+            mx, my = tif.shape
+            dimensions_txt = "{}x{} pixels; ".format(mx, my)
         self.mx = mx; self.my = my; self.mt = mt
-        dtype=self.image.dtype
+        dtype = self.image.dtype
         dimensions_txt += 'dtype='+str(dtype)
         if 'timestamps' in self.metadata:
             ts = self.metadata['timestamps']
@@ -179,16 +180,14 @@ class Window(QtWidgets.QWidget):
         t = int(np.floor(t))
         if 0 <= t < self.mt:
             self.currentIndex = t
-            if not g.m.settings['show_all_points']:
+            if not g.settings['show_all_points']:
                 pointSizes = [pt[3] for pt in self.scatterPoints[t]]
                 brushes = [pg.mkBrush(*pt[2].getRgb()) for pt in self.scatterPoints[t]]
                 self.scatterPlot.setPoints(pos=self.scatterPoints[t], size=pointSizes, brush=brushes)
             self.sigTimeChanged.emit(t)
 
     def setIndex(self,index):
-        if not hasattr(self, "image"):
-            return
-        if index>=0 and index<len(self.image):
+        if hasattr(self, 'image') and self.image.ndim > 2 and 0 <= index < len(self.image):
             self.imageview.setCurrentIndex(index)
 
     def showFrame(self,index):
@@ -220,7 +219,7 @@ class Window(QtWidgets.QWidget):
         self.setWindowTitle(name)
         
     def reset(self):
-        currentIndex=self.currentIndex
+        currentIndex = int(self.currentIndex)
         self.imageview.setImage(self.image,autoLevels=True) #I had autoLevels=False before.  I changed it to adjust after boolean previews.
         if self.mt != 1:
             self.imageview.setCurrentIndex(currentIndex)
@@ -228,23 +227,22 @@ class Window(QtWidgets.QWidget):
 
     def closeEvent(self, event):
         if self.closed:
-            print('This window was already closed')
+            print('Attempt to close window {} that was already closed'.format(self))
             event.accept()
         else:
             self.closeSignal.emit()
-            for win in self.linkedWindows:
+            for win in list(self.linkedWindows):
                 self.unlink(win)
             if hasattr(self,'image'):
                 del self.image
             self.imageview.setImage(np.zeros((2,2))) #clear the memory
             self.imageview.close()
             del self.imageview
-            if g.m.currentWindow==self:
-                g.m.currentWindow=None
+            if g.m.currentWindow == self:
+                g.m.currentWindow = None
             if self in g.m.windows:
                 g.m.windows.remove(self)
-            self.closed=True
-
+            self.closed = True
             event.accept() # let the window close
 
     def imageArray(self):
@@ -311,7 +309,7 @@ class Window(QtWidgets.QWidget):
         p = points[0]
         x, y = p.pos()
 
-        if g.m.settings['show_all_points']:
+        if g.settings['show_all_points']:
             pts = []
             for t in np.arange(self.mt):
                 self.scatterPoints[t] = [p for p in self.scatterPoints[t] if not (x == p[0] and y == p[1])]
@@ -339,11 +337,11 @@ class Window(QtWidgets.QWidget):
     def mouseClickEvent(self,ev):
         self.EEEE=ev
         if self.x is not None and self.y is not None and ev.button()==2 and not self.creatingROI:
-            mm=g.m.settings['mousemode']
+            mm=g.settings['mousemode']
             if mm=='point':
                 t=self.currentIndex
-                pointSize=g.m.settings['point_size']
-                pointColor = QtGui.QColor(g.m.settings['point_color'])
+                pointSize=g.settings['point_size']
+                pointColor = QtGui.QColor(g.settings['point_color'])
                 position=[self.x,self.y, pointColor, pointSize]
                 self.scatterPoints[t].append(position)
                 self.scatterPlot.addPoints(pos=[[self.x,self.y]], size=pointSize, brush=pg.mkBrush(*pointColor.getRgb()))
@@ -389,7 +387,7 @@ class Window(QtWidgets.QWidget):
             self.imageview.view.translateBy(difference)
         if ev.button() == QtCore.Qt.RightButton:
             ev.accept()
-            mm=g.m.settings['mousemode']
+            mm = g.settings['mousemode']
             if mm in ('freehand', 'line', 'rectangle', 'rect_line'):
                 if ev.isStart():
                     self.ev = ev
@@ -406,11 +404,10 @@ class Window(QtWidgets.QWidget):
                         else:
                             self.currentROI.cancel()
                             self.creatingROI = False
-                    else: 
+                    else:
                         for r in self.currentROIs:
                             r.finish_translate()
                 else: # if we are in the middle of the drag between starting and finishing
-                    #if inImage:
                     if self.creatingROI:
                         self.currentROI.extend(self.x, self.y)
                     else:
