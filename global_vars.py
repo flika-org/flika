@@ -103,7 +103,7 @@ class Settings:
             self['nCores']=int(nCores.itemText(nCores.currentIndex()))
             self['debug_mode'] = debug_check.isChecked()
             
-        self.bd = BaseDialog(items, 'FLIKA Settings', '')
+        self.bd = BaseDialog(items, 'Flika Settings', '')
         self.bd.accepted.connect(update)
         self.bd.changeSignal.connect(update)
         self.bd.show()
