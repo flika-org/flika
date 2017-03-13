@@ -28,14 +28,14 @@ class Window(QtWidgets.QWidget):
         if 'is_rgb' not in metadata.keys():
             metadata['is_rgb'] = tif.ndim == 4
 
-        if g.m.currentWindow is None:
+        if g.currentWindow is None:
             width = 684
             height = 585
-            nwindows = len(g.m.windows)
+            nwindows = len(g.windows)
             x = 10+10*nwindows
             y = 484+10*nwindows
         else:
-            oldGeometry = g.m.currentWindow.geometry()
+            oldGeometry = g.currentWindow.geometry()
             width = oldGeometry.width()
             height = oldGeometry.height()
             x = oldGeometry.x()+10
@@ -86,10 +86,10 @@ class Window(QtWidgets.QWidget):
             dimensions_txt = "{}x{} pixels; ".format(mx, my)
         self.mx = mx; self.my = my; self.mt = mt
         dtype = self.image.dtype
-        dimensions_txt += 'dtype='+str(dtype)
+        dimensions_txt += 'dtype=' + str(dtype)
         if 'timestamps' in self.metadata:
             ts = self.metadata['timestamps']
-            self.framerate = (ts[-1]-ts[0])/len(ts)
+            self.framerate = (ts[-1] - ts[0]) / len(ts)
             dimensions_txt += '; {:.4f} {}/frame'.format(self.framerate, self.metadata['timestamp_units'])
         self.top_left_label = pg.LabelItem(dimensions_txt, justify='right')
         self.imageview.ui.graphicsView.addItem(self.top_left_label)
@@ -119,8 +119,8 @@ class Window(QtWidgets.QWidget):
             self.show()
             QtWidgets.qApp.processEvents()
         self.sigTimeChanged.connect(self.showFrame)
-        if self not in g.m.windows:
-            g.m.windows.append(self)
+        if self not in g.windows:
+            g.windows.append(self)
         self.closed=False
 
         from process.measure import measure
@@ -167,7 +167,7 @@ class Window(QtWidgets.QWidget):
 
     def make_link_menu(self):
         self.linkMenu.clear()
-        for win in g.m.windows:
+        for win in g.windows:
             if win == self or not win.isVisible():
                 continue
             win_action = QtWidgets.QAction("%s" % win.name, self.linkMenu, checkable=True)
@@ -238,11 +238,11 @@ class Window(QtWidgets.QWidget):
             self.imageview.setImage(np.zeros((2,2))) #clear the memory
             self.imageview.close()
             del self.imageview
-            if g.m.currentWindow == self:
-                g.m.currentWindow = None
-            if self in g.m.windows:
-                g.m.windows.remove(self)
-            self.closed = True
+            if g.currentWindow==self:
+                g.currentWindow=None
+            if self in g.windows:
+                g.windows.remove(self)
+            self.closed=True
             event.accept() # let the window close
 
     def imageArray(self):
@@ -296,10 +296,10 @@ class Window(QtWidgets.QWidget):
         self.setAsCurrentWindow()
 
     def setAsCurrentWindow(self):
-        if g.m.currentWindow is not None:
-            g.m.currentWindow.setStyleSheet("border:1px solid rgb(0, 0, 0); ")
-            g.m.currentWindow.lostFocusSignal.emit()
-        g.m.currentWindow=self
+        if g.currentWindow is not None:
+            g.currentWindow.setStyleSheet("border:1px solid rgb(0, 0, 0); ")
+            g.currentWindow.lostFocusSignal.emit()
+        g.currentWindow=self
         g.m.setWindowTitle("Flika - {}".format(self.name))
         self.setStyleSheet("border:1px solid rgb(0, 255, 0); ")
         g.m.setCurrentWindowSignal.sig.emit()
