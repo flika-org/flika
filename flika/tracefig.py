@@ -24,7 +24,7 @@ class TraceFig(QtWidgets.QWidget):
         super(TraceFig,self).__init__()
         g.traceWindows.append(self)
         self.setCurrentTraceWindow()
-        if 'tracefig_settings' in g.settings and 'coords' in g.settings['tracefig_settings']:
+        if 'tracefig_settings' in g.settings.d.keys() and 'coords' in g.settings['tracefig_settings']:
             self.setGeometry(QtCore.QRect(*g.settings['tracefig_settings']['coords']))
         self.setWindowTitle('Flika')
         self.setWindowIcon(QtGui.QIcon('images/favicon.png'))
@@ -62,7 +62,7 @@ class TraceFig(QtWidgets.QWidget):
         self.resizeEvent = self.onResize
         self.moveEvent = self.onMove
         
-        if 'tracefig_settings' not in g.settings:
+        if 'tracefig_settings' not in g.settings.d.keys():
             g.settings['tracefig_settings']=dict()
             try:
                 g.settings['tracefig_settings']['coords']=self.geometry().getRect()
