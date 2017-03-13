@@ -1,4 +1,4 @@
-from flika.app.BaseProcess import BaseDialog, BaseProcess, ColorSelector
+from flika.process.BaseProcess import BaseDialog, BaseProcess, ColorSelector
 import flika.global_vars as g
 import numpy as np
 from pyqtgraph import ComboBox

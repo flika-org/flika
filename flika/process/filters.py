@@ -8,7 +8,7 @@ import numpy as np
 import skimage
 import skimage.filters
 import flika.global_vars as g
-from flika.app.BaseProcess import BaseProcess, SliderLabel, SliderLabelOdd, CheckBox
+from flika.process.BaseProcess import BaseProcess, SliderLabel, SliderLabelOdd, CheckBox
 from qtpy import QtWidgets
 import time
 from flika.process.progress_bar import ProgressBar

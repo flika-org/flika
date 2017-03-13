@@ -1,7 +1,7 @@
 import numpy as np
 from flika.window import Window
 import flika.global_vars as g
-from flika.app.BaseProcess import BaseProcess, WindowSelector, MissingWindowError, CheckBox
+from flika.process.BaseProcess import BaseProcess, WindowSelector, MissingWindowError, CheckBox
 from qtpy import QtWidgets, QtCore, QtGui
 
 __all__ = ['split_channels']

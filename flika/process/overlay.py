@@ -9,7 +9,7 @@ import flika.global_vars as g
 import pyqtgraph as pg
 from qtpy import QtWidgets, QtCore, QtGui
 
-from flika.app.BaseProcess import BaseProcess, SliderLabel, WindowSelector,  MissingWindowError, CheckBox, ComboBox
+from flika.process.BaseProcess import BaseProcess, SliderLabel, WindowSelector,  MissingWindowError, CheckBox, ComboBox
 
 __all__ = ['time_stamp','background','scale_bar']
      

@@ -7,7 +7,7 @@ Created on Thu Aug 28 12:54:12 2014
 import os
 import numpy as np
 import flika.global_vars as g
-from flika.app.BaseProcess import BaseProcess
+from flika.process.BaseProcess import BaseProcess
 import pyqtgraph as pg
 from qtpy import QtWidgets, QtCore, QtGui
 from flika.utils import getSaveFileName

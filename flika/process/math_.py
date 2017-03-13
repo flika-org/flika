@@ -6,7 +6,7 @@ Created on Thu Jun 26 19:44:11 2014
 """
 import numpy as np
 import flika.global_vars as g
-from flika.app.BaseProcess import BaseProcess, ComboBox, CheckBox
+from flika.process.BaseProcess import BaseProcess, ComboBox, CheckBox
 from qtpy import QtWidgets
 
 __all__ = ['subtract','multiply','power','ratio','absolute_value','subtract_trace','divide_trace']

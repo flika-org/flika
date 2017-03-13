@@ -7,7 +7,7 @@ Created on Thu Jun 26 16:18:16 2014
 from flika.window import Window
 import numpy as np
 import flika.global_vars as g
-from flika.app.BaseProcess import BaseProcess, WindowSelector, MissingWindowError, CheckBox, BaseProcess_noPriorWindow, SliderLabel, ComboBox
+from flika.process.BaseProcess import BaseProcess, WindowSelector, MissingWindowError, CheckBox, BaseProcess_noPriorWindow, SliderLabel, ComboBox
 from qtpy import QtWidgets
 from flika.tracefig import TraceFig
 

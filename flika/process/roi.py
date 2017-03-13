@@ -6,7 +6,7 @@ Created on Mon Jul 21 09:53:16 2014
 """
 import numpy as np
 import flika.global_vars as g
-from flika.app.BaseProcess import BaseProcess, CheckBox
+from flika.process.BaseProcess import BaseProcess, CheckBox
 from qtpy import QtWidgets
 import skimage
 

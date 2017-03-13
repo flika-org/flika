@@ -10,7 +10,7 @@ import flika.global_vars as g
 import scipy.ndimage
 from skimage import feature, measure
 from skimage.filters import threshold_adaptive
-from flika.app.BaseProcess import BaseProcess, SliderLabel, WindowSelector,  MissingWindowError, CheckBox, ComboBox
+from flika.process.BaseProcess import BaseProcess, SliderLabel, WindowSelector,  MissingWindowError, CheckBox, ComboBox
 from qtpy import QtWidgets
 
 

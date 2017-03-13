@@ -11,7 +11,7 @@ from flika.window import Window
 import flika.global_vars as g
 from flika.core import tifffile
 from flika.app.terminal_widget import ScriptEditor
-from flika.app.BaseProcess import BaseDialog
+from flika.process.BaseProcess import BaseDialog
 from flika.utils import getOpenFileName, getSaveFileName
 
 
