@@ -79,7 +79,7 @@ class ScriptEditor(QtWidgets.QMainWindow):
         text = """Predefined Libraries:
     scipy and numpy (np)
 Useful variables:
-    g.m.windows - list of windows.
+    g.windows - list of windows.
     g.currentWindow - the selected window
     g.currentWindow.rois -list of rois in that window
     - roi.getTrace() gets an roi trace as an array """

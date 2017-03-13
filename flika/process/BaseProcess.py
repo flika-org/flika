@@ -53,7 +53,7 @@ class WindowSelector(QtWidgets.QWidget):
                 g.m.setCurrentWindowSignal.sig.disconnect(self.setWindow)
             except TypeError:
                 pass
-            self.window = g.m.currentWindow
+            self.window = g.currentWindow
         else:
             self.window = window
         self.button.setChecked(False)
@@ -314,7 +314,7 @@ class BaseProcess(object):
         self.command = funcname+'('+', '.join([i+'='+convert_to_string(values[i]) for i in args if i!='self'])+')'
         g.m.statusBar().showMessage('Running function {}...'.format(self.__name__))
         self.keepSourceWindow = keepSourceWindow
-        self.oldwindow = g.m.currentWindow
+        self.oldwindow = g.currentWindow
         if self.oldwindow is None:
             raise(MissingWindowError("You cannot execute '{}' without selecting a window first.".format(self.__name__)))
         self.tif=self.oldwindow.image
@@ -344,11 +344,11 @@ class BaseProcess(object):
             self.ui.bbox.addButton(QtWidgets.QDialogButtonBox.Help)
             self.ui.bbox.helpRequested.connect(lambda : QtWidgets.QDesktopServices.openUrl(QtCore.QUrl(self.__url__)))
         self.proxy= pg.SignalProxy(self.ui.changeSignal,rateLimit=60, slot=self.preview)
-        if g.m.currentWindow is not None:
-            self.ui.rejected.connect(g.m.currentWindow.reset)
+        if g.currentWindow is not None:
+            self.ui.rejected.connect(g.currentWindow.reset)
         self.ui.accepted.connect(self.call_from_gui)
         self.ui.show()
-        g.m.dialogs.append(self.ui)
+        g.dialogs.append(self.ui)
         return True
 
     def gui_reset(self):

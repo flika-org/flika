@@ -72,15 +72,15 @@ class Gaussian_blur(BaseProcess):
         sigma=self.getValue('sigma')
         preview=self.getValue('preview')
         if preview:
-            if len(g.m.currentWindow.image.shape)==3:
-                testimage=g.m.currentWindow.image[g.m.currentWindow.currentIndex].astype(np.float64)
-            elif len(g.m.currentWindow.image.shape)==2:
-                testimage=g.m.currentWindow.image.astype(np.float64)
+            if len(g.currentWindow.image.shape)==3:
+                testimage=g.currentWindow.image[g.currentWindow.currentIndex].astype(np.float64)
+            elif len(g.currentWindow.image.shape)==2:
+                testimage=g.currentWindow.image.astype(np.float64)
             if sigma>0:
                 testimage=skimage.filters.gaussian(testimage,sigma, mode=mode)
-            g.m.currentWindow.imageview.setImage(testimage,autoLevels=False)            
+            g.currentWindow.imageview.setImage(testimage,autoLevels=False)            
         else:
-            g.m.currentWindow.reset()
+            g.currentWindow.reset()
 gaussian_blur=Gaussian_blur()
     
     
@@ -123,10 +123,10 @@ class Butterworth_filter(BaseProcess):
         self.items.append({'name':'high','string':'High Cutoff Frequency','object':high})
         self.items.append({'name':'preview','string':'Preview','object':preview})        
         super().gui()
-        self.roi=g.m.currentWindow.currentROI
+        self.roi=g.currentWindow.currentROI
         if self.roi is not None:
             self.ui.rejected.connect(self.roi.translate_done.emit)
-        if self.roi is None or g.m.currentTrace is None:
+        if self.roi is None or g.currentTrace is None:
             preview.setChecked(False)
             preview.setEnabled(False)
         
@@ -135,7 +135,7 @@ class Butterworth_filter(BaseProcess):
             return
         self.start(keepSourceWindow)
         if g.settings['multiprocessing']:
-            self.newtif=butterworth_filter_multi(filter_order,low,high,g.m.currentWindow.image)
+            self.newtif=butterworth_filter_multi(filter_order,low,high,g.currentWindow.image)
         else:
             self.newtif=np.zeros(self.tif.shape,dtype=g.settings.d['internal_data_type'])
             mt,mx,my=self.tif.shape
@@ -147,7 +147,7 @@ class Butterworth_filter(BaseProcess):
         return self.end()
         
     def preview(self):
-        if g.m.currentTrace is not None:
+        if g.currentTrace is not None:
             filter_order=self.getValue('filter_order')
             low=self.getValue('low')
             high=self.getValue('high')
@@ -160,8 +160,8 @@ class Butterworth_filter(BaseProcess):
                         b,a,padlen=self.makeButterFilter(filter_order,low,high)
                         trace=self.roi.getTrace()
                         trace=filtfilt(b,a, trace, padlen=padlen)
-                        roi_index=g.m.currentTrace.get_roi_index(self.roi)
-                        g.m.currentTrace.update_trace_full(roi_index,trace) #update_trace_partial may speed it up
+                        roi_index=g.currentTrace.get_roi_index(self.roi)
+                        g.currentTrace.update_trace_full(roi_index,trace) #update_trace_partial may speed it up
                 else:
                     self.roi.translate_done.emit()
     def makeButterFilter(self,filter_order,low,high):
@@ -260,7 +260,7 @@ class Mean_filter(BaseProcess):
         self.items.append({'name':'nFrames','string':'nFrames','object':nFrames})
         self.items.append({'name':'preview','string':'Preview','object':preview})        
         super().gui()
-        self.roi=g.m.currentWindow.currentROI
+        self.roi=g.currentWindow.currentROI
         if self.roi is not None:
             self.ui.rejected.connect(self.roi.translate_done.emit)
         else:
@@ -282,8 +282,8 @@ class Mean_filter(BaseProcess):
                 else:
                     trace=self.roi.getTrace()
                     trace=convolve(trace,weights=np.full((nFrames),1.0/nFrames))        
-                    roi_index=g.m.currentTrace.get_roi_index(self.roi)
-                    g.m.currentTrace.update_trace_full(roi_index,trace) #update_trace_partial may speed it up
+                    roi_index=g.currentTrace.get_roi_index(self.roi)
+                    g.currentTrace.update_trace_full(roi_index,trace) #update_trace_partial may speed it up
             else:
                 self.roi.translate_done.emit()    
 mean_filter=Mean_filter()
@@ -310,7 +310,7 @@ class Median_filter(BaseProcess):
         self.items.append({'name':'nFrames','string':'nFrames','object':nFrames})
         self.items.append({'name':'preview','string':'Preview','object':preview})        
         super().gui()
-        self.roi=g.m.currentWindow.currentROI
+        self.roi=g.currentWindow.currentROI
         if self.roi is not None:
             self.ui.rejected.connect(self.roi.translate_done.emit)
         else:
@@ -343,8 +343,8 @@ class Median_filter(BaseProcess):
                 else:
                     trace=self.roi.getTrace()
                     trace=medfilt(trace,kernel_size=nFrames)
-                    roi_index=g.m.currentTrace.get_roi_index(self.roi)
-                    g.m.currentTrace.update_trace_full(roi_index,trace) #update_trace_partial may speed it up
+                    roi_index=g.currentTrace.get_roi_index(self.roi)
+                    g.currentTrace.update_trace_full(roi_index,trace) #update_trace_partial may speed it up
             else:
                 self.roi.translate_done.emit()    
                 
@@ -389,7 +389,7 @@ class Fourier_filter(BaseProcess):
         self.items.append({'name':'loglogPreview','string':'Plot frequency spectrum on log log axes','object':loglogPreview})    
         self.items.append({'name':'preview','string':'Preview','object':preview})        
         super().gui()
-        self.roi=g.m.currentWindow.currentROI
+        self.roi=g.currentWindow.currentROI
         if self.roi is not None:
             self.ui.rejected.connect(self.roi.translate_done.emit)
         else:
@@ -430,8 +430,8 @@ class Fourier_filter(BaseProcess):
                     f_signal[(np.abs(W)<low)] = 0
                     f_signal[(np.abs(W)>high)] = 0
                     cut_signal=np.real(ifft(f_signal))
-                    roi_index=g.m.currentTrace.get_roi_index(self.roi)
-                    g.m.currentTrace.update_trace_full(roi_index,cut_signal) #update_trace_partial may speed it up
+                    roi_index=g.currentTrace.get_roi_index(self.roi)
+                    g.currentTrace.update_trace_full(roi_index,cut_signal) #update_trace_partial may speed it up
             else:
                 self.roi.translate_done.emit()    
                 
@@ -523,7 +523,7 @@ class Boxcar_differential_filter(BaseProcess):
         self.items.append({'name':'preview','string':'Preview','object':preview})  
         if super().gui()==False:
             return False
-        self.roi=g.m.currentWindow.currentROI
+        self.roi=g.currentWindow.currentROI
         if self.roi is not None:
             self.ui.rejected.connect(self.roi.translate_done.emit)
         else:
@@ -553,8 +553,8 @@ class Boxcar_differential_filter(BaseProcess):
                 newtrace=np.zeros(mt)
                 for i in np.arange(maxNframes,mt):
                     newtrace[i]=np.mean(tif[i]-np.min(tif[i-maxNframes:i-minNframes],0))
-                roi_index=g.m.currentTrace.get_roi_index(self.roi)
-                g.m.currentTrace.update_trace_full(roi_index,newtrace) #update_trace_partial may speed it up
+                roi_index=g.currentTrace.get_roi_index(self.roi)
+                g.currentTrace.update_trace_full(roi_index,newtrace) #update_trace_partial may speed it up
             else:
                 self.roi.translate_done.emit()        
 boxcar_differential_filter=Boxcar_differential_filter()
@@ -587,7 +587,7 @@ class Wavelet_filter(BaseProcess):
         self.items.append({'name':'high','string':'High Frequency Threshold','object':high})
         self.items.append({'name':'preview','string':'Preview','object':preview})  
         super().gui()
-        self.roi=g.m.currentWindow.currentROI
+        self.roi=g.currentWindow.currentROI
         if self.roi is not None:
             self.ui.rejected.connect(self.roi.translate_done.emit)
         else:
@@ -618,8 +618,8 @@ class Wavelet_filter(BaseProcess):
                 widths = np.arange(low, high)
                 cwtmatr = signal.cwt(trace, wavelet, widths)
                 newtrace=np.mean(cwtmatr,0)
-                roi_index=g.m.currentTrace.get_roi_index(self.roi)
-                g.m.currentTrace.update_trace_full(roi_index,newtrace) #update_trace_partial may speed it up
+                roi_index=g.currentTrace.get_roi_index(self.roi)
+                g.currentTrace.update_trace_full(roi_index,newtrace) #update_trace_partial may speed it up
             else:
                 self.roi.translate_done.emit()        
 wavelet_filter=Wavelet_filter()
@@ -673,7 +673,7 @@ class Bilateral_filter(BaseProcess):
         self.items.append({'name':'maxiter','string':'Maximum Iterations','object':maxiter})  
         self.items.append({'name':'preview','string':'Preview','object':preview})  
         super().gui()
-        self.roi=g.m.currentWindow.currentROI
+        self.roi=g.currentWindow.currentROI
         if self.roi is not None:
             self.ui.rejected.connect(self.roi.translate_done.emit)
         else:
@@ -684,7 +684,7 @@ class Bilateral_filter(BaseProcess):
         
         self.start(keepSourceWindow)
         if g.settings['multiprocessing']:
-            self.newtif=bilateral_filter_multi(soft,beta,width,stoptol,maxiter,g.m.currentWindow.image)
+            self.newtif=bilateral_filter_multi(soft,beta,width,stoptol,maxiter,g.currentWindow.image)
         else:
             self.newtif=np.zeros(self.tif.shape)
             mt,mx,my=self.tif.shape
@@ -706,8 +706,8 @@ class Bilateral_filter(BaseProcess):
             if preview:
                 trace=self.roi.getTrace()
                 trace=bilateral_smooth(soft,beta,width,stoptol,maxiter,trace)
-                roi_index=g.m.currentTrace.get_roi_index(self.roi)
-                g.m.currentTrace.update_trace_full(roi_index,trace) #update_trace_partial may speed it up
+                roi_index=g.currentTrace.get_roi_index(self.roi)
+                g.currentTrace.update_trace_full(roi_index,trace) #update_trace_partial may speed it up
             else:
                 self.roi.translate_done.emit()        
         
@@ -827,7 +827,7 @@ bilateral_filter=Bilateral_filter()
 
 
 #from scipy import signal
-#data=g.m.currentTrace.rois[0]['roi'].getTrace()
+#data=g.currentTrace.rois[0]['roi'].getTrace()
 #wavelet = signal.ricker
 #widths = np.arange(1, 200)
 #cwtmatr = signal.cwt(data, wavelet, widths)

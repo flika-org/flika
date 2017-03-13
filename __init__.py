@@ -1,1 +1,0 @@
-from flika.flika import start_flika

@@ -17,7 +17,7 @@ __all__ = ['deinterleave','trim','zproject','image_calculator', 'pixel_binning',
 
 
 def duplicate():
-    old = g.m.currentWindow
+    old = g.currentWindow
     if old is None:
         g.alert('Select a window before trying to duplicate it.')
     else:
@@ -221,8 +221,8 @@ class Trim(BaseProcess):
     def gui(self):
         self.gui_reset()
         nFrames=1
-        if g.m.currentWindow is not None:
-            nFrames=g.m.currentWindow.image.shape[0]
+        if g.currentWindow is not None:
+            nFrames=g.currentWindow.image.shape[0]
         firstFrame=QtWidgets.QSpinBox()
         firstFrame.setMaximum(nFrames-1)
         lastFrame=QtWidgets.QSpinBox()
@@ -243,7 +243,7 @@ class Trim(BaseProcess):
     def get_init_settings_dict(self):
         s = dict()
         s['firstFrame'] = 0
-        s['lastFrame'] = g.m.currentWindow.image.shape[0]
+        s['lastFrame'] = g.currentWindow.image.shape[0]
         s['increment'] = 1
         s['delete'] = False
         return s
@@ -278,11 +278,11 @@ class ZProject(BaseProcess):
     def gui(self):
         self.gui_reset()
         nFrames=1
-        if len(g.m.currentWindow.image.shape)!=3:
+        if len(g.currentWindow.image.shape)!=3:
             g.m.statusBar().showMessage('zproject only works on 3 dimensional windows')
             return False
-        if g.m.currentWindow is not None:
-            nFrames=g.m.currentWindow.image.shape[0]
+        if g.currentWindow is not None:
+            nFrames=g.currentWindow.image.shape[0]
         firstFrame=QtWidgets.QSpinBox()
         firstFrame.setMaximum(nFrames)
         self.items.append({'name':'firstFrame','string':'First Frame','object':firstFrame})

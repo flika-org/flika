@@ -82,10 +82,10 @@ class TraceFig(QtWidgets.QWidget):
         g.settings['tracefig_settings']['coords']=self.geometry().getRect()
         
     def setCurrentTraceWindow(self):
-        if g.m.currentTrace is not None:
-            g.m.currentTrace.setStyleSheet("border:1px solid rgb(0, 0, 0); ")
+        if g.currentTrace is not None:
+            g.currentTrace.setStyleSheet("border:1px solid rgb(0, 0, 0); ")
         self.setStyleSheet("border:1px solid rgb(0, 255, 0); ")
-        g.m.currentTrace = self
+        g.currentTrace = self
 
     def mouseDragEvent2(self,ev):
         ev.ignore() # prevent anything from happening
@@ -106,7 +106,7 @@ class TraceFig(QtWidgets.QWidget):
             pass
         if self in g.m.traceWindows:
             g.m.traceWindows.remove(self)
-        g.m.currentTrace = None
+        g.currentTrace = None
         event.accept() # let the window close
 
     def update(self):
@@ -246,10 +246,10 @@ def roiPlot(roi):
     '''
     returns tracefig that is used to plot roi
     '''
-    if g.m.settings['multipleTraceWindows'] or g.m.currentTrace is None:
+    if g.settings['multipleTraceWindows'] or g.currentTrace is None:
         win = TraceFig()
     else:
-        win = g.m.currentTrace
+        win = g.currentTrace
     win.addROI(roi)
     return win
     

@@ -6,7 +6,6 @@ from urllib.request import urlopen
 from os.path import expanduser
 import numpy as np
 from pyqtgraph.dockarea import *
-
 from process.BaseProcess import BaseDialog, ColorSelector
 import pyqtgraph as pg
 from app.plugin_manager import PluginManager, load_plugin_menu
@@ -17,8 +16,7 @@ from sys import executable
 from subprocess import Popen
 
 data_types = ['uint8', 'uint16', 'uint32', 'uint64', 'int8', 'int16', 'int32', 'int64', 'float16', 'float32', 'float64']
-mainGuiInitialized=False
-m = None
+mainGuiInitialized = False
 halt_current_computation = False
 
 
@@ -166,7 +164,7 @@ def pointSettings(pointButton):
 
 def mainguiClose(event):
     global m
-    for win in m.windows[:] + m.traceWindows[:] + m.dialogs[:]:
+    for win in windows[:] + traceWindows[:] + dialogs[:]:
         win.close()
     ScriptEditor.close()
     PluginManager.close()
@@ -280,17 +278,25 @@ settings=Settings()
 
 def init(filename):
     global m, mainGuiInitialized
-    mainGuiInitialized=True
+    mainGuiInitialized = True
     m = uic.loadUi(filename)
     load_plugin_menu()
     m.setCurrentWindowSignal = SetCurrentWindowSignal(m)
-    m.settings = settings
-    m.windows = []
-    m.traceWindows = []
-    m.dialogs = []
-    m.currentWindow = None
-    m.currentTrace = None
-    m.clipboard = None
     m.setAcceptDrops(True)
     m.closeEvent = mainguiClose
+
+
+m = None  # will be main window
+menus = []
+windows = []
+traceWindows = []
+dialogs = []
+currentWindow = None
+currentTrace = None
+clipboard = None
+
+
+
+
+
 

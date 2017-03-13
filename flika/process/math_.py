@@ -47,9 +47,9 @@ class Subtract(BaseProcess):
     def gui(self):
         self.gui_reset()
         value=QtWidgets.QDoubleSpinBox()
-        if g.m.currentWindow is not None:
-            value.setRange(-1 * np.max(g.m.currentWindow.image),np.max(g.m.currentWindow.image)) # -np.max sometimes returns abnormal large value
-            value.setValue(np.min(g.m.currentWindow.image))
+        if g.currentWindow is not None:
+            value.setRange(-1 * np.max(g.currentWindow.image),np.max(g.currentWindow.image)) # -np.max sometimes returns abnormal large value
+            value.setValue(np.min(g.currentWindow.image))
         self.items.append({'name':'value','string':'Value','object':value})
         self.items.append({'name':'preview','string':'Preview','object':CheckBox()})
         super().gui()
@@ -70,11 +70,11 @@ class Subtract(BaseProcess):
         value=self.getValue('value')
         preview=self.getValue('preview')
         if preview:
-            testimage=np.copy(g.m.currentWindow.image[g.m.currentWindow.currentIndex])
+            testimage=np.copy(g.currentWindow.image[g.currentWindow.currentIndex])
             testimage=testimage-value
-            g.m.currentWindow.imageview.setImage(testimage,autoLevels=False)
+            g.currentWindow.imageview.setImage(testimage,autoLevels=False)
         else:
-            g.m.currentWindow.reset()
+            g.currentWindow.reset()
 subtract=Subtract()
 
 class Subtract_trace(BaseProcess):
@@ -90,7 +90,7 @@ class Subtract_trace(BaseProcess):
         super().__init__()
     def __call__(self,keepSourceWindow=False):
         self.start(keepSourceWindow)
-        trace=g.m.currentTrace.rois[-1]['roi'].getTrace()
+        trace=g.currentTrace.rois[-1]['roi'].getTrace()
         nDims=len(self.tif.shape)
         if nDims !=3:
             print('Wrong number of dimensions')
@@ -116,7 +116,7 @@ class Divide_trace(BaseProcess):
         super().__init__()
     def __call__(self,keepSourceWindow=False):
         self.start(keepSourceWindow)
-        trace=g.m.currentTrace.rois[-1]['roi'].getTrace()
+        trace=g.currentTrace.rois[-1]['roi'].getTrace()
         nDims=len(self.tif.shape)
         if nDims !=3:
             print('Wrong number of dimensions')
@@ -156,11 +156,11 @@ class Multiply(BaseProcess):
         value=self.getValue('value')
         preview=self.getValue('preview')
         if preview:
-            testimage=np.copy(g.m.currentWindow.image[g.m.currentWindow.currentIndex])
+            testimage=np.copy(g.currentWindow.image[g.currentWindow.currentIndex])
             testimage=testimage*value
-            g.m.currentWindow.imageview.setImage(testimage,autoLevels=False)
+            g.currentWindow.imageview.setImage(testimage,autoLevels=False)
         else:
-            g.m.currentWindow.reset()
+            g.currentWindow.reset()
 multiply=Multiply()
 
 class Power(BaseProcess):
@@ -177,7 +177,7 @@ class Power(BaseProcess):
     def gui(self):
         self.gui_reset()
         value=QtWidgets.QDoubleSpinBox()
-        if g.m.currentWindow is not None:
+        if g.currentWindow is not None:
             value.setRange(-100,100)
             value.setValue(1)
         self.items.append({'name':'value','string':'Value','object':value})
@@ -192,11 +192,11 @@ class Power(BaseProcess):
         value=self.getValue('value')
         preview=self.getValue('preview')
         if preview:
-            testimage=np.copy(g.m.currentWindow.image[g.m.currentWindow.currentIndex])
+            testimage=np.copy(g.currentWindow.image[g.currentWindow.currentIndex])
             testimage=testimage**value
-            g.m.currentWindow.imageview.setImage(testimage,autoLevels=False)
+            g.currentWindow.imageview.setImage(testimage,autoLevels=False)
         else:
-            g.m.currentWindow.reset()
+            g.currentWindow.reset()
 power=Power()
     
 class Ratio(BaseProcess):
@@ -215,8 +215,8 @@ class Ratio(BaseProcess):
     def gui(self):
         self.gui_reset()
         nFrames=1
-        if g.m.currentWindow is not None:
-            nFrames=g.m.currentWindow.image.shape[0]
+        if g.currentWindow is not None:
+            nFrames=g.currentWindow.image.shape[0]
         first_frame=QtWidgets.QSpinBox()
         first_frame.setMaximum(nFrames)
         self.items.append({'name':'first_frame','string':'First Frame','object':first_frame})

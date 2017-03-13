@@ -27,8 +27,8 @@ class ROI_Drawing(pg.GraphicsObject):
         self.state = {'pos': pg.Point(x, y), 'size': pg.Point(0, 0)}
 
     def cancel(self):
-        g.m.currentWindow.imageview.removeItem(self)
-        g.m.currentWindow.currentROI = None
+        g.currentWindow.imageview.removeItem(self)
+        g.currentWindow.currentROI = None
 
     def extendRectLine(self):
         for roi in self.window.rois:
@@ -185,15 +185,15 @@ class ROI_Wrapper():
         except:
             # sometimes errors, says signals not connected
             pass
-        if self.traceWindow != None:
+        if self.traceWindow is not None:
             self.traceWindow.removeROI(self)
             self.traceWindow = None
 
     def copy(self):
-        g.m.clipboard=self
+        g.clipboard = self
 
     def link(self,roi):
-        '''This function links this roi to another, so a translation of one will cause a translation of the other'''
+        """ This function links this roi to another, so a translation of one will cause a translation of the other. """
         join = self.linkedROIs | roi.linkedROIs | {self, roi}
         self.linkedROIs = join - {self}
         roi.linkedROIs = join - {roi}
@@ -328,7 +328,7 @@ class ROI_line(ROI_Wrapper, pg.LineSegmentROI):
     
     def createKymograph(self,mn):
         from window import Window
-        oldwindow=g.m.currentWindow
+        oldwindow=g.currentWindow
         name=oldwindow.name+' - Kymograph'
         self.kymograph=Window(mn,name,metadata=self.window.metadata)
         
@@ -542,7 +542,7 @@ class ROI_rect_line(ROI_Wrapper, pg.MultiRectROI):
     
     def createKymograph(self,mn):
         from window import Window
-        oldwindow=g.m.currentWindow
+        oldwindow=g.currentWindow
         name=oldwindow.name+' - Kymograph'
         self.kymograph=Window(mn,name,metadata=self.window.metadata)
         self.kymographproxy = pg.SignalProxy(self.sigRegionChanged, rateLimit=1, slot=self.update_kymograph) #This will only update 3 Hz
@@ -731,9 +731,9 @@ class ROI(ROI_Wrapper, pg.ROI):
 
 def makeROI(kind, pts, window=None, **kargs):
     if window is None:
-        window=g.m.currentWindow
+        window = g.currentWindow
     if kind == 'freehand':
-        roi=ROI(window, pts, **kargs)
+        roi = ROI(window, pts, **kargs)
     elif kind == 'rectangle':
         if len(pts) > 2:
             size = np.ptp(pts,0)

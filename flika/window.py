@@ -286,10 +286,10 @@ class Window(QtWidgets.QWidget):
     def paste(self):
         ''' This function pastes an ROI from one window into another.
         The ROIs will be linked so that when you translate one of them, the other one also moves'''
-        if g.m.clipboard in self.rois:
+        if g.clipboard in self.rois:
             return False
-        self.currentROI=makeROI(g.m.clipboard.kind,g.m.clipboard.pts,self)
-        self.currentROI.link(g.m.clipboard)
+        self.currentROI=makeROI(g.clipboard.kind, g.clipboard.pts, self)
+        self.currentROI.link(g.clipboard)
         
     def mousePressEvent(self,ev):
         ev.accept()
@@ -347,7 +347,7 @@ class Window(QtWidgets.QWidget):
                 self.scatterPlot.addPoints(pos=[[self.x,self.y]], size=pointSize, brush=pg.mkBrush(*pointColor.getRgb()))
                 #  self.imageview.view.__class__.mouseClickEvent(self.imageview.view, ev)
                         
-            elif g.m.clipboard is not None:
+            elif g.clipboard is not None:
                 self.menu = QtWidgets.QMenu(self)
                 self.menu.addAction(self.pasteAct)
                 self.menu.exec_(ev.screenPos().toQPoint())

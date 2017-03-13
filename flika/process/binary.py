@@ -39,8 +39,8 @@ class Threshold(BaseProcess):
     def gui(self):
         self.gui_reset()
         valueSlider=SliderLabel(2)
-        if g.m.currentWindow is not None:
-            image=g.m.currentWindow.image
+        if g.currentWindow is not None:
+            image=g.currentWindow.image
             valueSlider.setRange(np.min(image),np.max(image))
             valueSlider.setValue(np.mean(image))
         preview=CheckBox()
@@ -65,28 +65,28 @@ class Threshold(BaseProcess):
         value=self.getValue('value')
         preview=self.getValue('preview')
         darkBackground=self.getValue('darkBackground')
-        nDim=len(g.m.currentWindow.image.shape)
+        nDim=len(g.currentWindow.image.shape)
         if nDim > 3:
             g.alert("You cannot run this function on an image of dimension greater than 3. If your window has color, convert to a grayscale image before running this function")
             return None
         if preview:
             if nDim==3: # if the image is 3d
-                testimage=np.copy(g.m.currentWindow.image[g.m.currentWindow.currentIndex])
+                testimage=np.copy(g.currentWindow.image[g.currentWindow.currentIndex])
             elif nDim==2:
-                testimage=np.copy(g.m.currentWindow.image)
+                testimage=np.copy(g.currentWindow.image)
             if darkBackground:
                 testimage=testimage<value
             else:
                 testimage=testimage>value
-            g.m.currentWindow.imageview.setImage(testimage,autoLevels=False)
-            g.m.currentWindow.imageview.setLevels(-.1,1.1)
+            g.currentWindow.imageview.setImage(testimage,autoLevels=False)
+            g.currentWindow.imageview.setLevels(-.1,1.1)
         else:
-            g.m.currentWindow.reset()
+            g.currentWindow.reset()
             if nDim==3:
-                image=g.m.currentWindow.image[g.m.currentWindow.currentIndex]
+                image=g.currentWindow.image[g.currentWindow.currentIndex]
             else:
-                image=g.m.currentWindow.image
-            g.m.currentWindow.imageview.setLevels(np.min(image),np.max(image))
+                image=g.currentWindow.image
+            g.currentWindow.imageview.setLevels(np.min(image),np.max(image))
 threshold=Threshold()
 
 class BlocksizeSlider(SliderLabel):
@@ -124,8 +124,8 @@ class Adaptive_threshold(BaseProcess):
         valueSlider.setRange(-20,20)
         valueSlider.setValue(0)
         block_size=BlocksizeSlider(0)
-        if g.m.currentWindow is not None:
-            max_block=int(max([g.m.currentWindow.image.shape[-1],g.m.currentWindow.image.shape[-2]])/2)
+        if g.currentWindow is not None:
+            max_block=int(max([g.currentWindow.image.shape[-1],g.currentWindow.image.shape[-2]])/2)
         block_size.setRange(3,max_block)
         preview = CheckBox(); preview.setChecked(True)
         self.items.append({'name': 'value', 'string': 'Value', 'object': valueSlider})
@@ -157,28 +157,28 @@ class Adaptive_threshold(BaseProcess):
         block_size = self.getValue('block_size')
         preview = self.getValue('preview')
         darkBackground = self.getValue('darkBackground')
-        nDim = len(g.m.currentWindow.image.shape)
+        nDim = len(g.currentWindow.image.shape)
         if nDim > 3:
             g.alert("You cannot run this function on an image of dimension greater than 3. If your window has color, convert to a grayscale image before running this function")
             return None
         if preview:
             if nDim == 3: # if the image is 3d
-                testimage=np.copy(g.m.currentWindow.image[g.m.currentWindow.currentIndex])
+                testimage=np.copy(g.currentWindow.image[g.currentWindow.currentIndex])
             elif nDim == 2:
-                testimage=np.copy(g.m.currentWindow.image)
+                testimage=np.copy(g.currentWindow.image)
             testimage = threshold_adaptive(testimage, block_size, offset=value)
             if darkBackground:
                 testimage = np.logical_not(testimage)
             testimage = testimage.astype(np.uint8)
-            g.m.currentWindow.imageview.setImage(testimage, autoLevels=False)
-            g.m.currentWindow.imageview.setLevels(-.1, 1.1)
+            g.currentWindow.imageview.setImage(testimage, autoLevels=False)
+            g.currentWindow.imageview.setLevels(-.1, 1.1)
         else:
-            g.m.currentWindow.reset()
+            g.currentWindow.reset()
             if nDim == 3:
-                image = g.m.currentWindow.image[g.m.currentWindow.currentIndex]
+                image = g.currentWindow.image[g.currentWindow.currentIndex]
             else:
-                image = g.m.currentWindow.image
-            g.m.currentWindow.imageview.setLevels(np.min(image), np.max(image))
+                image = g.currentWindow.image
+            g.currentWindow.imageview.setLevels(np.min(image), np.max(image))
 adaptive_threshold=Adaptive_threshold()
 
 
@@ -195,7 +195,7 @@ class Canny_edge_detector(BaseProcess):
     def gui(self):
         self.gui_reset()
         sigma=SliderLabel(2)
-        if g.m.currentWindow is not None:
+        if g.currentWindow is not None:
             sigma.setRange(0,1000)
             sigma.setValue(1)
         preview=CheckBox(); preview.setChecked(True)
@@ -218,22 +218,22 @@ class Canny_edge_detector(BaseProcess):
     def preview(self):
         sigma=self.getValue('sigma')
         preview=self.getValue('preview')
-        nDim=len(g.m.currentWindow.image.shape)
+        nDim=len(g.currentWindow.image.shape)
         if preview:
             if nDim==3: # if the image is 3d
-                testimage=np.copy(g.m.currentWindow.image[g.m.currentWindow.currentIndex])
+                testimage=np.copy(g.currentWindow.image[g.currentWindow.currentIndex])
             elif nDim==2:
-                testimage=np.copy(g.m.currentWindow.image)
+                testimage=np.copy(g.currentWindow.image)
             testimage=feature.canny(testimage,sigma)
-            g.m.currentWindow.imageview.setImage(testimage,autoLevels=False)
-            g.m.currentWindow.imageview.setLevels(-.1,1.1)
+            g.currentWindow.imageview.setImage(testimage,autoLevels=False)
+            g.currentWindow.imageview.setLevels(-.1,1.1)
         else:
-            g.m.currentWindow.reset()
+            g.currentWindow.reset()
             if nDim==3:
-                image=g.m.currentWindow.image[g.m.currentWindow.currentIndex]
+                image=g.currentWindow.image[g.currentWindow.currentIndex]
             else:
-                image=g.m.currentWindow.image
-            g.m.currentWindow.imageview.setLevels(np.min(image),np.max(image))
+                image=g.currentWindow.image
+            g.currentWindow.imageview.setLevels(np.min(image),np.max(image))
 canny_edge_detector=Canny_edge_detector()
 
 
@@ -452,7 +452,7 @@ class Generate_ROIs(BaseProcess):
             roi.cancel()
         self.ROIs = []
 
-        im = g.m.currentWindow.image if g.m.currentWindow.image.ndim == 2 else g.m.currentWindow.image[g.m.currentWindow.currentIndex]
+        im = g.currentWindow.image if g.currentWindow.image.ndim == 2 else g.currentWindow.image[g.currentWindow.currentIndex]
         im = scipy.ndimage.morphology.binary_closing(im)
         if np.any(im < 0) or np.any(im > 1):
             raise Exception("The current image is not a binary image. Threshold first")
@@ -476,7 +476,7 @@ class Generate_ROIs(BaseProcess):
             self.toPreview = True
             return
         self.previewing = True
-        im = g.m.currentWindow.image if g.m.currentWindow.image.ndim == 2 else g.m.currentWindow.image[g.m.currentWindow.currentIndex]
+        im = g.currentWindow.image if g.currentWindow.image.ndim == 2 else g.currentWindow.image[g.currentWindow.currentIndex]
         im = scipy.ndimage.morphology.binary_closing(im)
         if np.any(im < 0) or np.any(im > 1):
             raise Exception("The current image is not a binary image. Threshold first")
@@ -498,7 +498,7 @@ class Generate_ROIs(BaseProcess):
                 if len(outline_coords) == 0:
                     continue
                 outline_coords = outline_coords[0]
-                self.ROIs.append(ROI_Drawing(g.m.currentWindow, outline_coords[0][0], outline_coords[0][1], 'freehand'))
+                self.ROIs.append(ROI_Drawing(g.currentWindow, outline_coords[0][0], outline_coords[0][1], 'freehand'))
                 for p in outline_coords[1:]:
                     self.ROIs[-1].extend(p[0], p[1])
                     QtWidgets.qApp.processEvents()

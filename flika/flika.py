@@ -5,15 +5,11 @@ Latest Update: 2016.02.23
 @author: Kyle Ellefsen and Brett Settle
 """
 print('Launching Flika')
-import time
-import os, sys
-import numpy as np
+import os
+import sys
 from qtpy import QtCore, QtGui, QtWidgets
-from qtpy.QtCore import Signal
-from pyqtgraph import plot, show
-import pyqtgraph as pg
+
 import global_vars as g
-import pyqtgraph.opengl as gl
 import matplotlib.cm
 from window import Window
 from process.stacks import deinterleave, trim, zproject, image_calculator, pixel_binning, frame_binning, resize, change_datatype, concatenate_stacks, duplicate, generate_random_image
@@ -54,11 +50,11 @@ def initializeMainGui():
     g.m.actionExport_Points.triggered.connect(save_points)
     g.m.actionImport_Points.triggered.connect(load_points)
     g.m.actionImport_ROIs.triggered.connect(load_roi)
-    g.m.freehand.clicked.connect(lambda: g.m.settings.setmousemode('freehand'))
-    g.m.line.clicked.connect(lambda: g.m.settings.setmousemode('line'))
-    g.m.rect_line.clicked.connect(lambda: g.m.settings.setmousemode('rect_line'))
-    g.m.rectangle.clicked.connect(lambda: g.m.settings.setmousemode('rectangle'))
-    g.m.point.clicked.connect(lambda: g.m.settings.setmousemode('point'))
+    g.m.freehand.clicked.connect(lambda: g.settings.setmousemode('freehand'))
+    g.m.line.clicked.connect(lambda: g.settings.setmousemode('line'))
+    g.m.rect_line.clicked.connect(lambda: g.settings.setmousemode('rect_line'))
+    g.m.rectangle.clicked.connect(lambda: g.settings.setmousemode('rectangle'))
+    g.m.point.clicked.connect(lambda: g.settings.setmousemode('point'))
     g.m.point.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
     g.m.point.customContextMenuRequested.connect(g.pointSettings)
     g.m.actionScript_Editor.triggered.connect(ScriptEditor.show)
@@ -136,7 +132,7 @@ class MainWindowEventEater(QtCore.QObject):
             else:
                 event.ignore()
         elif type == QtCore.QEvent.Close:
-            g.m.settings.save()
+            g.settings.save()
             print('Closing Flika')
         return False  # Allows the event to continue to the edit
 mainWindowEventEater = MainWindowEventEater()

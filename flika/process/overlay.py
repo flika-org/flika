@@ -30,8 +30,8 @@ class Time_Stamp(BaseProcess):
     def gui(self):
         self.gui_reset()
         framerate=QtWidgets.QDoubleSpinBox()
-        if hasattr(g.m.currentWindow,'framerate'):
-            framerate.setValue(g.m.currentWindow.framerate)
+        if hasattr(g.currentWindow,'framerate'):
+            framerate.setValue(g.currentWindow.framerate)
         elif 'framerate' in g.settings.d.keys():
             framerate.setValue(g.settings['framerate'])
         framerate.setRange(0,1000000)
@@ -41,7 +41,7 @@ class Time_Stamp(BaseProcess):
         self.items.append({'name':'show','string':'Show','object':show})
         super().gui()
     def __call__(self,framerate,show=True,keepSourceWindow=None):
-        w=g.m.currentWindow
+        w=g.currentWindow
         if show:
             w.framerate=framerate
             g.settings['framerate']=framerate
@@ -156,7 +156,7 @@ class Scale_Bar(BaseProcess):
         super().__init__()
     def gui(self):
         self.gui_reset()
-        w=g.m.currentWindow
+        w=g.currentWindow
         width_microns=QtWidgets.QDoubleSpinBox()
         
         width_pixels=QtWidgets.QSpinBox()
@@ -203,7 +203,7 @@ class Scale_Bar(BaseProcess):
         super().gui()
         self.preview()
     def __call__(self,width_microns, width_pixels, font_size, color, background,location,show=True,keepSourceWindow=None):
-        w=g.m.currentWindow
+        w=g.currentWindow
         if show:
             if hasattr(w,'scaleBarLabel') and w.scaleBarLabel is not None:
                 w.imageview.view.removeItem(w.scaleBarLabel.bar)
@@ -257,7 +257,7 @@ class Scale_Bar(BaseProcess):
         return None
         
     def updateBar(self):
-        w=g.m.currentWindow
+        w=g.currentWindow
         width_pixels=self.getValue('width_pixels')
         location=self.getValue('location')
         view = w.imageview.view
