@@ -1,11 +1,18 @@
-from qtpy import QtCore, QtWidgets, QtGui
+# -*- coding: utf-8 -*-
+"""
+Flika 2017
+@author: Kyle Ellefsen
+@author: Brett Settle
+@license: MIT
+"""
+from qtpy import QtCore, QtGui, QtWidgets
 import pyqtgraph as pg
 pg.setConfigOptions(useWeave=False)
+import os, time
 import numpy as np
 import flika.global_vars as g
 from flika.roi import makeROI, ROI_Drawing
 from flika.utils import getSaveFileName
-import os
 
 class Window(QtWidgets.QWidget):
     closeSignal = QtCore.Signal()
@@ -13,6 +20,7 @@ class Window(QtWidgets.QWidget):
     sigTimeChanged = QtCore.Signal(int)
     gainedFocusSignal = QtCore.Signal()
     lostFocusSignal = QtCore.Signal()
+
     def __init__(self, tif, name='Flika', filename='', commands=[], metadata=dict()):
         QtWidgets.QWidget.__init__(self)
         self.commands = commands #commands is a list of the commands used to create this window, starting with loading the file
@@ -67,19 +75,23 @@ class Window(QtWidgets.QWidget):
                 mt = 1
                 dimensions_txt = "{}x{} pixels; {} colors; ".format(mx,my,mc)
             else:
-                mt,mx,my = tif.shape
-                dimensions_txt = "{} frames; {}x{} pixels; ".format(mt,mx,my)
+                mt, mx, my = tif.shape
+                dimensions_txt = "{} frames; {}x{} pixels; ".format(mt, mx, my)
         elif self.nDims == 4:
             mt,mx,my,mc = tif.shape
-            dimensions_txt = "{} frames; {}x{} pixels; {} colors; ".format(mt,mx,my,mc)
+            dimensions_txt = "{} frames; {}x{} pixels; {} colors; ".format(mt, mx, my, mc)
         elif self.nDims == 2:
             mt = 1
-            mx,my = tif.shape
-            dimensions_txt = "{}x{} pixels; ".format(mx,my)
+            mx, my = tif.shape
+            dimensions_txt = "{}x{} pixels; ".format(mx, my)
         self.mx = mx; self.my = my; self.mt = mt
         dtype = self.image.dtype
-
-        self.top_left_label = pg.LabelItem(dimensions_txt + 'dtype=' + str(dtype), justify='right')
+        dimensions_txt += 'dtype=' + str(dtype)
+        if 'timestamps' in self.metadata:
+            ts = self.metadata['timestamps']
+            self.framerate = (ts[-1] - ts[0]) / len(ts)
+            dimensions_txt += '; {:.4f} {}/frame'.format(self.framerate, self.metadata['timestamp_units'])
+        self.top_left_label = pg.LabelItem(dimensions_txt, justify='right')
         self.imageview.ui.graphicsView.addItem(self.top_left_label)
         
         self.imageview.timeLine.sigPositionChanged.connect(self.updateindex)
@@ -176,12 +188,31 @@ class Window(QtWidgets.QWidget):
             self.sigTimeChanged.emit(t)
 
     def setIndex(self,index):
-        if hasattr(self, 'image') and self.image.ndim > 2 and index>=0 and index<len(self.image):
+        if hasattr(self, 'image') and self.image.ndim > 2 and 0 <= index < len(self.image):
             self.imageview.setCurrentIndex(index)
 
     def showFrame(self,index):
         if index>=0 and index<self.mt:
-            g.m.statusBar().showMessage('frame {}'.format(index))
+            msg = 'frame {}'.format(index)
+            if 'timestamps' in self.metadata and self.metadata['timestamp_units']=='ms':
+                ttime = self.metadata['timestamps'][index]
+                if ttime < 1*1000:
+                    msg += '; {:.4f} ms'.format(ttime)
+                elif ttime < 60*1000:
+                    seconds = ttime / 1000
+                    msg += '; {:.4f} s'.format(seconds)
+                elif ttime < 3600*1000:
+                    minutes = int(np.floor(ttime / (60*1000)))
+                    seconds = (ttime/1000) % 60
+                    msg += '; {} m {:.4f} s'.format(minutes, seconds)
+                else:
+                    seconds = ttime/1000
+                    hours = int(np.floor(seconds / 3600))
+                    mminutes = seconds - hours * 3600
+                    minutes = int(np.floor(mminutes / 60))
+                    seconds = mminutes - minutes * 60
+                    '; {} h {} m {:.4f} s'.format(hours, minutes, seconds)
+            g.m.statusBar().showMessage(msg)
 
     def setName(self,name):
         name=str(name)
@@ -189,7 +220,7 @@ class Window(QtWidgets.QWidget):
         self.setWindowTitle(name)
         
     def reset(self):
-        currentIndex=int(self.currentIndex)
+        currentIndex = int(self.currentIndex)
         self.imageview.setImage(self.image,autoLevels=True) #I had autoLevels=False before.  I changed it to adjust after boolean previews.
         if self.mt != 1:
             self.imageview.setCurrentIndex(currentIndex)
@@ -197,7 +228,7 @@ class Window(QtWidgets.QWidget):
 
     def closeEvent(self, event):
         if self.closed:
-            print('Attempt to close window %s that was already closed' % str(self))
+            print('Attempt to close window {} that was already closed'.format(self))
             event.accept()
         else:
             self.closeSignal.emit()
@@ -384,7 +415,6 @@ class Window(QtWidgets.QWidget):
         elif self.creatingROI:
             self.currentROI.cancel()
             self.creatingROI = None
-
     def exportROIs(self, filename=None):
         if not isinstance(filename, str):
             filename=g.settings['filename'].split('.')[0]
@@ -414,13 +444,11 @@ class Window(QtWidgets.QWidget):
         
     def mouseMoved(self,point):
         point=self.imageview.getImageItem().mapFromScene(point)
-        self.point=point
-        self.x=point.x()
-        self.y=point.y()
+        self.point = point
+        self.x = point.x()
+        self.y = point.y()
         image=self.imageview.getImageItem().image
-        #for roi in self.currentROIs:
-        #    roi.setMouseHover(True)
-        if self.x<0 or self.y<0 or self.x>=image.shape[0] or self.y>=image.shape[1]:
+        if self.x < 0 or self.y < 0 or self.x >= image.shape[0] or self.y>=image.shape[1]:
             pass# if we are outside the image
         else:
             z=self.imageview.currentIndex
@@ -438,39 +466,38 @@ class Window(QtWidgets.QWidget):
             self.imageview.view.translateBy(difference)
         if ev.button() == QtCore.Qt.RightButton:
             ev.accept()
-            mm=g.settings['mousemode']
+            mm = g.settings['mousemode']
             if mm in ('freehand', 'line', 'rectangle', 'rect_line'):
                 if ev.isStart():
-                    self.ev=ev
-                    pt=self.imageview.getImageItem().mapFromScene(ev.buttonDownScenePos())
-                    self.x=pt.x() # this sets x and y to the button down position, not the current position
-                    self.y=pt.y()
-                    self.creatingROI=True
-                    self.currentROI=ROI_Drawing(self,self.x,self.y, mm)
+                    self.ev = ev
+                    pt = self.imageview.getImageItem().mapFromScene(ev.buttonDownScenePos())
+                    self.x = pt.x() # this sets x and y to the button down position, not the current position
+                    self.y = pt.y()
+                    self.creatingROI = True
+                    self.currentROI = ROI_Drawing(self,self.x,self.y, mm)
                 if ev.isFinish():
                     if self.creatingROI:   
                         if ev._buttons | QtCore.Qt.RightButton != ev._buttons:
                             self.currentROI = self.currentROI.drawFinished()
-                            self.creatingROI=False
+                            self.creatingROI = False
                         else:
                             self.currentROI.cancel()
                             self.creatingROI = False
                     else:
                         for r in self.currentROIs:
                             r.finish_translate()
-                else: 
+                else: # if we are in the middle of the drag between starting and finishing
                     if self.creatingROI:
-                        self.currentROI.extend(self.x,self.y)
-                                
+                        self.currentROI.extend(self.x, self.y)
     def updateTimeStampLabel(self,frame):
-        label=self.timeStampLabel
-        if self.framerate==0:
+        label = self.timeStampLabel
+        if self.framerate == 0:
             label.setHtml("<span style='font-size: 12pt;color:white;background-color:None;'>Frame rate is 0 Hz</span>" )
             return False
-        ttime=frame/self.framerate
+        ttime = frame/self.framerate
         
         if ttime<1:
-            ttime=ttime*1000
+            ttime = ttime*1000
             label.setHtml("<span style='font-size: 12pt;color:white;background-color:None;'>{:.0f} ms</span>".format(ttime))
         elif ttime<60:
             label.setHtml("<span style='font-size: 12pt;color:white;background-color:None;'>{:.3f} s</span>".format(ttime))
@@ -479,8 +506,8 @@ class Window(QtWidgets.QWidget):
             seconds=ttime % 60
             label.setHtml("<span style='font-size: 12pt;color:white;background-color:None;'>{}m {:.3f} s</span>".format(minutes,seconds))
         else:
-            hours=int(np.floor(ttime/3600))
-            mminutes=ttime-hours*3600
-            minutes=int(np.floor(mminutes/60))
-            seconds=mminutes-minutes*60
+            hours = int(np.floor(ttime/3600))
+            mminutes = ttime-hours*3600
+            minutes = int(np.floor(mminutes/60))
+            seconds = mminutes-minutes*60
             label.setHtml("<span style='font-size: 12pt;color:white;background-color:None;'>{}h {}m {:.3f} s</span>".format(hours,minutes,seconds))
