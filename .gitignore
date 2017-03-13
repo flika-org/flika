@@ -60,6 +60,8 @@ pip-log.txt
 
 flika/plugins/**
 !flika/plugins/__init__.py
+plugins/**
+!plugins/__init__.py
 analyze/**
 unit_test.py
 

@@ -364,7 +364,9 @@ class BaseProcess(object):
             g.alert(msg)
         newsettings = dict()
         for name in varnames:
-            newsettings[name] = self.getValue(name)
+            value = self.getValue(name)
+            if not isinstance(value, window.Window): # cannot save window objects using pickle
+                newsettings[name] = value
         g.settings['baseprocesses'][self.__name__] = newsettings
         try:
             self.__call__(*args,keepSourceWindow=True)
