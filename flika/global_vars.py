@@ -125,14 +125,15 @@ def pointSettings(pointButton):
     clear current points
 
     """
+    global dialog
     point_color = ColorSelector()
-    point_color.color=m.settings['point_color']
+    point_color.color=settings['point_color']
     point_color.label.setText(point_color.color)
     point_size = QtWidgets.QSpinBox()
     point_size.setRange(1,50)
-    point_size.setValue(m.settings['point_size'])
+    point_size.setValue(settings['point_size'])
     show_all_points = QtWidgets.QCheckBox()
-    show_all_points.setChecked(m.settings['show_all_points'])
+    show_all_points.setChecked(settings['show_all_points'])
     
     update_current_points_check = QtWidgets.QCheckBox()
     update_current_points_check.setChecked(False)
@@ -143,10 +144,10 @@ def pointSettings(pointButton):
     items.append({'name': 'show_all_points', 'string': 'Show points from all frames', 'object': show_all_points})
     items.append({'name': 'update_current_points_check', 'string': 'Update already plotted points', 'object': update_current_points_check})
     def update():
-        win = m.currentWindow
-        m.settings['point_color'] = point_color.value()
-        m.settings['point_size'] = point_size.value()
-        m.settings['show_all_points'] = show_all_points.isChecked()
+        win = currentWindow
+        settings['point_color'] = point_color.value()
+        settings['point_size'] = point_size.value()
+        settings['show_all_points'] = show_all_points.isChecked()
         if win is not None and update_current_points_check.isChecked() == True:
             color = QtGui.QColor(point_color.value())
             size = point_size.value()
@@ -156,7 +157,7 @@ def pointSettings(pointButton):
                     win.scatterPoints[t][i][3] = size
             win.updateindex()
         if win is not None:
-            if m.settings['show_all_points']:
+            if settings['show_all_points']:
                 pts = []
                 for t in np.arange(win.mt):
                     pts.extend(win.scatterPoints[t])
@@ -165,10 +166,10 @@ def pointSettings(pointButton):
                 win.scatterPlot.setPoints(pos=pts, size=pointSizes, brush=brushes)
             else:
                 win.updateindex()
-    m.dialog = BaseDialog(items, 'Points Settings', '')
-    m.dialog.accepted.connect(update)
-    m.dialog.changeSignal.connect(update)
-    m.dialog.show()
+    dialog = BaseDialog(items, 'Points Settings', '')
+    dialog.accepted.connect(update)
+    dialog.changeSignal.connect(update)
+    dialog.show()
 
 
 def mainguiClose(event):
@@ -177,7 +178,7 @@ def mainguiClose(event):
         win.close()
     ScriptEditor.close()
     PluginManager.close()
-    m.settings.save()
+    settings.save()
     event.accept() # let the window close
 
 
