@@ -1,27 +1,18 @@
 # -*- coding: utf-8 -*-
 """
+Flika
+@author: Kyle Ellefsen
 @author: Brett Settle
+@license: MIT
 """
 from qtpy import QtGui, QtCore, QtWidgets, uic
 import os
 
-if __name__ != '__main__':
-    import flika.global_vars as g
-    from flika.app.terminal import ipython_terminal
-    from flika.app.script_namespace import getnamespace
-    from flika.app.syntax import PythonHighlighter
-    from flika.utils import load_ui, save_file_gui, open_file_gui
-else:
-    from syntax import PythonHighlighter
-    from terminal import ipython_terminal
-    class K:
-        pass
-    g = K()
-    g.settings = {'recent_scripts': []}
-    g.currentWindow = None
-
-    import numpy, scipy
-    getnamespace = lambda : {'np': numpy, 'scipy': scipy}
+from .. import global_vars as g
+from .terminal import ipython_terminal
+from .script_namespace import getnamespace
+from .syntax import PythonHighlighter
+from ..utils.misc import save_file_gui, open_file_gui
 
 MESSAGE_TIME = 2000
 
@@ -55,9 +46,9 @@ class Editor(QtWidgets.QPlainTextEdit):
         ScriptEditor.gui.statusBar().showMessage('{} loaded.'.format(os.path.basename(self.scriptfile)), MESSAGE_TIME)
 
     def save_as(self):
-        filename=save_file_gui(self, 'Save script', ScriptEditor.most_recent_script(), '*.py')
+        filename = save_file_gui('Save script', ScriptEditor.most_recent_script(), '*.py')
         if filename == '':
-            ScriptEditor.gui.statusBar().showMessage('Save cancelled', MESSAGE_TIME)
+            ScriptEditor.gui.statusBar().showMessage('Save cancelled',  MESSAGE_TIME)
             return False
         self.scriptfile = filename
         self.save()
@@ -98,7 +89,6 @@ Useful variables:
     g.currentWindow.rois -list of rois in that window
     - roi.getTrace() gets an roi trace as an array """
         self.setWindowIcon(QtGui.QIcon('images/favicon.png'))
-        #self.splitter.setMargin(2)
         self.terminal = ipython_terminal(banner=text, **getnamespace())
         layout = QtWidgets.QGridLayout()
         self.terminalWidget.setLayout(layout)
@@ -160,7 +150,6 @@ Useful variables:
 
     def closeTab(self, index):
         self.scriptTabs.removeTab(index)
-        #self.addEditor()
 
     def saveCurrentScript(self):
         cw = self.currentTab()
@@ -191,7 +180,7 @@ Useful variables:
         if not hasattr(ScriptEditor, 'gui') or not ScriptEditor.gui.isVisible():
             ScriptEditor.show()
         if scriptfile == '':
-            scriptfile= open_file_gui(ScriptEditor.gui, 'Load script', os.path.dirname(ScriptEditor.most_recent_script()), '*.py')
+            scriptfile = str(QtWidgets.QFileDialog.getOpenFileName(ScriptEditor.gui, 'Load script', os.path.dirname(ScriptEditor.most_recent_script()), '*.py'))
             if scriptfile == '':
                 return
         editor = Editor(scriptfile)
@@ -246,9 +235,12 @@ Useful variables:
 
     @staticmethod
     def show():
-        if not hasattr(ScriptEditor, 'gui'):
-            ScriptEditor.gui = ScriptEditor()
-        QtWidgets.QMainWindow.show(ScriptEditor.gui)
+        if 'PYCHARM_HOSTED' in os.environ:
+            g.alert('You cannot run the script editor from within PyCharm.')
+        else:
+            if not hasattr(ScriptEditor, 'gui'):
+                ScriptEditor.gui = ScriptEditor()
+            QtWidgets.QMainWindow.show(ScriptEditor.gui)
 
     @staticmethod
     def close():
