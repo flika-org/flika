@@ -13,9 +13,10 @@ from skimage.filters import threshold_adaptive
 from qtpy import QtCore, QtGui, QtWidgets
 from .. import global_vars as g
 from .BaseProcess import BaseProcess, SliderLabel, WindowSelector,  MissingWindowError, CheckBox, ComboBox
+from ..roi import makeROI, ROI_Drawing
 
 
-__all__ = ['threshold','remove_small_blobs','adaptive_threshold','logically_combine','binary_dilation','binary_erosion']
+__all__ = ['threshold','remove_small_blobs','adaptive_threshold','logically_combine','binary_dilation','binary_erosion', 'generate_rois', 'canny_edge_detector']
      
      
 def convert2uint8(tif):
@@ -139,7 +140,11 @@ class Adaptive_threshold(BaseProcess):
 
     def __call__(self, value, block_size, darkBackground=False, keepSourceWindow=False):
         self.start(keepSourceWindow)
+        if self.tif.dtype == np.float16:
+            g.alert("Adaptive Threshold does not support float16 type arrays")
+            return
         newtif = np.copy(self.tif)
+
         if self.oldwindow.nDims == 2:
             newtif = threshold_adaptive(newtif, block_size, offset=value)
         elif self.oldwindow.nDims == 3:
@@ -151,7 +156,7 @@ class Adaptive_threshold(BaseProcess):
         if darkBackground:
             newtif = np.logical_not(newtif)
         self.newtif = newtif.astype(np.uint8)
-        self.newname = self.oldname+' - Thresholded '+str(value)
+        self.newname = self.oldname + ' - Thresholded ' + str(value)
         return self.end()
 
     def preview(self):
@@ -209,6 +214,11 @@ class Canny_edge_detector(BaseProcess):
         self.start(keepSourceWindow)
         nDim=len(self.tif.shape) 
         newtif=np.copy(self.tif)
+
+        if self.tif.dtype == np.float16:
+            g.alert("Canny Edge Detection does not work on float32 images. Change the data type to use this function.")
+            return None
+
         if nDim==2:
             newtif=feature.canny(self.tif,sigma)
         else:
@@ -312,7 +322,9 @@ class Remove_small_blobs(BaseProcess):
         super().gui()
     def __call__(self,rank,value,keepSourceWindow=False):
         self.start(keepSourceWindow)
-        
+        if self.tif.dtype == np.float16:
+            g.alert("Adaptive Threshold does not support float16 type arrays")
+            return
         oldshape=self.tif.shape
         s=scipy.ndimage.generate_binary_structure(rank,1)
         labeled_array, num_features = scipy.ndimage.measurements.label(self.tif, structure=s)
@@ -359,6 +371,9 @@ class Binary_Dilation(BaseProcess):
         super().gui()
     def __call__(self,rank,connectivity,iterations, keepSourceWindow=False):
         self.start(keepSourceWindow)
+        if self.tif.dtype == np.float16:
+            g.alert("Adaptive Threshold does not support float16 type arrays")
+            return
         if len(self.tif.shape)==3 and rank==2:
             s=scipy.ndimage.generate_binary_structure(3,connectivity)
             s[0]=False
@@ -403,6 +418,9 @@ class Binary_Erosion(BaseProcess):
         super().gui()
     def __call__(self,rank,connectivity,iterations, keepSourceWindow=False):
         self.start(keepSourceWindow)
+        if self.tif.dtype == np.float16:
+            g.alert("Binary Erosion does not work on float32 images. Change the data type to use this function.")
+            return None
         if len(self.tif.shape)==3 and rank==2:
             s=scipy.ndimage.generate_binary_structure(3,connectivity)
             s[0]=False
@@ -428,11 +446,11 @@ class Generate_ROIs(BaseProcess):
     """
     def __init__(self):
         super().__init__()
+        self.ROIs = []
     def gui(self):
         self.gui_reset()
         self.previewing = False
         self.toPreview = False
-        self.ROIs = []
         level=SliderLabel(2)
         level.setRange(0,1)
         level.setValue(.5)
@@ -440,6 +458,7 @@ class Generate_ROIs(BaseProcess):
         minDensity.setRange(4, 1000)
         self.items.append({'name':'level','string':'Contour Level','object':level})
         self.items.append({'name':'minDensity','string':'Minimum Density','object':minDensity})
+        self.ROIs = []
         super().gui()
         self.ui.rejected.connect(self.removeROIs)
 
@@ -450,6 +469,9 @@ class Generate_ROIs(BaseProcess):
 
     def __call__(self, level, minDensity, keepSourceWindow=False):
         self.start(keepSourceWindow)
+        if self.tif.dtype == np.float16:
+            g.alert("Adaptive Threshold does not support float16 type arrays")
+            return
         for roi in self.ROIs:
             roi.cancel()
         self.ROIs = []
@@ -459,7 +481,6 @@ class Generate_ROIs(BaseProcess):
         if np.any(im < 0) or np.any(im > 1):
             raise Exception("The current image is not a binary image. Threshold first")
 
-        from roi import makeROI
         thresholded_image = np.squeeze(im)
         labelled=measure.label(thresholded_image)
         ROIs = []
@@ -483,7 +504,6 @@ class Generate_ROIs(BaseProcess):
         if np.any(im < 0) or np.any(im > 1):
             raise Exception("The current image is not a binary image. Threshold first")
 
-        from roi import ROI_Drawing
         level = self.getValue('level')
         minDensity = self.getValue('minDensity')
         thresholded_image = np.squeeze(im)
@@ -509,8 +529,8 @@ class Generate_ROIs(BaseProcess):
         if self.toPreview:
             self.toPreview = False
             self.preview()
-        
-generate_rois=Generate_ROIs()
+
+generate_rois = Generate_ROIs()
 
 
 
