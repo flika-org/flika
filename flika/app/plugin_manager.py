@@ -1,22 +1,26 @@
+# -*- coding: utf-8 -*-
+"""
+Flika
+@author: Kyle Ellefsen
+@author: Brett Settle
+@license: MIT
+"""
 from glob import glob
-import os, sys
-
-from flika.utils import load_ui
-from flika.images import image_path
+import os, difflib, zipfile, time, shutil, traceback
 from qtpy import QtGui, QtWidgets, QtCore
-import sys, difflib, zipfile, time, shutil, traceback
 from urllib.request import urlopen
 from pkg_resources import parse_version
 import threading
-
 import pip
-
-from flika.plugins import plugin_list, plugin_path
-import flika.global_vars as g
 from xml.etree import ElementTree
 
+from ..plugins import plugin_list, plugin_path
+from .. import global_vars as g
+from ..utils.misc import load_ui
+from ..images import image_path
+
+
 def parse(x):
-    
     tree = ElementTree.fromstring(x)
     def step(item):
         d = {}
