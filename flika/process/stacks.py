@@ -1,15 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Jun 26 16:18:16 2014
-
+Flika
 @author: Kyle Ellefsen
+@author: Brett Settle
+@license: MIT
 """
-from flika.window import Window
+
 import numpy as np
-import flika.global_vars as g
-from flika.process.BaseProcess import BaseProcess, WindowSelector, MissingWindowError, CheckBox, BaseProcess_noPriorWindow, SliderLabel, ComboBox
 from qtpy import QtWidgets
-from flika.tracefig import TraceFig
+from ..window import Window
+from .. import global_vars as g
+from .BaseProcess import BaseProcess, BaseProcess_noPriorWindow, WindowSelector, MissingWindowError, CheckBox, SliderLabel, ComboBox
+from ..tracefig import TraceFig
+
 
 __all__ = ['deinterleave','trim','zproject','image_calculator', 'pixel_binning', 'frame_binning', 'resize', 'concatenate_stacks', 'duplicate', 'generate_random_image', 'change_datatype']
 
@@ -181,31 +184,29 @@ class Resize(BaseProcess):
         factor.setMaximum(100)
         self.items.append({'name':'factor','string':'By what factor to resize the image?','object':factor})
         super().gui()
+
     def __call__(self,factor,keepSourceWindow=False):
         self.start(keepSourceWindow)
         if self.tif.dtype in (np.uint64, np.int64):
             g.alert("Resize fails on int64 and uint64 movie types, change the image type to resize.")
             return
-        A=self.tif
-        nDim=len(A.shape)
+        A = self.tif
+        nDim = len(A.shape)
         is_rgb = self.oldwindow.metadata['is_rgb'] or (nDim == 3 and A.shape[2] == 3) or nDim == 4
         B = None
         if not is_rgb:
-            if nDim==3:
-                mt,mx,my=A.shape
-                B=np.zeros((mt,mx*factor,my*factor))
+            if nDim == 3:
+                mt,mx,my = A.shape
+                B = np.zeros((mt, mx*factor, my*factor))
                 for t in np.arange(mt):
-                    B[t]=skimage.transform.resize(A[t],(mx*factor,my*factor))
-            elif nDim==2:
-                mx,my=A.shape
-                B=skimage.transform.resize(A,(mx*factor,my*factor))
-        else:
-            g.alert("Resize does not work on color images.")
-            return
-        self.newtif=B
-        self.newname=self.oldname+' - resized {}x '.format(factor)
+                    B[t]=skimage.transform.resize(A[t], (mx*factor,my*factor))
+            elif nDim == 2:
+                mx, my = A.shape
+                B = skimage.transform.resize(A,(mx*factor, my*factor))
+        self.newtif = B
+        self.newname = self.oldname+' - resized {}x '.format(factor)
         return self.end()
-resize=Resize()
+resize = Resize()
 
 
 class Trim(BaseProcess):
@@ -231,18 +232,24 @@ class Trim(BaseProcess):
         firstFrame.setMaximum(nFrames-1)
         lastFrame=QtWidgets.QSpinBox()
         lastFrame.setRange(0,nFrames-1)
-        lastFrame.setValue(nFrames-1)
         increment=QtWidgets.QSpinBox()
         increment.setMaximum(nFrames)
         increment.setMinimum(1)
         delete = CheckBox()
-        delete.setChecked(False)
 
         self.items.append({'name': 'firstFrame', 'string': 'First Frame', 'object': firstFrame})
-        self.items.append({'name': 'lastFrame', 'string': 'Last Frame', 'object': lastFrame})
-        self.items.append({'name':'increment','string':'Increment','object':increment})
-        self.items.append({'name': 'delete', 'string': 'Delete', 'object': delete})
+        self.items.append({'name': 'lastFrame',  'string': 'Last Frame',  'object': lastFrame })
+        self.items.append({'name': 'increment',  'string': 'Increment',   'object': increment })
+        self.items.append({'name': 'delete',     'string': 'Delete',      'object': delete    })
         super().gui()
+
+    def get_init_settings_dict(self):
+        s = dict()
+        s['firstFrame'] = 0
+        s['lastFrame'] = g.currentWindow.image.shape[0]
+        s['increment'] = 1
+        s['delete'] = False
+        return s
 
     def __call__(self, firstFrame, lastFrame, increment=1, delete = False, keepSourceWindow=False):
         self.start(keepSourceWindow)
@@ -274,7 +281,7 @@ class ZProject(BaseProcess):
     def gui(self):
         self.gui_reset()
         nFrames=1
-        if g.currentWindow and len(g.currentWindow.image.shape)!=3:
+        if g.currentWindow and len(g.currentWindow.image.shape) != 3:
             g.m.statusBar().showMessage('zproject only works on 3 dimensional windows')
             return False
         if g.currentWindow is not None:

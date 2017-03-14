@@ -1,18 +1,20 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sat Jul 19 07:53:38 2014
-
+Flika
 @author: Kyle Ellefsen
+@author: Brett Settle
+@license: MIT
 """
 import os.path
 import numpy as np
-from flika import window
-from qtpy import QtWidgets, QtCore, QtGui
+from qtpy import QtCore, QtGui, QtWidgets
 import pyqtgraph as pg
 import sys
 import inspect
-import flika.global_vars as g
-from flika.utils import save_file_gui
+
+from .. import global_vars as g
+from .. import window
+from ..utils.misc import save_file_gui
 
 __all__ = []
 
@@ -24,18 +26,6 @@ class MissingWindowError(Exception):
     def __str__(self):
         return repr(self.value)
 
-class ComboBox(QtWidgets.QComboBox):
-    ''' I overwrote the QComboBox class so that every graphical element has the method 'setValue'
-    '''
-    def __init__(self, parent=None):
-        QtWidgets.QComboBox.__init__(self, parent)
-    def setValue(self, value):
-        if isinstance(value, str):
-            idx = self.findText(value)
-        else:
-            idx = self.findData(value)
-        if idx != -1:
-            self.setCurrentIndex(idx)
 
 class WindowSelector(QtWidgets.QWidget):
     """
@@ -44,11 +34,11 @@ class WindowSelector(QtWidgets.QWidget):
     valueChanged=QtCore.Signal()
     def __init__(self):
         QtWidgets.QWidget.__init__(self)
-        self.button=QtWidgets.QPushButton('Select Window')
+        self.button = QtWidgets.QPushButton('Select Window')
         self.button.setCheckable(True)
-        self.label=QtWidgets.QLabel('None')
-        self.window=None
-        self.layout=QtWidgets.QHBoxLayout()
+        self.label = QtWidgets.QLabel('None')
+        self.window = None
+        self.layout = QtWidgets.QHBoxLayout()
         self.layout.addWidget(self.button)
         self.layout.addWidget(self.label)
         self.setLayout(self.layout)
@@ -94,26 +84,18 @@ class FileSelector(QtWidgets.QWidget):
         self.layout.addWidget(self.label)
         self.setLayout(self.layout)
         self.button.clicked.connect(self.buttonclicked)
-        self.filetypes=filetypes
-        self.filename=''
+        self.filetypes = filetypes
+        self.filename = ''
         
     def buttonclicked(self):
-        filename=g.settings['filename']
-        try:
-            directory=os.path.dirname(filename)
-        except:
-            directory=''
-        prompt='testing fileSelector'
-        if filename is not None and directory != '':
-            filename= save_file_gui(self, prompt, directory, self.filetypes)
-        else:
-            filename= save_file_gui(self, prompt, '', self.filetypes)
-               
-        self.filename=str(filename)
+        prompt = 'testing fileSelector'
+        self.filename = save_file_gui(prompt, filetypes=self.filetypes)
         self.label.setText('...'+os.path.split(self.filename)[-1][-20:])
         self.valueChanged.emit()
+
     def value(self):
         return self.filename
+
     def setValue(self, filename):
         self.filename = str(filename)
         self.label.setText('...' + os.path.split(self.filename)[-1][-20:])
@@ -143,7 +125,7 @@ class ColorSelector(QtWidgets.QWidget):
         self._color=''
         self.colorDialog=QtWidgets.QColorDialog()
         self.colorDialog.colorSelected.connect(self.colorSelected)
-        
+
     @property
     def color(self):
         return self._color
@@ -237,36 +219,62 @@ class CheckBox(QtWidgets.QCheckBox):
     def setValue(self,value):
         self.setChecked(value)
 
+class ComboBox(QtWidgets.QComboBox):
+    ''' I overwrote the QComboBox class so that every graphical element has the method 'setValue'
+    '''
+    def __init__(self, parent=None):
+        QtWidgets.QComboBox.__init__(self, parent)
+    def setValue(self, value):
+        if isinstance(value, str):
+            idx = self.findText(value)
+        else:
+            idx = self.findData(value)
+        if idx != -1:
+            self.setCurrentIndex(idx)
 
 class BaseDialog(QtWidgets.QDialog):
     changeSignal=QtCore.Signal()
     closeSignal=QtCore.Signal()
-    def __init__(self,items,title,docstring):
+    def __init__(self, items, title, docstring, parent=None):
         QtWidgets.QDialog.__init__(self)
+        self.parent = parent
         self.setWindowTitle(title)
         self.setWindowIcon(QtGui.QIcon('images/favicon.png'))
-        self.formlayout=QtWidgets.QFormLayout()
+        self.formlayout = QtWidgets.QFormLayout()
         self.formlayout.setLabelAlignment(QtCore.Qt.AlignRight)
-        
-        self.items=items
+        self.items = items
+        self.setupitems()
         self.connectToChangeSignal()
-        for item in self.items:
-            self.formlayout.addRow(item['string'],item['object'])
-        self.bbox=QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+        self.bbox = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
         self.bbox.accepted.connect(self.accept)
         self.bbox.rejected.connect(self.reject)
-        
-        self.docstring=QtWidgets.QLabel(docstring)
-        self.docstring.setWordWrap(True)        
-        
-        self.layout=QtWidgets.QVBoxLayout()
+        self.docstring = QtWidgets.QLabel(docstring)
+        self.docstring.setWordWrap(True)
+        self.layout = QtWidgets.QVBoxLayout()
         self.layout.addWidget(self.docstring)
         self.layout.addLayout(self.formlayout)
         self.layout.addWidget(self.bbox)
         self.setLayout(self.layout)
         self.changeSignal.connect(self.updateValues)
         self.updateValues()
-        
+
+    def setupitems(self):
+        for item in self.items:
+            self.formlayout.addRow(item['string'], item['object'])
+        # Get the old vals from settings
+        if self.parent is not None:
+            name = self.parent.__name__
+            if g.settings['baseprocesses'] is None:
+                g.settings['baseprocesses'] = dict()
+            if name not in g.settings['baseprocesses']:
+                settings = self.parent.get_init_settings_dict()
+                g.settings['baseprocesses'][name] = settings
+            else:
+                settings = g.settings['baseprocesses'][name]
+            for item in self.items:
+                if item['name'] in settings:
+                    item['object'].setValue(settings[item['name']])
+
     def connectToChangeSignal(self):
         for item in self.items:
             methods=[method for method in dir(item['object']) if callable(getattr(item['object'], method))]
@@ -276,6 +284,7 @@ class BaseDialog(QtWidgets.QDialog):
                 item['object'].stateChanged.connect(self.changeSignal)
             elif 'currentIndexChanged' in methods:
                 item['object'].currentIndexChanged.connect(self.changeSignal)
+
     def updateValues(self): # copy values from gui into the 'item' dictionary
         for item in self.items:
             methods=[method for method in dir(item['object']) if callable(getattr(item['object'], method))]
@@ -290,7 +299,7 @@ class BaseDialog(QtWidgets.QDialog):
 
 
 def convert_to_string(item):
-    if isinstance(item,str):
+    if isinstance(item, str):
         return "'{}'".format(item)
     else:
         return str(item)
@@ -304,7 +313,10 @@ class BaseProcess(object):
     def getValue(self,name):
         return [i['value'] for i in self.items if i['name']==name][0]
 
-    def start(self,keepSourceWindow):
+    def get_init_settings_dict(self):
+        return dict() #this function needs to be overwritten by every subclass
+
+    def start(self, keepSourceWindow):
         frame = inspect.getouterframes(inspect.currentframe())[1][0]
         args, _, _, values = inspect.getargvalues(frame)
         funcname=self.__name__
@@ -312,12 +324,11 @@ class BaseProcess(object):
         g.m.statusBar().showMessage('Running function {}...'.format(self.__name__))
         self.keepSourceWindow = keepSourceWindow
         self.oldwindow = g.currentWindow
-        #print(self.oldwindow)
         if self.oldwindow is None:
             raise(MissingWindowError("You cannot execute '{}' without selecting a window first.".format(self.__name__)))
         self.tif=self.oldwindow.image
         self.oldname=self.oldwindow.name
-        
+
     def end(self):
         if not hasattr(self, 'newtif') or self.newtif is None:
             self.oldwindow.reset()
@@ -337,10 +348,10 @@ class BaseProcess(object):
         return newWindow
 
     def gui(self):
-        self.ui=BaseDialog(self.items,self.__name__,self.__doc__)
+        self.ui=BaseDialog(self.items,self.__name__,self.__doc__, self)
         if hasattr(self, '__url__'):
             self.ui.bbox.addButton(QtWidgets.QDialogButtonBox.Help)
-            self.ui.bbox.helpRequested.connect(lambda : QtGui.QDesktopServices.openUrl(QUrl(self.__url__)))
+            self.ui.bbox.helpRequested.connect(lambda : QtWidgets.QDesktopServices.openUrl(QtCore.QUrl(self.__url__)))
         self.proxy= pg.SignalProxy(self.ui.changeSignal,rateLimit=60, slot=self.preview)
         if g.currentWindow is not None:
             self.ui.rejected.connect(g.currentWindow.reset)
@@ -351,12 +362,21 @@ class BaseProcess(object):
 
     def gui_reset(self):
         self.items=[]
+
     def call_from_gui(self):
-        varnames=[i for i in inspect.getargspec(self.__call__)[0] if i!='self' and i!='keepSourceWindow']
+        varnames = [i for i in inspect.getargspec(self.__call__)[0] if i != 'self' and i != 'keepSourceWindow']
         try:
-            args=[self.getValue(name) for name in varnames]
-        except IndexError:
-            print("Names in {}: {}".format(self.__name__,varnames))
+            args = [self.getValue(name) for name in varnames]
+        except IndexError as err:
+            msg = "IndexError in {}: {}".format(self.__name__, varnames)
+            msg += str(err)
+            g.alert(msg)
+        newsettings = dict()
+        for name in varnames:
+            value = self.getValue(name)
+            if not isinstance(value, window.Window): # cannot save window objects using pickle
+                newsettings[name] = value
+        g.settings['baseprocesses'][self.__name__] = newsettings
         try:
             self.__call__(*args,keepSourceWindow=True)
         except MemoryError as err:
@@ -389,14 +409,20 @@ class BaseProcess_noPriorWindow(BaseProcess):
         varnames=[i for i in inspect.getargspec(self.__call__)[0] if i!='self']
         try:
             args=[self.getValue(name) for name in varnames]
-        except IndexError:
-            print("Names in {}: {}".format(self.__name__,varnames))
+        except IndexError as err:
+            msg = "IndexError in {}: {}".format(self.__name__, varnames)
+            msg += str(err)
+            g.alert(msg)
+        newsettings = dict()
+        for name in varnames:
+            newsettings[name] = self.getValue(name)
+        g.settings['baseprocesses'][self.__name__] = newsettings
         try:
             self.__call__(*args)
         except MemoryError as err:
-            print('There was a memory error in {}'.format(self.__name__))
-            g.m.statusBar().showMessage('There was a memory error in {}'.format(self.__name__))
-            print(err)
+            msg = 'There was a memory error in {}'.format(self.__name__)
+            msg += str(err)
+            g.alert(msg)
 
 
 
