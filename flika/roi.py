@@ -1,14 +1,20 @@
-
+# -*- coding: utf-8 -*-
+"""
+Flika
+@author: Kyle Ellefsen
+@author: Brett Settle
+@license: MIT
+"""
 from qtpy import QtGui, QtCore, QtWidgets
-import flika.global_vars as g
-from flika.utils import random_color, save_file_gui
 import pyqtgraph as pg
+from pyqtgraph.graphicsItems.ROI import Handle
 from skimage.draw import polygon, line
 import numpy as np
-from flika.tracefig import roiPlot
 import os
 from scipy.ndimage.interpolation import rotate
-
+from . import global_vars as g
+from .utils.misc import random_color, save_file_gui
+from .tracefig import roiPlot
 
 class ROI_Drawing(pg.GraphicsObject):
     def __init__(self, window, x, y, type):
@@ -330,7 +336,7 @@ class ROI_Wrapper():
         return s
 
     def showMask(self):
-        from flika.window import Window
+        from .window import Window
         im = np.zeros_like(self.window.imageview.getImageItem().image)
         s1, s2 = self.getMask()
         im[s1, s2] = 1
@@ -435,7 +441,7 @@ class ROI_line(ROI_Wrapper, pg.LineSegmentROI):
             #self.kymograph.imageview.view.setAspectLocked(lock=True,ratio=mn.shape[1]/mn.shape[0])
     
     def createKymograph(self,mn):
-        from flika.window import Window
+        from .window import Window
         oldwindow=g.currentWindow
         name=oldwindow.name+' - Kymograph'
         self.kymograph=Window(mn,name,metadata=self.window.metadata)
@@ -509,7 +515,7 @@ class ROI_rectangle(ROI_Wrapper, pg.ROI):
         self.menu.addAction(self.cropAction)
 
     def crop(self):
-        from flika.window import Window
+        from .window import Window
         r = self.boundingRect()
         p1 = r.topLeft() + self.state['pos']
         p2 = r.bottomRight() + self.state['pos']
@@ -682,7 +688,7 @@ class ROI_rect_line(ROI_Wrapper, QtWidgets.QGraphicsObject):
     def preview(self):
         im = self.getArrayRegion(self.window.imageview.getImageItem().image, self.window.imageview.getImageItem(), (0, 1))
         if not hasattr(self, 'prev'):
-            from flika.window import Window
+            from .window import Window
             self.prev = Window(im)
             self.sigRegionChanged.connect(lambda a: self.preview())
         else:
@@ -738,7 +744,6 @@ class ROI_rect_line(ROI_Wrapper, QtWidgets.QGraphicsObject):
         Add a new segment to the ROI connecting from the previous endpoint to *pos*.
         (pos is specified in the parent coordinate system of the MultiRectROI)
         """
-        from pyqtgraph.graphicsItems.ROI import Handle
         ## by default, connect to the previous endpoint
         if connectTo is None:
             connectTo = self.lines[-1].getHandles()[1]
@@ -915,7 +920,7 @@ class ROI_rect_line(ROI_Wrapper, QtWidgets.QGraphicsObject):
         self.sigRegionChangeFinished.emit(self)
 
     def createKymograph(self,mn):
-        from flika.window import Window
+        from .window import Window
         oldwindow=g.currentWindow
         name=oldwindow.name+' - Kymograph'
         self.kymograph=Window(mn,name,metadata=self.window.metadata)

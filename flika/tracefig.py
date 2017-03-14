@@ -5,14 +5,16 @@ Flika
 @author: Brett Settle
 @license: MIT
 """
-from qtpy import QtCore, QtGui, QtWidgets
-import pyqtgraph as pg
-pg.setConfigOptions(useWeave=False)
-import numpy as np
 import os
 import time
-import flika.global_vars as g
-from flika.utils import save_file_gui
+import numpy as np
+from qtpy import QtCore, QtGui, QtWidgets
+import pyqtgraph as pg
+from . import global_vars as g
+from .utils.misc import save_file_gui
+
+pg.setConfigOptions(useWeave=False)
+
 
 class TraceFig(QtWidgets.QWidget):
     indexChanged=QtCore.Signal(int)
@@ -57,7 +59,7 @@ class TraceFig(QtWidgets.QWidget):
         self.p1.plotItem.sigRangeChanged.connect(self.updateRegion)
         self.region.setRegion([0, 200])
 
-        from flika.process.measure import measure
+        from .process.measure import measure
         self.measure=measure
         self.p1.scene().sigMouseClicked.connect(self.measure.pointclicked)
         self.p1.scene().sigMouseClicked.connect(self.setCurrentTraceWindow)
@@ -192,7 +194,7 @@ class TraceFig(QtWidgets.QWidget):
         self.rois.append(dict({'roi':roi,'p1trace':p1trace,'p2trace':p2trace,'toBeRedrawn':False,'toBeRedrawnFull':False}))
 
     def removeROI(self,roi):
-        from flika.roi import ROI_Wrapper
+        from .roi import ROI_Wrapper
         if isinstance(roi, ROI_Wrapper):
             index=[r['roi'] for r in self.rois].index(roi) #this is the index of the roi in self.rois
         elif isinstance(roi, int):
