@@ -10,7 +10,7 @@ if __name__ != '__main__':
     from flika.app.terminal import ipython_terminal
     from flika.app.script_namespace import getnamespace
     from flika.app.syntax import PythonHighlighter
-    from flika.utils import load_ui, save_file_gui, getOpenFileName
+    from flika.utils import load_ui, save_file_gui, open_file_gui
 else:
     from syntax import PythonHighlighter
     from terminal import ipython_terminal
@@ -191,7 +191,7 @@ Useful variables:
         if not hasattr(ScriptEditor, 'gui') or not ScriptEditor.gui.isVisible():
             ScriptEditor.show()
         if scriptfile == '':
-            scriptfile= getOpenFileName(ScriptEditor.gui, 'Load script', os.path.dirname(ScriptEditor.most_recent_script()), '*.py')
+            scriptfile= open_file_gui(ScriptEditor.gui, 'Load script', os.path.dirname(ScriptEditor.most_recent_script()), '*.py')
             if scriptfile == '':
                 return
         editor = Editor(scriptfile)

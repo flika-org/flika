@@ -1,26 +1,39 @@
+# -*- coding: utf-8 -*-
+"""
+Flika
+@author: Kyle Ellefsen
+@author: Brett Settle
+@license: MIT
+"""
 
-
-from qtpy import uic, QtCore, QtWidgets, QtGui
 import pyqtgraph as pg
 import pyqtgraph.exporters
-import time, codecs, shutil, subprocess, json, re, nd2reader, datetime
+import time
 import os.path
 import numpy as np
 from skimage.io import imread, imsave
-from flika.window import Window
-import flika.global_vars as g
-from flika.core import tifffile
-from flika.app.terminal_widget import ScriptEditor
-from flika.process.BaseProcess import BaseDialog
-from flika.utils import getOpenFileName, save_file_gui
+from qtpy import uic, QtGui, QtCore, QtWidgets
+import codecs
+import shutil, subprocess
+import json
+import re
+import nd2reader
+import datetime
+import json
 
+from .. import global_vars as g
+from ..app.terminal_widget import ScriptEditor
+from .BaseProcess import BaseDialog
+from ..window import Window
+from ..utils.misc import open_file_gui, save_file_gui
+from ..utils.io import tifffile
 
-__all__ = ['save_window', 'save_points', 'export_movie_gui', 'open_file', 'load_points', 'close', 'open_file_from_gui']
-
+__all__ = ['save_window', 'save_points', 'export_movie_gui', 'open_file', 'load_points', 'close']
 
 ########################################################################################################################
 ######################                  SAVING FILES                                         ###########################
 ########################################################################################################################
+
 
 
 def save_window(filename=None):
@@ -31,7 +44,9 @@ def save_window(filename=None):
         | filename (str) -- The image or movie will be saved here.
     """
     if filename is None:
-        filename = save_file_gui('Save File As Tif', filetypes='*.tif')
+        filetypes = '*.tif'
+        prompt = 'Save File As Tif'
+        filename = save_file_gui(filetypes, prompt)
         if filename is None:
             return None
     if os.path.dirname(filename) == '':  # if the user didn't specify a directory
@@ -80,6 +95,7 @@ def export_movie_gui():
     g.dialogs.append(rateDialog)
     rateDialog.show()
 
+
 def export_movie(rate, filename=None):
     """save_movie(rate, filename)
     Saves the currentWindow video as a .mp4 movie by joining .jpg frames together
@@ -114,7 +130,7 @@ def export_movie(rate, filename=None):
 
     filetypes = "Movies (*.mp4)"
     prompt = "Save movie to .mp4 file"
-    filename = save_file_gui(propt, filetypes=filetypes)
+    filename = save_file_gui(prompt, filetypes=filetypes)
     if filename is None:
         return None
 
@@ -147,6 +163,15 @@ def export_movie(rate, filename=None):
     os.chdir(olddir)
     g.m.statusBar().showMessage('Successfully saved movie as {}.'.format(os.path.basename(filename)))
 
+
+
+
+
+
+
+
+
+
 ########################################################################################################################
 ######################                         OPENING FILES                                 ###########################
 ########################################################################################################################
@@ -154,6 +179,7 @@ def export_movie(rate, filename=None):
 
 def open_file_from_gui():
     open_file(None, True)
+
 
 def open_file(filename=None, from_gui=False):
     """ open_file(filename=None)
@@ -168,7 +194,7 @@ def open_file(filename=None, from_gui=False):
         if from_gui:
             filetypes = 'Image Files (*.tif *.stk *.tiff *.nd2);;All Files (*.*)'
             prompt = 'Open File'
-            filename = getOpenFileName(prompt, filetypes=filetypes)
+            filename = open_file_gui(prompt, filetypes=filetypes)
             if filename is None:
                 return None
         else:
@@ -176,9 +202,7 @@ def open_file(filename=None, from_gui=False):
             if filename is None:
                 g.alert('No filename selected')
                 return None
-
-    append_recent_file(filename) # make first in recent file menu
-
+    append_recent_file(filename)  # make first in recent file menu
     g.m.statusBar().showMessage('Loading {}'.format(os.path.basename(filename)))
     t = time.time()
     metadata = dict()
@@ -228,7 +252,7 @@ def open_file(filename=None, from_gui=False):
         g.alert(msg)
         if filename in g.settings['recent_files']:
             g.settings['recent_files'].remove(filename)
-        make_recent_menu()
+        # make_recent_menu()
         return
     g.m.statusBar().showMessage('{} successfully loaded ({} s)'.format(os.path.basename(filename), time.time() - t))
     g.settings['filename'] = filename
@@ -236,11 +260,12 @@ def open_file(filename=None, from_gui=False):
     newWindow = Window(A, os.path.basename(filename), filename, commands, metadata)
     return newWindow
 
+        
 def load_points(filename=None):
-    if filename is None:
+    if filename is not None:
         filetypes = '*.txt'
         prompt = 'Load Points'
-        filename = getOpenFileName(prompt, filetypes=filetypes)
+        filename = open_file_gui(prompt, filetypes=filetypes)
         if filename is None:
             return None
     g.m.statusBar().showMessage('Loading points from {}'.format(os.path.basename(filename)))
@@ -264,10 +289,14 @@ def load_points(filename=None):
         g.currentWindow.scatterPlot.setPoints(pos=g.currentWindow.scatterPoints[t])
     g.m.statusBar().showMessage('Successfully loaded {}'.format(os.path.basename(filename)))
 
+    
 
+
+    
 ########################################################################################################################
 ######################                INTERNAL HELPER FUNCTIONS                              ###########################
 ########################################################################################################################
+
 
 def append_recent_file(fname):
     if fname in g.settings['recent_files']:
@@ -277,6 +306,7 @@ def append_recent_file(fname):
         if len(g.settings['recent_files']) > 8:
             g.settings['recent_files'] = g.settings['recent_files'][-8:]
     return fname
+
 
 def get_metadata_tiff(Tiff):
     metadata = {}
@@ -304,6 +334,7 @@ def get_metadata_tiff(Tiff):
     metadata['is_rgb'] = Tiff[0].is_rgb
     return metadata
 
+
 def get_metadata_nd2(nd2):
     metadata = dict()
     metadata['channels'] = nd2.channels
@@ -315,27 +346,29 @@ def get_metadata_nd2(nd2):
     metadata['z_levels'] = nd2.z_levels
     return metadata
 
+
+def txt2dict(metadata):
+    meta = dict()
+    try:
+        metadata = json.loads(metadata.decode('utf-8'))
+        return metadata
+    except ValueError:  # if the metadata isn't in JSON
+        pass
+    for line in metadata.splitlines():
+        line = re.split('[:=]', line.decode())
+        if len(line) == 1:
+            meta[line[0]] = ''
+        else:
+            meta[line[0].lstrip().rstrip()] = line[1].lstrip().rstrip()
+    return meta
+
+
 def JSONhandler(obj):
     if isinstance(obj,datetime.datetime):
         return obj.isoformat()
     else:
         json.JSONEncoder().default(obj)
 
-    
-def txt2dict(metadata):
-    meta=dict()
-    try:
-        metadata=json.loads(metadata.decode('utf-8'))
-        return metadata
-    except ValueError: #if the metadata isn't in JSON
-        pass
-    for line in metadata.splitlines():
-        line=re.split('[:=]',line.decode())
-        if len(line)==1:
-            meta[line[0]]=''
-        else:
-            meta[line[0].lstrip().rstrip()]=line[1].lstrip().rstrip()
-    return meta
 
 def close(windows=None):
     '''
@@ -349,10 +382,10 @@ def close(windows=None):
     '''
     if isinstance(windows, str):
         if windows == 'all':
-            windows = [window for window in g.m.windows]
+            windows = [window for window in g.windows]
             for window in windows:
                 window.close()
-    elif isinstance(windows, list):
+    elif isinstance(windows,list):
         for window in windows:
             if isinstance(window,Window):
                 window.close()
@@ -362,38 +395,18 @@ def close(windows=None):
         if g.currentWindow is not None:
             g.currentWindow.close()
 
+
 ########################################################################################################################
 ######################             OLD FUNCTIONS THAT MIGHT BE USEFUL SOMEDAY                ###########################
 ########################################################################################################################
-
 """
+
 def save_roi_traces(filename):
     g.m.statusBar().showMessage('Saving traces to {}'.format(os.path.basename(filename)))
     to_save = [roi.getTrace() for roi in g.currentWindow.rois]
     np.savetxt(filename, np.transpose(to_save), header='\t'.join(['ROI %d' % i for i in range(len(to_save))]), fmt='%.4f', delimiter='\t', comments='')
     g.settings['filename'] = filename
     g.m.statusBar().showMessage('Successfully saved traces to {}'.format(os.path.basename(filename)))
-
-def save_current_frame(filename):
-    ''' save_current_frame(filename)
-    Save the current single frame image of the currentWindow to a .tif file.
-    
-    Parameters:
-        | filename (str) -- Address to save the frame to.
-    '''
-    if os.path.dirname(filename)=='': #if the user didn't specify a directory
-        directory=os.path.normpath(os.path.dirname(g.settings['filename']))
-        filename=os.path.join(directory,filename)
-    g.m.statusBar().showMessage('Saving {}'.format(os.path.basename(filename)))
-    A=np.average(g.currentWindow.image, 0)#.astype(g.settings['internal_data_type'])
-    metadata=json.dumps(g.currentWindow.metadata)
-    if len(A.shape)==3:
-        A = A[g.currentWindow.currentIndex]
-        A=np.transpose(A,(0,2,1)) # This keeps the x and the y the same as in FIJI
-    elif len(A.shape)==2:
-        A=np.transpose(A,(1,0))
-    tifffile.imsave(filename, A, description=metadata) #http://stackoverflow.com/questions/20529187/what-is-the-best-way-to-save-image-metadata-alongside-a-tif-with-python
-    g.m.statusBar().showMessage('Successfully saved {}'.format(os.path.basename(filename)))    
 
 def load_metadata(filename=None):
     '''This function loads the .txt file corresponding to a file into a dictionary
@@ -419,7 +432,6 @@ def load_metadata(filename=None):
             except ValueError:
                 pass
     return meta
-    
 
 def save_metadata(meta):
     filename=os.path.splitext(g.settings['filename'])[0]+'.txt'
@@ -429,4 +441,40 @@ def save_metadata(meta):
         text+="{}={}\n".format(item[0],item[1])
     f.write(text)
     f.close()
+
+
+def save_current_frame(filename):
+    "" save_current_frame(filename)
+    Save the current single frame image of the currentWindow to a .tif file.
+
+    Parameters:
+        | filename (str) -- Address to save the frame to.
+    ""
+    if os.path.dirname(filename)=='': #if the user didn't specify a directory
+        directory=os.path.normpath(os.path.dirname(g.settings['filename']))
+        filename=os.path.join(directory,filename)
+    g.m.statusBar().showMessage('Saving {}'.format(os.path.basename(filename)))
+    A=np.average(g.currentWindow.image, 0)#.astype(g.settings['internal_data_type'])
+    metadata=json.dumps(g.currentWindow.metadata)
+    if len(A.shape)==3:
+        A = A[g.currentWindow.currentIndex]
+        A=np.transpose(A,(0,2,1)) # This keeps the x and the y the same as in FIJI
+    elif len(A.shape)==2:
+        A=np.transpose(A,(1,0))
+    tifffile.imsave(filename, A, description=metadata) #http://stackoverflow.com/questions/20529187/what-is-the-best-way-to-save-image-metadata-alongside-a-tif-with-python
+    g.m.statusBar().showMessage('Successfully saved {}'.format(os.path.basename(filename)))
+
+def make_recent_menu():
+    g.m.menuRecent_Files.clear()
+    if len(g.settings['recent_files']) == 0:
+        no_recent = QtWidgets.QAction("No Recent Files", g.m)
+        no_recent.setEnabled(False)
+        g.m.menuRecent_Files.addAction(no_recent)
+        return
+    def openFun(f):
+        return lambda: open_file(append_recent_file(f))
+    for fname in g.settings['recent_files'][:10]:
+        if os.path.exists(fname):
+            g.m.menuRecent_Files.addAction(QtWidgets.QAction(fname, g.m, triggered=openFun(fname)))
+
 """
