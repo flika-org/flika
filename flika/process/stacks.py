@@ -14,8 +14,7 @@ from .BaseProcess import BaseProcess, BaseProcess_noPriorWindow, WindowSelector,
 from ..tracefig import TraceFig
 
 
-__all__ = ['deinterleave','trim','zproject','image_calculator', 'pixel_binning', 'frame_binning', 'resize', 'duplicate']
-
+__all__ = ['deinterleave','trim','zproject','image_calculator', 'pixel_binning', 'frame_binning', 'resize', 'concatenate_stacks', 'duplicate', 'generate_random_image', 'change_datatype']
 
 def duplicate():
     old = g.currentWindow
@@ -185,24 +184,29 @@ class Resize(BaseProcess):
         factor.setMaximum(100)
         self.items.append({'name':'factor','string':'By what factor to resize the image?','object':factor})
         super().gui()
+
     def __call__(self,factor,keepSourceWindow=False):
         self.start(keepSourceWindow)
-        A=self.tif
-        nDim=len(A.shape)
-        is_rgb=self.oldwindow.metadata['is_rgb']
+        if self.tif.dtype in (np.uint64, np.int64):
+            g.alert("Resize fails on int64 and uint64 movie types, change the image type to resize.")
+            return
+        A = self.tif
+        nDim = len(A.shape)
+        is_rgb = self.oldwindow.metadata['is_rgb'] or (nDim == 3 and A.shape[2] == 3) or nDim == 4
+        B = None
         if not is_rgb:
-            if nDim==3:
-                mt,mx,my=A.shape
-                B=np.zeros((mt,mx*factor,my*factor))
+            if nDim == 3:
+                mt,mx,my = A.shape
+                B = np.zeros((mt, mx*factor, my*factor))
                 for t in np.arange(mt):
-                    B[t]=skimage.transform.resize(A[t],(mx*factor,my*factor))
-            elif nDim==2:
-                mx, my=A.shape
-                B=skimage.transform.resize(A,(mx*factor,my*factor))
-        self.newtif=B
-        self.newname=self.oldname+' - resized {}x '.format(factor)
+                    B[t]=skimage.transform.resize(A[t], (mx*factor,my*factor))
+            elif nDim == 2:
+                mx, my = A.shape
+                B = skimage.transform.resize(A,(mx*factor, my*factor))
+        self.newtif = B
+        self.newname = self.oldname+' - resized {}x '.format(factor)
         return self.end()
-resize=Resize()
+resize = Resize()
 
 
 class Trim(BaseProcess):
@@ -228,12 +232,10 @@ class Trim(BaseProcess):
         firstFrame.setMaximum(nFrames-1)
         lastFrame=QtWidgets.QSpinBox()
         lastFrame.setRange(0,nFrames-1)
-        #lastFrame.setValue(nFrames-1)
         increment=QtWidgets.QSpinBox()
         increment.setMaximum(nFrames)
         increment.setMinimum(1)
         delete = CheckBox()
-        #delete.setChecked(False)
 
         self.items.append({'name': 'firstFrame', 'string': 'First Frame', 'object': firstFrame})
         self.items.append({'name': 'lastFrame',  'string': 'Last Frame',  'object': lastFrame })
@@ -279,7 +281,7 @@ class ZProject(BaseProcess):
     def gui(self):
         self.gui_reset()
         nFrames=1
-        if len(g.currentWindow.image.shape)!=3:
+        if g.currentWindow and len(g.currentWindow.image.shape) != 3:
             g.m.statusBar().showMessage('zproject only works on 3 dimensional windows')
             return False
         if g.currentWindow is not None:
@@ -302,8 +304,8 @@ class ZProject(BaseProcess):
         super().gui()
     def __call__(self,firstFrame,lastFrame,projection_type,keepSourceWindow=False):
         self.start(keepSourceWindow)
-        if len(self.tif.shape)!=3:
-            g.m.statusBar().showMessage('zproject only works on 3 dimensional windows')
+        if self.tif.ndim != 3 or self.tif.shape[2] == 3:
+            g.m.statusBar().showMessage('zproject only works on 3 dimensional, non-color windows')
             return False
         self.newtif=self.tif[firstFrame:lastFrame+1]
         p=projection_type

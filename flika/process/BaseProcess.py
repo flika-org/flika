@@ -14,6 +14,7 @@ import inspect
 
 from .. import global_vars as g
 from .. import window
+from ..utils.misc import save_file_gui
 
 __all__ = []
 
@@ -83,22 +84,12 @@ class FileSelector(QtWidgets.QWidget):
         self.layout.addWidget(self.label)
         self.setLayout(self.layout)
         self.button.clicked.connect(self.buttonclicked)
-        self.filetypes=filetypes
-        self.filename=''
+        self.filetypes = filetypes
+        self.filename = ''
         
     def buttonclicked(self):
-        filename=g.settings['filename']
-        try:
-            directory=os.path.dirname(filename)
-        except:
-            directory=''
-        prompt='testing fileSelector'
-        if filename is not None and directory != '':
-            filename= QtWidgets.QFileDialog.getSaveFileName(self, prompt, directory, self.filetypes)
-        else:
-            filename= QtWidgets.QFileDialog.getSaveFileName(self, prompt, self.filetypes)
-        filename=str(filename)        
-        self.filename=str(filename)
+        prompt = 'testing fileSelector'
+        self.filename = save_file_gui(prompt, filetypes=self.filetypes)
         self.label.setText('...'+os.path.split(self.filename)[-1][-20:])
         self.valueChanged.emit()
 
@@ -109,6 +100,12 @@ class FileSelector(QtWidgets.QWidget):
         self.filename = str(filename)
         self.label.setText('...' + os.path.split(self.filename)[-1][-20:])
 
+def color_pixmap(color):
+    pm = QtGui.QPixmap(15, 15)
+    p = QtGui.QPainter(pm)
+    b = QtGui.QBrush(QtGui.QColor(color))
+    p.fillRect(-1, -1, 20, 20, b)
+    return pm
 
 class ColorSelector(QtWidgets.QWidget):
     """
@@ -125,15 +122,24 @@ class ColorSelector(QtWidgets.QWidget):
         self.layout.addWidget(self.label)
         self.setLayout(self.layout)
         self.button.clicked.connect(self.buttonclicked)
-        self.color=''
+        self._color=''
         self.colorDialog=QtWidgets.QColorDialog()
         self.colorDialog.colorSelected.connect(self.colorSelected)
-        
+
+    @property
+    def color(self):
+        return self._color
+
+    @color.setter
+    def color(self, color):
+        self._color = color
+        self.button.setIcon(QtGui.QIcon(color_pixmap(color)))
+
     def buttonclicked(self):
         self.colorDialog.open()
 
     def value(self):
-        return self.color
+        return self._color
         
     def colorSelected(self, color):
         if color.isValid():
@@ -162,6 +168,7 @@ class SliderLabel(QtWidgets.QWidget):
         self.label.valueChanged.connect(self.updateSlider)
         self.valueChanged=self.label.valueChanged
     @QtCore.Slot(float)
+    @QtCore.Slot(int)
     def updateSlider(self,value):
         self.slider.setValue(int(value*10**self.decimals))
     def updateLabel(self,value):
@@ -182,9 +189,9 @@ class SliderLabel(QtWidgets.QWidget):
         self.label.setValue(value)
     def setSingleStep(self,value):
         self.label.setSingleStep(value)
-    def setEnabled(self, bool):
-        self.slider.setEnabled(bool)
-        self.label.setEnabled(bool)
+    def setEnabled(self, en):
+        self.label.setEnabled(en)
+        self.slider.setEnabled(en)
 
 
 class SliderLabelOdd(SliderLabel):
@@ -323,7 +330,7 @@ class BaseProcess(object):
         self.oldname=self.oldwindow.name
 
     def end(self):
-        if self.newtif is None:
+        if not hasattr(self, 'newtif') or self.newtif is None:
             self.oldwindow.reset()
             return
         commands=self.oldwindow.commands[:]
