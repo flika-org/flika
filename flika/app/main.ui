@@ -10,12 +10,6 @@
     <height>80</height>
    </rect>
   </property>
-  <property name="sizePolicy">
-   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-    <horstretch>0</horstretch>
-    <verstretch>0</verstretch>
-   </sizepolicy>
-  </property>
   <property name="windowTitle">
    <string>Flika</string>
   </property>
@@ -23,7 +17,7 @@
    <widget class="QPushButton" name="freehand">
     <property name="geometry">
      <rect>
-      <x>90</x>
+      <x>130</x>
       <y>0</y>
       <width>41</width>
       <height>31</height>
@@ -52,7 +46,7 @@
    <widget class="QPushButton" name="line">
     <property name="geometry">
      <rect>
-      <x>50</x>
+      <x>90</x>
       <y>0</y>
       <width>41</width>
       <height>31</height>
@@ -78,7 +72,7 @@
    <widget class="QPushButton" name="rectangle">
     <property name="geometry">
      <rect>
-      <x>10</x>
+      <x>50</x>
       <y>0</y>
       <width>41</width>
       <height>31</height>
@@ -107,7 +101,7 @@
    <widget class="QPushButton" name="point">
     <property name="geometry">
      <rect>
-      <x>130</x>
+      <x>170</x>
       <y>0</y>
       <width>41</width>
       <height>31</height>
@@ -136,7 +130,7 @@
    <widget class="QPushButton" name="rect_line">
     <property name="geometry">
      <rect>
-      <x>170</x>
+      <x>210</x>
       <y>0</y>
       <width>41</width>
       <height>31</height>
@@ -162,6 +156,35 @@
      <bool>false</bool>
     </property>
    </widget>
+   <widget class="QPushButton" name="mouse">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>0</y>
+      <width>41</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="icon">
+     <iconset>
+      <normaloff>../images/mouse.png</normaloff>../images/mouse.png</iconset>
+    </property>
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+    <property name="checked">
+     <bool>false</bool>
+    </property>
+    <property name="autoExclusive">
+     <bool>true</bool>
+    </property>
+    <property name="flat">
+     <bool>false</bool>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -172,479 +195,10 @@
      <height>21</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuFile">
-    <property name="title">
-     <string>File</string>
-    </property>
-    <widget class="QMenu" name="menuImport">
-     <property name="title">
-      <string>Import</string>
-     </property>
-     <addaction name="actionImport_ROIs"/>
-     <addaction name="actionImport_Points"/>
-    </widget>
-    <widget class="QMenu" name="menuRecent_Files">
-     <property name="title">
-      <string>Recent Files</string>
-     </property>
-     <addaction name="actionNo_Recent_Files"/>
-    </widget>
-    <widget class="QMenu" name="menuExport">
-     <property name="title">
-      <string>Export</string>
-     </property>
-     <addaction name="actionExport_Points"/>
-     <addaction name="actionExport_Movie"/>
-    </widget>
-    <addaction name="actionOpen"/>
-    <addaction name="menuRecent_Files"/>
-    <addaction name="actionSaveAs"/>
-    <addaction name="menuImport"/>
-    <addaction name="menuExport"/>
-    <addaction name="actionSettings"/>
-   </widget>
-   <widget class="QMenu" name="menuImage">
-    <property name="title">
-     <string>Image</string>
-    </property>
-    <widget class="QMenu" name="menuStacks">
-     <property name="title">
-      <string>Stacks</string>
-     </property>
-     <addaction name="actionDuplicate"/>
-     <addaction name="actionGenerate_random_image"/>
-     <addaction name="actionTrim_Frames"/>
-     <addaction name="actionDeinterleave"/>
-     <addaction name="actionZ_Project"/>
-     <addaction name="actionPixel_Binning"/>
-     <addaction name="actionFrame_Binning"/>
-     <addaction name="actionResize"/>
-     <addaction name="actionChange_datatype"/>
-     <addaction name="actionConcatenate_Stacks"/>
-    </widget>
-    <widget class="QMenu" name="menuWindow">
-     <property name="title">
-      <string>Overlay</string>
-     </property>
-     <addaction name="actionBackground"/>
-     <addaction name="actionTime_Stamp"/>
-     <addaction name="actionScale_Bar"/>
-    </widget>
-    <widget class="QMenu" name="menuColor">
-     <property name="title">
-      <string>Color</string>
-     </property>
-     <addaction name="actionSplit_Channels"/>
-    </widget>
-    <addaction name="menuStacks"/>
-    <addaction name="menuColor"/>
-    <addaction name="actionMeasure"/>
-    <addaction name="actionSet_Value"/>
-    <addaction name="menuWindow"/>
-   </widget>
-   <widget class="QMenu" name="menuProcess">
-    <property name="title">
-     <string>Process</string>
-    </property>
-    <widget class="QMenu" name="menuMath">
-     <property name="title">
-      <string>Math</string>
-     </property>
-     <addaction name="actionMultiply"/>
-     <addaction name="actionSubtract"/>
-     <addaction name="actionPower"/>
-     <addaction name="actionRatio"/>
-     <addaction name="actionAbsolute_Value"/>
-     <addaction name="actionSubtract_Trace"/>
-     <addaction name="actionDivide_Trace"/>
-    </widget>
-    <widget class="QMenu" name="menuFilters">
-     <property name="title">
-      <string>Filters</string>
-     </property>
-     <addaction name="actionGaussian_Blur"/>
-     <addaction name="separator"/>
-     <addaction name="actionButterworth_Filter"/>
-     <addaction name="actionMean_Filter"/>
-     <addaction name="actionMedian_Filter"/>
-     <addaction name="actionDifference_Filter"/>
-     <addaction name="actionBoxcar_Differential"/>
-     <addaction name="actionWavelet_Filter"/>
-     <addaction name="actionFourier_Filter"/>
-     <addaction name="actionBilateral_Filter"/>
-    </widget>
-    <widget class="QMenu" name="menuBinary">
-     <property name="title">
-      <string>Binary</string>
-     </property>
-     <addaction name="actionThreshold"/>
-     <addaction name="actionAdaptive_Threshold"/>
-     <addaction name="actionCanny_Edge_Detector"/>
-     <addaction name="separator"/>
-     <addaction name="actionLogically_Combine"/>
-     <addaction name="actionRemove_Small_Blobs"/>
-     <addaction name="actionBinary_Dilation"/>
-     <addaction name="actionBinary_Erosion"/>
-    </widget>
-    <addaction name="menuBinary"/>
-    <addaction name="menuMath"/>
-    <addaction name="menuFilters"/>
-    <addaction name="actionImage_Calculator"/>
-   </widget>
-   <widget class="QMenu" name="menuDocs">
-    <property name="title">
-     <string>Help</string>
-    </property>
-    <addaction name="actionCheck_For_Updates"/>
-    <addaction name="actionDocs"/>
-   </widget>
-   <widget class="QMenu" name="menuPlugins">
-    <property name="title">
-     <string>Plugins</string>
-    </property>
-    <addaction name="actionScript_Editor"/>
-    <addaction name="actionPlugin_Manager"/>
-    <addaction name="separator"/>
-   </widget>
-   <addaction name="menuFile"/>
-   <addaction name="menuImage"/>
-   <addaction name="menuProcess"/>
-   <addaction name="menuPlugins"/>
-   <addaction name="menuDocs"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <action name="actionOpen">
-   <property name="text">
-    <string>Open File</string>
-   </property>
-  </action>
-  <action name="actionDeinterleave">
-   <property name="text">
-    <string>Deinterleave</string>
-   </property>
-  </action>
-  <action name="actionSubtract">
-   <property name="text">
-    <string>Subtract</string>
-   </property>
-  </action>
-  <action name="actionGaussian_Blur">
-   <property name="text">
-    <string>Gaussian Blur</string>
-   </property>
-  </action>
-  <action name="actionButterworth_Filter">
-   <property name="text">
-    <string>Butterworth Filter</string>
-   </property>
-  </action>
-  <action name="actionRatio">
-   <property name="text">
-    <string>Ratio by Baseline</string>
-   </property>
-  </action>
-  <action name="actionBoxcar_Differential">
-   <property name="text">
-    <string>Boxcar Differential</string>
-   </property>
-  </action>
-  <action name="actionThreshold">
-   <property name="text">
-    <string>Threshold</string>
-   </property>
-  </action>
-  <action name="actionRemove_Small_Blobs">
-   <property name="text">
-    <string>Remove Small Blobs</string>
-   </property>
-  </action>
-  <action name="actionMultiply">
-   <property name="text">
-    <string>Multiply</string>
-   </property>
-  </action>
-  <action name="actionKymograph">
-   <property name="text">
-    <string>Kymograph</string>
-   </property>
-  </action>
-  <action name="actionTrim_Frames">
-   <property name="text">
-    <string>Trim Frames</string>
-   </property>
-  </action>
-  <action name="actionPython_Interpreter">
-   <property name="text">
-    <string>Python Interpreter</string>
-   </property>
-  </action>
-  <action name="actionDocs">
-   <property name="text">
-    <string>Docs</string>
-   </property>
-  </action>
-  <action name="actionLoad_ROI_File">
-   <property name="text">
-    <string>Load ROI File</string>
-   </property>
-  </action>
-  <action name="actionWavelet_Filter">
-   <property name="text">
-    <string>Wavelet Filter</string>
-   </property>
-  </action>
-  <action name="actionFrame_by_frame_origin">
-   <property name="text">
-    <string>Frame by frame origin</string>
-   </property>
-  </action>
-  <action name="actionSet_Value">
-   <property name="text">
-    <string>Set Value</string>
-   </property>
-  </action>
-  <action name="actionAdaptive_Threshold">
-   <property name="text">
-    <string>Adaptive Threshold</string>
-   </property>
-  </action>
-  <action name="actionLogically_Combine">
-   <property name="text">
-    <string>Logically Combine</string>
-   </property>
-  </action>
-  <action name="actionDifference_Filter">
-   <property name="text">
-    <string>Difference Filter</string>
-   </property>
-  </action>
-  <action name="actionCanny_Edge_Detector">
-   <property name="text">
-    <string>Canny Edge Detector</string>
-   </property>
-  </action>
-  <action name="actionAbsolute_Value">
-   <property name="text">
-    <string>Absolute Value</string>
-   </property>
-  </action>
-  <action name="actionRodent_Tracker">
-   <property name="text">
-    <string>Rodent Tracker</string>
-   </property>
-  </action>
-  <action name="actionZ_Project">
-   <property name="text">
-    <string>Z Project</string>
-   </property>
-  </action>
-  <action name="actionBinary_Dilation">
-   <property name="text">
-    <string>Binary Dilation</string>
-   </property>
-  </action>
-  <action name="actionBinary_Erosion">
-   <property name="text">
-    <string>Binary Erosion</string>
-   </property>
-  </action>
-  <action name="actionImage_Calculator">
-   <property name="text">
-    <string>Image Calculator</string>
-   </property>
-  </action>
-  <action name="actionMeasure">
-   <property name="text">
-    <string>Measure</string>
-   </property>
-  </action>
-  <action name="actionAverage_origin">
-   <property name="text">
-    <string>average_origin</string>
-   </property>
-  </action>
-  <action name="actionCrop">
-   <property name="text">
-    <string>Crop</string>
-   </property>
-  </action>
-  <action name="actionBackground">
-   <property name="text">
-    <string>Background</string>
-   </property>
-  </action>
-  <action name="actionTime_Stamp">
-   <property name="text">
-    <string>Time Stamp</string>
-   </property>
-  </action>
-  <action name="actionScale_Bar">
-   <property name="text">
-    <string>Scale Bar</string>
-   </property>
-  </action>
-  <action name="actionThreshold_cluster">
-   <property name="text">
-    <string>threshold_cluster</string>
-   </property>
-  </action>
-  <action name="actionPower">
-   <property name="text">
-    <string>Power</string>
-   </property>
-  </action>
-  <action name="actionPixel_Binning">
-   <property name="text">
-    <string>Pixel Binning</string>
-   </property>
-  </action>
-  <action name="actionFourier_Filter">
-   <property name="text">
-    <string>Fourier Filter</string>
-   </property>
-  </action>
-  <action name="actionFrame_Binning">
-   <property name="text">
-    <string>Frame Binning</string>
-   </property>
-  </action>
-  <action name="actionSubtract_Trace">
-   <property name="text">
-    <string>Subtract Trace</string>
-   </property>
-  </action>
-  <action name="actionLoad_Points">
-   <property name="text">
-    <string>Load Points</string>
-   </property>
-  </action>
-  <action name="actionMean_Filter">
-   <property name="text">
-    <string>Mean Filter</string>
-   </property>
-  </action>
-  <action name="actionExport">
-   <property name="text">
-    <string>Export</string>
-   </property>
-  </action>
-  <action name="actionImport_ROIs">
-   <property name="text">
-    <string>ROI File</string>
-   </property>
-  </action>
-  <action name="actionImport_Points">
-   <property name="text">
-    <string>Points</string>
-   </property>
-  </action>
-  <action name="actionSettings">
-   <property name="text">
-    <string>Settings</string>
-   </property>
-  </action>
-  <action name="actionScript_Editor">
-   <property name="text">
-    <string>Script Editor</string>
-   </property>
-  </action>
-  <action name="actionNew">
-   <property name="text">
-    <string>New...</string>
-   </property>
-  </action>
-  <action name="actionPlugin_Manager">
-   <property name="text">
-    <string>Plugin Manager</string>
-   </property>
-  </action>
-  <action name="actionMedian_Filter">
-   <property name="text">
-    <string>Median Filter</string>
-   </property>
-  </action>
-  <action name="actionResize">
-   <property name="text">
-    <string>Resize</string>
-   </property>
-  </action>
-  <action name="actionNo_Recent_Files">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="text">
-    <string>No Recent Files</string>
-   </property>
-  </action>
-  <action name="actionExport_Points">
-   <property name="text">
-    <string>Points</string>
-   </property>
-  </action>
-  <action name="actionExport_Movie">
-   <property name="text">
-    <string>Movie as MP4</string>
-   </property>
-  </action>
-  <action name="actionSave">
-   <property name="text">
-    <string>Save</string>
-   </property>
-  </action>
-  <action name="actionSaveAs">
-   <property name="text">
-    <string>Save As</string>
-   </property>
-  </action>
-  <action name="actionDivide_Trace">
-   <property name="text">
-    <string>Divide Trace</string>
-   </property>
-  </action>
-  <action name="actionBilateral_Filter">
-   <property name="text">
-    <string>Bilateral Filter</string>
-   </property>
-  </action>
-  <action name="actionCheck_For_Updates">
-   <property name="text">
-    <string>Check For Updates</string>
-   </property>
-  </action>
-  <action name="actionChange_datatype">
-   <property name="text">
-    <string>Change datatype</string>
-   </property>
-  </action>
-  <action name="actionMerge_Windows">
-   <property name="text">
-    <string>Merge Windows</string>
-   </property>
-  </action>
-  <action name="actionConcatenate_Stacks">
-   <property name="text">
-    <string>Concatenate Stacks</string>
-   </property>
-  </action>
-  <action name="actionSplit_Channels">
-   <property name="text">
-    <string>Split Channels</string>
-   </property>
-  </action>
-  <action name="actionDuplicate">
-   <property name="text">
-    <string>Duplicate Window</string>
-   </property>
-  </action>
-  <action name="actionGenerate_random_image">
-   <property name="text">
-    <string>Generate Random Image</string>
-   </property>
-  </action>
  </widget>
- <resources>
-  <include location="../images/images.qrc"/>
- </resources>
+ <resources/>
  <connections>
   <connection>
    <sender>freehand</sender>
