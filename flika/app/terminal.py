@@ -1,20 +1,23 @@
-from __future__ import absolute_import, division, print_function
+# -*- coding: utf-8 -*-
+"""
+Flika
+@author: Kyle Ellefsen
+@author: Brett Settle
+@license: MIT
+"""
 
 import sys
 import atexit
 from contextlib import contextmanager
 from distutils.version import LooseVersion
-
-# must import these first, to set up Qt properly
-from qtpy import QtCore, QtWidgets
-
+from qtpy import QtCore, QtWidgets # must import these first, to set up Qt properly
 import IPython
 from IPython.core.usage import default_banner
 from zmq import ZMQError
 from zmq.eventloop import ioloop
 from zmq.eventloop.zmqstream import ZMQStream
+from .. import __version__
 
-from flika.version import __version__
 
 IPYTHON_VERSION = LooseVersion(IPython.__version__)
 
@@ -53,6 +56,7 @@ else:
     from IPython.qt.manager import QtKernelManager
     from IPython.qt.inprocess import QtInProcessKernelManager
     from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
+
 
 def in_process_console(console_class=RichIPythonWidget, **kwargs):
     """Create a console widget, connected to an in-process Kernel
@@ -312,11 +316,11 @@ def ipython_terminal(banner='', **kwargs):
 
         :rtype: QWidget
     """
-    Terminal.banner = '''Flika version %s
+    Terminal.banner = '''Flika version {}
 
-%s
+{}
 
-''' % (__version__, banner)
+'''.format(__version__, banner)
 
     from distutils.version import LooseVersion
     import IPython
