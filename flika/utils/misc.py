@@ -132,9 +132,9 @@ def open_file_gui(prompt="Open File", directory=None, filetypes=''):
         except:
             directory = None
     if directory is None:
-        filename = QtWidgets.QFileDialog.open_file_gui(g.m, prompt, '', filetypes)
+        filename = QtWidgets.QFileDialog.getOpenFileName(g.m, prompt, '', filetypes)
     else:
-        filename = QtWidgets.QFileDialog.open_file_gui(g.m, prompt, filename, filetypes)
+        filename = QtWidgets.QFileDialog.getOpenFileName(g.m, prompt, filename, filetypes)
     if isinstance(filename, tuple):
         filename, ext = filename
         if ext and '.' not in filename:

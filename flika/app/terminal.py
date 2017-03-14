@@ -1,4 +1,10 @@
-from __future__ import absolute_import, division, print_function
+# -*- coding: utf-8 -*-
+"""
+Flika
+@author: Kyle Ellefsen
+@author: Brett Settle
+@license: MIT
+"""
 
 import sys
 import atexit

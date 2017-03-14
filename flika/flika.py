@@ -14,17 +14,10 @@ import matplotlib.cm
 from .version import __version__
 from .import global_vars as g
 from .window import Window
-from .process.stacks import deinterleave, trim, zproject, image_calculator, pixel_binning, frame_binning, resize, change_datatype, concatenate_stacks, duplicate, generate_random_image
-from .process.color import split_channels
 
-from .process.math_ import multiply, subtract, power, ratio, absolute_value, subtract_trace, divide_trace
-from .process.filters import gaussian_blur, butterworth_filter,boxcar_differential_filter, wavelet_filter, difference_filter, fourier_filter, mean_filter, median_filter, bilateral_filter
-from .process.binary import threshold, adaptive_threshold, canny_edge_detector, remove_small_blobs, logically_combine, binary_dilation, binary_erosion, generate_rois
-from .process.roi import set_value
-from .process.measure import measure
-from .process.file_ import *
+from .process import *
+
 from .roi import load_roi, makeROI
-from .process.overlay import time_stamp,background, scale_bar
 from .app.terminal_widget import ScriptEditor
 from .app.plugin_manager import PluginManager
 try:
@@ -103,7 +96,6 @@ def initializeMainGui():
     g.m.actionScale_Bar.triggered.connect(scale_bar.gui)
     g.m.actionBackground.triggered.connect(background.gui)
     g.m.actionMeasure.triggered.connect(measure.gui)
-    make_recent_menu()
     g.m.actionCheck_For_Updates.triggered.connect(g.checkUpdates)
     g.m.installEventFilter(mainWindowEventEater)
     g.m.show()
