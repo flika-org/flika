@@ -12,7 +12,7 @@ import flika.global_vars as g
 from flika.core import tifffile
 from flika.app.terminal_widget import ScriptEditor
 from flika.process.BaseProcess import BaseDialog
-from flika.utils import getOpenFileName, getSaveFileName
+from flika.utils import getOpenFileName, save_file_gui
 
 
 __all__ = ['save_window', 'save_points', 'export_movie_gui', 'open_file', 'load_points', 'close', 'open_file_from_gui']
@@ -31,7 +31,7 @@ def save_window(filename=None):
         | filename (str) -- The image or movie will be saved here.
     """
     if filename is None:
-        filename = getSaveFileName('Save File As Tif', filetypes='*.tif')
+        filename = save_file_gui('Save File As Tif', filetypes='*.tif')
         if filename is None:
             return None
     if os.path.dirname(filename) == '':  # if the user didn't specify a directory
@@ -58,7 +58,7 @@ def save_points(filename=None):
     if filename is None:
         filetypes = '*.txt'
         prompt = 'Save Points'
-        filename = getSaveFileName(prompt, filetypes=filetypes)
+        filename = save_file_gui(prompt, filetypes=filetypes)
         if filename is None:
             return None
     g.m.statusBar().showMessage('Saving Points in {}'.format(os.path.basename(filename)))
@@ -114,7 +114,7 @@ def export_movie(rate, filename=None):
 
     filetypes = "Movies (*.mp4)"
     prompt = "Save movie to .mp4 file"
-    filename = getSaveFileName(propt, filetypes=filetypes)
+    filename = save_file_gui(propt, filetypes=filetypes)
     if filename is None:
         return None
 
