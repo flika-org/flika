@@ -5,13 +5,16 @@ Flika
 @author: Brett Settle
 @license: MIT
 """
-from qtpy import QtCore, QtGui, QtWidgets
-import pyqtgraph as pg
-pg.setConfigOptions(useWeave=False)
-import numpy as np
 import os
 import time
+import numpy as np
+from qtpy import QtCore, QtGui, QtWidgets
+import pyqtgraph as pg
 from . import global_vars as g
+from .utils.misc import save_file_gui
+
+pg.setConfigOptions(useWeave=False)
+
 
 class TraceFig(QtWidgets.QWidget):
     indexChanged=QtCore.Signal(int)
@@ -24,7 +27,7 @@ class TraceFig(QtWidgets.QWidget):
         super(TraceFig,self).__init__()
         g.traceWindows.append(self)
         self.setCurrentTraceWindow()
-        if 'tracefig_settings' in g.settings.d.keys() and 'coords' in g.settings['tracefig_settings']:
+        if 'tracefig_settings' in g.settings and 'coords' in g.settings['tracefig_settings']:
             self.setGeometry(QtCore.QRect(*g.settings['tracefig_settings']['coords']))
         self.setWindowTitle('Flika')
         self.setWindowIcon(QtGui.QIcon('images/favicon.png'))
@@ -46,6 +49,7 @@ class TraceFig(QtWidgets.QWidget):
         self.p2.plotItem.addItem(self.region, ignoreBounds=True)
         self.p1.setAutoVisible(y=True)
         self.rois=[] # roi in this list is a dict: {roi, p1trace,p2trace, sigproxy}
+        self.redrawPartialThread = None
         self.vb = self.p1.plotItem.getViewBox()
         
         self.proxy = pg.SignalProxy(self.p1.scene().sigMouseMoved, rateLimit=60, slot=self.mouseMoved)
@@ -54,7 +58,7 @@ class TraceFig(QtWidgets.QWidget):
         self.region.sigRegionChanged.connect(self.update)
         self.p1.plotItem.sigRangeChanged.connect(self.updateRegion)
         self.region.setRegion([0, 200])
-        self.redrawPartialThread=None
+
         from .process.measure import measure
         self.measure=measure
         self.p1.scene().sigMouseClicked.connect(self.measure.pointclicked)
@@ -62,7 +66,7 @@ class TraceFig(QtWidgets.QWidget):
         self.resizeEvent = self.onResize
         self.moveEvent = self.onMove
         
-        if 'tracefig_settings' not in g.settings.d.keys():
+        if 'tracefig_settings' not in g.settings:
             g.settings['tracefig_settings']=dict()
             try:
                 g.settings['tracefig_settings']['coords']=self.geometry().getRect()
@@ -150,14 +154,14 @@ class TraceFig(QtWidgets.QWidget):
             self.redrawPartialThread.start()
             self.redrawPartialThread.updated.connect(self.partialThreadUpdatedSignal.emit)
             
-    def translate_done(self,roi):
-        roi_index=self.get_roi_index(roi)  
+    def translateFinished(self,roi):
+        roi_index = self.get_roi_index(roi)
         if self.redrawPartialThread is not None and self.redrawPartialThread.isRunning():
-            self.redrawPartialThread.finished_sig.emit() #tell the thread to finish
-            loop = QtCore.QEventLoop()
-            self.redrawPartialThread.finished.connect(loop.quit)
-            loop.exec_()# This blocks until the "finished" signal is emitted
-            
+            self.redrawPartialThread.quit_loop = True
+            #self.redrawPartialThread.finished_sig.emit() #tell the thread to finish
+            #loop = QtCore.QEventLoop()
+            #self.redrawPartialThread.finished.connect(loop.quit)
+            #loop.exec_()# This blocks until the "finished" signal is emitted
         trace=roi.getTrace()
         self.update_trace_full(roi_index,trace)
 
@@ -171,7 +175,10 @@ class TraceFig(QtWidgets.QWidget):
         if self.hasROI(roi):
             return
         trace=roi.getTrace()
+        if trace is None:
+            raise InvalidTraceException()
         pen=QtGui.QPen(roi.pen)
+        pen.setWidth(0)
         if len(trace)==1:
             p1trace=self.p1.plot(trace, pen=None, symbol='o')
             p2trace=self.p2.plot(trace, pen=None, symbol='o')
@@ -179,25 +186,27 @@ class TraceFig(QtWidgets.QWidget):
             p1trace=self.p1.plot(trace, pen=pen)
             p2trace=self.p2.plot(trace, pen=pen) 
         
-        roi.translated.connect(lambda: self.translated(roi))
-        roi.translate_done.connect(lambda: self.translate_done(roi))
+        roi.sigRegionChanged.connect(self.translated)
+        roi.sigRegionChangeFinished.connect(self.translateFinished)
+
         if len(self.rois)==0:
             self.region.setRegion([0, len(trace)-1])
         self.rois.append(dict({'roi':roi,'p1trace':p1trace,'p2trace':p2trace,'toBeRedrawn':False,'toBeRedrawnFull':False}))
 
     def removeROI(self,roi):
-        if isinstance(roi, (pg.ROI, pg.MultiRectROI)):
+        from .roi import ROI_Wrapper
+        if isinstance(roi, ROI_Wrapper):
             index=[r['roi'] for r in self.rois].index(roi) #this is the index of the roi in self.rois
         elif isinstance(roi, int):
             index = roi
         else:
+            g.alert("Failed to remove roi {}".format(roi))
             return
         self.p1.removeItem(self.rois[index]['p1trace'])
         self.p2.removeItem(self.rois[index]['p2trace'])
         self.rois[index]['roi'].traceWindow = None
         try:
-            self.rois[index]['roi'].translated.disconnect()
-            self.rois[index]['roi'].translate_done.disconnect()
+            self.rois[index]['roi'].resetSignals()
         except:
             pass
         del self.rois[index]
@@ -211,10 +220,9 @@ class TraceFig(QtWidgets.QWidget):
         filename = g.settings['filename']
         directory = os.path.dirname(filename)
         if filename is not None:
-            filename = QtWidgets.QFileDialog.getSaveFileName(g.m, 'Save Traces', directory, '*.txt')
+            filename = save_file_gui(g.m, 'Save Traces', directory, '*.txt')
         else:
-            filename = QtWidgets.QFileDialog.getSaveFileName(g.m, 'Save Traces', '*.txt')
-        filename = str(filename)
+            filename = save_file_gui(g.m, 'Save Traces', '', '*.txt')
         if filename == '':
             return False
         else:
@@ -243,7 +251,12 @@ def roiPlot(roi):
         win = TraceFig()
     else:
         win = g.currentTrace
-    win.addROI(roi)
+    try:
+        win.addROI(roi)
+    except InvalidTraceException:
+        if len(win.rois) == 0:
+            win.close()
+            return None
     return win
 
 
