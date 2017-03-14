@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Sep 17 15:10:30 2014
-
+Flika
 @author: Kyle Ellefsen
+@author: Brett Settle
+@license: MIT
 """
 import numpy as np
-import flika.global_vars as g
 import pyqtgraph as pg
 from qtpy import QtWidgets, QtCore, QtGui
-
-from flika.process.BaseProcess import BaseProcess, SliderLabel, WindowSelector,  MissingWindowError, CheckBox, ComboBox
+from .. import global_vars as g
+from .BaseProcess import BaseProcess, SliderLabel, WindowSelector,  MissingWindowError, CheckBox, ComboBox
 
 __all__ = ['time_stamp','background','scale_bar']
      
@@ -36,7 +36,7 @@ class Time_Stamp(BaseProcess):
             framerate.setValue(g.settings['framerate'])
         framerate.setRange(0,1000000)
         framerate.setDecimals(10)
-        show=CheckBox(); show.setChecked(True)
+        show=QtWidgets.QCheckBox(); show.setChecked(True)
         self.items.append({'name':'framerate','string':'Frame Rate (Hz)','object':framerate})
         self.items.append({'name':'show','string':'Show','object':show})
         super().gui()
@@ -64,6 +64,21 @@ class Time_Stamp(BaseProcess):
      
 time_stamp=Time_Stamp()
 
+
+class ShowCheckbox(QtWidgets.QCheckBox):
+
+    def __init__(self, opacity_slider, parent=None):
+        super().__init__(parent)
+        self.stateChanged.connect(self.changed)
+        self.opacity_slider = opacity_slider
+
+    def changed(self, state):
+        if state == 0:  # unchecked
+            self.opacity_slider.setEnabled(True)
+        if state == 2:  # checked
+            self.opacity_slider.setEnabled(False)
+
+
 class Background(BaseProcess):
     """ background(background_window, data_window)
     Overlays the background_window onto the data_window
@@ -83,8 +98,7 @@ class Background(BaseProcess):
         opacity = SliderLabel(3)
         opacity.setRange(0,1)
         opacity.setValue(.5)
-        show = CheckBox()
-        show.toggled.connect(lambda a: opacity.setEnabled(not a))
+        show = ShowCheckbox(opacity)
         show.setChecked(True)
         self.items.append({'name':'background_window','string':'Background window','object':background_window})
         self.items.append({'name':'data_window','string':'Data window','object':data_window})

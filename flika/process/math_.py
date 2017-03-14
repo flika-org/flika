@@ -1,16 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Jun 26 19:44:11 2014
-
+Flika
 @author: Kyle Ellefsen
+@author: Brett Settle
+@license: MIT
 """
 import numpy as np
-import flika.global_vars as g
-from flika.process.BaseProcess import BaseProcess, ComboBox, CheckBox
-from qtpy import QtWidgets
+from qtpy import QtGui, QtWidgets, QtCore
+from .. import global_vars as g
+from .BaseProcess import BaseProcess, CheckBox, ComboBox
+from ..window import Window
 
 __all__ = ['subtract','multiply','power','ratio','absolute_value','subtract_trace','divide_trace']
-from flika.window import Window
+
 
 def upgrade_dtype(dtype):
     if dtype==np.uint8:

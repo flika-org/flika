@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+Flika
+@author: Kyle Ellefsen
+@author: Brett Settle
+@license: MIT
+"""
 import sys, time
 from qtpy import QtCore, QtGui, QtWidgets
 from multiprocessing import Process, Queue, cpu_count, Pipe
@@ -166,7 +173,31 @@ class ProgressBar(QtWidgets.QWidget):
                 delattr(self, attr)
             except Exception:
                 pass
-           
+        
+#    def closeEvent(self, event):
+#        for child in self.findChildren(QtGui.QDialog):
+#            if child is not widget:
+#                child.deleteLater()
+#                    
+#        if self.closed:
+#            print('This window was already closed')
+#            event.accept()
+#        else:
+#            self.closeSignal.emit()
+#            if hasattr(self,'image'):
+#                del self.image
+#            self.imageview.setImage(np.zeros((2,2))) #clear the memory
+#            self.imageview.close()
+#            del self.imageview
+#            g.m.setWindowTitle("FLIKA")
+#            if g.currentWindow==self:
+#                g.currentWindow=None
+#            if self in g.windows:
+#                g.windows.remove(self)
+#            self.closed=True
+#            event.accept() # let the window close
+        
+        
         
 '''
 When using the Progress Bar, you need to write two functions:

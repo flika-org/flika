@@ -1,17 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sat Jun 28 14:38:26 2014
-
+Flika
 @author: Kyle Ellefsen
+@author: Brett Settle
+@license: MIT
 """
 import numpy as np
 import skimage
 import skimage.filters
-import flika.global_vars as g
-from flika.process.BaseProcess import BaseProcess, SliderLabel, SliderLabelOdd, CheckBox
-from qtpy import QtWidgets
+from qtpy import QtWidgets, QtGui, QtCore
 import time
-from flika.process.progress_bar import ProgressBar
+from .. import global_vars as g
+from .BaseProcess import BaseProcess, SliderLabel, SliderLabelOdd, CheckBox
+from .progress_bar import ProgressBar
 
 __all__ = ['gaussian_blur','mean_filter','median_filter','butterworth_filter','boxcar_differential_filter','wavelet_filter','difference_filter', 'fourier_filter', 'bilateral_filter']
 ###############################################################################
@@ -326,8 +327,8 @@ class Median_filter(BaseProcess):
             preview.setChecked(False)
             preview.setEnabled(False)
             
-    def __call__(self,nFrames,keepSourceWindow=False):
-        if nFrames%2==0: #if value is even:
+    def __call__(self, nFrames, keepSourceWindow=False):
+        if nFrames%2 == 0: #if value is even:
             g.alert('median_filter only takes odd numbers.  Operation cancelled')
             return None
         self.start(keepSourceWindow)
@@ -431,7 +432,6 @@ class Fourier_filter(BaseProcess):
                 self.newtif[:, i, j]=np.real(ifft(f_signal))
         self.newname=self.oldname+' - Fourier Filtered'
         return self.end()
-
     def preview(self):
         frame_rate=self.getValue('frame_rate')
         low=self.getValue('low')

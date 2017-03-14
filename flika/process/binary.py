@@ -13,6 +13,7 @@ from skimage.filters import threshold_adaptive
 from qtpy import QtCore, QtGui, QtWidgets
 from .. import global_vars as g
 from .BaseProcess import BaseProcess, SliderLabel, WindowSelector,  MissingWindowError, CheckBox, ComboBox
+from ..roi import makeROI, ROI_Drawing
 
 
 __all__ = ['threshold','remove_small_blobs','adaptive_threshold','logically_combine','binary_dilation','binary_erosion', 'generate_rois', 'canny_edge_detector']
@@ -480,7 +481,6 @@ class Generate_ROIs(BaseProcess):
         if np.any(im < 0) or np.any(im > 1):
             raise Exception("The current image is not a binary image. Threshold first")
 
-        from ..roi import makeROI
         thresholded_image = np.squeeze(im)
         labelled=measure.label(thresholded_image)
         ROIs = []
@@ -504,7 +504,6 @@ class Generate_ROIs(BaseProcess):
         if np.any(im < 0) or np.any(im > 1):
             raise Exception("The current image is not a binary image. Threshold first")
 
-        from ..roi import ROI_Drawing
         level = self.getValue('level')
         minDensity = self.getValue('minDensity')
         thresholded_image = np.squeeze(im)
