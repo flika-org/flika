@@ -1,10 +1,17 @@
+# -*- coding: utf-8 -*-
+"""
+Flika
+@author: Kyle Ellefsen
+@author: Brett Settle
+@license: MIT
+"""
+
 import numpy as np
 from urllib.request import urlopen
 import re, os, pickle
 from multiprocessing import cpu_count
 from os.path import expanduser
 from qtpy import QtWidgets
-from flika import __version__
 
 __all__ = ['m', 'Settings', 'menus', 'checkUpdates', 'alert']
 
@@ -36,8 +43,9 @@ class Settings:
             d = {k:d[k] for k in d if d[k] != None}
             self.d.update(d)
         except Exception as e:
-            from flika.logger import logger
+            from .logger import logger
             logger.info("Failed to load settings file. %s\nDefault settings restored." % e)
+            print("Failed to load settings file. %s\nDefault settings restored." % e)
             self.save()
         self.d['mousemode'] = 'rectangle' # don't change initial mousemode
 
@@ -71,67 +79,241 @@ class Settings:
         self['internal_data_type'] = dtype
         print('Changed data_type to {}'.format(dtype))
 
-    def update(self, d):
-        self.d.update(d)
+    def gui(self):
+        old_dtype=str(np.dtype(self['internal_data_type']))
+        dataDrop = pg.ComboBox(items=data_types, default=old_dtype)
+        showCheck = QtWidgets.QCheckBox()
+        showCheck.setChecked(self.d['show_windows'])
+        multipleTracesCheck = QtWidgets.QCheckBox()
+        multipleTracesCheck.setChecked(self['multipleTraceWindows'])
+        multiprocessing = QtWidgets.QCheckBox()
+        multiprocessing.setChecked(self['multiprocessing'])
+        nCores = QtWidgets.QComboBox()
+        debug_check = QtWidgets.QCheckBox(checked=self['debug_mode'])
+        debug_check.toggled.connect(setConsoleVisible)
+        for i in np.arange(cpu_count())+1:
+            nCores.addItem(str(i))
+        nCores.setCurrentIndex(self['nCores']-1)
+        items = []
+        items.append({'name': 'internal_data_type', 'string': 'Internal Data Type', 'object': dataDrop})
+        items.append({'name': 'show_windows', 'string': 'Show Windows', 'object': showCheck})
+        items.append({'name': 'multipleTraceWindows', 'string': 'Multiple Trace Windows', 'object': multipleTracesCheck})
+        items.append({'name': 'multiprocessing', 'string': 'Multiprocessing On', 'object': multiprocessing})
+        items.append({'name': 'nCores', 'string': 'Number of cores to use when multiprocessing', 'object': nCores})
+        items.append({'name': 'debug_mode', 'string': 'Debug Mode', 'object': debug_check})
+        def update():
+            self['internal_data_type'] = np.dtype(str(dataDrop.currentText()))
+            self['show_windows'] = showCheck.isChecked()
+            self['multipleTraceWindows'] = multipleTracesCheck.isChecked()
+            self['multiprocessing']=multiprocessing.isChecked()
+            self['nCores']=int(nCores.itemText(nCores.currentIndex()))
+            self['debug_mode'] = debug_check.isChecked()
+            
+        self.bd = BaseDialog(items, 'Flika Settings', '')
+        self.bd.accepted.connect(update)
+        self.bd.changeSignal.connect(update)
+        self.bd.show()
 
 
+def pointSettings(pointButton):
+    """
+    default points color
+    default points size
+    currentWindow points color
+    currentWindow points size
+    clear current points
 
-def alert(msg, title="Flika - Alert!", buttons=QtWidgets.QMessageBox.Ok, icon=QtWidgets.QMessageBox.Information):
-    print(title)
+    """
+    global dialog
+    point_color = ColorSelector()
+    point_color.color=settings['point_color']
+    point_color.label.setText(point_color.color)
+    point_size = QtWidgets.QSpinBox()
+    point_size.setRange(1,50)
+    point_size.setValue(settings['point_size'])
+    show_all_points = QtWidgets.QCheckBox()
+    show_all_points.setChecked(settings['show_all_points'])
+    
+    update_current_points_check = QtWidgets.QCheckBox()
+    update_current_points_check.setChecked(False)
+    
+    items = []
+    items.append({'name': 'point_color', 'string': 'Default Point Color', 'object': point_color})
+    items.append({'name': 'point_size', 'string': 'Default Point Size', 'object': point_size})
+    items.append({'name': 'show_all_points', 'string': 'Show points from all frames', 'object': show_all_points})
+    items.append({'name': 'update_current_points_check', 'string': 'Update already plotted points', 'object': update_current_points_check})
+    def update():
+        win = currentWindow
+        settings['point_color'] = point_color.value()
+        settings['point_size'] = point_size.value()
+        settings['show_all_points'] = show_all_points.isChecked()
+        if win is not None and update_current_points_check.isChecked() == True:
+            color = QtGui.QColor(point_color.value())
+            size = point_size.value()
+            for t in np.arange(win.mt):
+                for i in np.arange(len(win.scatterPoints[t])):
+                    win.scatterPoints[t][i][2] = color
+                    win.scatterPoints[t][i][3] = size
+            win.updateindex()
+        if win is not None:
+            if settings['show_all_points']:
+                pts = []
+                for t in np.arange(win.mt):
+                    pts.extend(win.scatterPoints[t])
+                pointSizes = [pt[3] for pt in pts]
+                brushes = [pg.mkBrush(*pt[2].getRgb()) for pt in pts]
+                win.scatterPlot.setPoints(pos=pts, size=pointSizes, brush=brushes)
+            else:
+                win.updateindex()
+    dialog = BaseDialog(items, 'Points Settings', '')
+    dialog.accepted.connect(update)
+    dialog.changeSignal.connect(update)
+    dialog.show()
+
+
+def mainguiClose(event):
+    global m
+    for win in windows[:] + traceWindows[:] + dialogs[:]:
+        win.close()
+    ScriptEditor.close()
+    PluginManager.close()
+    settings.save()
+    event.accept() # let the window close
+
+
+def messageBox(title, text, buttons=QtWidgets.QMessageBox.Ok, icon=QtWidgets.QMessageBox.Information):
+    m.messagebox = QtWidgets.QMessageBox(icon, title, text, buttons)
+    m.messagebox.setWindowIcon(m.windowIcon())
+    m.messagebox.show()
+    while m.messagebox.isVisible(): QtWidgets.QApplication.instance().processEvents()
+    return m.messagebox.result()
+
+
+def checkUpdates():
+    try:
+        data = urlopen('https://raw.githubusercontent.com/flika-org/flika/master/flika.py').read()[:100]
+    except Exception as e:
+        messageBox("Connection Failed", "Cannot connect to Flika Repository. Connect to the internet to check for updates.")
+        return
+    latest_version = re.findall(r'version=([\d\.]*)', str(data))
+    version = re.findall(r'version=([\d\.]*)', open('flika.py', 'r').read()[:100])
+    message = "Current Version: "
+    if len(version) == 0:
+        version = "Unknown"
+        message += "Unknown"
+    else:
+        version = version[0]
+        message += version
+    message += '\nLatest Version: '
+    if len(latest_version) == 0:
+        latest_version = "Unknown"
+        message += 'Unknown. Check Github Page'
+    else:
+        latest_version = latest_version[0]
+        message += latest_version
+    if any([int(j) > int(i) for i, j in zip(version.split('.'), latest_version.split('.'))]):
+        if messageBox("Update Recommended", message + '\n\nWould you like to update?', QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.Question) == QtWidgets.QMessageBox.Yes:
+            updateFlika()
+    else:
+        messageBox("Up to date", "Your version of Flika is up to date")
+
+def updateFlika():
+    folder = os.path.dirname(__file__)
+    parent_dir = os.path.dirname(folder)
+    new_folder = folder + '-new'
+    url = 'https://github.com/flika-org/flika/archive/master.zip'
+    data = urlopen(url).read()
+    output = open("flika.zip", "wb")
+    output.write(data)
+    output.close()
+
+    extract_location = os.path.join(parent_dir, "temp_flika")
+
+    with zipfile.ZipFile('flika.zip', "r") as z:
+        folder_name = os.path.dirname(z.namelist()[0])
+        if os.path.exists(extract_location):
+            shutil.rmtree(extract_location)
+        z.extractall(extract_location)
+    os.remove('flika.zip')
+    try:
+        d = os.path.dirname(__file__)
+        for path, subs, fs in os.walk(d):
+            extract_path = path.replace(os.path.basename(d), os.path.join('temp_flika', 'flika-master'))
+            for f in fs:
+                if f.endswith(('.py', '.ui', '.png', '.txt', '.xml')):
+                    old, new = os.path.join(path, f), os.path.join(extract_path, f)
+                    if os.path.exists(old) and os.path.exists(new):
+                        m.statusBar().showMessage('replacing %s' % f)
+                        shutil.copy(new, old)
+        if not 'SPYDER_SHELL_ID' in os.environ:
+            Popen('python flika.py', shell=True)
+        shutil.rmtree(extract_location)
+        exit(0)
+    except Exception as e:
+        messageBox("Update Error", "Failed to remove and replace old Flika. %s" % e, icon=QtWidgets.QMessageBox.Warning)
+    
+
+def setConsoleVisible(v):
+    from ctypes import windll
+    GetConsoleWindow = windll.kernel32.GetConsoleWindow
+    console_window_handle = GetConsoleWindow()
+    ShowWindow = windll.user32.ShowWindow
+    ShowWindow(console_window_handle, v)
+
+
+class SetCurrentWindowSignal(QtWidgets.QWidget):
+    sig=Signal()
+
+    def __init__(self,parent):
+        QtWidgets.QWidget.__init__(self,parent)
+        self.hide()
+
+def alert(msg):
+    print('Alert!')
     print(msg)
     msgbx = QtWidgets.QMessageBox(m)
-    msgbx.setIcon(icon)
+    msgbx.setIcon(QtWidgets.QMessageBox.Information)
     msgbx.setText(msg)
-    msgbx.setWindowTitle(title)
+    msgbx.setWindowTitle("Flika - Alert")
     msgbx.show()
     m.statusBar().showMessage(msg)
     desktopSize = QtWidgets.QDesktopWidget().screenGeometry()
     top = (desktopSize.height() / 2) - (msgbx.size().height() / 2)
     left = (desktopSize.width() / 2) - (msgbx.size().width() / 2)
     msgbx.move(left, top)
-    dialogs.append(msgbx)
-    return msgbx
 
-def checkUpdates():
-    m.statusBar().showMessage("Checking if Flika is outdated...")
-    import subprocess
-    update = False
-    proc = subprocess.Popen(["pip", "list", "--outdated", "--format=legacy"], stdout=subprocess.PIPE)
-    out = proc.communicate()[0]
-    out = out.decode('ascii')
-    message = ''
-    for l in out.split('\r\n'):
-        if l.startswith('flika ('):
-            message = l
-            update = True
-            break
-    if not update:
-        a = alert("Flika %s is the latest version" % __version__, title="Up to date")
-        return
-    else:
-        alert("Flika %s is out of date. Run 'pip install flika --upgrade --no-dependencies' in a terminal to update flika." % __version__, title="Update Available")
-        return
-    msgbx = QtWidgets.QMessageBox(QtWidgets.QMessageBox.Question, "Update Recommended", message + '\nWould you like to update?', QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
-    msgbx.show()
-    while msgbx.isVisible(): QtWidgets.QApplication.instance().processEvents()
-    if msgbx.result() == QtWidgets.QMessageBox.Yes:
-        print("OK")
-        return
-        command = "install --upgrade flika --no-dependencies".split(' ')
-        import pip
-        ret = pip.main(command)
-        if ret == 0:
-            alert("Successfully updated. Restart Flika", title="Update Successful")
-            m.close()
-        else:
-            alert("Failed to update Flika.")
+settings=Settings()
 
+
+def init(filename):
+    global m, mainGuiInitialized
+    mainGuiInitialized = True
+    m = uic.loadUi(filename)
+    load_plugin_menu()
+    m.setCurrentWindowSignal = SetCurrentWindowSignal(m)
+    m.setAcceptDrops(True)
+    m.closeEvent = mainguiClose
+
+    # These are all added for backwards compatibility for plugins
+    m.windows = windows
+    m.traceWindows = traceWindows
+    m.dialogs = dialogs
+    m.currentWindow = currentWindow
+    m.currentTrace = currentTrace
+    m.clipboard = clipboard
+
+
+m = None  # will be main window
 menus = []
-
-m = None # will be main window
 windows = []
 traceWindows = []
 dialogs = []
 currentWindow = None
 currentTrace = None
 clipboard = None
+
+
+
+
+
+
