@@ -38,8 +38,8 @@ def save_window(filename=None):
         directory = os.path.normpath(os.path.dirname(g.settings['filename']))
         filename = os.path.join(directory, filename)
     g.m.statusBar().showMessage('Saving {}'.format(os.path.basename(filename)))
-    A = g.m.currentWindow.image  # .astype(g.settings['internal_data_type'])
-    metadata = g.m.currentWindow.metadata
+    A = g.currentWindow.image  # .astype(g.settings['internal_data_type'])
+    metadata = g.currentWindow.metadata
     try:
         metadata = json.dumps(metadata, default=JSONhandler)
     except TypeError as e:
@@ -63,7 +63,7 @@ def save_points(filename=None):
             return None
     g.m.statusBar().showMessage('Saving Points in {}'.format(os.path.basename(filename)))
     p_out = []
-    p_in = g.m.currentWindow.scatterPoints
+    p_in = g.currentWindow.scatterPoints
     for t in np.arange(len(p_in)):
         for p in p_in[t]:
             p_out.append(np.array([t, p[0], p[1]]))
@@ -77,7 +77,7 @@ def export_movie_gui():
     rateSpin = pg.SpinBox(value=50, bounds=[1, 1000], suffix='fps', int=True, step=1)
     rateDialog = BaseDialog([{'string': 'Framerate', 'object': rateSpin}], 'Save Movie', 'Set the framerate')
     rateDialog.accepted.connect(lambda: export_movie(rateSpin.value()))
-    g.m.dialogs.append(rateDialog)
+    g.dialogs.append(rateDialog)
     rateDialog.show()
 
 def export_movie(rate, filename=None):
@@ -118,7 +118,7 @@ def export_movie(rate, filename=None):
     if filename is None:
         return None
 
-    win = g.m.currentWindow
+    win = g.currentWindow
     A = win.image
     if len(A.shape) < 3:
         g.alert('Movie not the right shape for saving.')
@@ -246,22 +246,22 @@ def load_points(filename=None):
     g.m.statusBar().showMessage('Loading points from {}'.format(os.path.basename(filename)))
     pts = np.loadtxt(filename)
     nCols = pts.shape[1]
-    pointSize = g.m.settings['point_size']
-    pointColor = QtGui.QColor(g.m.settings['point_color'])
+    pointSize = g.settings['point_size']
+    pointColor = QtGui.QColor(g.settings['point_color'])
     if nCols == 3:
         for pt in pts:
             t = int(pt[0])
-            if g.m.currentWindow.mt == 1:
+            if g.currentWindow.mt == 1:
                 t = 0
-            g.m.currentWindow.scatterPoints[t].append([pt[1],pt[2], pointColor, pointSize])
-        t = g.m.currentWindow.currentIndex
-        g.m.currentWindow.scatterPlot.setPoints(pos=g.m.currentWindow.scatterPoints[t])
+            g.currentWindow.scatterPoints[t].append([pt[1],pt[2], pointColor, pointSize])
+        t = g.currentWindow.currentIndex
+        g.currentWindow.scatterPlot.setPoints(pos=g.currentWindow.scatterPoints[t])
     elif nCols == 2:
         t = 0
         for pt in pts:
-            g.m.currentWindow.scatterPoints[t].append([pt[0], pt[1], pointColor, pointSize])
-        t = g.m.currentWindow.currentIndex
-        g.m.currentWindow.scatterPlot.setPoints(pos=g.m.currentWindow.scatterPoints[t])
+            g.currentWindow.scatterPoints[t].append([pt[0], pt[1], pointColor, pointSize])
+        t = g.currentWindow.currentIndex
+        g.currentWindow.scatterPlot.setPoints(pos=g.currentWindow.scatterPoints[t])
     g.m.statusBar().showMessage('Successfully loaded {}'.format(os.path.basename(filename)))
 
 
@@ -369,7 +369,7 @@ def close(windows=None):
 """
 def save_roi_traces(filename):
     g.m.statusBar().showMessage('Saving traces to {}'.format(os.path.basename(filename)))
-    to_save = [roi.getTrace() for roi in g.m.currentWindow.rois]
+    to_save = [roi.getTrace() for roi in g.currentWindow.rois]
     np.savetxt(filename, np.transpose(to_save), header='\t'.join(['ROI %d' % i for i in range(len(to_save))]), fmt='%.4f', delimiter='\t', comments='')
     g.settings['filename'] = filename
     g.m.statusBar().showMessage('Successfully saved traces to {}'.format(os.path.basename(filename)))

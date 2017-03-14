@@ -14,7 +14,7 @@ from flika.tracefig import TraceFig
 __all__ = ['deinterleave','trim','zproject','image_calculator', 'pixel_binning', 'frame_binning', 'resize', 'concatenate_stacks', 'duplicate', 'generate_random_image', 'change_datatype']
 
 def duplicate():
-    old = g.m.currentWindow
+    old = g.currentWindow
     if old is None:
         g.alert('Select a window before trying to duplicate it.')
     else:
@@ -274,7 +274,7 @@ class ZProject(BaseProcess):
     def gui(self):
         self.gui_reset()
         nFrames=1
-        if g.m.currentWindow and len(g.currentWindow.image.shape)!=3:
+        if g.currentWindow and len(g.currentWindow.image.shape)!=3:
             g.m.statusBar().showMessage('zproject only works on 3 dimensional windows')
             return False
         if g.currentWindow is not None:

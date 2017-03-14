@@ -126,13 +126,13 @@ class ROITest():
 			assert self.win1.image.ndim == 4, "Trace failed on non-4D image"
 			return
 		assert self.roi.traceWindow != None, "ROI plotted, roi traceWindow set"
-		assert g.m.currentTrace == trace, "ROI plotted, but currentTrace is still None"
+		assert g.currentTrace == trace, "ROI plotted, but currentTrace is still None"
 		ind = trace.get_roi_index(self.roi)
 		if trace.rois[ind]['p1trace'].opts['pen'] != None:
 			assert trace.rois[ind]['p1trace'].opts['pen'].color().name() == self.roi.pen.color().name(), "Color not changed. %s != %s" % (trace.rois[ind]['p1trace'].opts['pen'].color().name(), self.roi.pen.color().name())
 		self.roi.unplot()
 		assert self.roi.traceWindow == None, "ROI unplotted, roi traceWindow cleared"
-		assert g.m.currentTrace == None, "ROI unplotted, currentTrace cleared"
+		assert g.currentTrace == None, "ROI unplotted, currentTrace cleared"
 		g.settings['multipleTraceWindows'] = False
 	
 	def test_translate(self):
@@ -155,7 +155,7 @@ class ROITest():
 			assert self.win1.image.ndim == 4, "Trace failed on non-4D image"
 			return
 		assert self.roi.traceWindow != None, "ROI plotted, roi traceWindow set. %s should not be None" % (self.roi.traceWindow)
-		assert g.m.currentTrace == self.roi.traceWindow, "ROI plotted, currentTrace not set. %s != %s" % (g.m.currentTrace, self.roi.traceWindow) 
+		assert g.currentTrace == self.roi.traceWindow, "ROI plotted, currentTrace not set. %s != %s" % (g.currentTrace, self.roi.traceWindow) 
 		ind = trace.get_roi_index(self.roi)
 
 		traceItem = trace.rois[ind]['p1trace']

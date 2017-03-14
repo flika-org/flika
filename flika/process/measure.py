@@ -91,11 +91,11 @@ class Measure(BaseProcess):
             mousePoint = self.fig.imageview.getImageItem().mapFromScene(pos)
             pos = np.array([mousePoint.y(),mousePoint.x()])
         else:
-            if self.fig is not g.m.currentTrace: #if we created a new tracefig
+            if self.fig is not g.currentTrace: #if we created a new tracefig
                 self.clear()
-                self.fig=g.m.currentTrace
+                self.fig=g.currentTrace
                 self.viewbox=self.fig.vb
-                if not g.m.currentTrace.p1.plotItem.sceneBoundingRect().contains(pos):
+                if not g.currentTrace.p1.plotItem.sceneBoundingRect().contains(pos):
                     return
                 self.pathitem=QtWidgets.QGraphicsPathItem(self.viewbox)
                 self.pathitem.setPen(QtGui.QPen(QtCore.Qt.red))
@@ -134,7 +134,7 @@ class Measure(BaseProcess):
             self.draw([self.firstPoint,self.secondPoint])
                     
     def draw(self,points):
-        if type(self.fig) != type(g.m.currentTrace):
+        if type(self.fig) != type(g.currentTrace):
             points = [p[::-1] for p in points]
         path=QtGui.QPainterPath(QtCore.QPointF(*points[0]))
         for i in np.arange(1,len(points)):
@@ -149,12 +149,12 @@ class Measure(BaseProcess):
     def getNearestPoint(self,point):
         if hasattr(self.fig, 'imageview'):
             return point
-        roi=g.m.currentTrace.rois[0]
+        roi=g.currentTrace.rois[0]
         d=roi['p2trace'].getData()
         index=np.abs(d[0]-point[0]).argmin()
         x=d[0][index]
         ys=[]
-        for roi in g.m.currentTrace.rois:
+        for roi in g.currentTrace.rois:
             d=roi['p2trace'].getData()
             ys.append(d[1][index])
         roi_idx=np.argmin(abs(ys-point[1]))

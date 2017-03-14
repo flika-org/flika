@@ -374,7 +374,7 @@ class Window(QtWidgets.QWidget):
         
         t, x, y = p
 
-        pointSize=g.m.settings['point_size']
+        pointSize=g.settings['point_size']
         pointColor = QtGui.QColor(g.settings['point_color'])
         position=[x, y, pointColor, pointSize]
         self.scatterPoints[t].append(position)

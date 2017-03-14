@@ -25,8 +25,8 @@ class ROI_Drawing(pg.GraphicsObject):
         
 
     def cancel(self):
-        g.m.currentWindow.imageview.removeItem(self)
-        g.m.currentWindow.currentROI = None
+        g.currentWindow.imageview.removeItem(self)
+        g.currentWindow.currentROI = None
 
     def extendRectLine(self):
         for roi in self.window.rois:

@@ -311,7 +311,7 @@ class BaseProcess(object):
         self.command = funcname+'('+', '.join([i+'='+convert_to_string(values[i]) for i in args if i!='self'])+')'
         g.m.statusBar().showMessage('Running function {}...'.format(self.__name__))
         self.keepSourceWindow = keepSourceWindow
-        self.oldwindow = g.m.currentWindow
+        self.oldwindow = g.currentWindow
         #print(self.oldwindow)
         if self.oldwindow is None:
             raise(MissingWindowError("You cannot execute '{}' without selecting a window first.".format(self.__name__)))
