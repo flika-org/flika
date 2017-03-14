@@ -95,10 +95,10 @@ class Subtract_trace(BaseProcess):
         trace=g.currentTrace.rois[-1]['roi'].getTrace()
         nDims=len(self.tif.shape)
         if nDims !=3:
-            print('Wrong number of dimensions')
+            g.alert('Wrong number of dimensions')
             return self.end()
         if self.tif.shape[0]!=len(trace):
-            print('Wrong trace length')
+            g.alert('Wrong trace length')
             return self.end()
         self.newtif=np.transpose(np.transpose(self.tif)-trace)
         self.newname=self.oldname+' - subtracted trace'
@@ -121,10 +121,10 @@ class Divide_trace(BaseProcess):
         trace=g.currentTrace.rois[-1]['roi'].getTrace()
         nDims=len(self.tif.shape)
         if nDims !=3:
-            print('Wrong number of dimensions')
+            g.alert('Wrong number of dimensions')
             return self.end()
         if self.tif.shape[0]!=len(trace):
-            print('Wrong trace length')
+            g.alert('Wrong trace length')
             return self.end()
         self.newtif=np.transpose(np.transpose(self.tif)/trace)
         self.newname=self.oldname+' - divided trace'

@@ -40,20 +40,20 @@ class Set_value(BaseProcess):
             lastFrame=QtWidgets.QSpinBox()
             lastFrame.setRange(0,len(g.currentWindow.image)-1)
             lastFrame.setValue(len(g.currentWindow.image)-1)
-        self.items.append({'name':'value','string':'Value','object':value})
-        self.items.append({'name':'firstFrame','string':'First Frame','object':firstFrame})
-        self.items.append({'name':'lastFrame','string':'Last Frame','object':lastFrame})
-        self.items.append({'name':'restrictToROI','string':'Restrict to current ROI','object': CheckBox()})
-        self.items.append({'name':'restrictToOutside','string':'Restrict to everything outside current ROI','object': CheckBox()})
+        self.items.append({'name': 'value',             'string': 'Value',                   'object': value})
+        self.items.append({'name': 'firstFrame',        'string': 'First Frame',             'object': firstFrame})
+        self.items.append({'name': 'lastFrame',         'string': 'Last Frame',              'object': lastFrame})
+        self.items.append({'name': 'restrictToROI',     'string': 'Restrict to current ROI', 'object': CheckBox()})
+        self.items.append({'name': 'restrictToOutside', 'string': 'Restrict to everything outside current ROI','object': CheckBox()})
         super().gui()
     def __call__(self,value,firstFrame,lastFrame,restrictToROI=False, restrictToOutside=False, keepSourceWindow=False):
         self.start(keepSourceWindow)
         self.newtif=np.copy(self.tif)
-        nDim=len(self.tif.shape)
-        if nDim==3:
-            mt,mx,my=self.tif.shape
-        elif nDim==2:
-            mx,my=self.tif.shape
+        nDim = len(self.tif.shape)
+        if nDim == 3:
+            mt, mx, my=self.tif.shape
+        elif nDim == 2:
+            mx, my = self.tif.shape
         if restrictToROI:
             roi=g.currentWindow.currentROI
             roi.pts=roi.getPoints()
@@ -89,7 +89,7 @@ class Set_value(BaseProcess):
         
         else:
             if nDim==2:
-                self.newtif = value
+                self.newtif[:] = value
             elif nDim==3:
                 self.newtif[firstFrame:lastFrame+1] = value
         self.newname=self.oldname+' - value set to '+str(value)

@@ -6,8 +6,7 @@ Flika
 @license: MIT
 """
 import sys, time
-from qtpy import QtWidgets, QtCore, QtGui
-from qtpy.QtCore import QThread, Signal
+from qtpy import QtCore, QtGui, QtWidgets
 from multiprocessing import Process, Queue, cpu_count, Pipe
 import os
 import numpy as np
@@ -16,10 +15,10 @@ __all__ = []
 
 tic=time.time()
 
-class ProcessLauncher(QThread):
-    status_update=Signal(str)
+class ProcessLauncher(QtCore.QThread):
+    status_update=QtCore.Signal(str)
     def __init__(self,parent):
-        QThread.__init__(self)
+        QtCore.QThread.__init__(self)
         self.parent=parent
         self.nCores=parent.nCores
     def __del__(self):
@@ -70,7 +69,7 @@ class ProcessLauncher(QThread):
         
     
 class ProgressBar(QtWidgets.QWidget):
-    finished_sig=Signal()
+    finished_sig=QtCore.Signal()
     def __init__(self, outerfunc, data, args, nCores, msg='Performing Operations', parent=None ):
         super(ProgressBar, self).__init__(parent)
         self.outerfunc=outerfunc

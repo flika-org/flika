@@ -11,6 +11,7 @@ import pyqtgraph as pg
 from qtpy import QtWidgets, QtCore, QtGui
 from .. import global_vars as g
 from .BaseProcess import BaseProcess
+from ..utils.misc import getSaveFileName
 
 __all__ = ['measure']
 
@@ -29,12 +30,12 @@ class Measure(BaseProcess):
         super().__init__()
     def gui(self):
         self.gui_reset()
-        self.currentPoint=0
-        active_point=QtWidgets.QLineEdit() #active_point.setEnabled(False)
-        second_point=QtWidgets.QLineEdit() #second_point.setEnabled(False)
-        difference=QtWidgets.QLineEdit() #difference.setEnabled(False)
-        slope=QtWidgets.QLineEdit() #slope.setEnabled(False)
-        log=QtWidgets.QPushButton('Log Data')
+        self.currentPoint = 0
+        active_point = QtWidgets.QLineEdit() #active_point.setEnabled(False)
+        second_point = QtWidgets.QLineEdit() #second_point.setEnabled(False)
+        difference = QtWidgets.QLineEdit() #difference.setEnabled(False)
+        slope = QtWidgets.QLineEdit() #slope.setEnabled(False)
+        log = QtWidgets.QPushButton('Log Data')
         log.pressed.connect(self.log)
         newcol=QtWidgets.QPushButton('New Column')
         newcol.pressed.connect(self.newcol)
@@ -45,18 +46,16 @@ class Measure(BaseProcess):
         self.items.append({'name':'slope','string':'Slope: ','object':slope})
         self.items.append({'name':'log','string':'','object':log})
         self.items.append({'name':'newcol','string':'','object':newcol})
-        
         super().gui()
-        self.fig=None
+        self.fig = None
         self.overwrite = False
-        
         self.ui.accepted.disconnect()
         self.ui.closeSignal.connect(self.close)
         self.ui.rejected.connect(self.close)
         self.ui.accepted.connect(self.close)
         self.ui.accepted.connect(self.export_gui)
-        self.data=[[]]
-        self.ON=True
+        self.data = [[]]
+        self.ON = True
     def log(self):
         point=[self.firstPoint[0],self.firstPoint[1],self.secondPoint[0],self.secondPoint[1],self.difference[0],self.difference[1],self.slope]
         self.data[len(self.data)-1].append(point)
@@ -71,6 +70,8 @@ class Measure(BaseProcess):
             pass
 
     def pointclicked(self,evt, window=None, overwrite=False):
+        if evt.button() != 1:
+            return
         if self.ON is False:
             return
         pos=evt.pos()
@@ -158,14 +159,14 @@ class Measure(BaseProcess):
         return np.array([x,y])
     
     def export_gui(self):
-        filename=g.settings['filename']
-        directory=os.path.dirname(filename)
+        filename = g.settings['filename']
+        directory = os.path.dirname(filename)
         if filename is not None:
-            filename= QtWidgets.QFileDialog.getSaveFileName(g.m, 'Save Measurements', directory, '*.txt')
+            filename = getSaveFileName(g.m, 'Save Measurements', directory, '*.txt')
         else:
-            filename= QtWidgets.QFileDialog.getSaveFileName(g.m, 'Save Measurements', '*.txt')
-        filename=str(filename)
-        if filename=='':
+            filename = getSaveFileName(g.m, 'Save Measurements', '*.txt')
+        filename = str(filename)
+        if filename == '':
             return False
         else:
             self.export(filename)
@@ -200,11 +201,5 @@ class Measure(BaseProcess):
         f.close()
         g.m.statusBar().showMessage('Successfully saved {}'.format(os.path.basename(filename)))
     
-measure=Measure()
+measure = Measure()
 
-
-    
-    
-#                if index > 0:
-#                    self.label.setText("<span style='font-size: 12pt'>frame={0}</span>".format(index))
-#                    self.indexChanged.emit(index)

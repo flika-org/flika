@@ -135,6 +135,9 @@ class Butterworth_filter(BaseProcess):
         if low==0 and high==1:
             return
         self.start(keepSourceWindow)
+        if self.tif.ndim != 3:
+            g.alert("Butterworth filter only works on 3-dimensional movies. This image is %dd" % self.tif.ndim)
+            return
         if g.settings['multiprocessing']:
             self.newtif=butterworth_filter_multi(filter_order,low,high,g.currentWindow.image)
         else:
@@ -270,6 +273,12 @@ class Mean_filter(BaseProcess):
             
     def __call__(self,nFrames,keepSourceWindow=False):
         self.start(keepSourceWindow)
+        if self.tif.dtype == np.float16:
+            g.alert("Mean Filter does not support float16 type arrays")
+            return
+        if self.tif.ndim != 3:
+            g.alert("Mean Filter only supports 3-dimensional movies. %d =/= 3" % self.tif.ndim)
+            return
         self.newtif=convolve(self.tif,weights=np.full((nFrames,1,1),1.0/nFrames))        
         self.newname=self.oldname+' - Mean Filtered'
         return self.end()
@@ -323,6 +332,9 @@ class Median_filter(BaseProcess):
             g.alert('median_filter only takes odd numbers.  Operation cancelled')
             return None
         self.start(keepSourceWindow)
+        if self.tif.ndim < 3:
+            g.alert("Median filter requires at least 3 dimensions. %d < 3" % self.tif.ndim)
+            return
         mx=self.tif.shape[2]
         my=self.tif.shape[1]
         self.newtif=np.zeros(self.tif.shape)
@@ -399,6 +411,12 @@ class Fourier_filter(BaseProcess):
             loglogPreview.setEnabled(False) 
     def __call__(self, frame_rate, low, high, loglogPreview, keepSourceWindow=False):
         self.start(keepSourceWindow)
+        if self.tif.dtype == np.float16:
+            g.alert("Fourier transform does not support float16 movies.")
+            return
+        if self.tif.ndim != 3 or self.tif.shape[2] == 3:
+            g.alert('Fourier transform requires 3 dimensional movies. %d != 3' % self.tif.ndim)
+            return
         if low==0 and high==frame_rate/2.0:
             return
         mt,mx,my=self.tif.shape
@@ -596,6 +614,9 @@ class Wavelet_filter(BaseProcess):
             preview.setEnabled(False)
     def __call__(self,low,high,keepSourceWindow=False):
         self.start(keepSourceWindow)
+        if self.tif.ndim != 3:
+            g.alert("Wavelet filter only works on 3 dimensional movies")
+            return
         mx=self.tif.shape[2]
         my=self.tif.shape[1]
         self.newtif=np.zeros(self.tif.shape)
@@ -684,6 +705,9 @@ class Bilateral_filter(BaseProcess):
     def __call__(self,soft, beta, width, stoptol, maxiter, keepSourceWindow=False):
         
         self.start(keepSourceWindow)
+        if self.tif.ndim != 3:
+            g.alert("Bilateral filter requires 3-dimensional image. %d != 3" % self.tif.ndim)
+            return
         if g.settings['multiprocessing']:
             self.newtif=bilateral_filter_multi(soft,beta,width,stoptol,maxiter,g.currentWindow.image)
         else:
