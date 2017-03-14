@@ -1,8 +1,9 @@
-from qtpy import uic, QtGui, QtWidgets
 import os
 import random
 import numpy as np
-__all__ = ['nonpartial', 'setConsoleVisible', 'load_ui', 'random_color', 'getSaveFileName', 'getOpenFileName']
+import platform
+from qtpy import uic, QtGui, QtWidgets
+__all__ = ['nonpartial', 'setConsoleVisible', 'load_ui', 'random_color', 'save_file_gui', 'open_file_gui']
 
 def nonpartial(func, *args, **kwargs):
     """
@@ -18,14 +19,14 @@ def nonpartial(func, *args, **kwargs):
     return result
 
 def setConsoleVisible(v):
-    try:
+    if platform.system() == 'Windows':
         from ctypes import windll
         GetConsoleWindow = windll.kernel32.GetConsoleWindow
         console_window_handle = GetConsoleWindow()
         ShowWindow = windll.user32.ShowWindow
         ShowWindow(console_window_handle, v)
-    except Exception:
-        pass
+    else:
+        print('Displaying the console on non-windows systems not yet supported')
 
 def random_color():
     colors = [(165,42,42), (178,34,34), (220,20,60), (255,0,0), (255,99,71), (255,127,80), (205,92,92), (240,128,128), (233,150,122), 
@@ -72,46 +73,75 @@ def load_ui(path, parent=None, directory=None):
 
     return uic.loadUi(full_path, parent)
 
-def getSaveFileName(title="Save file", initial='', filetypes=''):
+def save_file_gui(prompt="Save file", directory=None, filetypes=''):
     ''' File dialog for saving a new file, isolated to handle tuple/string return value
     Parameters
     ----------
-    title : str
+    prompt : str
         string to display at the top of the window
-    initial : str
-        initial path to save the file to
+    directory : str
+        initial directory to save the file to
     filetypes: str
         argument for filtering file types separated by ;; (*.png) or (Images *.png);;(Other *.*)
     Returns
     -------
     str: the file path selected, or empty string if none
     '''
-    from ..global_vars import m
-    filename= QtWidgets.QFileDialog.getSaveFileName(m, title, initial, filetypes)
+    from .. import global_vars as g
+    if directory is None:
+        filename = g.settings['filename']
+        try:
+            directory = os.path.dirname(filename)
+        except:
+            directory = None
+    if directory is None:
+        filename = QtWidgets.QFileDialog.getSaveFileName(g.m, prompt, filetypes)
+    else:
+        filename = QtWidgets.QFileDialog.getSaveFileName(g.m, prompt, directory, filetypes)
     if isinstance(filename, tuple):
         filename, ext = filename
         if ext and '.' not in filename:
             filename += '.' + ext.rsplit('.')[-1]
-    
-    return str(filename) if filename else None
+    if filename is None or str(filename) == '':
+        g.m.statusBar().showMessage('Save Cancelled')
+        return None
+    else:
+        return str(filename)
 
-def getOpenFileName(title="Open File", initial='', filetypes=''):
+
+def open_file_gui(prompt="Open File", directory=None, filetypes=''):
     ''' File dialog for opening an existing file, isolated to handle tuple/string return value
     Parameters
     ----------
-    title : str
+    prompt : str
         string to display at the top of the window
-    initial : str
-        initial path to open
+    directory : str
+        initial directory to open
     filetypes: str
         argument for filtering file types separated by ;; (*.png) or (Images *.png);;(Other *.*)
     Returns
     -------
-    str: the file path selected, or empty string if none
+    str: the file (path+file+extension) selected, or None
     '''
-    from ..global_vars import m
-    filename = QtWidgets.QFileDialog.getOpenFileName(m, title, initial, filetypes)
-    filename = str(filename[0] if isinstance(filename, tuple) else filename)
-    return filename if filename else None
+    from .. import global_vars as g
 
+    if directory is None:
+        filename = g.settings['filename']
+        try:
+            directory = os.path.dirname(filename)
+        except:
+            directory = None
+    if directory is None:
+        filename = QtWidgets.QFileDialog.open_file_gui(g.m, prompt, '', filetypes)
+    else:
+        filename = QtWidgets.QFileDialog.open_file_gui(g.m, prompt, filename, filetypes)
+    if isinstance(filename, tuple):
+        filename, ext = filename
+        if ext and '.' not in filename:
+            filename += '.' + ext.rsplit('.')[-1]
+    if filename is None or str(filename) == '':
+        g.m.statusBar().showMessage('No File Selected')
+        return None
+    else:
+        return str(filename)
 

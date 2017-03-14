@@ -13,10 +13,8 @@ import os.path
 import numpy as np
 from skimage.io import imread, imsave
 from qtpy import uic, QtGui, QtCore, QtWidgets
-from qtpy.QtWidgets import qApp
 import codecs
 import shutil, subprocess
-from skimage.external import tifffile
 import json
 import re
 import nd2reader
@@ -27,36 +25,15 @@ from .. import global_vars as g
 from ..app.terminal_widget import ScriptEditor
 from .BaseProcess import BaseDialog
 from ..window import Window
+from ..utils.misc import open_file_gui, save_file_gui
+from ..utils.io import tifffile
 
-__all__ = ['save_window', 'save_points', 'export_movie_gui', 'open_file_from_gui', 'open_file', 'load_points', 'close', 'make_recent_menu']
+__all__ = ['save_window', 'save_points', 'export_movie_gui', 'open_file', 'load_points', 'close']
 
 ########################################################################################################################
 ######################                  SAVING FILES                                         ###########################
 ########################################################################################################################
 
-def save_file_gui(filetypes, prompt='Save File'):
-    """
-    Open a dialog to choose a filename to save to via save_file
-
-    Parameters:
-        | filetypes (str) -- QtWidgets.QFileDialog representation of acceptable filetypes eg (Text Files (\*.txt);;Images(\*.tif, \*.stk, \*.nd2))
-        | prompt (str) -- prompt shown at the top of the dialog
-    """
-    filename = g.settings['filename']
-    try:
-        directory = os.path.dirname(filename)
-    except:
-        directory = None
-    if filename is not None and directory is not None:
-        filename = QtWidgets.QFileDialog.getSaveFileName(g.m, prompt, directory, filetypes)
-    else:
-        filename = QtWidgets.QFileDialog.getSaveFileName(g.m, prompt, filetypes)
-    filename = str(filename) if not isinstance(filename, tuple) else str(filename[0])
-    if filename != '':
-        return filename
-    else:
-        g.m.statusBar().showMessage('Save Cancelled')
-        return None
 
 
 def save_window(filename=None):
@@ -66,7 +43,7 @@ def save_window(filename=None):
     Parameters:
         | filename (str) -- The image or movie will be saved here.
     """
-    if filename is not None:
+    if filename is None:
         filetypes = '*.tif'
         prompt = 'Save File As Tif'
         filename = save_file_gui(filetypes, prompt)
@@ -90,13 +67,13 @@ def save_window(filename=None):
     tifffile.imsave(filename, A,
                     description=metadata)  # http://stackoverflow.com/questions/20529187/what-is-the-best-way-to-save-image-metadata-alongside-a-tif-with-python
     g.m.statusBar().showMessage('Successfully saved {}'.format(os.path.basename(filename)))
-
+    return filename
 
 def save_points(filename=None):
-    if filename is not None:
+    if filename is None:
         filetypes = '*.txt'
         prompt = 'Save Points'
-        filename = save_file_gui(filetypes, prompt)
+        filename = save_file_gui(prompt, filetypes=filetypes)
         if filename is None:
             return None
     g.m.statusBar().showMessage('Saving Points in {}'.format(os.path.basename(filename)))
@@ -108,6 +85,7 @@ def save_points(filename=None):
     p_out = np.array(p_out)
     np.savetxt(filename, p_out)
     g.m.statusBar().showMessage('Successfully saved {}'.format(os.path.basename(filename)))
+    return filename
 
 
 def export_movie_gui():
@@ -152,7 +130,7 @@ def export_movie(rate, filename=None):
 
     filetypes = "Movies (*.mp4)"
     prompt = "Save movie to .mp4 file"
-    filename = save_file_gui(filetypes, prompt)
+    filename = save_file_gui(prompt, filetypes=filetypes)
     if filename is None:
         return None
 
@@ -175,7 +153,7 @@ def export_movie(rate, filename=None):
     for i in np.arange(0, nFrames):
         win.setIndex(i)
         exporter.export(os.path.join(tmpdir, '{:03}.jpg'.format(i)))
-        qApp.processEvents()
+        QtWidgets.qApp.processEvents()
     win.top_left_label.show()
     olddir = os.getcwd()
     os.chdir(tmpdir)
@@ -195,30 +173,8 @@ def export_movie(rate, filename=None):
 
 
 ########################################################################################################################
-######################                     OPENING FILES                                    ###########################
+######################                         OPENING FILES                                 ###########################
 ########################################################################################################################
-
-
-def open_file_gui(filetypes, prompt='Open File'):
-    """
-    Open a file selection dialog to pass to open_file
-
-    Parameters:
-        | filetypes (str) -- QtWidgets.QFileDialog representation of acceptable filetypes eg (Text Files (\*.txt);;Images(\*.tif, \*.stk, \*.nd2))
-        | prompt (str) -- prompt shown at the top of the dialog
-    """
-    filename = g.settings['filename']
-    if filename is not None and os.path.isfile(filename):
-        filename = QtWidgets.QFileDialog.getOpenFileName(g.m, prompt, filename, filetypes)
-    else:
-        filename = QtWidgets.QFileDialog.getOpenFileName(g.m, prompt, '', filetypes)
-    filename = str(filename) if not isinstance(filename, tuple) else str(filename[0])
-    if filename != '':
-        add_to_recent_files(filename)
-        return filename
-    else:
-        g.m.statusBar().showMessage('No File Selected')
-        return None
 
 
 def open_file_from_gui():
@@ -238,7 +194,7 @@ def open_file(filename=None, from_gui=False):
         if from_gui:
             filetypes = 'Image Files (*.tif *.stk *.tiff *.nd2);;All Files (*.*)'
             prompt = 'Open File'
-            filename = open_file_gui(filetypes, prompt)
+            filename = open_file_gui(prompt, filetypes=filetypes)
             if filename is None:
                 return None
         else:
@@ -246,8 +202,7 @@ def open_file(filename=None, from_gui=False):
             if filename is None:
                 g.alert('No filename selected')
                 return None
-    if filename not in g.settings['recent_files']:
-        add_to_recent_files(filename)
+    append_recent_file(filename)  # make first in recent file menu
     g.m.statusBar().showMessage('Loading {}'.format(os.path.basename(filename)))
     t = time.time()
     metadata = dict()
@@ -261,7 +216,7 @@ def open_file(filename=None, from_gui=False):
         metadata = get_metadata_tiff(Tiff)
         A = Tiff.asarray()  # .astype(g.settings['internal_data_type'])
         Tiff.close()
-        axes = [tifffile.tifffile.AXES_LABELS[ax] for ax in Tiff.pages[0].axes]
+        axes = [tifffile.AXES_LABELS[ax] for ax in Tiff.pages[0].axes]
         # print("Original Axes = {}".format(axes)) #sample means RBGA, plane means frame, width means X, height means Y
         if Tiff.is_rgb:
             if A.ndim == 3:  # still color image.  [X, Y, RBGA]
@@ -287,7 +242,7 @@ def open_file(filename=None, from_gui=False):
             if percent < int(100 * float(frame) / mt):
                 percent = int(100 * float(frame) / mt)
                 g.m.statusBar().showMessage('Loading file {}%'.format(percent))
-                qApp.processEvents()
+                QtWidgets.qApp.processEvents()
         metadata = get_metadata_nd2(nd2)
     elif ext == '.py':
         ScriptEditor.importScript(filename)
@@ -297,7 +252,7 @@ def open_file(filename=None, from_gui=False):
         g.alert(msg)
         if filename in g.settings['recent_files']:
             g.settings['recent_files'].remove(filename)
-        make_recent_menu()
+        # make_recent_menu()
         return
     g.m.statusBar().showMessage('{} successfully loaded ({} s)'.format(os.path.basename(filename), time.time() - t))
     g.settings['filename'] = filename
@@ -310,7 +265,7 @@ def load_points(filename=None):
     if filename is not None:
         filetypes = '*.txt'
         prompt = 'Load Points'
-        filename = open_file_gui(filetypes, prompt)
+        filename = open_file_gui(prompt, filetypes=filetypes)
         if filename is None:
             return None
     g.m.statusBar().showMessage('Loading points from {}'.format(os.path.basename(filename)))
@@ -343,35 +298,19 @@ def load_points(filename=None):
 ########################################################################################################################
 
 
-def add_to_recent_files(fname):
-    if not fname.endswith(('.py', '.tif', '.nd2', '.stk')):
-        return
-    while fname in g.settings['recent_files']:
+def append_recent_file(fname):
+    if fname in g.settings['recent_files']:
         g.settings['recent_files'].remove(fname)
-    g.settings['recent_files'].insert(0, fname)
-    if len(g.settings['recent_files']) > 10:
-        g.settings['recent_files'] = g.settings['recent_files'][:10]
-    make_recent_menu()
+    if os.path.exists(fname):
+        g.settings['recent_files'].append(fname)
+        if len(g.settings['recent_files']) > 8:
+            g.settings['recent_files'] = g.settings['recent_files'][-8:]
     return fname
-
-
-def make_recent_menu():
-    g.m.menuRecent_Files.clear()
-    if len(g.settings['recent_files']) == 0:
-        no_recent = QtWidgets.QAction("No Recent Files", g.m)
-        no_recent.setEnabled(False)
-        g.m.menuRecent_Files.addAction(no_recent)
-        return
-    def openFun(f):
-        return lambda: open_file(add_to_recent_files(f))
-    for fname in g.settings['recent_files'][:10]:
-        if os.path.exists(fname):
-            g.m.menuRecent_Files.addAction(QtWidgets.QAction(fname, g.m, triggered=openFun(fname)))
 
 
 def get_metadata_tiff(Tiff):
     metadata = {}
-    if Tiff[0].is_micromanager:
+    if hasattr(Tiff[0], 'is_micromanager') and Tiff[0].is_micromanager:
         imagej_tags_unpacked = {}
         if hasattr(Tiff[0],'imagej_tags'):
             imagej_tags = Tiff[0].imagej_tags
@@ -524,5 +463,18 @@ def save_current_frame(filename):
         A=np.transpose(A,(1,0))
     tifffile.imsave(filename, A, description=metadata) #http://stackoverflow.com/questions/20529187/what-is-the-best-way-to-save-image-metadata-alongside-a-tif-with-python
     g.m.statusBar().showMessage('Successfully saved {}'.format(os.path.basename(filename)))
+
+def make_recent_menu():
+    g.m.menuRecent_Files.clear()
+    if len(g.settings['recent_files']) == 0:
+        no_recent = QtWidgets.QAction("No Recent Files", g.m)
+        no_recent.setEnabled(False)
+        g.m.menuRecent_Files.addAction(no_recent)
+        return
+    def openFun(f):
+        return lambda: open_file(append_recent_file(f))
+    for fname in g.settings['recent_files'][:10]:
+        if os.path.exists(fname):
+            g.m.menuRecent_Files.addAction(QtWidgets.QAction(fname, g.m, triggered=openFun(fname)))
 
 """

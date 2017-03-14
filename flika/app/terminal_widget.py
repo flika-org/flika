@@ -12,6 +12,7 @@ from .. import global_vars as g
 from .terminal import ipython_terminal
 from .script_namespace import getnamespace
 from .syntax import PythonHighlighter
+from ..utils.misc import save_file_gui, open_file_gui
 
 
 def qstr2str(string):
@@ -44,7 +45,7 @@ class Editor(QtWidgets.QPlainTextEdit):
         ScriptEditor.gui.statusBar().showMessage('{} loaded.'.format(os.path.basename(self.scriptfile)))
 
     def save_as(self):
-        filename= str(QtWidgets.QFileDialog.getSaveFileName(self, 'Save script', ScriptEditor.most_recent_script(), '*.py'))
+        filename = save_file_gui('Save script', ScriptEditor.most_recent_script(), '*.py')
         if filename == '':
             ScriptEditor.gui.statusBar().showMessage('Save cancelled')
             return False
@@ -78,11 +79,11 @@ class ScriptEditor(QtWidgets.QMainWindow):
     '''
     def __init__(self, parent=None, ):
         super(ScriptEditor, self).__init__(parent)
-        uic.loadUi(os.path.abspath('gui/ipythonWidget.ui'), self)
+        load_ui('ipythonWidget.ui', self, directory=os.path.dirname(__file__))
         text = """Predefined Libraries:
     scipy and numpy (np)
 Useful variables:
-    g.windows - list of windows.
+    g.m.windows - list of windows.
     g.currentWindow - the selected window
     g.currentWindow.rois -list of rois in that window
     - roi.getTrace() gets an roi trace as an array """
@@ -178,7 +179,7 @@ Useful variables:
         if not hasattr(ScriptEditor, 'gui') or not ScriptEditor.gui.isVisible():
             ScriptEditor.show()
         if scriptfile == '':
-            scriptfile= str(QtWidgets.QFileDialog.getOpenFileName(ScriptEditor.gui, 'Load script', os.path.dirname(ScriptEditor.most_recent_script()), '*.py'))
+            scriptfile = str(QtWidgets.QFileDialog.getOpenFileName(ScriptEditor.gui, 'Load script', os.path.dirname(ScriptEditor.most_recent_script()), '*.py'))
             if scriptfile == '':
                 return
         editor = Editor(scriptfile)

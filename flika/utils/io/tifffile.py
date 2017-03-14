@@ -149,7 +149,7 @@ from xml.etree import cElementTree as ElementTree
 import numpy
 
 import flika.global_vars as g
-from qtpy.QtWidgets import qApp
+from qtpy import QtWidgets
 
 __version__ = '2013.05.02'
 __docformat__ = 'restructuredtext en'
@@ -735,7 +735,7 @@ class TiffFile(object):
                 if percent<int(100*i/nPages):
                     percent=int(100*i/nPages)
                     g.m.statusBar().showMessage('Loading file {}%'.format(percent))
-                    qApp.processEvents()
+                    QtWidgets.qApp.processEvents()
 
                 if p:
                     result_tmp.append(p.asarray())
