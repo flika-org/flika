@@ -1,22 +1,18 @@
-from __future__ import absolute_import, division, print_function
-
 import sys, os, time
 from qtpy import QtCore, QtWidgets, QtGui
-from flika.utils import nonpartial, get_qapp
+from ..utils.misc import nonpartial
+from ..utils.app import get_qapp
+from ..process import setup_menus
+from ..app.settings_editor import SettingsEditor, rectSettings, pointSettings
+from ..process.file_ import *
+from .. import global_vars as g
+from .plugin_manager import PluginManager, load_local_plugins
+from .terminal_widget import ScriptEditor
+from ..utils.misc import load_ui
+from ..images import image_path
+from ..roi import load_rois
 
-from flika.process import setup_menus
-from flika.app.settings_editor import SettingsEditor, rectSettings, pointSettings
-from flika.process.file_ import *
-
-import flika.global_vars as g
-from flika.app.plugin_manager import PluginManager, load_local_plugins
-from flika.app.terminal_widget import ScriptEditor
-from flika.core import tifffile
-from flika.utils import load_ui
-from flika.images import image_path
-from flika.roi import load_rois
-
-from flika.logger import logger
+from ..logger import logger
 
 def addMenuItem(menu, label, item):
     if type(item) == QtWidgets.QMenu:
