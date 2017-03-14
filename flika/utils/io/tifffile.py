@@ -128,9 +128,6 @@ Examples
 >>> tif.close()
 
 """
-
-from __future__ import division, print_function
-
 import sys
 import os
 import re
@@ -148,7 +145,7 @@ from xml.etree import cElementTree as ElementTree
 
 import numpy
 
-import flika.global_vars as g
+from ... import global_vars as g
 from qtpy import QtWidgets
 
 __version__ = '2013.05.02'

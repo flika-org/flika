@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Flika 2017
+Flika
 @author: Kyle Ellefsen
 @author: Brett Settle
 @license: MIT
@@ -10,9 +10,9 @@ import pyqtgraph as pg
 pg.setConfigOptions(useWeave=False)
 import os, time
 import numpy as np
-import flika.global_vars as g
-from flika.roi import makeROI, ROI_Drawing
-from flika.utils import save_file_gui
+from .tracefig import TraceFig
+from . import global_vars as g
+from .roi import *
 
 class Window(QtWidgets.QWidget):
     closeSignal = QtCore.Signal()
@@ -106,7 +106,6 @@ class Window(QtWidgets.QWidget):
         self.imageview.view.mouseClickEvent=self.mouseClickEvent
         self.rois=[]
         self.currentROI=None
-        self.currentROIs=set()
         self.creatingROI=False
         pointSize=g.settings['point_size']
         pointColor = QtGui.QColor(g.settings['point_color'])
@@ -114,7 +113,7 @@ class Window(QtWidgets.QWidget):
         self.scatterPoints=[[] for _ in np.arange(mt)]
         self.scatterPlot.sigClicked.connect(self.clickedScatter)
         self.imageview.addItem(self.scatterPlot)
-    
+        self.pasteAct = QtWidgets.QAction("&Paste", self, triggered=self.paste)
         if g.settings['show_windows']:
             self.show()
             QtWidgets.qApp.processEvents()
@@ -123,7 +122,7 @@ class Window(QtWidgets.QWidget):
             g.windows.append(self)
         self.closed=False
 
-        from flika.process.measure import measure
+        from .process.measure import measure
         self.measure=measure
         def clicked(evt):
             self.measure.pointclicked(evt, window=self)
@@ -168,7 +167,7 @@ class Window(QtWidgets.QWidget):
 
     def make_link_menu(self):
         self.linkMenu.clear()
-        for win in g.m.windows:
+        for win in g.windows:
             if win == self or not win.isVisible():
                 continue
             win_action = QtWidgets.QAction("%s" % win.name, self.linkMenu, checkable=True)
@@ -312,6 +311,7 @@ class Window(QtWidgets.QWidget):
             g.currentWindow.setStyleSheet("border:1px solid rgb(0, 0, 0); ")
             g.currentWindow.lostFocusSignal.emit()
         g.currentWindow=self
+        g.m.currentWindow = g.currentWindow
         g.m.setWindowTitle("Flika - {}".format(self.name))
         self.setStyleSheet("border:1px solid rgb(0, 255, 0); ")
         g.m.setCurrentWindowSignal.sig.emit()
@@ -344,60 +344,63 @@ class Window(QtWidgets.QWidget):
                 p_out.append(np.array([t,p[0],p[1]]))
         p_out=np.array(p_out)
         return p_out
-
+        
     def makeMenu(self):
         self.menu = QtWidgets.QMenu(self)
 
         def updateMenu():
-            #plotAllAct.setEnabled(self.image.ndim > 2)
-            from flika.roi import ROI_Wrapper
+            from .roi import ROI_Wrapper
             pasteAct.setEnabled(isinstance(g.clipboard, (list, ROI_Wrapper)))
 
         pasteAct = QtWidgets.QAction("&Paste", self, triggered=self.paste)
-        plotAllAct = QtWidgets.QAction('&Plot All ROIs', self.menu, triggered=lambda : [roi.plot() for roi in self.rois if roi.traceWindow == None])
+        plotAllAct = QtWidgets.QAction('&Plot All ROIs', self.menu, triggered=self.plotAllROIs )
         copyAll = QtWidgets.QAction("Copy All ROIs", self.menu, triggered = lambda a: setattr(g, 'clipboard', self.rois))
-        removeAll = QtWidgets.QAction("Remove All ROIs", self.menu, triggered = lambda : [a.delete() for a in self.rois[:]])
-        saveAll = QtWidgets.QAction("&Save All ROIs",self, triggered=self.exportROIs) 
+        removeAll = QtWidgets.QAction("Remove All ROIs", self.menu, triggered = self.removeAllROIs)
+        saveAll = QtWidgets.QAction("&Save All ROIs",self, triggered=self.exportROIs)
 
-        self.menu.addAction(plotAllAct)
         self.menu.addAction(pasteAct)
+        self.menu.addAction(plotAllAct)
         self.menu.addAction(copyAll)
         self.menu.addAction(saveAll)
         self.menu.addAction(removeAll)
         self.menu.aboutToShow.connect(updateMenu)
+
+    def plotAllROIs(self):
+        for roi in self.rois:
+            if roi.traceWindow == None:
+                roi.plot()
+
+    def removeAllROIs(self):
+        for roi in self.rois[:]:
+            roi.delete()
 
     def addPoint(self, p=None):
         if p is None:
             p = [self.currentIndex, self.x, self.y]
         elif len(p) != 3:
             raise Exception("addPoint takes a 3-tuple (t, x, y) as argument")
-        
+
         t, x, y = p
 
-        pointSize=g.settings['point_size']
+        pointSize=g.m.settings['point_size']
         pointColor = QtGui.QColor(g.settings['point_color'])
         position=[x, y, pointColor, pointSize]
         self.scatterPoints[t].append(position)
         self.scatterPlot.addPoints(pos=[[x, y]], size=pointSize, brush=pg.mkBrush(*pointColor.getRgb()))
 
     def mouseClickEvent(self,ev):
-        modifiers = QtWidgets.QApplication.keyboardModifiers()
         self.EEEE=ev
         if self.x is not None and self.y is not None and ev.button()==2 and not self.creatingROI:
             mm=g.settings['mousemode']
-            if modifiers == QtCore.Qt.ControlModifier:
-                self.menu.exec_(ev.screenPos().toQPoint())
-                return
             if mm=='point':
                 self.addPoint()
-                #  self.imageview.view.__class__.mouseClickEvent(self.imageview.view, ev)
             elif mm == 'rectangle' and g.settings['default_roi_on_click']:
                     self.currentROI = ROI_Drawing(self, self.x - g.settings['rect_width']/2, self.y - g.settings['rect_height']/2, mm)
                     self.currentROI.extend(self.x + g.settings['rect_width']/2, self.y + g.settings['rect_height']/2)
                     self.currentROI.drawFinished()
             elif mm == 'freehand' and g.settings['default_roi_on_click']:
                 # Before using this script to get the outlines of cells from a raw movie of fluorescence, you need to do some processing.
-                # Get a good image of cells by averaging the movie using the zproject() function inside Flika. 
+                # Get a good image of cells by averaging the movie using the zproject() function inside Flika.
                 # Then threshold the image and use a combination of binary dilation and binary erosion to clean it up (all functions inside Flika)
                 if not (np.all(self.image >= 0) and np.all(self.image <= 1)):
                     return
@@ -419,9 +422,9 @@ class Window(QtWidgets.QWidget):
         if not isinstance(filename, str):
             filename=g.settings['filename'].split('.')[0]
             if filename is not None and os.path.isfile(filename):
-                filename= save_file_gui(g.m, 'Save ROI', filename, "Text Files (*.txt);;All Files (*.*)")
+                filename= getSaveFileName(g.m, 'Save ROI', filename, "Text Files (*.txt);;All Files (*.*)")
             else:
-                filename= save_file_gui(g.m, 'Save ROI', '', "Text Files (*.txt);;All Files (*.*)")
+                filename= getSaveFileName(g.m, 'Save ROI', '', "Text Files (*.txt);;All Files (*.*)")
 
         if filename != '' and isinstance(filename, str):
             reprs = [roi.str() for roi in self.rois]
@@ -429,7 +432,7 @@ class Window(QtWidgets.QWidget):
             open(filename, 'w').write(reprs)
         else:
             g.m.statusBar().showMessage('No File Selected')
-
+                        
     
     def keyPressEvent(self,ev):
         if ev.key() == QtCore.Qt.Key_Delete:
@@ -439,7 +442,6 @@ class Window(QtWidgets.QWidget):
                     self.rois[i].delete()
                 else:
                     i += 1
-                
         self.keyPressSignal.emit(ev)
         
     def mouseMoved(self,point):

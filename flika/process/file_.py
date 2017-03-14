@@ -28,7 +28,7 @@ from ..window import Window
 from ..utils.misc import open_file_gui, save_file_gui
 from ..utils.io import tifffile
 
-__all__ = ['save_window', 'save_points', 'export_movie_gui', 'open_file', 'load_points', 'close']
+__all__ = ['save_window', 'save_points', 'export_movie_gui', 'open_file', 'open_file_from_gui', 'load_points', 'close']
 
 ########################################################################################################################
 ######################                  SAVING FILES                                         ###########################
@@ -43,10 +43,10 @@ def save_window(filename=None):
     Parameters:
         | filename (str) -- The image or movie will be saved here.
     """
-    if filename is None:
+    if filename is None or filename is False:
         filetypes = '*.tif'
         prompt = 'Save File As Tif'
-        filename = save_file_gui(filetypes, prompt)
+        filename = save_file_gui(prompt, filetypes=filetypes)
         if filename is None:
             return None
     if os.path.dirname(filename) == '':  # if the user didn't specify a directory

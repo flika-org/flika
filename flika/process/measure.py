@@ -11,7 +11,7 @@ import pyqtgraph as pg
 from qtpy import QtWidgets, QtCore, QtGui
 from .. import global_vars as g
 from .BaseProcess import BaseProcess
-from ..utils.misc import getSaveFileName
+from ..utils.misc import save_file_gui
 
 __all__ = ['measure']
 
