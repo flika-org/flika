@@ -1,8 +1,8 @@
-from __future__ import absolute_import, division, print_function
-from qtpy import uic, QtGui, QtWidgets
 import os
 import random
 import numpy as np
+import platform
+from qtpy import uic, QtGui, QtWidgets
 __all__ = ['nonpartial', 'setConsoleVisible', 'load_ui', 'random_color', 'save_file_gui', 'open_file_gui']
 
 def nonpartial(func, *args, **kwargs):
@@ -19,11 +19,14 @@ def nonpartial(func, *args, **kwargs):
     return result
 
 def setConsoleVisible(v):
-    from ctypes import windll
-    GetConsoleWindow = windll.kernel32.GetConsoleWindow
-    console_window_handle = GetConsoleWindow()
-    ShowWindow = windll.user32.ShowWindow
-    ShowWindow(console_window_handle, v)
+    if platform.system() == 'Windows':
+        from ctypes import windll
+        GetConsoleWindow = windll.kernel32.GetConsoleWindow
+        console_window_handle = GetConsoleWindow()
+        ShowWindow = windll.user32.ShowWindow
+        ShowWindow(console_window_handle, v)
+    else:
+        print('Displaying the console on non-windows systems not yet supported')
 
 def random_color():
     colors = [(165,42,42), (178,34,34), (220,20,60), (255,0,0), (255,99,71), (255,127,80), (205,92,92), (240,128,128), (233,150,122), 
