@@ -3,7 +3,7 @@ from qtpy import uic, QtGui, QtWidgets
 import os
 import random
 import numpy as np
-__all__ = ['nonpartial', 'setConsoleVisible', 'load_ui', 'random_color', 'getSaveFileName', 'getOpenFileName']
+__all__ = ['nonpartial', 'setConsoleVisible', 'load_ui', 'random_color', 'save_file_gui', 'getOpenFileName']
 
 def nonpartial(func, *args, **kwargs):
     """
@@ -70,7 +70,7 @@ def load_ui(path, parent=None, directory=None):
 
     return uic.loadUi(full_path, parent)
 
-def getSaveFileName(title="Save file", initial='', filetypes=''):
+def save_file_gui(title="Save file", initial='', filetypes=''):
     ''' File dialog for saving a new file, isolated to handle tuple/string return value
     Parameters
     ----------
@@ -85,7 +85,7 @@ def getSaveFileName(title="Save file", initial='', filetypes=''):
     str: the file path selected, or empty string if none
     '''
     from flika.global_vars import m
-    filename= QtWidgets.QFileDialog.getSaveFileName(m, title, initial, filetypes)
+    filename= QtWidgets.QFileDialog.save_file_gui(m, title, initial, filetypes)
     if isinstance(filename, tuple):
         filename, ext = filename
         if ext and '.' not in filename:

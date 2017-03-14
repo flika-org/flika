@@ -12,7 +12,7 @@ import pyqtgraph as pg
 import sys
 import inspect
 import flika.global_vars as g
-from flika.utils import getSaveFileName
+from flika.utils import save_file_gui
 
 __all__ = []
 
@@ -105,9 +105,9 @@ class FileSelector(QtWidgets.QWidget):
             directory=''
         prompt='testing fileSelector'
         if filename is not None and directory != '':
-            filename= getSaveFileName(self, prompt, directory, self.filetypes)
+            filename= save_file_gui(self, prompt, directory, self.filetypes)
         else:
-            filename= getSaveFileName(self, prompt, '', self.filetypes)
+            filename= save_file_gui(self, prompt, '', self.filetypes)
                
         self.filename=str(filename)
         self.label.setText('...'+os.path.split(self.filename)[-1][-20:])

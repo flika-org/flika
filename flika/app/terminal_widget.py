@@ -10,7 +10,7 @@ if __name__ != '__main__':
     from flika.app.terminal import ipython_terminal
     from flika.app.script_namespace import getnamespace
     from flika.app.syntax import PythonHighlighter
-    from flika.utils import load_ui, getSaveFileName, getOpenFileName
+    from flika.utils import load_ui, save_file_gui, getOpenFileName
 else:
     from syntax import PythonHighlighter
     from terminal import ipython_terminal
@@ -55,7 +55,7 @@ class Editor(QtWidgets.QPlainTextEdit):
         ScriptEditor.gui.statusBar().showMessage('{} loaded.'.format(os.path.basename(self.scriptfile)), MESSAGE_TIME)
 
     def save_as(self):
-        filename=getSaveFileName(self, 'Save script', ScriptEditor.most_recent_script(), '*.py')
+        filename=save_file_gui(self, 'Save script', ScriptEditor.most_recent_script(), '*.py')
         if filename == '':
             ScriptEditor.gui.statusBar().showMessage('Save cancelled', MESSAGE_TIME)
             return False

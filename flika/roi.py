@@ -1,7 +1,7 @@
 
 from qtpy import QtGui, QtCore, QtWidgets
 import flika.global_vars as g
-from flika.utils import random_color, getSaveFileName
+from flika.utils import random_color, save_file_gui
 import pyqtgraph as pg
 from skimage.draw import polygon, line
 import numpy as np
@@ -961,7 +961,7 @@ def load_rois(filename=None):
     if filename is None:
         filetypes = '*.txt'
         prompt = 'Load ROIs from file'
-        filename = getSaveFileName(prompt, filetypes=filetypes)
+        filename = save_file_gui(prompt, filetypes=filetypes)
         if filename is None:
             return None
     text = open(filename, 'r').read()

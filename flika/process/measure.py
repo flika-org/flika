@@ -11,7 +11,7 @@ import pyqtgraph as pg
 from qtpy import QtWidgets, QtCore, QtGui
 from .. import global_vars as g
 from .BaseProcess import BaseProcess
-from ..utils.misc import getSaveFileName
+from ..utils.misc import save_file_gui
 
 __all__ = ['measure']
 
@@ -162,9 +162,9 @@ class Measure(BaseProcess):
         filename = g.settings['filename']
         directory = os.path.dirname(filename)
         if filename is not None:
-            filename = getSaveFileName(g.m, 'Save Measurements', directory, '*.txt')
+            filename = save_file_gui(g.m, 'Save Measurements', directory, '*.txt')
         else:
-            filename = getSaveFileName(g.m, 'Save Measurements', '*.txt')
+            filename = save_file_gui(g.m, 'Save Measurements', '*.txt')
         filename = str(filename)
         if filename == '':
             return False

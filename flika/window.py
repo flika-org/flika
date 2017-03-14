@@ -12,7 +12,7 @@ import os, time
 import numpy as np
 import flika.global_vars as g
 from flika.roi import makeROI, ROI_Drawing
-from flika.utils import getSaveFileName
+from flika.utils import save_file_gui
 
 class Window(QtWidgets.QWidget):
     closeSignal = QtCore.Signal()
@@ -419,9 +419,9 @@ class Window(QtWidgets.QWidget):
         if not isinstance(filename, str):
             filename=g.settings['filename'].split('.')[0]
             if filename is not None and os.path.isfile(filename):
-                filename= getSaveFileName(g.m, 'Save ROI', filename, "Text Files (*.txt);;All Files (*.*)")
+                filename= save_file_gui(g.m, 'Save ROI', filename, "Text Files (*.txt);;All Files (*.*)")
             else:
-                filename= getSaveFileName(g.m, 'Save ROI', '', "Text Files (*.txt);;All Files (*.*)")
+                filename= save_file_gui(g.m, 'Save ROI', '', "Text Files (*.txt);;All Files (*.*)")
 
         if filename != '' and isinstance(filename, str):
             reprs = [roi.str() for roi in self.rois]

@@ -12,7 +12,7 @@ import numpy as np
 import os
 import time
 import flika.global_vars as g
-from flika.utils import getSaveFileName
+from flika.utils import save_file_gui
 
 class TraceFig(QtWidgets.QWidget):
     indexChanged=QtCore.Signal(int)
@@ -218,9 +218,9 @@ class TraceFig(QtWidgets.QWidget):
         filename = g.settings['filename']
         directory = os.path.dirname(filename)
         if filename is not None:
-            filename = getSaveFileName(g.m, 'Save Traces', directory, '*.txt')
+            filename = save_file_gui(g.m, 'Save Traces', directory, '*.txt')
         else:
-            filename = getSaveFileName(g.m, 'Save Traces', '', '*.txt')
+            filename = save_file_gui(g.m, 'Save Traces', '', '*.txt')
         if filename == '':
             return False
         else:
