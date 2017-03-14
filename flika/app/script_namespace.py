@@ -12,7 +12,7 @@ import pyqtgraph as pg
 from .. import process
 from .. import global_vars as g
 from .. import window
-from ..roi import load_rois
+from ..roi import load_roi
 
 
 def getnamespace():
@@ -23,11 +23,12 @@ def getnamespace():
     modnames = getmembers(process)
     modnames = [mod for mod in modnames if ismodule(mod[1])]
     for modname, mod in modnames:
-        exec('from .process import {}'.format(modname))
+        exec('import process.{}'.format(modname))
+        exec('from process.{} import *'.format(modname))
         for f in mod.__all__:
             exec('namespace.append({})'.format(f))
 
-    namespace.append(load_rois)
+    namespace.append(load_roi)
     d = dict()
     for n in namespace:
         d[n.__name__] = n

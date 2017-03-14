@@ -1,10 +1,18 @@
-from flika.process.BaseProcess import BaseDialog, BaseProcess, ColorSelector
-import flika.global_vars as g
+# -*- coding: utf-8 -*-
+"""
+Flika
+@author: Kyle Ellefsen
+@author: Brett Settle
+@license: MIT
+"""
 import numpy as np
 from pyqtgraph import ComboBox
 from qtpy import QtWidgets
-from flika.utils import setConsoleVisible
 from multiprocessing import cpu_count
+from ..utils.misc import setConsoleVisible
+from ..process.BaseProcess import BaseDialog, BaseProcess, ColorSelector
+from .. import global_vars as g
+
 
 __all__ = ['SettingsEditor', 'rectSettings', 'pointSettings']
 
