@@ -1,7 +1,11 @@
-from __future__ import absolute_import, division, print_function
-
+# -*- coding: utf-8 -*-
+"""
+Flika
+@author: Kyle Ellefsen
+@author: Brett Settle
+@license: MIT
+"""
 import os
-
 import pkg_resources
 
 __all__ = ['image_path']
