@@ -10,15 +10,13 @@ import sys
 import atexit
 from contextlib import contextmanager
 from distutils.version import LooseVersion
-
-# must import these first, to set up Qt properly
-from qtpy import QtCore, QtWidgets
-
+from qtpy import QtCore, QtWidgets # must import these first, to set up Qt properly
 import IPython
 from IPython.core.usage import default_banner
 from zmq import ZMQError
 from zmq.eventloop import ioloop
 from zmq.eventloop.zmqstream import ZMQStream
+from .. import __version__
 
 
 IPYTHON_VERSION = LooseVersion(IPython.__version__)
@@ -318,11 +316,11 @@ def ipython_terminal(banner='', **kwargs):
 
         :rtype: QWidget
     """
-    Terminal.banner = '''Flika
+    Terminal.banner = '''Flika version {}
 
-%s
+{}
 
-''' % (banner)
+'''.format(__version__, banner)
 
     from distutils.version import LooseVersion
     import IPython
