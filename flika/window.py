@@ -358,8 +358,8 @@ class Window(QtWidgets.QWidget):
         removeAll = QtWidgets.QAction("Remove All ROIs", self.menu, triggered = self.removeAllROIs)
         saveAll = QtWidgets.QAction("&Save All ROIs",self, triggered=self.exportROIs)
 
-        self.menu.addAction(plotAllAct)
         self.menu.addAction(pasteAct)
+        self.menu.addAction(plotAllAct)
         self.menu.addAction(copyAll)
         self.menu.addAction(saveAll)
         self.menu.addAction(removeAll)
