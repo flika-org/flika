@@ -5,28 +5,15 @@ Flika
 @author: Brett Settle
 @license: MIT
 """
-from qtpy import uic, QtWidgets, QtGui, QtCore
-from qtpy.QtCore import Signal
-import sys, os, atexit
-import pickle
-from urllib.request import urlopen
-from os.path import expanduser
+
 import numpy as np
-from pyqtgraph.dockarea import *
-import pyqtgraph as pg
+from urllib.request import urlopen
+import re, os, pickle
 from multiprocessing import cpu_count
-import re, time, datetime, zipfile, shutil, subprocess, os
-from sys import executable
-from subprocess import Popen
+from os.path import expanduser
+from qtpy import QtWidgets
 
-from .process.BaseProcess import BaseDialog, ColorSelector
-from .app.plugin_manager import PluginManager, load_plugin_menu
-from .app.terminal_widget import ScriptEditor
-
-
-data_types = ['uint8', 'uint16', 'uint32', 'uint64', 'int8', 'int16', 'int32', 'int64', 'float16', 'float32', 'float64']
-mainGuiInitialized = False
-halt_current_computation = False
+__all__ = ['m', 'Settings', 'menus', 'checkUpdates', 'alert']
 
 
 class Settings:
@@ -42,15 +29,24 @@ class Settings:
                         'debug_mode': False,
                         'point_color': '#ff0000',
                         'point_size': 5,
-                        'show_all_points': False}
+                        'roi_color': '#ffff00',
+                        'rect_width': 5,
+                        'rect_height': 5,
+                        'show_all_points': False,
+                        'default_rect_on_click': False}
 
     def __init__(self):
         self.config_file=os.path.join(expanduser("~"),'.FLIKA','config.p' )
+        self.d = Settings.initial_settings
         try:
-            self.d=pickle.load(open(self.config_file, "rb" ))
+            d=pickle.load(open(self.config_file, "rb" ))
+            d = {k:d[k] for k in d if d[k] != None}
+            self.d.update(d)
         except Exception as e:
+            from .logger import logger
+            logger.info("Failed to load settings file. %s\nDefault settings restored." % e)
             print("Failed to load settings file. %s\nDefault settings restored." % e)
-            self.d=Settings.initial_settings
+            self.save()
         self.d['mousemode'] = 'rectangle' # don't change initial mousemode
 
     def __getitem__(self, item):
@@ -63,6 +59,9 @@ class Settings:
     def __setitem__(self,key,item):
         self.d[key]=item
         self.save()
+
+    def __contains__(self, item):
+        return item in self.d
 
     def save(self):
         '''save to a config file.'''
