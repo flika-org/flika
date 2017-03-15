@@ -104,6 +104,13 @@ def start_flika(files=[]):
 
     return fa.start()
 
+
+
+if __name__ == '__main__':
+    start_flika()
+
+
+"""
 def exec_(args=sys.argv):
     opt, args = parse_arguments(args[1:])
 
@@ -130,6 +137,5 @@ def run(args=sys.argv):
 
     if 'PYCHARM_HOSTED' not in os.environ and 'SPYDER_SHELL_ID' not in os.environ:
         return fa.app.exec_()
+"""
 
-if __name__ == '__main__':
-    run()

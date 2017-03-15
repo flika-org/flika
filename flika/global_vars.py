@@ -268,9 +268,9 @@ class SetCurrentWindowSignal(QtWidgets.QWidget):
         QtWidgets.QWidget.__init__(self,parent)
         self.hide()
 
+
 def alert(msg):
-    print('Alert!')
-    print(msg)
+    print('\nAlert: ' + msg)
     msgbx = QtWidgets.QMessageBox(m)
     msgbx.setIcon(QtWidgets.QMessageBox.Information)
     msgbx.setText(msg)
@@ -282,7 +282,7 @@ def alert(msg):
     left = (desktopSize.width() / 2) - (msgbx.size().width() / 2)
     msgbx.move(left, top)
 
-settings=Settings()
+settings = Settings()
 
 
 def init(filename):

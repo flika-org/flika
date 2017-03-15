@@ -140,6 +140,7 @@ class Logger(QtWidgets.QWidget):
         Send the contents of the log as a bug report
         """
         text = self._text.document().toPlainText()
+        g.alert('function Logger._send_report() not yet implemented')
         print('Error Log:\n' + text)
 
     def _clear(self):
@@ -191,6 +192,7 @@ class FlikaApplication(QtWidgets.QMainWindow):
 
         self._log = Logger()
         self._log.window().setWindowTitle("Console Log")
+        self._log.window().setWindowIcon(QtGui.QIcon(image_path('favicon.png')))
         self._log.resize(550, 550)
 
         self.statusBar().addPermanentWidget(self._log.status_light)
@@ -204,7 +206,8 @@ class FlikaApplication(QtWidgets.QMainWindow):
     def start(self):
         self.show()
         self.raise_()
-        return self.app.exec_()
+        #if 'PYCHARM_HOSTED' not in os.environ and 'SPYDER_SHELL_ID' not in os.environ:
+        #    return self.app.exec_()
 
     def _make_menu(self):
         fileMenu = self.menuBar().addMenu('File')
