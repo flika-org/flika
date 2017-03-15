@@ -1,19 +1,23 @@
-#!/usr/bin/env python
-
-from __future__ import absolute_import, division, print_function
+# -*- coding: utf-8 -*-
+"""
+Flika
+@author: Kyle Ellefsen
+@author: Brett Settle
+@license: MIT
+"""
 
 import sys, os
 import optparse
-
-# for development purposes, add this if flika is not in your site-packages
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-
-#from flika import __version__
-from flika import __version__
-from flika.logger import logger
-
 import warnings
 import numpy as np
+from .version import __version__
+from .logger import logger
+from .app.application import FlikaApplication
+
+# for development purposes, add this if flika is not in your site-packages
+# sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+
+
 
 warnings.filterwarnings("ignore", category=np.VisibleDeprecationWarning)
 
@@ -94,9 +98,6 @@ def start_flika(files=[]):
         An optional list of data files to load.
  
     """
-    import flika
-    from flika.app import FlikaApplication
-
     fa = FlikaApplication()
 
     load_files(files)
@@ -121,9 +122,6 @@ def run(args=sys.argv):
 
     if opt.verbose:
         logger.setLevel("INFO")
-
-    import flika
-    from flika.app import FlikaApplication
 
     fa = FlikaApplication()
     fa.show()

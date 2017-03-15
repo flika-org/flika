@@ -16,7 +16,7 @@ from IPython.core.usage import default_banner
 from zmq import ZMQError
 from zmq.eventloop import ioloop
 from zmq.eventloop.zmqstream import ZMQStream
-from .. import __version__
+from ..version import __version__
 
 
 IPYTHON_VERSION = LooseVersion(IPython.__version__)
