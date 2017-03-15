@@ -79,7 +79,7 @@ class ProgressBar(QtWidgets.QWidget):
         self.msg=msg
         
         # GUI
-        self.setWindowIcon(QtGui.QIcon('images/favicon.png'))
+        self.setWindowIcon(QtGui.QIcon('flika/images/favicon.png'))
         self.label=QtWidgets.QLabel(msg)
         #self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         self.progress_bars=[]

@@ -88,7 +88,7 @@ Useful variables:
     g.currentWindow - the selected window
     g.currentWindow.rois -list of rois in that window
     - roi.getTrace() gets an roi trace as an array """
-        self.setWindowIcon(QtGui.QIcon('images/favicon.png'))
+        self.setWindowIcon(QtGui.QIcon('flika/images/favicon.png'))
         self.terminal = ipython_terminal(banner=text, **getnamespace())
         layout = QtWidgets.QGridLayout()
         self.terminalWidget.setLayout(layout)
