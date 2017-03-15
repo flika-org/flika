@@ -11,7 +11,7 @@ from urllib.request import urlopen
 import re, os, pickle
 from multiprocessing import cpu_count
 from os.path import expanduser
-from qtpy import QtWidgets
+from qtpy import QtWidgets, QtGui, QtCore
 
 __all__ = ['m', 'Settings', 'menus', 'checkUpdates', 'alert']
 
@@ -262,7 +262,7 @@ def setConsoleVisible(v):
 
 
 class SetCurrentWindowSignal(QtWidgets.QWidget):
-    sig=Signal()
+    sig = QtCore.Signal()
 
     def __init__(self,parent):
         QtWidgets.QWidget.__init__(self,parent)

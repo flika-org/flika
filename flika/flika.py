@@ -1,163 +1,135 @@
+# -*- coding: utf-8 -*-
 """
 Flika
-version=0.0.7
-Latest Update: 2017.03.13
 @author: Kyle Ellefsen
 @author: Brett Settle
 @license: MIT
 """
-print('Launching Flika')
-import os
-import sys
-from qtpy import QtCore, QtGui, QtWidgets
-import matplotlib.cm
+
+import sys, os
+import optparse
+import warnings
+import numpy as np
 from .version import __version__
-from .import global_vars as g
-from .window import Window
+from .logger import logger
+from .app.application import FlikaApplication
 
-from .process import *
-
-from .roi import load_roi, makeROI
-from .app.terminal_widget import ScriptEditor
-from .app.plugin_manager import PluginManager
-try:
-    os.chdir(os.path.split(os.path.realpath(__file__))[0])
-except NameError:
-    pass
-
-DOCS_URL = 'http://flika-org.github.io/documentation.html'
-
-def initializeMainGui():
-    if g.mainGuiInitialized:
-        return 0 
-    g.app = QtWidgets.QApplication(sys.argv)
-    g.init('app/main.ui')
-    desktop = QtWidgets.QApplication.desktop()
-    width_px=int(desktop.logicalDpiX()*3.4)
-    height_px=int(desktop.logicalDpiY()*.9)
-    g.m.setGeometry(QtCore.QRect(15, 33, width_px, height_px))
-    g.m.setFixedSize(326, 80)
-    g.m.setWindowIcon(QtGui.QIcon('images/favicon.png'))
-    g.m.actionOpen.triggered.connect(open_file_from_gui)
-    g.m.actionSaveAs.triggered.connect(save_window)
-    g.m.actionExport_Movie.triggered.connect(export_movie_gui)
-    g.m.actionSettings.triggered.connect(g.settings.gui)
-    g.m.actionExport_Points.triggered.connect(save_points)
-    g.m.actionImport_Points.triggered.connect(load_points)
-    g.m.actionImport_ROIs.triggered.connect(load_roi)
-    g.m.freehand.clicked.connect(lambda: g.settings.setmousemode('freehand'))
-    g.m.line.clicked.connect(lambda: g.settings.setmousemode('line'))
-    g.m.rect_line.clicked.connect(lambda: g.settings.setmousemode('rect_line'))
-    g.m.rectangle.clicked.connect(lambda: g.settings.setmousemode('rectangle'))
-    g.m.point.clicked.connect(lambda: g.settings.setmousemode('point'))
-    g.m.point.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-    g.m.point.customContextMenuRequested.connect(g.pointSettings)
-    g.m.actionScript_Editor.triggered.connect(ScriptEditor.show)
-    g.m.actionPlugin_Manager.triggered.connect(PluginManager.show)
-    g.m.actionDocs.triggered.connect(lambda: QtGui.QDesktopServices.openUrl(QtCore.QUrl(DOCS_URL)))
-    g.m.actionDeinterleave.triggered.connect(deinterleave.gui)
-    g.m.actionSplit_Channels.triggered.connect(split_channels.gui)
-    g.m.actionZ_Project.triggered.connect(zproject.gui)
-    g.m.actionPixel_Binning.triggered.connect(pixel_binning.gui)
-    g.m.actionFrame_Binning.triggered.connect(frame_binning.gui)
-    g.m.actionResize.triggered.connect(resize.gui)
-    g.m.actionDuplicate.triggered.connect(duplicate)
-    g.m.actionGenerate_random_image.triggered.connect(generate_random_image.gui)
-    g.m.actionTrim_Frames.triggered.connect(trim.gui)
-    g.m.actionConcatenate_Stacks.triggered.connect(concatenate_stacks.gui)
-    g.m.actionChange_datatype.triggered.connect(change_datatype.gui)
-    g.m.actionMultiply.triggered.connect(multiply.gui)
-    g.m.actionSubtract.triggered.connect(subtract.gui)
-    g.m.actionPower.triggered.connect(power.gui)
-    g.m.actionGaussian_Blur.triggered.connect(gaussian_blur.gui)
-    g.m.actionButterworth_Filter.triggered.connect(butterworth_filter.gui)
-    g.m.actionMean_Filter.triggered.connect(mean_filter.gui)
-    g.m.actionMedian_Filter.triggered.connect(median_filter.gui)
-    g.m.actionFourier_Filter.triggered.connect(fourier_filter.gui)
-    g.m.actionDifference_Filter.triggered.connect(difference_filter.gui)
-    g.m.actionBoxcar_Differential.triggered.connect(boxcar_differential_filter.gui)
-    g.m.actionWavelet_Filter.triggered.connect(wavelet_filter.gui)
-    g.m.actionBilateral_Filter.triggered.connect(bilateral_filter.gui)
-    g.m.actionRatio.triggered.connect(ratio.gui)
-    g.m.actionSubtract_Trace.triggered.connect(subtract_trace.gui)
-    g.m.actionDivide_Trace.triggered.connect(divide_trace.gui)
-    g.m.actionAbsolute_Value.triggered.connect(absolute_value.gui)
-    g.m.actionThreshold.triggered.connect(threshold.gui)
-    g.m.actionAdaptive_Threshold.triggered.connect(adaptive_threshold.gui)
-    g.m.actionCanny_Edge_Detector.triggered.connect(canny_edge_detector.gui)
-    g.m.actionLogically_Combine.triggered.connect(logically_combine.gui)
-    g.m.actionRemove_Small_Blobs.triggered.connect(remove_small_blobs.gui)
-    g.m.actionBinary_Erosion.triggered.connect(binary_erosion.gui)
-    g.m.actionBinary_Dilation.triggered.connect(binary_dilation.gui)
-    g.m.menuBinary.addAction("Generate ROIs", generate_rois.gui)
-    g.m.actionSet_Value.triggered.connect(set_value.gui)
-    g.m.actionImage_Calculator.triggered.connect(image_calculator.gui)
-    g.m.actionTime_Stamp.triggered.connect(time_stamp.gui)
-    g.m.actionScale_Bar.triggered.connect(scale_bar.gui)
-    g.m.actionBackground.triggered.connect(background.gui)
-    g.m.actionMeasure.triggered.connect(measure.gui)
-    g.m.actionCheck_For_Updates.triggered.connect(g.checkUpdates)
-    g.m.installEventFilter(mainWindowEventEater)
-    g.m.show()
-    QtWidgets.qApp.processEvents()
+# for development purposes, add this if flika is not in your site-packages
+# sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 
 
-class MainWindowEventEater(QtCore.QObject):
-    def __init__(self,parent=None):
-        QtCore.QObject.__init__(self,parent)
+warnings.filterwarnings("ignore", category=np.VisibleDeprecationWarning)
 
-    def eventFilter(self,obj,event):
-        type = event.type()
-        if type == QtCore.QEvent.DragEnter:
-            if event.mimeData().hasUrls():
-                event.accept()   # must accept the dragEnterEvent or else the dropEvent can't occur !!!
-            else:
-                event.ignore()
-        elif type == QtCore.QEvent.Drop:
-            if event.mimeData().hasUrls():   # if file or link is dropped
-                for url in event.mimeData().urls():
-                    filename=url.toString()
-                    filename=str(filename)
-                    filename=filename.split('file:///')[1]
-                    print('filename={}'.format(filename))
-                    open_file(filename)  # This fails on windows symbolic links.  http://stackoverflow.com/questions/15258506/os-path-islink-on-windows-with-python
-                    event.accept()
-            else:
-                event.ignore()
-        elif type == QtCore.QEvent.Close:
-            g.settings.save()
-            print('Closing Flika')
-        return False  # Allows the event to continue to the edit
-mainWindowEventEater = MainWindowEventEater()
+def parse_arguments(argv):
+    ''' Parses command line arguments for valid Flika args
+
+    :param argv: Arguments passed to program
+
+    *Returns*
+    A tuple of options, position arguments
+    '''
+    usage = """usage: %prog [FILE FILE...]
+
+    # start a new session
+    %prog
+
+    # start a new session and load a file
+    %prog image.tiff
+
+    #start a new session with multiple files
+    %prog image.tiff script.py
+
+    #run a script
+    %prog -x script.py
+
+    #increase verbosity level
+    %prog -v
+
+    #run the test suite0
+
+    %prog -t
+    """
+    parser = optparse.OptionParser(usage=usage, version=str(__version__))
+
+    parser.add_option('-x', '--execute', action='store_true', dest='script',
+                      help="Open file in script editor and run", default=False)
+    parser.add_option('-t', '--test', action='store_true', dest='test',
+                      help="Run test suite", default=False)
+    parser.add_option('-v', '--verbose', action='store_true',
+                      help="Increase the vebosity level", default=False)
+
+    err_msg = verify(parser, argv)
+    if err_msg:
+        sys.stderr.write('\n%s\n' % err_msg)
+        parser.print_help()
+        sys.exit(1)
+
+    return parser.parse_args(argv)
+
+def verify(parser, argv):
+    """ Check for input errors
+
+    :param parser: OptionParser instance
+    :param argv: Argument list
+    :type argv: List of strings
+
+    *Returns*
+    An error message, or None
+    """
+    opts, args = parser.parse_args(argv)
+    err_msg = None
+    if opts.script and len(args) != 1:
+        err_msg = "Must provide a script\n"
+
+    return err_msg
+
+def load_files(files):
+    from flika.process.file_ import open_file
+    for f in files:
+        open_file(f)
+
+def start_flika(files=[]):
+    """Run a flika session and exit
+
+    Parameters
+    ----------
+    files : list
+        An optional list of data files to load.
+ 
+    """
+    fa = FlikaApplication()
+
+    load_files(files)
+
+    return fa.start()
+
+def exec_(args=sys.argv):
+    opt, args = parse_arguments(args[1:])
+
+    if opt.verbose:
+        logger.setLevel("INFO")
+
+    logger.info("Input arguments: %s", sys.argv)
+
+    start_flika(files=args)
 
 
-def start_flika():
-    initializeMainGui()
-    args = sys.argv[1:]
-    if os.name == 'nt':
-        g.setConsoleVisible(g.settings['debug_mode'])
-    args = [arg for arg in args if 'flika.py' not in arg.lower() and arg != 'python']
-    for a in args:
-        if 'PYCHARM_HOSTED' not in os.environ:
-            w = open_file(a)
+def run(args=sys.argv):
+    ''' open flika without running exec_. For debugging purposes
+    '''
+    opt, args = parse_arguments(args[1:])
 
+    if opt.verbose:
+        logger.setLevel("INFO")
 
+    fa = FlikaApplication()
+    fa.show()
+
+    load_files(files=args)
+
+    if 'PYCHARM_HOSTED' not in os.environ and 'SPYDER_SHELL_ID' not in os.environ:
+        return fa.app.exec_()
 
 if __name__ == '__main__':
-    """
-    If you would like to run Flika inside an IDE such as PyCharm, run the following commands:
-
-import os, sys; flika_dir = os.path.join(os.path.expanduser('~'),'Documents', 'GitHub', 'flika'); sys.path.append(flika_dir); from flika import *; start_flika()
-
-    """
-    start_flika()
-    insideSpyder = 'SPYDER_SHELL_ID' in os.environ
-    if not insideSpyder:  # if we are running outside of Spyder
-        try:
-            sys.exit(g.app.exec_())  # This is required to run outside of Spyder or PyCharm
-        except Exception as e:
-            print(e)
-
-
-
+    run()
