@@ -6,18 +6,42 @@ Flika
 @license: MIT
 """
 from glob import glob
-import os, difflib, zipfile, time, shutil, traceback
+import os, sys, difflib, zipfile, time, shutil, traceback
+import importlib.util
+from os.path import expanduser
 from qtpy import QtGui, QtWidgets, QtCore
 from urllib.request import urlopen
 from pkg_resources import parse_version
+import pkg_resources, os
 import threading
 import pip
 from xml.etree import ElementTree
 
-from ..plugins import plugin_list, plugin_path
 from .. import global_vars as g
 from ..utils.misc import load_ui
 from ..images import image_path
+
+plugin_list = {
+    'Global Analysis':  'https://raw.githubusercontent.com/BrettJSettle/GlobalAnalysisPlugin/master/info.xml',
+    'Beam Splitter':    'https://raw.githubusercontent.com/BrettJSettle/BeamSplitter/master/info.xml',
+    'Rodent Tracker':   'https://raw.githubusercontent.com/kyleellefsen/rodentTracker/master/info.xml',
+    'Detect Puffs':     'https://raw.githubusercontent.com/kyleellefsen/detect_puffs/master/info.xml',
+    'Pynsight':         'http://raw.githubusercontent.com/kyleellefsen/pynsight/master/info.xml'
+}
+
+
+def get_plugin_directory():
+    local_flika_directory = os.path.join(expanduser("~"), '.FLIKA')
+    plugin_directory = os.path.join(expanduser("~"), '.FLIKA', 'plugins' )
+    if not os.path.exists(plugin_directory):
+        os.makedirs(plugin_directory)
+    if not os.path.isfile(os.path.join(plugin_directory, '__init__.py')):
+        open(os.path.join(plugin_directory, '__init__.py'), 'a').close()  # Create empty __init__.py file
+    if plugin_directory not in sys.path:
+        sys.path.append(plugin_directory)
+    if local_flika_directory not in sys.path:
+        sys.path.append(local_flika_directory)
+    return plugin_directory
 
 
 def parse(x):
@@ -40,20 +64,22 @@ def parse(x):
         return d
     return step(tree)
 
+
 def str2func(plugin_name, file_location, function):
     '''
     takes plugin_name, path to object, function as arguments
     imports plugin_name.path and gets the function from that imported object
     to be run when an action is clicked
     '''
-    plugin_dir = "flika.plugins.%s.%s" % (plugin_name, file_location)
+    __import__(plugin_name)
+
+    plugin_dir = "plugins.{}.{}".format(plugin_name, file_location)
     levels = function.split('.')
     try:
         module = __import__(plugin_dir, fromlist=[levels[0]]).__dict__[levels[0]]
     except:
         g.alert("Failed to import %s from module %s.\n%s" % (levels[0], plugin_dir, traceback.format_exc()))
         return None
-
     for i in range(1, len(levels)):
         try:
             module = getattr(module, levels[i])
@@ -72,8 +98,9 @@ def build_submenu(module_name, parent_menu, layout_dict):
         elif key == 'action':
             for od in value:
                 method = str2func(module_name, od['@location'], od['@function'])
-                action = QtWidgets.QAction(od['#text'], parent_menu, triggered = method)
-                parent_menu.addAction(action)
+                if method is not None:
+                    action = QtWidgets.QAction(od['#text'], parent_menu, triggered = method)
+                    parent_menu.addAction(action)
 
 def make_plugin_menu(plugin):
     menu = QtWidgets.QMenu(plugin.name)
@@ -159,7 +186,7 @@ class PluginManager(QtWidgets.QMainWindow):
         PluginManager.gui.showPlugins()
         PluginManager.load_online_plugins()
         QtWidgets.QMainWindow.show(PluginManager.gui)
-        if not os.access(plugin_path(), os.W_OK):
+        if not os.access(get_plugin_directory(), os.W_OK):
             g.alert("Plugin folder write permission denied. Restart Flika as administrator to enable plugin installation.")
 
     @staticmethod
@@ -266,7 +293,7 @@ class PluginManager(QtWidgets.QMainWindow):
     @staticmethod
     def local_plugin_paths():
         paths = []
-        for path in glob(os.path.join(plugin_path(), "*")):
+        for path in glob(os.path.join(get_plugin_directory(), "*")):
             if os.path.isdir(path) and os.path.exists(os.path.join(path, 'info.xml')):
                 paths.append(path)
         return paths
@@ -319,7 +346,7 @@ class PluginManager(QtWidgets.QMainWindow):
             else:
 
                 return
-        if plugin.url == None:
+        if plugin.url is None:
             return
         failed = []
         dists = [a.project_name for a in pip.get_installed_distributions()]
@@ -334,11 +361,11 @@ class PluginManager(QtWidgets.QMainWindow):
                 if res != 0:
                     failed.append(pl)
         if failed:
-            g.alert("Failed to install dependencies for %s:\n%s\nYou must install them on your own before installing this plugin." % (plugin.name, ', '.join(failed)))
+            g.alert("Failed to install dependencies for {}:\n{}\nYou must install them on your own before installing this plugin.".format(plugin.name, ', '.join(failed)))
             return
 
-        if os.path.exists(os.path.join('plugins', plugin.base_dir)):
-            g.alert("A folder with name %s already exists in the plugins directory. Please remove it to install this plugin!" % plugin.name)
+        if os.path.exists(os.path.join(get_plugin_directory(), plugin.base_dir)):
+            g.alert("A folder with name {} already exists in the plugins directory. Please remove it to install this plugin!".format(plugin.name))
             return
 
         PluginManager.gui.statusBar.showMessage('Opening %s' % plugin.url)
@@ -354,12 +381,12 @@ class PluginManager(QtWidgets.QMainWindow):
 
             with zipfile.ZipFile('install.zip', "r") as z:
                 folder_name = os.path.dirname(z.namelist()[0])
-                z.extractall("plugins")
+                z.extractall(get_plugin_directory())
 
             os.remove("install.zip")
             plugin = PluginManager.plugins[plugin.name]
-            base_dir = os.path.join('plugins', plugin.base_dir)
-            os.rename(os.path.join('plugins', folder_name), base_dir)
+            base_dir = os.path.join(get_plugin_directory(), plugin.base_dir)
+            os.rename(os.path.join(get_plugin_directory(), folder_name), base_dir)
         except (PermissionError, Exception) as e:
             if os.path.exists(folder_name):
                 shutil.rmtree(folder_name)

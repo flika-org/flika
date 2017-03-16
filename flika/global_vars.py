@@ -253,12 +253,12 @@ class SetCurrentWindowSignal(QtWidgets.QWidget):
         self.hide()
 
 
-def alert(msg):
+def alert(msg, title="Flika - Alert"):
     print('\nAlert: ' + msg)
     msgbx = QtWidgets.QMessageBox(m)
     msgbx.setIcon(QtWidgets.QMessageBox.Information)
     msgbx.setText(msg)
-    msgbx.setWindowTitle("Flika - Alert")
+    msgbx.setWindowTitle(title)
     msgbx.show()
     m.statusBar().showMessage(msg)
     desktopSize = QtWidgets.QDesktopWidget().screenGeometry()
