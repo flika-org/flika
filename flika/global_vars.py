@@ -70,7 +70,7 @@ class Settings(MutableMapping): #http://stackoverflow.com/questions/3387691/pyth
         if not os.path.exists(os.path.dirname(self.settings_file)):
             os.makedirs(os.path.dirname(self.settings_file))
         with open(self.settings_file, 'w') as fp:
-            json.dump(d, fp, indent=4)
+            json.dump(self.d, fp, indent=4)
 
     def load(self):
         """ Load settings file. """
