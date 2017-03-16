@@ -17,7 +17,7 @@ from qtpy import uic, QtGui, QtCore, QtWidgets
 from qtpy.QtWidgets import qApp
 import codecs
 import shutil, subprocess
-from skimage.external import tifffile
+import tifffile
 import json
 import re
 import nd2reader
@@ -370,7 +370,7 @@ def make_recent_menu():
 
 def get_metadata_tiff(Tiff):
     metadata = {}
-    if Tiff[0].is_micromanager:
+    if hasattr(Tiff[0], 'is_micromanager') and Tiff[0].is_micromanager:
         imagej_tags_unpacked = {}
         if hasattr(Tiff[0],'imagej_tags'):
             imagej_tags = Tiff[0].imagej_tags
