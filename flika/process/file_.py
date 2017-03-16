@@ -53,7 +53,7 @@ def save_window(filename=None):
         directory = os.path.normpath(os.path.dirname(g.settings['filename']))
         filename = os.path.join(directory, filename)
     g.m.statusBar().showMessage('Saving {}'.format(os.path.basename(filename)))
-    A = g.currentWindow.image  # .astype(g.settings['internal_data_type'])
+    A = g.currentWindow.image
     metadata = g.currentWindow.metadata
     try:
         metadata = json.dumps(metadata, default=JSONhandler)
@@ -214,7 +214,7 @@ def open_file(filename=None, from_gui=False):
             g.alert("Unable to open {}. {}".format(filename, s))
             return None
         metadata = get_metadata_tiff(Tiff)
-        A = Tiff.asarray()  # .astype(g.settings['internal_data_type'])
+        A = Tiff.asarray()
         Tiff.close()
         axes = [tifffile.AXES_LABELS[ax] for ax in Tiff.pages[0].axes]
         # print("Original Axes = {}".format(axes)) #sample means RBGA, plane means frame, width means X, height means Y

@@ -8,17 +8,19 @@ Flika
 
 import numpy as np
 from urllib.request import urlopen
-import re, os, pickle
+import re, os
 from multiprocessing import cpu_count
 from os.path import expanduser
 from qtpy import QtWidgets, QtGui, QtCore
+from collections.abc import MutableMapping
+import json
+from copy import deepcopy
 
 __all__ = ['m', 'Settings', 'menus', 'checkUpdates', 'alert']
 
-
-class Settings:
+class Settings(MutableMapping): #http://stackoverflow.com/questions/3387691/python-how-to-perfectly-override-a-dict
     initial_settings = {'filename': None, 
-                        'internal_data_type': np.float64, 
+                        'internal_data_type': 'float64',
                         'multiprocessing': True, 
                         'multipleTraceWindows': False, 
                         'mousemode': 'rectangle', 
@@ -36,38 +38,54 @@ class Settings:
                         'default_rect_on_click': False}
 
     def __init__(self):
-        self.config_file=os.path.join(expanduser("~"),'.FLIKA','config.p' )
+        self.settings_file = os.path.join(expanduser("~"), '.FLIKA', 'settings.json' )
         self.d = Settings.initial_settings
-        try:
-            d=pickle.load(open(self.config_file, "rb" ))
-            d = {k:d[k] for k in d if d[k] != None}
-            self.d.update(d)
-        except Exception as e:
-            from .logger import logger
-            logger.info("Failed to load settings file. %s\nDefault settings restored." % e)
-            print("Failed to load settings file. %s\nDefault settings restored." % e)
-            self.save()
-        self.d['mousemode'] = 'rectangle' # don't change initial mousemode
+        self.load()
 
     def __getitem__(self, item):
         try:
             self.d[item]
         except KeyError:
-            self.d[item]=Settings.initial_settings[item] if item in Settings.initial_settings else None
+            self.d[item] = Settings.initial_settings[item] if item in Settings.initial_settings else None
         return self.d[item]
 
-    def __setitem__(self,key,item):
-        self.d[key]=item
+    def __setitem__(self, key, item):
+        self.d[key] = item
         self.save()
+
+    def __delitem__(self, key):
+        del self.d[key]
+
+    def __iter__(self):
+        return iter(self.d)
+
+    def __len__(self):
+        return len(self.d)
 
     def __contains__(self, item):
         return item in self.d
 
     def save(self):
-        '''save to a config file.'''
-        if not os.path.exists(os.path.dirname(self.config_file)):
-            os.makedirs(os.path.dirname(self.config_file))
-        pickle.dump(self.d, open( self.config_file, "wb" ))
+        """ Save settings file. """
+        if not os.path.exists(os.path.dirname(self.settings_file)):
+            os.makedirs(os.path.dirname(self.settings_file))
+        with open(self.settings_file, 'w') as fp:
+            json.dump(d, fp, indent=4)
+
+    def load(self):
+        """ Load settings file. """
+        try:
+            with open(self.settings_file, 'r') as fp:
+                d = json.load(fp)
+            d = {k: d[k] for k in d if d[k] is not None}
+            self.d.update(d)
+        except Exception as e:
+            from .logger import logger
+            msg = "Failed to load settings file. {}\nDefault settings restored.".format(e)
+            logger.info(msg)
+            print(msg)
+            self.save()
+        self.d['mousemode'] = 'rectangle'  # don't change initial mousemode
 
     def setmousemode(self,mode):
         self['mousemode']=mode
@@ -79,40 +97,6 @@ class Settings:
         self['internal_data_type'] = dtype
         print('Changed data_type to {}'.format(dtype))
 
-    def gui(self):
-        old_dtype=str(np.dtype(self['internal_data_type']))
-        dataDrop = pg.ComboBox(items=data_types, default=old_dtype)
-        showCheck = QtWidgets.QCheckBox()
-        showCheck.setChecked(self.d['show_windows'])
-        multipleTracesCheck = QtWidgets.QCheckBox()
-        multipleTracesCheck.setChecked(self['multipleTraceWindows'])
-        multiprocessing = QtWidgets.QCheckBox()
-        multiprocessing.setChecked(self['multiprocessing'])
-        nCores = QtWidgets.QComboBox()
-        debug_check = QtWidgets.QCheckBox(checked=self['debug_mode'])
-        debug_check.toggled.connect(setConsoleVisible)
-        for i in np.arange(cpu_count())+1:
-            nCores.addItem(str(i))
-        nCores.setCurrentIndex(self['nCores']-1)
-        items = []
-        items.append({'name': 'internal_data_type', 'string': 'Internal Data Type', 'object': dataDrop})
-        items.append({'name': 'show_windows', 'string': 'Show Windows', 'object': showCheck})
-        items.append({'name': 'multipleTraceWindows', 'string': 'Multiple Trace Windows', 'object': multipleTracesCheck})
-        items.append({'name': 'multiprocessing', 'string': 'Multiprocessing On', 'object': multiprocessing})
-        items.append({'name': 'nCores', 'string': 'Number of cores to use when multiprocessing', 'object': nCores})
-        items.append({'name': 'debug_mode', 'string': 'Debug Mode', 'object': debug_check})
-        def update():
-            self['internal_data_type'] = np.dtype(str(dataDrop.currentText()))
-            self['show_windows'] = showCheck.isChecked()
-            self['multipleTraceWindows'] = multipleTracesCheck.isChecked()
-            self['multiprocessing']=multiprocessing.isChecked()
-            self['nCores']=int(nCores.itemText(nCores.currentIndex()))
-            self['debug_mode'] = debug_check.isChecked()
-            
-        self.bd = BaseDialog(items, 'Flika Settings', '')
-        self.bd.accepted.connect(update)
-        self.bd.changeSignal.connect(update)
-        self.bd.show()
 
 
 def pointSettings(pointButton):

@@ -6,6 +6,7 @@ Flika
 @license: MIT
 """
 import numpy as np
+import pyqtgraph as pg
 from pyqtgraph import ComboBox
 from qtpy import QtWidgets
 from multiprocessing import cpu_count
@@ -21,7 +22,7 @@ data_types = ['uint8', 'uint16', 'uint32', 'uint64', 'int8', 'int16', 'int32', '
 class SettingsEditor(BaseDialog):
     gui = None
     def __init__(self):
-        old_dtype=str(np.dtype(g.settings['internal_data_type']))
+        old_dtype=g.settings['internal_data_type']
         dataDrop = ComboBox(items=data_types, default=old_dtype)
         showCheck = QtWidgets.QCheckBox()
         showCheck.setChecked(g.settings['show_windows'])
@@ -56,7 +57,7 @@ class SettingsEditor(BaseDialog):
         items.append({'name': 'default_rect_on_click', 'string': 'Enable default ROI on right click', 'object': default_rect})
         
         def update():
-            g.settings['internal_data_type'] = np.dtype(str(dataDrop.currentText()))
+            g.settings['internal_data_type'] = str(dataDrop.currentText())
             g.settings['show_windows'] = showCheck.isChecked()
             g.settings['multipleTraceWindows'] = multipleTracesCheck.isChecked()
             g.settings['multiprocessing']=multiprocessing.isChecked()

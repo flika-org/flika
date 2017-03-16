@@ -1,4 +1,6 @@
 import sys, os, time
+import ctypes
+import platform
 from qtpy import QtCore, QtWidgets, QtGui
 from ..utils.misc import nonpartial
 from ..utils.app import get_qapp
@@ -11,8 +13,8 @@ from .terminal_widget import ScriptEditor
 from ..utils.misc import load_ui
 from ..images import image_path
 from ..roi import load_rois
-
 from ..logger import logger
+from ..version import __version__
 
 def addMenuItem(menu, label, item):
     if type(item) == QtWidgets.QMenu:
@@ -185,7 +187,13 @@ class FlikaApplication(QtWidgets.QMainWindow):
         self.setGeometry(QtCore.QRect(15, 33, width_px, height_px))
         #self.setFixedSize(326, 80)
         self.setMaximumSize(width_px*3, 120)
-        self.setWindowIcon(QtGui.QIcon(image_path('favicon.png')))
+        flika_icon = QtGui.QIcon(image_path('favicon.png'))
+        self.setWindowIcon(flika_icon)
+        self.app.setWindowIcon(flika_icon)
+        if platform.system() == 'Windows':
+            myappid = 'flika-org.flika.' + str(__version__)
+            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+
         self._make_menu()
         self._make_tools()
 
