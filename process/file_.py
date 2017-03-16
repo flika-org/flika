@@ -260,7 +260,7 @@ def open_file(filename=None, from_gui=False):
         metadata = get_metadata_tiff(Tiff)
         A = Tiff.asarray()  # .astype(g.settings['internal_data_type'])
         Tiff.close()
-        axes = [tifffile.tifffile.AXES_LABELS[ax] for ax in Tiff.pages[0].axes]
+        axes = [tifffile.AXES_LABELS[ax] for ax in Tiff.pages[0].axes]
         # print("Original Axes = {}".format(axes)) #sample means RBGA, plane means frame, width means X, height means Y
         if Tiff.is_rgb:
             if A.ndim == 3:  # still color image.  [X, Y, RBGA]
