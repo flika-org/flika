@@ -98,73 +98,6 @@ class Settings(MutableMapping): #http://stackoverflow.com/questions/3387691/pyth
         print('Changed data_type to {}'.format(dtype))
 
 
-
-def pointSettings(pointButton):
-    """
-    default points color
-    default points size
-    currentWindow points color
-    currentWindow points size
-    clear current points
-
-    """
-    global dialog
-    point_color = ColorSelector()
-    point_color.color=settings['point_color']
-    point_color.label.setText(point_color.color)
-    point_size = QtWidgets.QSpinBox()
-    point_size.setRange(1,50)
-    point_size.setValue(settings['point_size'])
-    show_all_points = QtWidgets.QCheckBox()
-    show_all_points.setChecked(settings['show_all_points'])
-    
-    update_current_points_check = QtWidgets.QCheckBox()
-    update_current_points_check.setChecked(False)
-    
-    items = []
-    items.append({'name': 'point_color', 'string': 'Default Point Color', 'object': point_color})
-    items.append({'name': 'point_size', 'string': 'Default Point Size', 'object': point_size})
-    items.append({'name': 'show_all_points', 'string': 'Show points from all frames', 'object': show_all_points})
-    items.append({'name': 'update_current_points_check', 'string': 'Update already plotted points', 'object': update_current_points_check})
-    def update():
-        win = currentWindow
-        settings['point_color'] = point_color.value()
-        settings['point_size'] = point_size.value()
-        settings['show_all_points'] = show_all_points.isChecked()
-        if win is not None and update_current_points_check.isChecked() == True:
-            color = QtGui.QColor(point_color.value())
-            size = point_size.value()
-            for t in np.arange(win.mt):
-                for i in np.arange(len(win.scatterPoints[t])):
-                    win.scatterPoints[t][i][2] = color
-                    win.scatterPoints[t][i][3] = size
-            win.updateindex()
-        if win is not None:
-            if settings['show_all_points']:
-                pts = []
-                for t in np.arange(win.mt):
-                    pts.extend(win.scatterPoints[t])
-                pointSizes = [pt[3] for pt in pts]
-                brushes = [pg.mkBrush(*pt[2].getRgb()) for pt in pts]
-                win.scatterPlot.setPoints(pos=pts, size=pointSizes, brush=brushes)
-            else:
-                win.updateindex()
-    dialog = BaseDialog(items, 'Points Settings', '')
-    dialog.accepted.connect(update)
-    dialog.changeSignal.connect(update)
-    dialog.show()
-
-
-def mainguiClose(event):
-    global m
-    for win in windows[:] + traceWindows[:] + dialogs[:]:
-        win.close()
-    ScriptEditor.close()
-    PluginManager.close()
-    settings.save()
-    event.accept() # let the window close
-
-
 def messageBox(title, text, buttons=QtWidgets.QMessageBox.Ok, icon=QtWidgets.QMessageBox.Information):
     m.messagebox = QtWidgets.QMessageBox(icon, title, text, buttons)
     m.messagebox.setWindowIcon(m.windowIcon())
@@ -200,6 +133,7 @@ def checkUpdates():
             updateFlika()
     else:
         messageBox("Up to date", "Your version of Flika is up to date")
+
 
 def updateFlika():
     folder = os.path.dirname(__file__)
@@ -266,27 +200,8 @@ def alert(msg, title="Flika - Alert"):
     left = (desktopSize.width() / 2) - (msgbx.size().width() / 2)
     msgbx.move(left, top)
 
+
 settings = Settings()
-
-
-def init(filename):
-    global m, mainGuiInitialized
-    mainGuiInitialized = True
-    m = uic.loadUi(filename)
-    load_plugin_menu()
-    m.setCurrentWindowSignal = SetCurrentWindowSignal(m)
-    m.setAcceptDrops(True)
-    m.closeEvent = mainguiClose
-
-    # These are all added for backwards compatibility for plugins
-    m.windows = windows
-    m.traceWindows = traceWindows
-    m.dialogs = dialogs
-    m.currentWindow = currentWindow
-    m.currentTrace = currentTrace
-    m.clipboard = clipboard
-
-
 m = None  # will be main window
 menus = []
 windows = []

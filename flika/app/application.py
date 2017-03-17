@@ -179,8 +179,14 @@ class FlikaApplication(QtWidgets.QMainWindow):
         load_ui('main.ui', self, directory=os.path.dirname(__file__))
 
         g.m = self
-        g.settings = g.Settings()
-        
+        # These are all added for backwards compatibility for plugins
+        self.windows = g.windows
+        self.traceWindows = g.traceWindows
+        self.dialogs = g.dialogs
+        self.currentWindow = g.currentWindow
+        self.currentTrace = g.currentTrace
+        self.clipboard = g.clipboard
+
         desktop = QtWidgets.QApplication.desktop()
         width_px=int(desktop.logicalDpiX()*3.4)
         height_px=int(desktop.logicalDpiY()*.9)

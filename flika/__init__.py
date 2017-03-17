@@ -4,6 +4,7 @@ from .flika import start_flika
 from . import global_vars as g
 from .window import Window
 from .version import __version__
+from .process import *
 
 # import modules that are commonly used inside Flika
 import numpy as np
