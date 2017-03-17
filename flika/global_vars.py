@@ -16,6 +16,7 @@ from qtpy import QtWidgets, QtGui, QtCore
 from collections.abc import MutableMapping
 import json
 from copy import deepcopy
+from pkg_resources import parse_version
 
 __all__ = ['m', 'Settings', 'menus', 'checkUpdates', 'alert']
 
@@ -122,13 +123,12 @@ def checkUpdates():
     latest_version = re.findall(r'version=([\d\.\']*)', str(data))
     from .version import __version__
     version = __version__
-    message = "Current Version: " + version
+    message = "Installed version: " + version
     if len(latest_version) == 0:
         latest_version = ''
     else:
         latest_version = latest_version[0]
-    message += '\nStable Version: ' + latest_version
-    from pkg_resources import parse_version
+    message += '\nLatest Version: ' + latest_version
 
     if parse_version(version) < parse_version(latest_version):
         if messageBox("Update Recommended", message + '\n\nWould you like to update?', QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.Question) == QtWidgets.QMessageBox.Yes:
