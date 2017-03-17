@@ -326,8 +326,11 @@ class PluginManager(QtWidgets.QMainWindow):
     @staticmethod
     def removePlugin(plugin):
         PluginManager.gui.statusBar.showMessage("Uninstalling %s" % plugin.name)
+        if os.path.isdir(os.path.join(get_plugin_directory(), plugin.base_dir, '.git')):
+            g.alert("This plugin's directory is managed by git. To remove, manually delete the directory")
+            return False
         try:
-            shutil.rmtree(os.path.join('plugins', plugin.base_dir), ignore_errors=True)
+            shutil.rmtree(os.path.join(get_plugin_directory(), plugin.base_dir), ignore_errors=True)
             plugin.version = ''
             plugin.menu = None
             plugin.listWidget.setIcon(QtGui.QIcon())

@@ -1,9 +1,9 @@
 import logging, sys
 from logging import NullHandler
-from flika.flika import start_flika #is this flika.flika required, can we use a relative import?
-import flika.global_vars as g
-from flika.window import Window
-from flika.version import __version__
+from .flika import start_flika
+from . import global_vars as g
+from .window import Window
+from .version import __version__
 
 # import modules that are commonly used inside Flika
 import numpy as np
