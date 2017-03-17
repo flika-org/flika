@@ -85,7 +85,7 @@ def verify(parser, argv):
     return err_msg
 
 def load_files(files):
-    from flika.process.file_ import open_file
+    from .process.file_ import open_file
     for f in files:
         open_file(f)
 
@@ -99,10 +99,13 @@ def start_flika(files=[]):
  
     """
     fa = FlikaApplication()
-
     load_files(files)
+    fa.start()
+    return fa
 
-    return fa.start()
+def exec_():
+    fa = start_flika()
+    return fa.app.exec_()
 
 
 

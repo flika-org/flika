@@ -8,6 +8,7 @@ Flika
 
 import numpy as np
 from urllib.request import urlopen
+from urllib.error import HTTPError
 import re, os
 from multiprocessing import cpu_count
 from os.path import expanduser
@@ -108,31 +109,33 @@ def messageBox(title, text, buttons=QtWidgets.QMessageBox.Ok, icon=QtWidgets.QMe
 
 def checkUpdates():
     try:
-        data = urlopen('https://raw.githubusercontent.com/flika-org/flika/master/flika.py').read()[:100]
+        # this will need to be changed to the new url when we merge
+        url = "https://raw.githubusercontent.com/flika-org/flika/master/flika/version.py"
+        data = urlopen(url).read()[:100].startswith('404')
+    except HTTPError:
+        url = 'https://raw.githubusercontent.com/flika-org/flika/master/flika.py'
     except Exception as e:
-        messageBox("Connection Failed", "Cannot connect to Flika Repository. Connect to the internet to check for updates.")
+        g.alert("Connection Failed", "Cannot connect to Flika Repository. Connect to the internet to check for updates. %s" % e)
         return
-    latest_version = re.findall(r'version=([\d\.]*)', str(data))
-    version = re.findall(r'version=([\d\.]*)', open('flika.py', 'r').read()[:100])
-    message = "Current Version: "
-    if len(version) == 0:
-        version = "Unknown"
-        message += "Unknown"
-    else:
-        version = version[0]
-        message += version
-    message += '\nLatest Version: '
+    
+    data = urlopen(url).read()[:100]
+    latest_version = re.findall(r'version=([\d\.\']*)', str(data))
+    print(latest_version)
+    from .version import __version__
+    version = __version__
+    message = "Current Version: " + version
     if len(latest_version) == 0:
-        latest_version = "Unknown"
-        message += 'Unknown. Check Github Page'
+        latest_version = ''
     else:
         latest_version = latest_version[0]
-        message += latest_version
-    if any([int(j) > int(i) for i, j in zip(version.split('.'), latest_version.split('.'))]):
+    message += '\nLatest Version: ' + latest_version
+    from pkg_resources import parse_version
+
+    if parse_version(version) < parse_version(latest_version):
         if messageBox("Update Recommended", message + '\n\nWould you like to update?', QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.Question) == QtWidgets.QMessageBox.Yes:
             updateFlika()
     else:
-        messageBox("Up to date", "Your version of Flika is up to date")
+        messageBox("Up to date", "Your version of Flika is up to date\n" + message)
 
 
 def updateFlika():

@@ -45,7 +45,7 @@ cmdclass['test'] = PyTest
 
 entry_points = """
 [console_scripts]
-flika = flika.flika:run
+flika = flika.flika:exec_
 """
 
 setup_requires = ['numpy', 'scipy']
