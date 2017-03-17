@@ -111,7 +111,7 @@ def checkUpdates():
     try:
         # this will need to be changed to the new url when we merge
         url = "https://raw.githubusercontent.com/flika-org/flika/master/flika/version.py"
-        data = urlopen(url).read()[:100].startswith('404')
+        data = urlopen(url).read()[:100]
     except HTTPError:
         url = 'https://raw.githubusercontent.com/flika-org/flika/master/flika.py'
     except Exception as e:
@@ -120,7 +120,6 @@ def checkUpdates():
     
     data = urlopen(url).read()[:100]
     latest_version = re.findall(r'version=([\d\.\']*)', str(data))
-    print(latest_version)
     from .version import __version__
     version = __version__
     message = "Current Version: " + version
@@ -128,7 +127,7 @@ def checkUpdates():
         latest_version = ''
     else:
         latest_version = latest_version[0]
-    message += '\nLatest Version: ' + latest_version
+    message += '\nStable Version: ' + latest_version
     from pkg_resources import parse_version
 
     if parse_version(version) < parse_version(latest_version):
