@@ -14,9 +14,11 @@ from multiprocessing import cpu_count
 from os.path import expanduser
 from qtpy import QtWidgets, QtGui, QtCore
 from collections.abc import MutableMapping
-import json
+import json, zipfile
 from copy import deepcopy
 from pkg_resources import parse_version
+from subprocess import Popen
+import shutil
 
 __all__ = ['m', 'Settings', 'menus', 'checkUpdates', 'alert']
 
@@ -165,8 +167,8 @@ def updateFlika():
                     if os.path.exists(old) and os.path.exists(new):
                         m.statusBar().showMessage('replacing %s' % f)
                         shutil.copy(new, old)
-        if not 'SPYDER_SHELL_ID' in os.environ:
-            Popen('python flika.py', shell=True)
+        #if not 'SPYDER_SHELL_ID' in os.environ:
+        #    Popen('python flika.py', shell=True)
         shutil.rmtree(extract_location)
         exit(0)
     except Exception as e:
