@@ -19,6 +19,8 @@ import re
 import nd2reader
 import datetime
 import json
+import pip
+import re
 
 from .. import global_vars as g
 from ..app.terminal_widget import ScriptEditor
@@ -245,6 +247,20 @@ def open_file(filename=None, from_gui=False):
         metadata = get_metadata_nd2(nd2)
     elif ext == '.py':
         ScriptEditor.importScript(filename)
+        return
+    elif ext == '.whl':
+        # first, remove trailing (1) or (2)
+        newfilename = re.sub(r' \([^)]*\)', '', filename)
+        try:
+            os.rename(filename, newfilename)
+        except FileExistsError:
+            pass
+        filename = newfilename
+        result = pip.main(['install', filename])
+        if result == 0:
+            g.alert('Successfully installed {}'.format(filename))
+        else:
+            g.alert('Install of {} failed'.format(filename))
         return
     else:
         msg = "Could not open.  Filetype for '{}' not recognized".format(filename)

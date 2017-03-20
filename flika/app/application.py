@@ -305,9 +305,9 @@ class FlikaApplication(QtWidgets.QMainWindow):
     def dropEvent(self, event):
         if event.mimeData().hasUrls():   # if file or link is dropped
             for url in event.mimeData().urls():
-                filename=url.toString()
-                filename=str(filename)
-                filename=filename.split('file:///')[1]
+                filename = url.toString()
+                filename = str(filename)
+                filename = filename.split('file:///')[1]
                 print('filename={}'.format(filename))
                 open_file(filename)  # This fails on windows symbolic links.  http://stackoverflow.com/questions/15258506/os-path-islink-on-windows-with-python
                 event.accept()

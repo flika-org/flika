@@ -16,6 +16,7 @@ import pkg_resources, os
 import threading
 import pip
 from xml.etree import ElementTree
+import platform
 
 from .. import global_vars as g
 from ..utils.misc import load_ui
@@ -245,7 +246,7 @@ class PluginManager(QtWidgets.QMainWindow):
     def downloadClicked(self):
         p = str(self.pluginList.currentItem().text())
         plugin = self.plugins[p]
-        if self.downloadButton.text() == 'Download':
+        if self.downloadButton.text() == 'Install':
             PluginManager.downloadPlugin(plugin)
         else:
             PluginManager.removePlugin(plugin)
@@ -284,7 +285,7 @@ class PluginManager(QtWidgets.QMainWindow):
             info += "; <b>Update Available!</b>"
 
         self.updateButton.setVisible(plugin.version != '' and version < latest_version)
-        self.downloadButton.setText("Download" if plugin.version == '' else 'Remove')
+        self.downloadButton.setText("Install" if plugin.version == '' else 'Uninstall')
         self.documentationButton.setVisible(plugin.documentation != None)
 
         self.infoLabel.setText(info)
@@ -365,7 +366,22 @@ class PluginManager(QtWidgets.QMainWindow):
                 if res != 0:
                     failed.append(pl)
         if failed:
-            g.alert("Failed to install dependencies for {}:\n{}\nYou must install them on your own before installing this plugin.".format(plugin.name, ', '.join(failed)))
+            if platform.system() == 'Windows':
+                QtGui.QDesktopServices.openUrl(QtCore.QUrl("http://www.lfd.uci.edu/~gohlke/pythonlibs/#"+pl))
+                v = str(sys.version_info.major) + str(sys.version_info.minor)
+                if platform.architecture()[0]=='64bit':
+                    arch = '_amd64'
+                else:
+                    arch = '32'
+                g.alert("""Failed to install the dependency '{0}'. You must install {0} manually.
+Download {0}-x-cp{1}-cp{1}m-win{2}.whl.
+
+Once the wheel is downloaded, drag it into Flika to install.
+
+Then try installing the plugin again.""".format(pl, v, arch))
+            else:
+                g.alert("Failed to install dependencies for {}:\n{}\nYou must install them on your own before installing this plugin.".format(plugin.name, ', '.join(failed)))
+
             return
 
         if os.path.exists(os.path.join(get_plugin_directory(), plugin.base_dir)):
@@ -376,7 +392,7 @@ class PluginManager(QtWidgets.QMainWindow):
         try:
             data = urlopen(plugin.url).read()
         except:
-            g.alert(title="Download Error", msg="Failed to connect to %s to install the %s Flika Plugin. Check your internet connection and try again, or download the plugin manually." % (PluginManager.gui.link, plugin_name), icon=QtWidgets.QMessageBox.Warning)
+            g.alert(title="Download Error", msg="Failed to connect to %s to install the %s Flika Plugin. Check your internet connection and try again, or download the plugin manually." % (PluginManager.gui.link, plugin.name), icon=QtWidgets.QMessageBox.Warning)
             return
 
         try:
