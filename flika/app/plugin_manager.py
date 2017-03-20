@@ -116,8 +116,8 @@ class Plugin():
         self.description = ''
         self.dependencies = []
         self.loaded = False
+        self.info_url = info_url
         if info_url:
-            self.info_url = info_url
             self.update_info()
         
 
@@ -177,25 +177,29 @@ class PluginManager(QtWidgets.QMainWindow):
         if not hasattr(PluginManager, 'gui'):
             PluginManager.gui = PluginManager()
         PluginManager.gui.showPlugins()
-        PluginManager.load_online_plugins()
+        #PluginManager.load_online_plugins()
         QtWidgets.QMainWindow.show(PluginManager.gui)
         if not os.access(get_plugin_directory(), os.W_OK):
             g.alert("Plugin folder write permission denied. Restart Flika as administrator to enable plugin installation.")
 
     @staticmethod
-    def load_online_plugins():
-        if PluginManager.loadThread is not None and PluginManager.loadThread.is_alive():
+    def refresh_online_plugins():
+        for p in plugin_list.keys():
+            PluginManager.load_online_plugin(p)
+
+    @staticmethod
+    def load_online_plugin(p):
+        if p not in plugin_list or PluginManager.loadThread is not None and PluginManager.loadThread.is_alive():
             return
         def loadThread():
-            PluginManager.gui.statusBar.showMessage('Loading plugin information...')
-            for p, url in plugin_list.items():
-                plug = PluginManager.plugins[p]
-                plug.info_url = url
-                plug.update_info()
-                PluginManager.gui.sigPluginLoaded.emit(p)
-            PluginManager.gui.statusBar.showMessage('Plugin information loaded successfully')
+            plug = PluginManager.plugins[p]
+            plug.info_url = plugin_list[p]
+            plug.update_info()
+            PluginManager.gui.sigPluginLoaded.emit(p)
+            #PluginManager.gui.statusBar.showMessage('Plugin information loaded successfully')
 
         PluginManager.loadThread = threading.Thread(None, loadThread)
+        PluginManager.gui.statusBar.showMessage('Loading plugin information for %s...' % p)
         PluginManager.loadThread.start()
 
     def closeEvent(self, ev):
@@ -225,8 +229,9 @@ class PluginManager(QtWidgets.QMainWindow):
         self.searchBox.textChanged.connect(self.showPlugins)
         self.searchButton.clicked.connect(lambda f: self.showPlugins(search_str=str(self.searchBox.text())))
         
-        self.refreshButton.pressed.connect(self.load_online_plugins)
+        self.refreshButton.pressed.connect(self.refresh_online_plugins)
         def updatePlugin(a):
+            self.statusBar.showMessage("Finished loading %s" % a)
             if PluginManager.plugins[a].listWidget.isSelected():
                 PluginManager.gui.pluginSelected(a)
             #else:
@@ -266,6 +271,7 @@ class PluginManager(QtWidgets.QMainWindow):
         else:
             s = str(item.text())
         plugin = self.plugins[s]
+        
         self.pluginLabel.setText(s)
         if not plugin.loaded:
             info = "Loading information"
@@ -282,6 +288,8 @@ class PluginManager(QtWidgets.QMainWindow):
 
         self.infoLabel.setText(info)
         self.descriptionLabel.setText(plugin.description)
+        if plugin.info_url == None:
+            self.load_online_plugin(plugin.name)
 
     @staticmethod
     def local_plugin_paths():

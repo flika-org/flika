@@ -24,7 +24,6 @@ def getnamespace():
     for name, mod in getmembers(process):
         if ismodule(mod):
             for func in mod.__all__:
-                print(name, func)
                 d[func] = mod.__dict__[func]
     d['g'] = g
     d['np'] = np
