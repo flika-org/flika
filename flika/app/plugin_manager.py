@@ -30,6 +30,23 @@ plugin_list = {
     'Pynsight':         'http://raw.githubusercontent.com/kyleellefsen/pynsight/master/info.xml'
 }
 
+helpHTML = '''
+<h1 style="width:100%; text-align:center">Welcome the the Flika Plugin Manager</h1>
+<p>Use the search bar to the left to find a specific plugin, or browse the list below it.</p>
+
+<div>
+    <h3>Develop a new plugin</h3>
+    <p> If you would like to develop your own plugin for flika, follow these simple steps:</p>
+    <ul list-style=none>
+        <li>1. Download <a href="https://github.com/flika-org/flika_plugin_template">Flika Plugin Template</a> and place it in your .FLIKA/plugins directory</li>
+        <li>2. Update the info.xml file for your plugin</li>
+        <li>3. Refer to the <a href="http://flika-org.github.io/documentation.html">Flika Documentation</a> for assistance developing your plugin.</li>
+        <li>4. Update the description.html file for your plugin</li>
+        <li>5. Send your plugin repo to us and we'll add it to the Plugin Manager!</li>
+    </ul>
+<div>
+'''
+
 
 def get_plugin_directory():
     local_flika_directory = os.path.join(expanduser("~"), '.FLIKA')
@@ -184,6 +201,9 @@ class PluginManager(QtWidgets.QMainWindow):
         if not os.access(get_plugin_directory(), os.W_OK):
             g.alert("Plugin folder write permission denied. Restart Flika as administrator to enable plugin installation.")
 
+        PluginManager.gui.showHelpScreen()
+
+
     @staticmethod
     def refresh_online_plugins():
         for p in plugin_list.keys():
@@ -243,6 +263,14 @@ class PluginManager(QtWidgets.QMainWindow):
         self.setWindowTitle('Plugin Manager')
         self.showPlugins()
 
+    def showHelpScreen(self):
+        self.pluginLabel.setText("")
+        self.descriptionLabel.setHtml(helpHTML)
+        self.downloadButton.setVisible(False)
+        self.documentationButton.setVisible(False)
+        self.updateButton.setVisible(False)
+        self.infoLabel.setText("")
+
     def downloadClicked(self):
         p = str(self.pluginList.currentItem().text())
         plugin = self.plugins[p]
@@ -273,12 +301,12 @@ class PluginManager(QtWidgets.QMainWindow):
         else:
             s = str(item.text())
         plugin = self.plugins[s]
-        
         self.pluginLabel.setText(s)
         if not plugin.loaded:
             info = "Loading information"
         else:
             info = 'By %s, Latest: %s' % (plugin.author, plugin.latest_version)
+            self.downloadButton.setVisible(True)
         version = parse_version(plugin.version)
         latest_version = parse_version(plugin.latest_version)
         if plugin.version and version < latest_version:
@@ -289,7 +317,7 @@ class PluginManager(QtWidgets.QMainWindow):
         self.documentationButton.setVisible(plugin.documentation != None)
 
         self.infoLabel.setText(info)
-        self.descriptionLabel.setText(plugin.description)
+        self.descriptionLabel.setHtml(plugin.description)
         if plugin.info_url == None:
             self.load_online_plugin(plugin.name)
 
@@ -315,7 +343,6 @@ class PluginManager(QtWidgets.QMainWindow):
                 return -difflib.SequenceMatcher(None, name.lower(), search_str.lower()).ratio() - int(search_str.lower() in name.lower())
             d = {name: sort_func(name) for name in self.plugins.keys() if sort_func(name) != 0}
             names = sorted(d.keys(), key=lambda a: d[a])
-            print(d)
         for name in names:
             plug = PluginManager.plugins[name]
             if plug.version == '':
@@ -362,7 +389,7 @@ class PluginManager(QtWidgets.QMainWindow):
                     continue
                 a = __import__(pl)
             except ImportError:
-                res = pip.main(['install', pl])
+                res = pip.main(['install', pl, '--no-cache-dir'])
                 if res != 0:
                     failed.append(pl)
         if failed:
