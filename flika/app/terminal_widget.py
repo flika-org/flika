@@ -12,7 +12,7 @@ from .. import global_vars as g
 from .terminal import ipython_terminal
 from .script_namespace import getnamespace
 from .syntax import PythonHighlighter
-from ..utils.misc import save_file_gui, open_file_gui
+from ..utils.misc import save_file_gui, open_file_gui, load_ui
 
 MESSAGE_TIME = 2000
 

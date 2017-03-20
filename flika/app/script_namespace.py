@@ -19,19 +19,13 @@ def getnamespace():
     """
     This function gets the namespace for the script interpreter.  It goes through all the modules in the 'process' package and loads all the objects defined in their '__all__' variables.
     """
-    namespace =[g]
-    modnames = getmembers(process)
-    modnames = [mod for mod in modnames if ismodule(mod[1])]
-    for modname, mod in modnames:
-        exec('import process.{}'.format(modname))
-        exec('from process.{} import *'.format(modname))
-        for f in mod.__all__:
-            exec('namespace.append({})'.format(f))
-
-    namespace.append(load_rois)
-    d = dict()
-    for n in namespace:
-        d[n.__name__] = n
+    
+    d = {}
+    for name, mod in getmembers(process):
+        if ismodule(mod):
+            for func in mod.__all__:
+                print(name, func)
+                d[func] = mod.__dict__[func]
     d['g'] = g
     d['np'] = np
     d['scipy'] = scipy

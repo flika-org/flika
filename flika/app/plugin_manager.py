@@ -102,11 +102,6 @@ def build_submenu(module_name, parent_menu, layout_dict):
                     action = QtWidgets.QAction(od['#text'], parent_menu, triggered = method)
                     parent_menu.addAction(action)
 
-def make_plugin_menu(plugin):
-    menu = QtWidgets.QMenu(plugin.name)
-    build_submenu(plugin.base_dir, menu, plugin.menu_layout)
-    return menu
-
 class Plugin():
     def __init__(self, name, info_url=None):
         self.name = name
@@ -144,12 +139,12 @@ class Plugin():
             deps = info['dependencies']['dependency']
             p.dependencies = [d['@name'] for d in deps] if isinstance(deps, list) else [deps['@name']]
         p.menu_layout = info.pop('menu_layout')
-        p.menu = make_plugin_menu(p)
+        p.menu = QtWidgets.QMenu(self.name)
+        build_submenu(self.base_dir, self.menu, self.menu_layout)
         p.listWidget = QtWidgets.QListWidgetItem(p.name)
         p.listWidget.setIcon(QtGui.QIcon(image_path('check.png')))
         p.loaded = True
         return p
-
 
     def update_info(self):
         if self.info_url == None:
@@ -176,11 +171,9 @@ class PluginManager(QtWidgets.QMainWindow):
     PluginManager handles installed plugins and the online plugin database
     | show() : initializes a gui as a static variable of the class, if necessary, and displays it. Call in place of constructor
     | close() : closes the gui if it exists
-    | load_plugin_info() : reads installed plugins dict, and list of plugins from database for display
     '''
     @staticmethod
     def show():
-        
         if not hasattr(PluginManager, 'gui'):
             PluginManager.gui = PluginManager()
         PluginManager.gui.showPlugins()
@@ -222,7 +215,7 @@ class PluginManager(QtWidgets.QMainWindow):
             self.scrollAreaWidgetContents.setContentsMargins(10, 10, 10, 10)
         except:
             pass
-        self.pluginList.itemClicked.connect(self.pluginSelected)
+        #self.pluginList.itemClicked.connect(self.pluginSelected)
         
         self.downloadButton.clicked.connect(self.downloadClicked)
         self.pluginList.currentItemChanged.connect(lambda new, old: self.pluginSelected(new))
