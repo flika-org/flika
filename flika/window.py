@@ -7,12 +7,14 @@ Flika
 """
 from qtpy import QtCore, QtGui, QtWidgets
 import pyqtgraph as pg
-pg.setConfigOptions(useWeave=False)
 import os, time
 import numpy as np
 from .tracefig import TraceFig
 from . import global_vars as g
 from .roi import *
+from .utils.misc import save_file_gui
+pg.setConfigOptions(useWeave=False)
+
 
 class Window(QtWidgets.QWidget):
     closeSignal = QtCore.Signal()
@@ -419,13 +421,14 @@ class Window(QtWidgets.QWidget):
         elif self.creatingROI:
             self.currentROI.cancel()
             self.creatingROI = None
+
     def exportROIs(self, filename=None):
         if not isinstance(filename, str):
-            filename=g.settings['filename'].split('.')[0]
+            filename = g.settings['filename'].split('.')[0]
             if filename is not None and os.path.isfile(filename):
-                filename= getSaveFileName(g.m, 'Save ROI', filename, "Text Files (*.txt);;All Files (*.*)")
+                filename = save_file_gui('Save ROI', filename, "Text Files (*.txt);;All Files (*.*)")
             else:
-                filename= getSaveFileName(g.m, 'Save ROI', '', "Text Files (*.txt);;All Files (*.*)")
+                filename = save_file_gui('Save ROI', '', "Text Files (*.txt);;All Files (*.*)")
 
         if filename != '' and isinstance(filename, str):
             reprs = [roi.str() for roi in self.rois]
@@ -433,9 +436,8 @@ class Window(QtWidgets.QWidget):
             open(filename, 'w').write(reprs)
         else:
             g.m.statusBar().showMessage('No File Selected')
-                        
     
-    def keyPressEvent(self,ev):
+    def keyPressEvent(self, ev):
         if ev.key() == QtCore.Qt.Key_Delete:
             i = 0
             while i < len(self.rois):

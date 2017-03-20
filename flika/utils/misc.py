@@ -88,7 +88,7 @@ def save_file_gui(prompt="Save file", directory=None, filetypes=''):
     str: the file path selected, or empty string if none
     '''
     from .. import global_vars as g
-    if directory is None:
+    if directory is None or directory == '':
         filename = g.settings['filename']
         try:
             directory = os.path.dirname(filename)

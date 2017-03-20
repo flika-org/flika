@@ -220,9 +220,9 @@ class TraceFig(QtWidgets.QWidget):
         filename = g.settings['filename']
         directory = os.path.dirname(filename)
         if filename is not None:
-            filename = save_file_gui(g.m, 'Save Traces', directory, '*.txt')
+            filename = save_file_gui('Save Traces', directory, '*.txt')
         else:
-            filename = save_file_gui(g.m, 'Save Traces', '', '*.txt')
+            filename = save_file_gui('Save Traces', '', '*.txt')
         if filename == '':
             return False
         else:

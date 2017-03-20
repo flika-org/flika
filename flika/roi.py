@@ -13,7 +13,7 @@ import numpy as np
 import os
 from scipy.ndimage.interpolation import rotate
 from . import global_vars as g
-from .utils.misc import random_color, save_file_gui
+from .utils.misc import random_color, open_file_gui
 from .tracefig import roiPlot
 
 class ROI_Drawing(pg.GraphicsObject):
@@ -966,7 +966,7 @@ def load_rois(filename=None):
     if filename is None:
         filetypes = '*.txt'
         prompt = 'Load ROIs from file'
-        filename = save_file_gui(prompt, filetypes=filetypes)
+        filename = open_file_gui(prompt, filetypes=filetypes)
         if filename is None:
             return None
     text = open(filename, 'r').read()
