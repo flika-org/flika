@@ -94,13 +94,14 @@ def build_submenu(module_name, parent_menu, layout_dict):
         if key == 'menu':
             for v in value:
                 menu = parent_menu.addMenu(v["@name"])
-                build_plugin_submenu(module_name, menu, v)
+                build_submenu(module_name, menu, v)
         elif key == 'action':
             for od in value:
                 method = str2func(module_name, od['@location'], od['@function'])
                 if method is not None:
                     action = QtWidgets.QAction(od['#text'], parent_menu, triggered = method)
                     parent_menu.addAction(action)
+
 
 class Plugin():
     def __init__(self, name, info_url=None):
@@ -119,7 +120,7 @@ class Plugin():
         self.info_url = info_url
         if info_url:
             self.update_info()
-        
+
 
     @staticmethod
     def fromXML(info):
@@ -147,7 +148,7 @@ class Plugin():
         return p
 
     def update_info(self):
-        if self.info_url == None:
+        if self.info_url is None:
             return False
         txt = urlopen(self.info_url).read()
         new_info = parse(txt)
@@ -348,7 +349,6 @@ class PluginManager(QtWidgets.QMainWindow):
             if plugin in PluginManager.plugins:
                 plugin = PluginManager.plugins[plugin]
             else:
-
                 return
         if plugin.url is None:
             return
@@ -404,7 +404,9 @@ class PluginManager(QtWidgets.QMainWindow):
         PluginManager.gui.statusBar.showMessage('Extracting  %s' % plugin.name)
         plugin.version = plugin.latest_version
         plugin.listWidget.setIcon(QtGui.QIcon(image_path("check.png")))
-        plugin.menu = make_plugin_menu(plugin)
+        #plugin.menu = make_plugin_menu(plugin)
+        plugin.menu = QtWidgets.QMenu(plugin.name)
+        build_submenu(plugin.base_dir, plugin.menu, plugin.menu_layout)
         
         PluginManager.gui.statusBar.showMessage('Successfully installed %s and it\'s plugins' % plugin.name)
         PluginManager.gui.pluginSelected(plugin.listWidget)
