@@ -139,8 +139,8 @@ class Plugin():
             deps = info['dependencies']['dependency']
             p.dependencies = [d['@name'] for d in deps] if isinstance(deps, list) else [deps['@name']]
         p.menu_layout = info.pop('menu_layout')
-        p.menu = QtWidgets.QMenu(self.name)
-        build_submenu(self.base_dir, self.menu, self.menu_layout)
+        p.menu = QtWidgets.QMenu(name)
+        build_submenu(p.base_dir, p.menu, p.menu_layout)
         p.listWidget = QtWidgets.QListWidgetItem(p.name)
         p.listWidget.setIcon(QtGui.QIcon(image_path('check.png')))
         p.loaded = True
@@ -213,7 +213,7 @@ class PluginManager(QtWidgets.QMainWindow):
 
     def __init__(self):
         super(PluginManager,self).__init__()
-        load_ui("plugin_manager.ui", self, directory = os.path.dirname(__file__))
+        load_ui("plugin_manager.ui", self, directory=os.path.dirname(__file__))
         self.setWindowIcon(QtGui.QIcon(image_path('favicon.png')))
         try:
             self.scrollAreaWidgetContents.setContentsMargins(10, 10, 10, 10)
@@ -262,7 +262,7 @@ class PluginManager(QtWidgets.QMainWindow):
         PluginManager.downloadPlugin(plugin)
 
     def pluginSelected(self, item):
-        if item == None:
+        if item is None:
             if self.pluginLabel.text():
                 self.pluginSelected(PluginManager.plugins[self.pluginLabel.text()].listWidget)
             return
