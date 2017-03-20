@@ -70,7 +70,7 @@ def build_plugin_submenu(module_name, parent_menu, layout_dict):
 
 def add_plugin_menu(plugin_name):
     menu = g.m.menuPlugins.addMenu(plugin_name)
-    build_plugin_submenu(PluginManager.plugins[plugin_name]['base_dir'], menu, PluginManager.plugins[plugin_name]['menu_layout'])
+    build_plugin_submenu(PluginManager.plugins[plugin_name]['directory'], menu, PluginManager.plugins[plugin_name]['menu_layout'])
 
 def load_plugin_menu():
     PluginManager.load_installed_plugins()
@@ -287,10 +287,10 @@ class PluginManager(QMainWindow):
 
         os.remove("install.zip")
         plugin = PluginManager.plugins[plugin_name]
-        base_dir = os.path.join('plugins', plugin['base_dir'])
-        if os.path.exists(base_dir):
-            shutil.rmtree(base_dir)
-        os.rename(os.path.join('plugins', folder_name), base_dir)
+        directory = os.path.join('plugins', plugin['directory'])
+        if os.path.exists(directory):
+            shutil.rmtree(directory)
+        os.rename(os.path.join('plugins', folder_name), directory)
         add_plugin_menu(plugin_name)
         PluginManager.plugins[plugin_name]['install_date'] = plugin['date']
         
@@ -311,9 +311,9 @@ class PluginManager(QMainWindow):
 
     @staticmethod
     def uninstallPlugin(plugin_name):
-        base_dir = PluginManager.plugins[plugin_name]['base_dir']
+        directory = PluginManager.plugins[plugin_name]['directory']
         try:
-            shutil.rmtree(os.path.join('plugins', base_dir), ignore_errors=True)
+            shutil.rmtree(os.path.join('plugins', directory), ignore_errors=True)
             for act in g.m.menuPlugins.actions():
                 if str(act.text()) == plugin_name:
                     g.m.menuPlugins.removeAction(act)
