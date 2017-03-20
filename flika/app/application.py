@@ -170,6 +170,7 @@ class Logger(QtWidgets.QWidget):
 
 class FlikaApplication(QtWidgets.QMainWindow):
     def __init__(self):
+        assert g.m == None, "Flika is already running. Try running g.m.show()"
         print('Launching Flika')
         self.app = get_qapp()
         super(FlikaApplication, self).__init__()

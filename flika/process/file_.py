@@ -11,7 +11,6 @@ import pyqtgraph.exporters
 import time
 import os.path
 import numpy as np
-from skimage.io import imread, imsave
 from qtpy import uic, QtGui, QtCore, QtWidgets
 import codecs
 import shutil, subprocess
