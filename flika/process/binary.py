@@ -9,6 +9,7 @@ import numpy as np
 import scipy
 import scipy.ndimage    
 from skimage import feature, measure
+from skimage.morphology import remove_small_objects
 from skimage.filters import threshold_adaptive
 from qtpy import QtCore, QtGui, QtWidgets
 from .. import global_vars as g
@@ -20,11 +21,11 @@ __all__ = ['threshold','remove_small_blobs','adaptive_threshold','logically_comb
      
      
 def convert2uint8(tif):
-    oldmin=np.min(tif)
-    oldmax=np.max(tif)
-    newmax=2**8-1
-    tif=((tif-oldmin)*newmax)/(oldmax-oldmin)
-    tif=tif.astype(np.uint8)
+    oldmin = np.min(tif)
+    oldmax = np.max(tif)
+    newmax = 2**8-1
+    tif = ((tif-oldmin)*newmax)/(oldmax-oldmin)
+    tif = tif.astype(np.uint8)
     return tif
     
 class Threshold(BaseProcess):
@@ -311,33 +312,43 @@ class Remove_small_blobs(BaseProcess):
     """
     def __init__(self):
         super().__init__()
+
     def gui(self):
         self.gui_reset()
-        rank=QtWidgets.QSpinBox()
+        rank = QtWidgets.QSpinBox()
         rank.setRange(2,3)
-        value=QtWidgets.QSpinBox()
-        value.setRange(1,100000)
-        self.items.append({'name':'rank','string':'Number of Dimensions','object':rank})
-        self.items.append({'name':'value','string':'Value','object':value})
+        value = QtWidgets.QSpinBox()
+        value.setRange(1, 100000)
+        self.items.append({'name': 'rank', 'string': 'Number of Dimensions', 'object': rank})
+        self.items.append({'name': 'value', 'string': 'Value', 'object': value})
         super().gui()
-    def __call__(self,rank,value,keepSourceWindow=False):
+
+    def __call__(self, rank, value, keepSourceWindow=False):
         self.start(keepSourceWindow)
         if self.tif.dtype == np.float16:
-            g.alert("Adaptive Threshold does not support float16 type arrays")
+            g.alert("remove_small_blobs() does not support float16 type arrays")
             return
-        oldshape=self.tif.shape
-        s=scipy.ndimage.generate_binary_structure(rank,1)
-        labeled_array, num_features = scipy.ndimage.measurements.label(self.tif, structure=s)
-        B=np.copy(self.tif.reshape(np.size(self.tif)))
-        def fn(val, pos):
-            if len(pos)<=value:
-                B[pos]=0
-        lbls = np.arange(1, num_features+1)
-        scipy.ndimage.labeled_comprehension(self.tif, labeled_array, lbls, fn, float, 0, True)
-        self.newtif=np.reshape(B,oldshape).astype(np.uint8)
-        self.newname=self.oldname+' - Removed Blobs '+str(value)
+        oldshape = self.tif.shape
+        newtif = np.zeros_like(self.tif, dtype='bool')
+        if self.oldwindow.nDims == 2:
+            newtif = remove_small_objects(self.tif.astype('bool'), value, connectivity=2)
+        elif self.oldwindow.nDims == 3:
+            if rank == 2:
+                for i in np.arange(len(self.tif)):
+                    newtif[i] = remove_small_objects(self.tif[i].astype('bool'), value, connectivity=2)
+            elif rank == 3:
+                newtif = remove_small_objects(self.tif.astype('bool'), value, connectivity=2)
+        self.newtif = newtif
+        self.newname = self.oldname + ' - Removed Blobs ' + str(value)
         return self.end()
-remove_small_blobs=Remove_small_blobs()
+
+    def get_init_settings_dict(self):
+        s = dict()
+        s['rank'] = 2
+        s['value'] = 1
+        return s
+
+remove_small_blobs = Remove_small_blobs()
 
 
 class Binary_Dilation(BaseProcess):

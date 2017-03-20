@@ -219,11 +219,12 @@ class Window(QtWidgets.QWidget):
         self.setWindowTitle(name)
         
     def reset(self):
-        currentIndex = int(self.currentIndex)
-        self.imageview.setImage(self.image,autoLevels=True) #I had autoLevels=False before.  I changed it to adjust after boolean previews.
-        if self.mt != 1:
-            self.imageview.setCurrentIndex(currentIndex)
-        g.m.statusBar().showMessage('')
+        if not self.closed:
+            currentIndex = int(self.currentIndex)
+            self.imageview.setImage(self.image, autoLevels=True) #I had autoLevels=False before.  I changed it to adjust after boolean previews.
+            if self.mt != 1:
+                self.imageview.setCurrentIndex(currentIndex)
+            g.m.statusBar().showMessage('')
 
     def closeEvent(self, event):
         if self.closed:
