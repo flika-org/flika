@@ -1,5 +1,5 @@
 from ..app.plugin_manager import PluginManager, load_local_plugins, plugin_list
-from ..app.terminal_widget import ScriptEditor
+from ..app.script_editor import ScriptEditor
 from ..window import Window
 import numpy as np
 

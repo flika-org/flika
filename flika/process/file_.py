@@ -23,7 +23,7 @@ import pip
 import re
 
 from .. import global_vars as g
-from ..app.terminal_widget import ScriptEditor
+from ..app.script_editor import ScriptEditor
 from .BaseProcess import BaseDialog
 from ..window import Window
 from ..utils.misc import open_file_gui, save_file_gui

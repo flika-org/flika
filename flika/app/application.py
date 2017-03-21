@@ -9,7 +9,7 @@ from ..app.settings_editor import SettingsEditor, rectSettings, pointSettings
 from ..process.file_ import *
 from .. import global_vars as g
 from .plugin_manager import PluginManager, load_local_plugins
-from .terminal_widget import ScriptEditor
+from .script_editor import ScriptEditor
 from ..utils.misc import load_ui
 from ..images import image_path
 from ..roi import load_rois

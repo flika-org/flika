@@ -46,7 +46,6 @@ class Window(QtWidgets.QWidget):
         self.filename = filename
         self.setAsCurrentWindow()
         self.setWindowTitle(name)
-        self.setWindowIcon(QtGui.QIcon('flika/images/favicon.png'))
         self.imageview = pg.ImageView(self)
         self.imageview.setMouseTracking(True)
         self.imageview.installEventFilter(self)

@@ -88,7 +88,6 @@ Useful variables:
     g.currentWindow - the selected window
     g.currentWindow.rois -list of rois in that window
     - roi.getTrace() gets an roi trace as an array """
-        self.setWindowIcon(QtGui.QIcon('flika/images/favicon.png'))
         self.terminal = ipython_terminal(banner=text, **getnamespace())
         layout = QtWidgets.QGridLayout()
         self.terminalWidget.setLayout(layout)
@@ -183,9 +182,10 @@ Useful variables:
             scriptfile = str(QtWidgets.QFileDialog.getOpenFileName(ScriptEditor.gui, 'Load script', os.path.dirname(ScriptEditor.most_recent_script()), '*.py'))
             if scriptfile == '':
                 return
-        editor = Editor(scriptfile)
-        ScriptEditor.add_recent_file(scriptfile)
-        ScriptEditor.gui.addEditor(editor)
+        if hasattr(ScriptEditor, 'gui'):
+            editor = Editor(scriptfile)
+            ScriptEditor.add_recent_file(scriptfile)
+            ScriptEditor.gui.addEditor(editor)
     
     def addEditor(self, editor=None):
         self.setUpdatesEnabled(False)
