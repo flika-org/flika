@@ -136,7 +136,7 @@ class Butterworth_filter(BaseProcess):
             return
         self.start(keepSourceWindow)
         if self.tif.ndim != 3:
-            g.alert("Butterworth filter only works on 3-dimensional movies. This image is %dd" % self.tif.ndim)
+            g.alert("Butterworth filter only works on 3-dimensional movies.")
             return
         if g.settings['multiprocessing']:
             self.newtif=butterworth_filter_multi(filter_order,low,high,g.currentWindow.image)
@@ -277,7 +277,7 @@ class Mean_filter(BaseProcess):
             g.alert("Mean Filter does not support float16 type arrays")
             return
         if self.tif.ndim != 3:
-            g.alert("Mean Filter only supports 3-dimensional movies. %d =/= 3" % self.tif.ndim)
+            g.alert("Mean Filter only supports 3-dimensional movies.")
             return
         self.newtif=convolve(self.tif,weights=np.full((nFrames,1,1),1.0/nFrames))        
         self.newname=self.oldname+' - Mean Filtered'
@@ -415,7 +415,7 @@ class Fourier_filter(BaseProcess):
             g.alert("Fourier transform does not support float16 movies.")
             return
         if self.tif.ndim != 3 or self.tif.shape[2] == 3:
-            g.alert('Fourier transform requires 3 dimensional movies. %d != 3' % self.tif.ndim)
+            g.alert('Fourier transform requires 3 dimensional movies.')
             return
         if low==0 and high==frame_rate/2.0:
             return
@@ -706,7 +706,7 @@ class Bilateral_filter(BaseProcess):
         
         self.start(keepSourceWindow)
         if self.tif.ndim != 3:
-            g.alert("Bilateral filter requires 3-dimensional image. %d != 3" % self.tif.ndim)
+            g.alert("Bilateral filter requires 3-dimensional image.")
             return
         if g.settings['multiprocessing']:
             self.newtif=bilateral_filter_multi(soft,beta,width,stoptol,maxiter,g.currentWindow.image)
