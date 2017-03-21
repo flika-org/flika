@@ -39,9 +39,9 @@ class Editor(QtWidgets.QPlainTextEdit):
         self.scriptfile = scriptfile
         try:
             script = open(scriptfile, 'r').read()
-        except Exception as e:
+        except FileNotFoundError as e:
             print("Failed to read %s: %s" % (scriptfile, e))
-
+            return
         self.setPlainText(script)
         ScriptEditor.gui.statusBar().showMessage('{} loaded.'.format(os.path.basename(self.scriptfile)), MESSAGE_TIME)
 

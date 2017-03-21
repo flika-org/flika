@@ -248,6 +248,9 @@ class FlikaApplication(QtWidgets.QMainWindow):
         self.pluginMenu = self.menuBar().addMenu('Plugins')
         self.pluginMenu.aboutToShow.connect(self._make_plugin_menu)
 
+        self.scriptMenu = self.menuBar().addMenu('Scripts')
+        self.scriptMenu.aboutToShow.connect(self._make_script_menu)
+
         helpMenu = self.menuBar().addMenu("Help")
         url='http://flika-org.github.io/documentation.html'
         helpMenu.addAction("Documentation", lambda: QtGui.QDesktopServices.openUrl(QtCore.QUrl(url)))
@@ -274,13 +277,23 @@ class FlikaApplication(QtWidgets.QMainWindow):
         self.rectangle.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.rectangle.customContextMenuRequested.connect(rectSettings)
 
+    def _make_script_menu(self):
+        self.scriptMenu.clear()
+        self.scriptEditorAction = self.scriptMenu.addAction('Script Editor', ScriptEditor.show)
+        self.scriptMenu.addSeparator()
+        def openScript(script):
+            return lambda : ScriptEditor.importScript(script)
+        for recent_script in g.settings['recent_scripts']:
+            self.scriptMenu.addAction(recent_script, openScript(recent_script))
+
     def _make_plugin_menu(self):
         self.pluginMenu.clear()
         self.pluginMenu.addAction('Plugin Manager', PluginManager.show)
-        self.pluginMenu.addAction('Script Editor', ScriptEditor.show)
         self.pluginMenu.addSeparator()
 
-        for plugin in sorted([plugin for plugin in PluginManager.plugins.values() if plugin.installed], key=lambda a: a.lastModified()):
+        installedPlugins = [plugin for plugin in PluginManager.plugins.values() if plugin.installed]
+        for plugin in sorted(installedPlugins, key=lambda a: -a.lastModified()):
+            plugin.reload()
             addMenuItem(self.pluginMenu, plugin.name, plugin.menu)
 
     def _make_recents(self):
@@ -329,7 +342,8 @@ class FlikaApplication(QtWidgets.QMainWindow):
         ScriptEditor.close()
         PluginManager.close()
         g.settings.save()
-        g.m = None
+        if g.m == self:
+            g.m = None
 
 class SetCurrentWindowSignal(QtWidgets.QWidget):
     sig=QtCore.Signal()
