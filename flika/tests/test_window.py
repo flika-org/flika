@@ -1,17 +1,15 @@
 import sys, os
 import optparse
 
-from flika.app import *
-import flika.global_vars as g
-from flika.window import Window
+from .. import global_vars as g
+from ..window import Window
 import numpy as np
 import time
 import pytest
-from flika.roi import makeROI
+from ..roi import makeROI
 import pyqtgraph as pg
 from qtpy import QtGui
 im = np.random.random([120, 90, 90])
-fa = FlikaApplication()
 	
 class TestWindow():
 	def setup_method(self, obj):
@@ -65,12 +63,13 @@ class ROITest():
 		assert self.changeFinished, "ChangeFinished signal was not sent"
 		self.changeFinished = False
 	
-	def teardown_method(self):
-		self.roi.plot()
-		self.roi.delete()
-		assert self.roi not in self.win1.rois, "ROI deleted but still in window.rois"
-		#assert g.currentTrace == None, "Trace closed"
+	def teardown_method(self, func):
+		#if self.roi is not None:
+		#	self.roi.delete()
+		#assert self.roi not in self.win1.rois, "ROI deleted but still in window.rois"
 		self.win1.close()
+		from .conftest import fa
+		fa().clear()
 
 	def check_placement(self, mask=None, points=None):
 		if mask is None:
@@ -111,7 +110,7 @@ class ROITest():
 	def test_export_import(self):
 		s = str(self.roi)
 		self.roi.window.exportROIs("test.txt")
-		from flika.roi import load_rois
+		from ..roi import load_rois
 		rois = load_rois('test.txt')
 		assert len(rois) == 1, "Import ROI failure"
 		roi = rois[0]
@@ -344,7 +343,3 @@ class TestTracefig():
 		t = open('tempROI.txt').read()
 		assert t == 'rectangle\n3 2\n4 5\n'
 		os.remove('tempROI.txt')
-
-def teardown_method():
-	fa.close()
-	assert len(g.dialogs) == 0 and len(g.windows) == 0, "Not all dialogs and windows closed"

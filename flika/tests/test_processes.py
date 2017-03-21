@@ -1,18 +1,16 @@
 import sys, os
 import optparse
 
-from flika.app import *
-from flika.process import *
-import flika.global_vars as g
-from flika.window import Window
-from flika.roi import makeROI
+from ..process import *
+from .. import global_vars as g
+from ..window import Window
+from ..roi import makeROI
 import numpy as np
 import time
 import pytest
 import warnings
 warnings.filterwarnings("ignore")
 
-fa = FlikaApplication()
 
 g.settings['multiprocessing'] = False
 zproject.gui()
@@ -85,113 +83,111 @@ image_calculator.ui.close()
     (np.random.random([20, 20, 3]).astype('float64')),
 ])
 class ProcessTest:
-	def teardown_method(self, method):
-		for d in g.dialogs[:]:
-			d.close()
-		for w in g.windows[:]:
-			w.close()
+	def teardown_method(self):
+		from .conftest import fa
+		fa().clear()
 
 
 class TestBinary(ProcessTest):
 	
-	def test_threshold(self, img):
+	def test_threshold(self, img, fa):
 		w1 = Window(img)
 		w = threshold(.5)
-		fa.clear()
+		
 
-	def test_adaptive_threshold(self, img):
+	def test_adaptive_threshold(self, img, fa):
 		w1 = Window(img)
 		w = adaptive_threshold(.5, 3)
-		fa.clear()
+		
 
 	def test_canny_edge_detector(self, img):
 		if img.ndim == 4:
 			return
 		w1 = Window(img)
 		w = canny_edge_detector(.5)
-		fa.clear()
+		
 	
 	def test_binary_dilation(self, img):
 		if img.ndim == 4 or not ((img==0)|(img==1)).all():
 			return
 		w1 = Window(img)
 		w = binary_dilation(2, 3, 1)
-		fa.clear()
+		
 	
 	def test_binary_erosion(self, img):
 		if img.ndim == 4 or not ((img==0)|(img==1)).all():
 			return
 		w1 = Window(img)
 		w = binary_erosion(2, 3, 1)
-		fa.clear()
+		
 
 	def test_generate_rois(self, img):
 		if img.ndim == 4 or not ((img==0)|(img==1)).all():
 			return
 		w1 = Window(img)
 		w = generate_rois(.5, 10)
-		fa.clear()
+		
 
 	def test_remove_small_blobs(self, img):
 		if img.ndim == 4 or not ((img==0)|(img==1)).all():
 			return
 		w1 = Window(img)
 		w = threshold(.5)
-		fa.clear()
-	
+		
+
 
 class TestFilters(ProcessTest):
 	def test_gaussian_blur(self, img):
 		w1 = Window(img)
 		w = gaussian_blur(.5)
-		fa.clear()
+		
 
 	def test_butterworth_filter(self, img):
 		w1 = Window(img)
 		w = butterworth_filter(1, .2, .6)
-		fa.clear()
+		
 
 	def test_mean_filter(self, img):
 		w1 = Window(img)
 		w = mean_filter(5)
-		fa.clear()
+		
 
 	def test_median_filter(self, img):
 		w1 = Window(img)
 		w = median_filter(5)
-		fa.clear()
+		
 
 	def test_fourier_filter(self, img):
 		w1 = Window(img)
 		w = fourier_filter(3, .2, .6, False)
-		fa.clear()
+		
 
 	def test_difference_filter(self, img):
 		w1 = Window(img)
 		w = difference_filter()
-		fa.clear()
+		
 
 	def test_boxcar_differential_filter(self, img):
 		w1 = Window(img)
 		w = boxcar_differential_filter(2, 3)
-		fa.clear()
+		
 
 	def test_wavelet_filter(self, img):
 		w1 = Window(img)
 		w = wavelet_filter(2, 3)
-		fa.clear()
+		
 
 	def test_bilateral_filter(self, img):
 		w1 = Window(img)
 		w = bilateral_filter(True, 30, 10, .05, 100) # soft filter
 		w2 = bilateral_filter(False, 30, 10, .05, 100) # hard filter
-		fa.clear()
+		
 
 class TestMath(ProcessTest):
 	def test_subtract(self, img):
 		w1 = Window(img)
 		subtract(2)
-		fa.clear()
+		
 
 	def test_subtract_trace(self, img):
 		w1 = Window(img)
@@ -199,7 +195,7 @@ class TestMath(ProcessTest):
 		tr = roi1.plot()
 		if tr:
 			subtract_trace()
-		fa.clear()
+		
 
 	def test_divide_trace(self, img):
 		w1 = Window(img)
@@ -207,71 +203,71 @@ class TestMath(ProcessTest):
 		tr = roi1.plot()
 		if tr:
 			divide_trace()
-		fa.clear()
+		
 
 	def test_multiply(self, img):
 		w1 = Window(img)
 		multiply(2.4)
-		fa.clear()
+		
 
 	def test_power(self, img):
 		w1 = Window(img)
 		power(2)
-		fa.clear()
+		
 
 	def test_ratio(self, img):
 		w1 = Window(img)
 		ratio(2, 6, 'average')
 		ratio(2, 6, 'standard deviation')
-		fa.clear()
+		
 
 	def test_absolute_value(self, img):
 		w1 = Window(img)
 		absolute_value()
-		fa.clear()
+		
 
 class TestOverlay(ProcessTest):
 	def test_time_stamp(self, img):
 		w1 = Window(img)
 		time_stamp(2)
-		fa.clear()
+		
 
 	def test_background(self, img):
 		w1 = Window(img)
 		w2 = Window(img/2)
 		background(w1, w2, .5, True)
-		fa.clear()
+		
 
 	def test_scale_bar(self, img):
 		w1 = Window(img)
 		scale_bar.gui()
 		scale_bar(30, 5, 12, 'White', 'None','Lower Left')
-		fa.clear()
+		
 
 class TestColor(ProcessTest):
 	def test_split_channels(self, img):
 		if img.ndim == 4 or (img.ndim == 3 and img.shape[2] == 3):
 			w1 = Window(img)
 			split_channels()
-		fa.clear()
+		
 
 class TestROIProcess(ProcessTest):
 	def test_set_value(self, img):
 		w1 = Window(img)
 		roi = makeROI('rectangle', [[3, 3], [4, 5]])
 		set_value(2, 2, 5)
-		fa.clear()
+		
 
 class TestStacks(ProcessTest):
 	def test_deinterleave(self, img):
 		w1 = Window(img)
 		deinterleave(2)
-		fa.clear()
+		
 
 	def test_trim(self, img):
 		w1 = Window(img)
 		trim(2, 6, 2)
-		fa.clear()
+		
 
 	def test_zproject(self, img):
 		w1 = Window(img)
@@ -281,7 +277,7 @@ class TestStacks(ProcessTest):
 			if isinstance(w3, Window):
 				w3.close()
 			w1.setAsCurrentWindow()
-		fa.clear()
+		
 
 	def test_image_calculator(self, img):
 		w1 = Window(img)
@@ -290,22 +286,19 @@ class TestStacks(ProcessTest):
 			w3 = image_calculator(w1, w2, i, True)
 			if isinstance(w3, Window):
 				w3.close()
-		fa.clear()
+		
 
 	def test_pixel_binning(self, img):
 		w1 = Window(img)
 		pixel_binning(2)
-		fa.clear()
+		
 
 	def test_frame_binning(self, img):
 		w1 = Window(img)
 		frame_binning(2)
-		fa.clear()
+		
 
 	def test_resize(self, img):
 		w1 = Window(img)
 		resize(2)
-		fa.clear()
-
-
-fa.close()
+		

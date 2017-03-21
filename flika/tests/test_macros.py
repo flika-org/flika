@@ -1,11 +1,7 @@
-from flika.app import *
-from flika.app.plugin_manager import PluginManager, load_local_plugins
-from flika.app.terminal_widget import ScriptEditor
-from flika.plugins import plugin_list
-from flika.window import Window
+from ..app.plugin_manager import PluginManager, load_local_plugins, plugin_list
+from ..app.terminal_widget import ScriptEditor
+from ..window import Window
 import numpy as np
-
-fa = FlikaApplication()
 
 class TestPluginManager():
 	def setup_method(self, method):
@@ -26,7 +22,7 @@ class TestPluginManager():
 		plugin_name = 'Detect Puffs'
 		if PluginManager.plugins[plugin_name].installed:
 			return
-		PluginManager.load_online_plugins()
+		PluginManager.refresh_online_plugins()
 		i = 0
 		while PluginManager.plugins[plugin_name].url == None:
 			i += 1
@@ -48,10 +44,8 @@ class TestScriptEditor():
 
 	def test_from_window(self):
 		w1 = Window(np.random.random([10, 20, 20]))
-		from flika.process import threshold
+		from ..process import threshold
 		w2 = threshold(.5)
 		ScriptEditor.gui.actionFrom_Window.trigger()
 		text = str(ScriptEditor.gui.currentTab().toPlainText())
 		assert text == "threshold(value=0.5, darkBackground=False, keepSourceWindow=False)", "From window command not expected"
-
-fa.close()

@@ -1,12 +1,10 @@
-from flika.app import *
-import flika.global_vars as g
-from flika.window import Window
+from .. import global_vars as g
+from ..window import Window
 import numpy as np
-from flika.roi import makeROI
+from ..roi import makeROI
 
-fa = FlikaApplication()
-'''
 class TestSettings():
+
 	def test_random_roi_color(self):
 		initial = g.settings['roi_color']
 		g.settings['roi_color'] = 'random'
@@ -38,5 +36,3 @@ class TestSettings():
 		assert roi3.traceWindow != roi1.traceWindow, 'Multiple trace windows'
 
 		g.settings['multipleTraceWindows'] = initial
-'''
-fa.close()

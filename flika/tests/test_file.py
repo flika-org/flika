@@ -1,19 +1,18 @@
 import sys, os
 import optparse
 
-from flika.app import *
-from flika.process.file_ import *
-import flika.global_vars as g
-from flika.window import Window
+from ..process.file_ import *
+from .. import global_vars as g
+from ..window import Window
 import numpy as np
 import time
 import pytest
-from flika.roi import makeROI, load_rois
+from ..roi import makeROI, load_rois
 import pyqtgraph as pg
 from qtpy import QtGui
-
-fa = FlikaApplication()
 im = np.random.random([150, 60, 60])
+
+
 
 class Test_File():
 	def test_open(self):
@@ -53,7 +52,4 @@ class Test_File():
 		os.remove('test.roi')
 		assert np.array_equal(b.pts, [[3, 7], [6, 5]])
 		w.close()
-
-
-
-fa.close()
+	
