@@ -17,7 +17,9 @@ import traceback
 from plugins.plugin_data import plugin_list
 import pip
 from xmltodict import parse
+from pkg_resources import parse_version
 sep = os.path.sep
+
     
 def str2func(plugin_name, file_location, function):
     '''
@@ -93,11 +95,11 @@ class PluginManager(QMainWindow):
 
     @staticmethod
     def update_available(plugin):
-        if 'install_date' not in PluginManager.plugins[plugin]:
+        if 'install_version' not in PluginManager.plugins[plugin]:
             return False
-        installed_date = [int(i) for i in PluginManager.plugins[plugin]['install_date'].split('/')]
-        latest_date = [int(i) for i in PluginManager.plugins[plugin]['date'].split('/')]
-        if latest_date[2] > installed_date[2] or latest_date[0] > installed_date[0] or latest_date[1] > installed_date[1]:
+        installed_version = parse_version(PluginManager.plugins[plugin]['install_version'])
+        latest_version = parse_version(PluginManager.plugins[plugin]['version'])
+        if latest_version > installed_version:
             return True
         return False
 
@@ -116,7 +118,7 @@ class PluginManager(QMainWindow):
         for p in get_plugin_paths():
             try:
                 mod_dict = load_plugin_xml(open(os.path.join(p, 'info.xml'), 'r').read())
-                mod_dict['install_date'] = mod_dict['date']
+                mod_dict['install_version'] = mod_dict['version']
                 PluginManager.plugins[mod_dict['@name']] = mod_dict
             except Exception as e:
                 print("Could not load info for %s. %s" % (os.path.basename(p), e))
@@ -200,7 +202,7 @@ class PluginManager(QMainWindow):
     @staticmethod
     def makeListWidgetItem(name):
         item=QtWidgets.QListWidgetItem(name)
-        if 'install_date' in PluginManager.plugins[name]:
+        if 'install_version' in PluginManager.plugins[name]:
             if PluginManager.update_available(name):
                 item.setIcon(QtGui.QIcon('images/exclamation.png'))
             else:
@@ -230,14 +232,14 @@ class PluginManager(QMainWindow):
         info = ''
         if "author" in plugin:
             info += 'By %s. ' % plugin['author']
-        if "date" in plugin:
-            info += 'Written on %s' % plugin['date']
+        if "version" in plugin:
+            info += 'Version %s' % plugin['version']
             if PluginManager.update_available(plugin_name):
                 info += ". Update Available!"
                 self.updateButton.show()
             else:
                 self.updateButton.hide()
-        self.downloadButton.setText('Uninstall' if 'install_date' in PluginManager.plugins[plugin_name] else 'Download')
+        self.downloadButton.setText('Uninstall' if 'install_version' in PluginManager.plugins[plugin_name] else 'Download')
         self.downloadButton.setVisible(True)
         self.infoLabel.setText(info)
         self.docsButton.setVisible('docs' in plugin)
@@ -248,7 +250,7 @@ class PluginManager(QMainWindow):
     @staticmethod
     def downloadPlugin(plugin_name):
 
-        if 'dependencies' in PluginManager.plugins[plugin_name] and 'dependency' in PluginManager.plugins[plugin_name]['dependencies']:
+        if 'dependencies' in PluginManager.plugins[plugin_name] and PluginManager.plugins[plugin_name]['dependencies'] is not None and 'dependency' in PluginManager.plugins[plugin_name]['dependencies']:
             PluginManager.gui.statusBar.showMessage('Installing dependencies for %s' % PluginManager.gui.link)
             deps = [a['@name'] for a in PluginManager.plugins[plugin_name]['dependencies']['dependency']]
             failed = []
@@ -292,7 +294,7 @@ class PluginManager(QMainWindow):
             shutil.rmtree(directory)
         os.rename(os.path.join('plugins', folder_name), directory)
         add_plugin_menu(plugin_name)
-        PluginManager.plugins[plugin_name]['install_date'] = plugin['date']
+        PluginManager.plugins[plugin_name]['install_version'] = plugin['version']
         
         PluginManager.gui.statusBar.showMessage('Successfully installed %s and it\'s plugins' % plugin_name)
         PluginManager.gui.pluginSelected(PluginManager.gui.pluginList.selectedItems()[0])
@@ -318,7 +320,7 @@ class PluginManager(QMainWindow):
                 if str(act.text()) == plugin_name:
                     g.m.menuPlugins.removeAction(act)
             
-            PluginManager.plugins[plugin_name].pop('install_date')
+            PluginManager.plugins[plugin_name].pop('install_version')
             PluginManager.gui.pluginSelected(PluginManager.gui.pluginList.selectedItems()[0])
             PluginManager.gui.statusBar.showMessage('%s successfully uninstalled' % plugin_name)
         except Exception as e:
