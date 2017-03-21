@@ -280,9 +280,8 @@ class FlikaApplication(QtWidgets.QMainWindow):
         self.pluginMenu.addAction('Script Editor', ScriptEditor.show)
         self.pluginMenu.addSeparator()
 
-        for plugin in PluginManager.plugins.values():
-            if plugin.installed and plugin.menu:
-                addMenuItem(self.pluginMenu, plugin.name, plugin.menu)
+        for plugin in sorted([plugin for plugin in PluginManager.plugins.values() if plugin.installed], key=lambda a: a.lastModified()):
+            addMenuItem(self.pluginMenu, plugin.name, plugin.menu)
 
     def _make_recents(self):
         self.recentFileMenu.clear()

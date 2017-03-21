@@ -145,6 +145,8 @@ class Plugin():
         if info_url:
             self.update_info()
 
+    def lastModified(self):
+        return os.path.getmtime(os.path.join(get_plugin_directory(), self.directory))
 
     @staticmethod
     def fromLocal(path):
