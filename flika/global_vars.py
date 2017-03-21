@@ -203,6 +203,7 @@ def alert(msg, title="Flika - Alert"):
     top = (desktopSize.height() / 2) - (msgbx.size().height() / 2)
     left = (desktopSize.width() / 2) - (msgbx.size().width() / 2)
     msgbx.move(left, top)
+    dialogs.append(msgbx)
 
 
 settings = Settings()

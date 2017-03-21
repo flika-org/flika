@@ -224,7 +224,7 @@ class Window(QtWidgets.QWidget):
         if not self.closed:
             currentIndex = int(self.currentIndex)
             self.imageview.setImage(self.image, autoLevels=True) #I had autoLevels=False before.  I changed it to adjust after boolean previews.
-            if self.mt != 1:
+            if self.imageview.axes['t'] is not None:
                 self.imageview.setCurrentIndex(currentIndex)
             g.m.statusBar().showMessage('')
 

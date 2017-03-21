@@ -170,7 +170,6 @@ class Logger(QtWidgets.QWidget):
 
 class FlikaApplication(QtWidgets.QMainWindow):
     def __init__(self):
-        assert g.m == None, "Flika is already running. Try running g.m.show()"
         print('Launching Flika')
         self.app = get_qapp()
         super(FlikaApplication, self).__init__()
@@ -331,6 +330,7 @@ class FlikaApplication(QtWidgets.QMainWindow):
         ScriptEditor.close()
         PluginManager.close()
         g.settings.save()
+        g.m = None
 
 class SetCurrentWindowSignal(QtWidgets.QWidget):
     sig=QtCore.Signal()
