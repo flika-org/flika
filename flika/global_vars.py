@@ -15,9 +15,7 @@ from os.path import expanduser
 from qtpy import QtWidgets, QtGui, QtCore
 from collections.abc import MutableMapping
 import json, zipfile
-from copy import deepcopy
 from pkg_resources import parse_version
-from subprocess import Popen
 import shutil
 
 __all__ = ['m', 'Settings', 'menus', 'checkUpdates', 'alert']
@@ -118,7 +116,7 @@ def checkUpdates():
     except HTTPError:
         url = 'https://raw.githubusercontent.com/flika-org/flika/master/flika.py'
     except Exception as e:
-        g.alert("Connection Failed", "Cannot connect to Flika Repository. Connect to the internet to check for updates. %s" % e)
+        alert("Connection Failed", "Cannot connect to Flika Repository. Connect to the internet to check for updates. %s" % e)
         return
     
     data = urlopen(url).read()[:100]
@@ -157,22 +155,24 @@ def updateFlika():
             shutil.rmtree(extract_location)
         z.extractall(extract_location)
     os.remove('flika.zip')
+    print("file: {}".format(__file__))
     try:
-        d = os.path.dirname(__file__)
-        for path, subs, fs in os.walk(d):
-            extract_path = path.replace(os.path.basename(d), os.path.join('temp_flika', 'flika-master'))
+        for path, subs, fs in os.walk(folder):
+            extract_path = path.replace(os.path.basename(folder), os.path.join('temp_flika', 'flika-master'))
             for f in fs:
                 if f.endswith(('.py', '.ui', '.png', '.txt', '.xml')):
                     old, new = os.path.join(path, f), os.path.join(extract_path, f)
                     if os.path.exists(old) and os.path.exists(new):
                         m.statusBar().showMessage('replacing %s' % f)
                         shutil.copy(new, old)
-        #if not 'SPYDER_SHELL_ID' in os.environ:
-        #    Popen('python flika.py', shell=True)
         shutil.rmtree(extract_location)
-        exit(0)
     except Exception as e:
         messageBox("Update Error", "Failed to remove and replace old Flika. %s" % e, icon=QtWidgets.QMessageBox.Warning)
+
+    #if not 'SPYDER_SHELL_ID' in os.environ:
+    #    Popen('python flika.py', shell=True)
+
+    alert('Update successful. Restart Flika to complete update.')
     
 
 def setConsoleVisible(v):
