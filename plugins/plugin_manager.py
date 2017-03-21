@@ -19,6 +19,7 @@ import pip
 from xmltodict import parse
 from distutils.version import StrictVersion
 sep = os.path.sep
+
     
 def str2func(plugin_name, file_location, function):
     '''
