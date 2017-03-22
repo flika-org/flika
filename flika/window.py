@@ -425,9 +425,9 @@ class Window(QtWidgets.QWidget):
         if not isinstance(filename, str):
             if filename is not None and os.path.isfile(filename):
                 filename = os.path.splitext(g.settings['filename'])[0]
-                filename = save_file_gui('Save ROI', filename, "Text Files (*.txt);;All Files (*.*)")
+                filename = save_file_gui('Save ROI', filename, '*.txt')
             else:
-                filename = save_file_gui('Save ROI', '', "Text Files (*.txt);;All Files (*.*)")
+                filename = save_file_gui('Save ROI', '', '*.txt')
 
         if filename != '' and isinstance(filename, str):
             reprs = [roi.str() for roi in self.rois]

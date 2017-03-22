@@ -95,9 +95,9 @@ def save_file_gui(prompt="Save file", directory=None, filetypes=''):
         except:
             directory = None
     if directory is None:
-        filename = QtWidgets.QFileDialog.getSaveFileName(g.m, prompt, filetypes)
+        filename = QtWidgets.QFileDialog.getSaveFileName(g.m, prompt, filter=filetypes)
     else:
-        filename = QtWidgets.QFileDialog.getSaveFileName(g.m, prompt, directory, filetypes)
+        filename = QtWidgets.QFileDialog.getSaveFileName(g.m, prompt, directory, filter=filetypes)
     if isinstance(filename, tuple):
         filename, ext = filename
         if ext and '.' not in filename:
