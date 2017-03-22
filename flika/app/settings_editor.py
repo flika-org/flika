@@ -8,7 +8,7 @@ Flika
 import numpy as np
 import pyqtgraph as pg
 from pyqtgraph import ComboBox
-from qtpy import QtWidgets
+from qtpy import QtWidgets, QtGui
 from multiprocessing import cpu_count
 from ..utils.misc import setConsoleVisible
 from ..process.BaseProcess import BaseDialog, BaseProcess, ColorSelector
@@ -113,7 +113,7 @@ def pointSettings(pointButton):
         g.settings['point_size'] = point_size.value()
         g.settings['show_all_points'] = show_all_points.isChecked()
         if win is not None and update_current_points_check.isChecked() == True:
-            color = QtWidgets.QColor(point_color.value())
+            color = QtGui.QColor(point_color.value())
             size = point_size.value()
             for t in np.arange(win.mt):
                 for i in np.arange(len(win.scatterPoints[t])):

@@ -177,8 +177,11 @@ class Window(QtWidgets.QWidget):
             self.linkMenu.addAction(win_action)
         
     def updateindex(self):
-        (idx, t) = self.imageview.timeIndex(self.imageview.timeLine)
-        t = int(np.floor(t))
+        if self.mt == 1:
+            t = 0
+        else:
+            (idx, t) = self.imageview.timeIndex(self.imageview.timeLine)
+            t = int(np.floor(t))
         if 0 <= t < self.mt:
             self.currentIndex = t
             if not g.settings['show_all_points']:
