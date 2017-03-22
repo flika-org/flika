@@ -57,17 +57,6 @@ Temporary Items
 # Installer logs
 pip-log.txt
 
-
-plugins/**
-!/plugins/__init__.py
-!/plugins/plugin_data.py
-!/plugins/plugin_manager.py
-!/plugins/xmltodict.py
-flika/plugins/**
-!flika/plugins/__init__.py
-!flika/plugins/plugin_data.py
-!flika/plugins/plugin_manager.py
-!flika/plugins/xmltodict.py
 analyze/**
 unit_test.py
 
