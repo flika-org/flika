@@ -277,7 +277,10 @@ def open_file(filename=None, from_gui=False):
 
         
 def load_points(filename=None):
-    if filename is not None:
+    if g.currentWindow is None:
+        g.alert('Points cannot be loaded if no window is selected. Open a file and click on a window.')
+        return None
+    if filename is None:
         filetypes = '*.txt'
         prompt = 'Load Points'
         filename = open_file_gui(prompt, filetypes=filetypes)
