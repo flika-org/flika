@@ -423,8 +423,8 @@ class Window(QtWidgets.QWidget):
 
     def exportROIs(self, filename=None):
         if not isinstance(filename, str):
-            filename = g.settings['filename'].split('.')[0]
             if filename is not None and os.path.isfile(filename):
+                filename = os.path.splitext(g.settings['filename'])[0]
                 filename = save_file_gui('Save ROI', filename, "Text Files (*.txt);;All Files (*.*)")
             else:
                 filename = save_file_gui('Save ROI', '', "Text Files (*.txt);;All Files (*.*)")
