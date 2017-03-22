@@ -7,7 +7,7 @@
 ### Documentation ###
 [flika-org.github.io/documentation.html](http://flika-org.github.io/documentation.html)
 
-![Flika Screenshot](docs/img/flika_screencapture.gif)
+![Flika Screenshot](flika/docs/img/flika_screencapture.gif)
 
 ### Installation Instructions ###
 
