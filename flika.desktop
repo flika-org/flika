@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Flika
+Comment=Biological movie analysis software
+Exec=flika
+Icon=favicon
+Categories=Education;Science;
