@@ -206,7 +206,6 @@ class FlikaApplication(QtWidgets.QMainWindow):
 
         self._log = Logger()
         self._log.window().setWindowTitle("Console Log")
-        self._log.window().setWindowIcon(QtGui.QIcon(image_path('favicon.png')))
         self._log.resize(550, 550)
 
         self.statusBar().addPermanentWidget(self._log.status_light)

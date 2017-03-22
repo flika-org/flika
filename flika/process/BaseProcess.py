@@ -239,7 +239,6 @@ class BaseDialog(QtWidgets.QDialog):
         QtWidgets.QDialog.__init__(self)
         self.parent = parent
         self.setWindowTitle(title)
-        self.setWindowIcon(QtGui.QIcon('flika/images/favicon.png'))
         self.formlayout = QtWidgets.QFormLayout()
         self.formlayout.setLabelAlignment(QtCore.Qt.AlignRight)
         self.items = items

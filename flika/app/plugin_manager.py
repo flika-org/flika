@@ -265,7 +265,6 @@ class PluginManager(QtWidgets.QMainWindow):
     def __init__(self):
         super(PluginManager,self).__init__()
         load_ui("plugin_manager.ui", self, directory=os.path.dirname(__file__))
-        self.setWindowIcon(QtGui.QIcon(image_path('favicon.png')))
         try:
             self.scrollAreaWidgetContents.setContentsMargins(10, 10, 10, 10)
         except:
