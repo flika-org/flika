@@ -306,6 +306,7 @@ def convert_to_string(item):
 
 class BaseProcess(object):
     def __init__(self):
+        self.noPriorWindow = False
         self.__name__=self.__class__.__name__.lower()
         self.items=[]
 
@@ -318,15 +319,15 @@ class BaseProcess(object):
     def start(self, keepSourceWindow):
         frame = inspect.getouterframes(inspect.currentframe())[1][0]
         args, _, _, values = inspect.getargvalues(frame)
-        funcname=self.__name__
+        funcname = self.__name__
         self.command = funcname+'('+', '.join([i+'='+convert_to_string(values[i]) for i in args if i!='self'])+')'
         g.m.statusBar().showMessage('Running function {}...'.format(self.__name__))
         self.keepSourceWindow = keepSourceWindow
         self.oldwindow = g.currentWindow
         if self.oldwindow is None:
             raise(MissingWindowError("You cannot execute '{}' without selecting a window first.".format(self.__name__)))
-        self.tif=self.oldwindow.image
-        self.oldname=self.oldwindow.name
+        self.tif = self.oldwindow.image
+        self.oldname = self.oldwindow.name
 
     def end(self):
         if not hasattr(self, 'newtif') or self.newtif is None:
@@ -376,10 +377,14 @@ class BaseProcess(object):
             if not isinstance(value, window.Window): # cannot save window objects using pickle
                 newsettings[name] = value
         g.settings['baseprocesses'][self.__name__] = newsettings
+        g.settings.save()
         try:
-            self.__call__(*args,keepSourceWindow=True)
+            if self.noPriorWindow:
+                self.__call__(*args)
+            else:
+                self.__call__(*args, keepSourceWindow=True)
         except MemoryError as err:
-            msg = 'There was a memory error in {}'.format(self.__name__)
+            msg = 'There was a memory error in {}. Close other programs and try again.'.format(self.__name__)
             msg += str(err)
             g.alert(msg)
     def preview(self):
@@ -387,41 +392,57 @@ class BaseProcess(object):
 
 
 class BaseProcess_noPriorWindow(BaseProcess):
+
     def __init__(self):
         super().__init__()
+        self.noPriorWindow = True
+
     def start(self):
         frame = inspect.getouterframes(inspect.currentframe())[1][0]
         args, _, _, values = inspect.getargvalues(frame)
-        funcname=self.__name__
-        self.command=funcname+'('+', '.join([i+'='+convert_to_string(values[i]) for i in args if i!='self'])+')'
+        funcname = self.__name__
+        self.command = funcname+'('+', '.join([i+'='+convert_to_string(values[i]) for i in args if i!='self'])+')'
         g.m.statusBar().showMessage('Performing {}...'.format(self.__name__))
         
     def end(self):
-        commands=[self.command]
-        newWindow=window.Window(self.newtif,str(self.newname),commands=commands)
-        if np.max(self.newtif)==1 and np.min(self.newtif)==0: #if the array is boolean
+        commands = [self.command]
+        newWindow = window.Window(self.newtif,str(self.newname),commands=commands)
+        if np.max(self.newtif) == 1 and np.min(self.newtif) == 0: #if the array is boolean
             newWindow.imageview.setLevels(-.1,1.1)
         g.m.statusBar().showMessage('Finished with {}.'.format(self.__name__))
         del self.newtif
         return newWindow
-    def call_from_gui(self):
-        varnames=[i for i in inspect.getargspec(self.__call__)[0] if i!='self']
-        try:
-            args=[self.getValue(name) for name in varnames]
-        except IndexError as err:
-            msg = "IndexError in {}: {}".format(self.__name__, varnames)
-            msg += str(err)
-            g.alert(msg)
-        newsettings = dict()
-        for name in varnames:
-            newsettings[name] = self.getValue(name)
-        g.settings['baseprocesses'][self.__name__] = newsettings
-        try:
-            self.__call__(*args)
-        except MemoryError as err:
-            msg = 'There was a memory error in {}'.format(self.__name__)
-            msg += str(err)
-            g.alert(msg)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

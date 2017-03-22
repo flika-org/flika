@@ -28,14 +28,18 @@ class Generate_Random_Image(BaseProcess_noPriorWindow):
         super().__init__()
         self.puffs=None
 
+    def get_init_settings_dict(self):
+        s = dict()
+        s['nFrames'] = 1000
+        s['width'] = 128
+        return s
+
     def gui(self):
         self.gui_reset()
         nFrames = SliderLabel(0)
         nFrames.setRange(0,10000)
-        nFrames.setValue(1000)
         width = SliderLabel(0)
         width.setRange(2,1024)
-        width.setValue(128)
         self.items.append({'name':'nFrames','string':'Movie Duration (frames)','object':nFrames})
         self.items.append({'name':'width','string':'Width of image (pixels)','object':width})
         super().gui()
@@ -45,7 +49,6 @@ class Generate_Random_Image(BaseProcess_noPriorWindow):
         self.newtif = np.random.randn(nFrames, width, width)
         self.newname=' Random Noise '
         return self.end()
-
 generate_random_image = Generate_Random_Image()
 
 class Deinterleave(BaseProcess):
@@ -59,6 +62,10 @@ class Deinterleave(BaseProcess):
     """
     def __init__(self):
         super().__init__()
+
+    def get_init_settings_dict(self):
+        return {'nChannels': 3}
+
     def gui(self):
         self.gui_reset()
         nChannels=QtWidgets.QSpinBox()
@@ -92,12 +99,18 @@ class Pixel_binning(BaseProcess):
     """
     def __init__(self):
         super().__init__()
+
+    def get_init_settings_dict(self):
+        s = dict()
+        s['nPixels'] = 2
+        return s
+
     def gui(self):
         self.gui_reset()
         nPixels=QtWidgets.QSpinBox()
         nPixels.setMinimum(2)
         nPixels.setMaximum(2)
-        self.items.append({'name':'nPixels','string':'How many adjacent pixels to bin?','object':nPixels})
+        self.items.append({'name': 'nPixels', 'string': 'How many adjacent pixels to bin?', 'object': nPixels})
         super().gui()
     def __call__(self,nPixels,keepSourceWindow=False):
         self.start(keepSourceWindow)
@@ -148,6 +161,10 @@ class Frame_binning(BaseProcess):
     """
     def __init__(self):
         super().__init__()
+
+    def get_init_settings_dict(self):
+        return {'nFrames': 2}
+
     def gui(self):
         self.gui_reset()
         nFrames=QtWidgets.QSpinBox()
@@ -177,6 +194,10 @@ class Resize(BaseProcess):
     """
     def __init__(self):
         super().__init__()
+
+    def get_init_settings_dict(self):
+        return {'factor': 2}
+
     def gui(self):
         self.gui_reset()
         factor=QtWidgets.QSpinBox()
@@ -223,6 +244,15 @@ class Trim(BaseProcess):
     """
     def __init__(self):
         super().__init__()
+
+    def get_init_settings_dict(self):
+        s = dict()
+        s['firstFrame'] = 0
+        s['lastFrame'] = g.currentWindow.image.shape[0]
+        s['increment'] = 1
+        s['delete'] = False
+        return s
+
     def gui(self):
         self.gui_reset()
         nFrames=1
@@ -242,14 +272,6 @@ class Trim(BaseProcess):
         self.items.append({'name': 'increment',  'string': 'Increment',   'object': increment })
         self.items.append({'name': 'delete',     'string': 'Delete',      'object': delete    })
         super().gui()
-
-    def get_init_settings_dict(self):
-        s = dict()
-        s['firstFrame'] = 0
-        s['lastFrame'] = g.currentWindow.image.shape[0]
-        s['increment'] = 1
-        s['delete'] = False
-        return s
 
     def __call__(self, firstFrame, lastFrame, increment=1, delete = False, keepSourceWindow=False):
         self.start(keepSourceWindow)
@@ -278,6 +300,10 @@ class ZProject(BaseProcess):
     """
     def __init__(self):
         super().__init__()
+
+    def get_init_settings_dict(self):
+        return {'firstFrame': 0, 'lastFrame': 0, 'projection_type': 'Average'}
+
     def gui(self):
         self.gui_reset()
         nFrames=1
@@ -302,7 +328,8 @@ class ZProject(BaseProcess):
         projection_type.addItem('Median')
         self.items.append({'name':'projection_type','string':'Projection Type','object':projection_type})
         super().gui()
-    def __call__(self,firstFrame,lastFrame,projection_type,keepSourceWindow=False):
+
+    def __call__(self, firstFrame, lastFrame, projection_type, keepSourceWindow=False):
         self.start(keepSourceWindow)
         if self.tif.ndim != 3 or self.tif.shape[2] == 3:
             g.m.statusBar().showMessage('zproject only works on 3 dimensional, non-color windows')
@@ -338,6 +365,7 @@ class Image_calculator(BaseProcess):
     """
     def __init__(self):
         super().__init__()
+
     def gui(self):
         self.gui_reset()
         window1=WindowSelector()
