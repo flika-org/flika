@@ -132,6 +132,13 @@ class Window(QtWidgets.QWidget):
         self.linkedWindows = set()
         self.makeMenu()
 
+    def save(self, filename):
+        from .process.file_ import save_file
+        old_curr_win = g.currentWindow
+        self.setAsCurrentWindow()
+        save_file(filename)
+        old_curr_win.setAsCurrentWindow()
+
     def normLUT(self):
         if self.nDims ==2:
             # if the image is binary (either all 0s or 0s and 1s)

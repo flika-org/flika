@@ -29,7 +29,7 @@ from ..window import Window
 from ..utils.misc import open_file_gui, save_file_gui
 from ..utils.io import tifffile
 
-__all__ = ['save_window', 'save_points', 'export_movie_gui', 'open_file', 'open_file_from_gui', 'load_points', 'close']
+__all__ = ['save_file', 'save_points', 'export_movie_gui', 'open_file', 'open_file_from_gui', 'load_points', 'close']
 
 ########################################################################################################################
 ######################                  SAVING FILES                                         ###########################
@@ -37,8 +37,8 @@ __all__ = ['save_window', 'save_points', 'export_movie_gui', 'open_file', 'open_
 
 
 
-def save_window(filename=None):
-    """ save_window(filename)
+def save_file(filename=None):
+    """ save_file(filename)
     Save the image in the currentWindow to a .tif file.
 
     Parameters:

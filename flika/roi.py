@@ -170,12 +170,16 @@ class ROI_Wrapper():
         for roi in self.linkedROIs:
             roi.blockSignals(True)
             roi.draw_from_points(self.pts, finish=False)
-            if roi.traceWindow != None:
+            if roi.traceWindow is not None:
                 if not finish:
                     roi.traceWindow.translated(roi)
                 else:
                     roi.traceWindow.translateFinished(roi)
             roi.blockSignals(False)
+
+    def redraw_trace(self):
+        if self.traceWindow is not None:
+            self.traceWindow.translateFinished(self)
 
     def getSnapPosition(self, *args, **kargs):
         shift = pg.Point(.5, .5) if isinstance(self, (ROI_rect_line, )) else pg.Point(0, 0)
@@ -487,8 +491,21 @@ class ROI_rectangle(ROI_Wrapper, pg.ROI):
         self.cropAction = QtWidgets.QAction('&Crop', self, triggered=self.crop)
         ROI_Wrapper.__init__(self, window, [pos, size])
 
+    def center_around(self, x, y):
+        old_pts = self.getPoints()
+        old_center = old_pts[0] + .5 * old_pts[1]
+        new_center = np.array([x, y])
+        diff = new_center - old_center
+        new_pts = np.array([old_pts[0]+diff, old_pts[1]])
+        self.draw_from_points(new_pts)
+
     def getPoints(self):
         return np.array([self.state['pos'], self.state['size']], dtype=int)
+
+    def contains_pts(self, x, y):
+        target = np.array([x, y])
+        return np.all(self.pts[0] < target) and np.all(target < self.pts[0]+self.pts[1])
+
 
     def getMask(self):
         x, y = self.state['pos']
@@ -962,7 +979,7 @@ def makeROI(kind, pts, window=None, **kargs):
     roi.setPen(pen)
     return roi
 
-def load_rois(filename=None):
+def import_rois(filename=None):
     if filename is None:
         filetypes = '*.txt'
         prompt = 'Load ROIs from file'

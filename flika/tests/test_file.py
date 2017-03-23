@@ -7,7 +7,7 @@ from ..window import Window
 import numpy as np
 import time
 import pytest
-from ..roi import makeROI, load_rois
+from ..roi import makeROI, import_rois
 import pyqtgraph as pg
 from qtpy import QtGui
 im = np.random.random([150, 60, 60])
@@ -29,7 +29,7 @@ class Test_File():
 
 	def test_save_as(self):
 		w = Window(im)
-		a = save_window('movie')
+		a = save_file('movie')
 		os.remove(a)
 		w.close()
 
@@ -48,7 +48,7 @@ class Test_File():
 		a = makeROI('rectangle', [[3, 7], [6, 5]])
 		w.exportROIs('test.roi')
 		a.delete()
-		b = load_rois('test.roi')[0]
+		b = import_rois('test.roi')[0]
 		os.remove('test.roi')
 		assert np.array_equal(b.pts, [[3, 7], [6, 5]])
 		w.close()

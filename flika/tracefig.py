@@ -153,7 +153,7 @@ class TraceFig(QtWidgets.QWidget):
             self.redrawPartialThread.start()
             self.redrawPartialThread.updated.connect(self.partialThreadUpdatedSignal.emit)
             
-    def translateFinished(self,roi):
+    def translateFinished(self, roi):
         roi_index = self.get_roi_index(roi)
         if self.redrawPartialThread is not None and self.redrawPartialThread.isRunning():
             self.redrawPartialThread.quit_loop = True
@@ -162,9 +162,9 @@ class TraceFig(QtWidgets.QWidget):
             #self.redrawPartialThread.finished.connect(loop.quit)
             #loop.exec_()# This blocks until the "finished" signal is emitted
         trace=roi.getTrace()
-        self.update_trace_full(roi_index,trace)
+        self.update_trace_full(roi_index, trace)
 
-    def update_trace_full(self,roi_index,trace):
+    def update_trace_full(self, roi_index, trace):
         pen=QtGui.QPen(self.rois[roi_index]['roi'].pen)
         self.rois[roi_index]['p1trace'].setData(trace,pen=pen)
         self.rois[roi_index]['p2trace'].setData(trace,pen=pen)

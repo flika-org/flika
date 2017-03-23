@@ -110,8 +110,8 @@ class ROITest():
 	def test_export_import(self):
 		s = str(self.roi)
 		self.roi.window.exportROIs("test.txt")
-		from ..roi import load_rois
-		rois = load_rois('test.txt')
+		from ..roi import import_rois
+		rois = import_rois('test.txt')
 		assert len(rois) == 1, "Import ROI failure"
 		roi = rois[0]
 		os.remove('test.txt')

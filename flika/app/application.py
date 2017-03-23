@@ -12,7 +12,7 @@ from .plugin_manager import PluginManager, load_local_plugins
 from .script_editor import ScriptEditor
 from ..utils.misc import load_ui
 from ..images import image_path
-from ..roi import load_rois
+from ..roi import import_rois
 from ..logger import logger
 from ..version import __version__
 
@@ -230,10 +230,10 @@ class FlikaApplication(QtWidgets.QMainWindow):
         self.recentFileMenu.aboutToShow.connect(self._make_recents)
         self.recentFileMenu.triggered.connect(lambda a: open_file(a.text()))
 
-        fileMenu.addAction("Save As", save_window)
+        fileMenu.addAction("Save As", save_file)
         importMenu = fileMenu.addMenu("Import")
         exportMenu = fileMenu.addMenu("Export")
-        importMenu.addAction("Import ROIs", load_rois)
+        importMenu.addAction("Import ROIs", import_rois)
         importMenu.addAction("Import Points", load_points)
         exportMenu.addAction("Export Movie", export_movie_gui)
         exportMenu.addAction("Export Points", save_points)

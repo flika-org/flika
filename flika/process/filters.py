@@ -126,7 +126,8 @@ class Butterworth_filter(BaseProcess):
         super().gui()
         self.roi=g.currentWindow.currentROI
         if self.roi is not None:
-            self.ui.rejected.connect(self.roi.translate_done.emit)
+            self.ui.rejected.connect(self.roi.redraw_trace)
+            self.ui.accepted.connect(self.roi.redraw_trace)
         if self.roi is None or g.currentTrace is None:
             preview.setChecked(False)
             preview.setEnabled(False)
@@ -159,7 +160,7 @@ class Butterworth_filter(BaseProcess):
             if self.roi is not None:
                 if preview:
                     if (low==0 and high==1) or (low==0 and high==0):
-                        self.roi.translate_done.emit() #redraw roi without filter
+                        self.roi.onRegionChangeFinished() #redraw roi without filter
                     else:
                         b,a,padlen=self.makeButterFilter(filter_order,low,high)
                         trace=self.roi.getTrace()
@@ -167,7 +168,7 @@ class Butterworth_filter(BaseProcess):
                         roi_index=g.currentTrace.get_roi_index(self.roi)
                         g.currentTrace.update_trace_full(roi_index,trace) #update_trace_partial may speed it up
                 else:
-                    self.roi.translate_done.emit()
+                    self.roi.redraw_trace()
     def makeButterFilter(self,filter_order,low,high):
         padlen=0
         if high==1: 
@@ -266,7 +267,8 @@ class Mean_filter(BaseProcess):
         super().gui()
         self.roi=g.currentWindow.currentROI
         if self.roi is not None:
-            self.ui.rejected.connect(self.roi.translate_done.emit)
+            self.ui.rejected.connect(self.roi.redraw_trace)
+            self.ui.accepted.connect(self.roi.redraw_trace)
         else:
             preview.setChecked(False)
             preview.setEnabled(False)
@@ -288,14 +290,14 @@ class Mean_filter(BaseProcess):
         if self.roi is not None:
             if preview:
                 if nFrames==1:
-                    self.roi.translate_done.emit() #redraw roi without filter
+                    self.roi.redraw_trace() #redraw roi without filter
                 else:
                     trace=self.roi.getTrace()
                     trace=convolve(trace,weights=np.full((nFrames),1.0/nFrames))        
                     roi_index=g.currentTrace.get_roi_index(self.roi)
                     g.currentTrace.update_trace_full(roi_index,trace) #update_trace_partial may speed it up
             else:
-                self.roi.translate_done.emit()    
+                self.roi.redraw_trace()
 mean_filter=Mean_filter()
 
 
@@ -322,7 +324,8 @@ class Median_filter(BaseProcess):
         super().gui()
         self.roi=g.currentWindow.currentROI
         if self.roi is not None:
-            self.ui.rejected.connect(self.roi.translate_done.emit)
+            self.ui.rejected.connect(self.roi.redraw_trace)
+            self.ui.accepted.connect(self.roi.redraw_trace)
         else:
             preview.setChecked(False)
             preview.setEnabled(False)
@@ -350,7 +353,7 @@ class Median_filter(BaseProcess):
             if preview:
                 print(nFrames)
                 if nFrames==1:
-                    self.roi.translate_done.emit() #redraw roi without filter
+                    self.roi.redraw_trace() #redraw roi without filter
                 elif nFrames%2==0: #if value is even
                     return None
                 else:
@@ -359,7 +362,7 @@ class Median_filter(BaseProcess):
                     roi_index=g.currentTrace.get_roi_index(self.roi)
                     g.currentTrace.update_trace_full(roi_index,trace) #update_trace_partial may speed it up
             else:
-                self.roi.translate_done.emit()    
+                self.roi.redraw_trace()
                 
 median_filter=Median_filter()
 
@@ -404,7 +407,8 @@ class Fourier_filter(BaseProcess):
         super().gui()
         self.roi=g.currentWindow.currentROI
         if self.roi is not None:
-            self.ui.rejected.connect(self.roi.translate_done.emit)
+            self.ui.rejected.connect(self.roi.redraw_trace)
+            self.ui.accepted.connect(self.roi.redraw_trace)
         else:
             preview.setChecked(False)
             preview.setEnabled(False)
@@ -441,7 +445,7 @@ class Fourier_filter(BaseProcess):
         if self.roi is not None:
             if preview:
                 if (low==0 and high==frame_rate/2.0) or (low==0 and high==0):
-                    self.roi.translate_done.emit() #redraw roi without filter
+                    self.roi.redraw_trace() #redraw roi without filter
                 else:
                     trace=self.roi.getTrace()
                     W = fftfreq(len(trace), d=1.0/frame_rate)
@@ -452,7 +456,7 @@ class Fourier_filter(BaseProcess):
                     roi_index=g.currentTrace.get_roi_index(self.roi)
                     g.currentTrace.update_trace_full(roi_index,cut_signal) #update_trace_partial may speed it up
             else:
-                self.roi.translate_done.emit()    
+                self.roi.redraw_trace()
                 
     def frame_rate_changed(self):
         low=[item for item in self.items if item['name']=='low'][0]['object']
@@ -544,7 +548,8 @@ class Boxcar_differential_filter(BaseProcess):
             return False
         self.roi=g.currentWindow.currentROI
         if self.roi is not None:
-            self.ui.rejected.connect(self.roi.translate_done.emit)
+            self.ui.rejected.connect(self.roi.redraw_trace)
+            self.ui.accepted.connect(self.roi.redraw_trace)
         else:
             preview.setChecked(False)
             preview.setEnabled(False)
@@ -575,7 +580,7 @@ class Boxcar_differential_filter(BaseProcess):
                 roi_index=g.currentTrace.get_roi_index(self.roi)
                 g.currentTrace.update_trace_full(roi_index,newtrace) #update_trace_partial may speed it up
             else:
-                self.roi.translate_done.emit()        
+                self.roi.redraw_trace()
 boxcar_differential_filter=Boxcar_differential_filter()
     
     
@@ -608,7 +613,8 @@ class Wavelet_filter(BaseProcess):
         super().gui()
         self.roi=g.currentWindow.currentROI
         if self.roi is not None:
-            self.ui.rejected.connect(self.roi.translate_done.emit)
+            self.ui.rejected.connect(self.roi.redraw_trace)
+            self.ui.accepted.connect(self.roi.redraw_trace)
         else:
             preview.setChecked(False)
             preview.setEnabled(False)
@@ -643,7 +649,7 @@ class Wavelet_filter(BaseProcess):
                 roi_index=g.currentTrace.get_roi_index(self.roi)
                 g.currentTrace.update_trace_full(roi_index,newtrace) #update_trace_partial may speed it up
             else:
-                self.roi.translate_done.emit()        
+                self.roi.redraw_trace()
 wavelet_filter=Wavelet_filter()
     
     
@@ -697,7 +703,8 @@ class Bilateral_filter(BaseProcess):
         super().gui()
         self.roi=g.currentWindow.currentROI
         if self.roi is not None:
-            self.ui.rejected.connect(self.roi.translate_done.emit)
+            self.ui.rejected.connect(self.roi.redraw_trace)
+            self.ui.accepted.connect(self.roi.redraw_trace)
         else:
             preview.setChecked(False)
             preview.setEnabled(False)
@@ -734,7 +741,7 @@ class Bilateral_filter(BaseProcess):
                 roi_index=g.currentTrace.get_roi_index(self.roi)
                 g.currentTrace.update_trace_full(roi_index,trace) #update_trace_partial may speed it up
             else:
-                self.roi.translate_done.emit()        
+                self.roi.redraw_trace()
         
 
 def bilateral_filter_multi(soft,beta,width,stoptol,maxiter,tif):
