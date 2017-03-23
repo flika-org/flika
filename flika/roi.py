@@ -952,7 +952,10 @@ class ROI_rect_line(ROI_Wrapper, QtWidgets.QGraphicsObject):
 
 def makeROI(kind, pts, window=None, **kargs):
     if window is None:
-        window=g.currentWindow
+        window = g.currentWindow
+        if window is None:
+            g.alert('ERROR: In order to make and ROI a window needs to be selected')
+            return None
 
     if kind=='freehand':
         roi=ROI(window, pts, **kargs)

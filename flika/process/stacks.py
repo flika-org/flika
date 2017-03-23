@@ -231,7 +231,7 @@ resize = Resize()
 
 
 class Trim(BaseProcess):
-    """ trim(firstFrame,lastFrame,increment=False,keepSourceWindow=False)
+    """ trim(firstFrame, lastFrame, increment=1, delete=False, keepSourceWindow=False)
     This creates a new stack from the frames between the firstFrame and the lastFrame
     
     Parameters:
