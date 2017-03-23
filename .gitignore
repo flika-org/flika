@@ -119,3 +119,5 @@ fabric.properties
 
 flika.egg-info
 .cache
+
+/flika/docs/_build/*

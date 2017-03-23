@@ -1,0 +1,3 @@
+To build the documentation, run the command:
+	make html
+The output files will be located in the _build directory.
