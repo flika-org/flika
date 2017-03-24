@@ -16,10 +16,10 @@ so do not hesitate!
 Feature requests and feedback
 -----------------------------
 
-Do you like pytest?  Share some love on Twitter or in your blog posts!
+Do you like flika?  Share some love on Twitter or in your blog posts!
 
 We'd also like to hear about your propositions and suggestions.  Feel free to
-`submit them as issues <https://github.com/pytest-dev/pytest/issues>`_ and:
+`submit them as issues <https://github.com/flika-org/flika/issues>`_ and:
 
 * Explain in detail how they should work.
 * Keep the scope as narrow as possible.  This will make it easier to implement.
@@ -30,17 +30,17 @@ We'd also like to hear about your propositions and suggestions.  Feel free to
 Report bugs
 -----------
 
-Report bugs for pytest in the `issue tracker <https://github.com/pytest-dev/pytest/issues>`_.
+Report bugs for flika in the `issue tracker <https://github.com/flika-org/flika/issues>`_.
 
 If you are reporting a bug, please include:
 
 * Your operating system name and version.
 * Any details about your local setup that might be helpful in troubleshooting,
   specifically Python interpreter version,
-  installed libraries and pytest version.
+  installed libraries and flika version.
 * Detailed steps to reproduce the bug.
 
-If you can write a demonstration test that currently fails but should pass (xfail),
+If you can write a demonstration script that currently doesn't work but should,
 that is a very useful commit to make as well, even if you can't find how
 to fix the bug yet.
 
@@ -51,7 +51,7 @@ Fix bugs
 --------
 
 Look through the GitHub issues for bugs.  Here is a filter you can use:
-https://github.com/pytest-dev/pytest/labels/bug
+https://github.com/flika-org/flika/labels/bug
 
 :ref:`Talk <contact>` to developers to find out how you can fix specific bugs.
 
@@ -63,7 +63,7 @@ Implement features
 ------------------
 
 Look through the GitHub issues for enhancements.  Here is a filter you can use:
-https://github.com/pytest-dev/pytest/labels/enhancement
+https://github.com/flika-org/flika/labels/enhancement
 
 :ref:`Talk <contact>` to developers to find out how you can implement specific
 features.
@@ -71,7 +71,7 @@ features.
 Write documentation
 -------------------
 
-Pytest could always use more documentation.  What exactly is needed?
+flika could always use more documentation.  What exactly is needed?
 
 * More complementary documentation.  Have you perhaps found something unclear?
 * Documentation translations.  We currently have only English.
@@ -82,79 +82,30 @@ You can also edit documentation files directly in the GitHub web interface,
 without using a local copy.  This can be convenient for small fixes.
 
 .. note::
-    Build the documentation locally with the following command:
+    Build the documentation locally inside ``flika/flika/docs`` with the following command:
 
     .. code:: bash
 
-        $ tox -e docs
+        $ make html
 
-    The built documentation should be available in the ``doc/en/_build/``.
-
-    Where 'en' refers to the documentation language.
+    The built documentation should be available in the ``flika/flika/docs/_build/``.
 
 .. _submitplugin:
 
-Submitting Plugins to pytest-dev
+Submitting plugins to flika
 --------------------------------
 
-Pytest development of the core, some plugins and support code happens
-in repositories living under the ``pytest-dev`` organisations:
+Anyone can write and share plugins for flika. Your plugin must conform to the 
+specifications described in the 
+`flika_plugin_template <https://github.com/flika-org/flika_plugin_template>`_.
+Download the plugin template to your ~/.FLIKA/plugins directory and modify it. When you
+start flika, it will be listed under plugins. 
 
-- `pytest-dev on GitHub <https://github.com/pytest-dev>`_
-
-- `pytest-dev on Bitbucket <https://bitbucket.org/pytest-dev>`_
-
-All pytest-dev Contributors team members have write access to all contained
-repositories.  Pytest core and plugins are generally developed
-using `pull requests`_ to respective repositories.
-
-The objectives of the ``pytest-dev`` organisation are:
-
-* Having a central location for popular pytest plugins
-* Sharing some of the maintenance responsibility (in case a maintainer no
-  longer wishes to maintain a plugin)
-
-You can submit your plugin by subscribing to the `pytest-dev mail list
-<https://mail.python.org/mailman/listinfo/pytest-dev>`_ and writing a
-mail pointing to your existing pytest plugin repository which must have
-the following:
-
-- PyPI presence with a ``setup.py`` that contains a license, ``pytest-``
-  prefixed name, version number, authors, short and long description.
-
-- a ``tox.ini`` for running tests using `tox <http://tox.testrun.org>`_.
-
-- a ``README.txt`` describing how to use the plugin and on which
-  platforms it runs.
-
-- a ``LICENSE.txt`` file or equivalent containing the licensing
-  information, with matching info in ``setup.py``.
-
-- an issue tracker for bug reports and enhancement requests.
-
-- a `changelog <http://keepachangelog.com/>`_
-
-If no contributor strongly objects and two agree, the repository can then be
-transferred to the ``pytest-dev`` organisation.
-
-Here's a rundown of how a repository transfer usually proceeds
-(using a repository named ``joedoe/pytest-xyz`` as example):
-
-* ``joedoe`` transfers repository ownership to ``pytest-dev`` administrator ``calvin``.
-* ``calvin`` creates ``pytest-xyz-admin`` and ``pytest-xyz-developers`` teams, inviting ``joedoe`` to both as **maintainer**.
-* ``calvin`` transfers repository to ``pytest-dev`` and configures team access:
-  
-  - ``pytest-xyz-admin`` **admin** access;
-  - ``pytest-xyz-developers`` **write** access;
-
-The ``pytest-dev/Contributors`` team has write access to all projects, and
-every project administrator is in it. We recommend that each plugin has at least three
-people who have the right to release to PyPI.
-
-Repository owners can rest assured that no ``pytest-dev`` administrator will ever make
-releases of your repository or take ownership in any way, except in rare cases
-where someone becomes unresponsive after months of contact attempts.
-As stated, the objective is to share maintenance and avoid "plugin-abandon".
+The ``flika`` organization maintains a centralized list of popular plugins to be 
+displayed in the plugin manager. If you want your plugin downloadable via the plugin 
+manager, you can submit your plugin to the flika developers by creating an issue in 
+the `issue tracker <https://github.com/flika-org/flika/issues>`_, using the 'plugin'
+label, and including the location of your plugin. 
 
 
 .. _`pull requests`:
@@ -166,7 +117,7 @@ Preparing Pull Requests on GitHub
 .. note::
   What is a "pull request"?  It informs project's core developers about the
   changes you want to review and merge.  Pull requests are stored on
-  `GitHub servers <https://github.com/pytest-dev/pytest/pulls>`_.
+  `GitHub servers <https://github.com/flika-org/flika/pulls>`_.
   Once you send a pull request, we can discuss its potential modifications and
   even add more commits to it later on.
 
@@ -175,14 +126,14 @@ There's an excellent tutorial on how Pull Requests work in the
 but here is a simple overview:
 
 #. Fork the
-   `pytest GitHub repository <https://github.com/pytest-dev/pytest>`__.  It's
-   fine to use ``pytest`` as your fork repository name because it will live
+   `flika GitHub repository <https://github.com/flika-org/flika>`__.  It's
+   fine to use ``flika`` as your fork repository name because it will live
    under your user.
 
 #. Clone your fork locally using `git <https://git-scm.com/>`_ and create a branch::
 
-    $ git clone git@github.com:YOUR_GITHUB_USERNAME/pytest.git
-    $ cd pytest
+    $ git clone git@github.com:YOUR_GITHUB_USERNAME/flika.git
+    $ cd flika
     # now, to fix a bug create your own branch off "master":
     
         $ git checkout -b your-bugfix-branch-name master
@@ -198,36 +149,9 @@ but here is a simple overview:
    If you need some help with Git, follow this quick start
    guide: https://git.wiki.kernel.org/index.php/QuickStart
 
-#. Install tox
-
-   Tox is used to run all the tests and will automatically setup virtualenvs
-   to run the tests in.
-   (will implicitly use http://www.virtualenv.org/en/latest/)::
-
-    $ pip install tox
-
-#. Run all the tests
-
-   You need to have Python 2.7 and 3.5 available in your system.  Now
-   running tests is as simple as issuing this command::
-
-    $ tox -e linting,py27,py35
-
-   This command will run tests via the "tox" tool against Python 2.7 and 3.5
-   and also perform "lint" coding-style checks.
-
 #. You can now edit your local working copy.
 
-   You can now make the changes you want and run the tests again as necessary.
-
-   To run tests on Python 2.7 and pass options to pytest (e.g. enter pdb on
-   failure) to pytest you can do::
-
-    $ tox -e py27 -- --pdb
-
-   Or to only run tests in a particular test module on Python 3.5::
-
-    $ tox -e py35 -- testing/test_config.py
+   You can now make the changes you want and run the tests as necessary.
 
 #. Commit and push once your tests pass and you are happy with your change(s)::
 
@@ -240,10 +164,10 @@ but here is a simple overview:
 
 #. Finally, submit a pull request through the GitHub website using this data::
 
-    head-fork: YOUR_GITHUB_USERNAME/pytest
+    head-fork: YOUR_GITHUB_USERNAME/flika
     compare: your-branch-name
 
-    base-fork: pytest-dev/pytest
+    base-fork: flika-org/flika
     base: master          # if it's a bugfix
     base: features        # if it's a feature
 

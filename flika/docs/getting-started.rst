@@ -26,7 +26,25 @@ Installation and Getting Started
 Installation
 ----------------------------------------
 
-Installation::
+Install on Windows
+^^^^^^^^^^^^^^^^^^
+The easiest way for people with little programming experience to install flika on 
+Windows is by `following these instructions <https://github.com/flika-org/flika_windows_installer/>`_.
+
+If you are comfortable with using a terminal (command prompt), install Python 3 and type::
+
+    pip install -U flika
+
+
+Install on Mac OSX
+^^^^^^^^^^^^^^^^^^
+flika requires Python 3 to run. To install Python along with most of flika's dependencies, download `Anaconda <https://www.continuum.io/downloads>`_. Once Python is installed open a terminal and run::
+
+    pip install -U flika
+
+Install on Linux
+^^^^^^^^^^^^^^^^
+Make sure that the 'pip' command is for Python 3. Then open a terminal and run::
 
     pip install -U flika
 
@@ -34,15 +52,29 @@ Installation::
 Starting flika
 ----------------------------------------
 
-The easiest way to start flika is to ...
+If flika was installed using pip, start flika by opening a terminal and typing::
+	
+	flika
+
+If you want to access the variables inside flika with the command line, type::
+
+	from flika import *
+	start_flika()
+
+
 
 
 .. _`simpletest`:
 
 Our first test run
 ----------------------------------------------------------
+Let's generate a random image and apply a gaussian blur. If you are only interested in 
+flika's gui features, go to Image->Stacks->Generate Random Image. Once the image is 
+generated, apply a gaussian blur to the current window by going to Process->Filters->
+Gaussian Blur.
 
-Let's generate a random image and apply a gaussian blur::
+If you want to do the same thing by code, either use the console you ran the 
+``start_flika()`` command in or open the Script Editor (Scripts->Script Editor) and type::
 
     generate_random_image()
     gaussian_blur(sigma=2)
@@ -54,8 +86,7 @@ Where to go next
 
 Here are a few suggestions where to go next:
 
-* :ref:`cmdline` for command line invocation examples
-* :ref:`good practices <goodpractices>` for virtualenv, test layout
-* :ref:`fixtures` for providing a functional baseline to your tests
-* :ref:`plugins` managing and writing plugins
+* :ref:`examples` examples of image processing using flika
+* :ref:`plugins` installing and writing plugins
+
 
