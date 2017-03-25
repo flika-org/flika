@@ -809,11 +809,20 @@ class ROI_rect_line(ROI_Wrapper, QtWidgets.QGraphicsObject):
 
     def removeSegment(self, segment=None): 
         """Remove a segment from the ROI."""
-        if segment == None:
+        if isinstance(segment, int):
+            segment = self.lines[segment]
+
+        if not isinstance(segment, pg.ROI):
             segment = self.currentLine
-        self.lines.remove(segment)
+        
         for h in segment.getHandles():
+            if len(h.rois) == 2 and h.parentItem() == segment:
+                otherROI = [line for line in h.rois if line != segment][0]
+                h.setParentItem(otherROI)
+                h.setPos(0, .5)
             h.disconnectROI(segment)
+        if segment in self.lines:
+            self.lines.remove(segment)
 
         self.scene().removeItem(segment)
         segment.sigRegionChanged.disconnect() 
