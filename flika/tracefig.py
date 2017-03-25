@@ -31,6 +31,7 @@ class TraceFig(QtWidgets.QWidget):
             self.setGeometry(QtCore.QRect(*g.settings['tracefig_settings']['coords']))
         self.setWindowTitle('Flika')
         self.l = QtWidgets.QVBoxLayout()
+        self.l.setContentsMargins(0,0,0,0)
         self.setLayout(self.l)
         self.p1=pg.PlotWidget()
         self.p2=pg.PlotWidget()
