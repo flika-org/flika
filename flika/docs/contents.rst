@@ -5,8 +5,6 @@
 Full flika documentation
 ===========================
 
-.. `Download latest version as EPUB <http://media.readthedocs.org/epub/pytest/latest/pytest.epub>`_
-
 .. toctree::
    :maxdepth: 2
 

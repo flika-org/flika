@@ -194,5 +194,6 @@ html_sidebars = {
     '**': [
         'sidebarintro.html',
         'globaltoc.html',
+        'links.html',
     ]
 }

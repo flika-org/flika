@@ -21,4 +21,4 @@ The following examples aim at various use cases you might encounter.
 .. toctree::
    :maxdepth: 2
 
-Ooops! No examples yet.
+We haven't made any examples yet. If you would like to contribute one, please :ref:`contact us<contact>`.

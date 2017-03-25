@@ -27,7 +27,7 @@ Features
 - Record the steps of your analysis in a script to automate a series of flika commands.
 - Python 3
 - Rich plugin architecture, with many :ref:`external plugins <extplugins>` and a growing community.
-- Open source under the `MIT`_ license.
+- Open source under the :ref:`MIT license <license>`.
 
 Documentation
 -------------
@@ -56,11 +56,15 @@ flika was created to automatically identify and automate the analysis of local C
 	and measurement of local calcium signals from 
 	camera-based imaging. Cell Calcium. 56:147-156, 2014
 
-Supported through National Institutes of Health grants GM 100201 to Ian Smith, and GM 048071 and 065830 to Ian Parker
+Supported through National Institutes of Health grants GM 100201 to `Ian Smith <http://faculty.sites.uci.edu/ianfsmithlab/ismith/>`_, and GM 048071 and 065830 to `Ian Parker <http://parkerlab.bio.uci.edu/members/ianparker.htm>`_.
+
+
+Authors
+-------
+So far, code has been contributed by `Kyle Ellefsen <https://scitru.com/kyleellefsen>`_ and `Brett Settle <https://github.com/BrettJSettle>`_. If you would like to add your name to the list, see our guide for :ref:`contributing <contributing>`. 
 
 License
 -------
 
-Distributed under the terms of the `MIT`_ license, flika is free and open source software.
+Distributed under the terms of the :ref:`MIT license <license>`, flika is free and open source software.
 
-.. _`MIT`: https://github.com/flika-org/flika/blob/master/LICENSE

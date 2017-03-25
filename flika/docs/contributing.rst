@@ -1,7 +1,7 @@
 .. _contributing:
 
 
-Contribution getting started
+Contributions
 ============================
 
 Contributions are highly welcomed and appreciated.  Every little help counts,
