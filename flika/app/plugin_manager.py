@@ -16,7 +16,7 @@ from urllib.parse import urljoin
 from pkg_resources import parse_version
 import pkg_resources, os
 import threading
-import pip
+import pip, tempfile
 from xml.etree import ElementTree
 import platform
 
@@ -452,14 +452,14 @@ Then try installing the plugin again.""".format(pl, v, arch))
             return
 
         try:
-            with open("install.zip", "wb") as output:
-                output.write(data)
 
-            with zipfile.ZipFile('install.zip', "r") as z:
-                folder_name = os.path.dirname(z.namelist()[0])
-                z.extractall(get_plugin_directory())
+            with tempfile.TemporaryFile() as tf:
+                tf.write(data)
+                tf.seek(0)
+                with zipfile.ZipFile(tf) as z:
+                    folder_name = os.path.dirname(z.namelist()[0])
+                    z.extractall(get_plugin_directory())
 
-            os.remove("install.zip")
             plugin = PluginManager.plugins[plugin.name]
             directory = os.path.join(get_plugin_directory(), plugin.directory)
             os.rename(os.path.join(get_plugin_directory(), folder_name), directory)
