@@ -24,7 +24,7 @@ Please see :ref:`installation` for instructions. flika runs on Windows, OSX, and
 Features
 --------
 - Supports numerous types of image filetypes: .tif, .nd2, .stk, and more.
-- Record the steps of your analysis in a script to automate a series of Flika commands.
+- Record the steps of your analysis in a script to automate a series of flika commands.
 - Python 3
 - Rich plugin architecture, with many :ref:`external plugins <extplugins>` and a growing community.
 - Open source under the `MIT`_ license.
