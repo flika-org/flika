@@ -186,20 +186,14 @@ class FlikaApplication(QtWidgets.QMainWindow):
         self.currentWindow = g.currentWindow
         self.currentTrace = g.currentTrace
         self.clipboard = g.clipboard
-
-        desktop = QtWidgets.QApplication.desktop()
-        width_px=int(desktop.logicalDpiX()*3.4)
-        height_px=int(desktop.logicalDpiY()*.9)
-        self.setGeometry(QtCore.QRect(15, 33, width_px, height_px))
-        #self.setFixedSize(326, 80)
-        self.setMaximumSize(width_px*3, 120)
+        self.setWindowSize()
         flika_icon = QtGui.QIcon(image_path('favicon.png'))
         self.setWindowIcon(flika_icon)
         self.app.setWindowIcon(flika_icon)
         if platform.system() == 'Windows':
             myappid = 'flika-org.flika.' + str(__version__)
             ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
-
+        self.menuBar().setNativeMenuBar(False)
         self._make_menu()
         self._make_tools()
 
@@ -213,7 +207,6 @@ class FlikaApplication(QtWidgets.QMainWindow):
         self.statusBar().setSizeGripEnabled(False)
         self.setCurrentWindowSignal = SetCurrentWindowSignal(self)
         self.setAcceptDrops(True)
-        
         load_local_plugins()
 
     def start(self):
@@ -221,6 +214,16 @@ class FlikaApplication(QtWidgets.QMainWindow):
         self.raise_()
         #if 'PYCHARM_HOSTED' not in os.environ and 'SPYDER_SHELL_ID' not in os.environ:
         #    return self.app.exec_()
+
+    def setWindowSize(self):
+        #desktop = QtWidgets.QApplication.desktop()
+        #width_px=int(desktop.logicalDpiX()*3.4)
+        #height_px=int(desktop.logicalDpiY()*.9)
+        #self.setGeometry(QtCore.QRect(15, 33, width_px, height_px))
+        #self.setFixedSize(326, 80)
+        #self.setMaximumSize(width_px*3, 120)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum);
+        self.move(15,33)
 
     def _make_menu(self):
         fileMenu = self.menuBar().addMenu('File')
