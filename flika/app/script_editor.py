@@ -87,8 +87,12 @@ Useful variables:
     g.m.windows - list of windows.
     g.currentWindow - the selected window
     g.currentWindow.rois -list of rois in that window
-    - roi.getTrace() gets an roi trace as an array """
+    - roi.getTrace() gets an roi trace as an array
+    clear() to clear the console 
+    reset() to reset all global and local variables """
+
         self.terminal = ipython_terminal(banner=text, **getnamespace())
+        self.terminal.namespace.update({'clear': self.terminal.clear, 'reset': self.resetNamespace})
         layout = QtWidgets.QGridLayout()
         self.terminalWidget.setLayout(layout)
         layout.addWidget(self.terminal)
@@ -107,6 +111,11 @@ Useful variables:
         #self.installEventFilter(self.eventeater)
         self.scriptTabs.tabCloseRequested.connect(self.closeTab)
         self.setWindowTitle('Script Editor')
+        
+    def resetNamespace(self):
+        self.terminal.shell.reset()
+        self.terminal.shell.user_ns.update(getnamespace())
+        self.terminal.namespace.update({'clear': self.terminal.clear, 'reset': self.resetNamespace})
 
     def changeFontSize(self):
         val, ok = QtWidgets.QInputDialog.getInt(self, "Change Font Size", "Font Size", \

@@ -110,24 +110,20 @@ def messageBox(title, text, buttons=QtWidgets.QMessageBox.Ok, icon=QtWidgets.QMe
 
 def checkUpdates():
     try:
-        # this will need to be changed to the new url when we merge
         url = "https://raw.githubusercontent.com/flika-org/flika/master/flika/version.py"
-        data = urlopen(url).read()[:100]
-    except HTTPError:
-        url = 'https://raw.githubusercontent.com/flika-org/flika/master/flika.py'
     except Exception as e:
         alert("Connection Failed", "Cannot connect to Flika Repository. Connect to the internet to check for updates. %s" % e)
         return
     
-    data = urlopen(url).read()[:100]
-    latest_version = re.findall(r'version=([\d\.\']*)', str(data))
+    data = urlopen(url).read().decode('utf-8')
+    latest_version = re.match(r'__version__\s*=\s*([\d\.\']*)', data)
     from .version import __version__
     version = __version__
     message = "Installed version: " + version
-    if len(latest_version) == 0:
-        latest_version = ''
+    if latest_version is None:
+        latest_version = 'Unknown'
     else:
-        latest_version = latest_version[0]
+        latest_version = eval(latest_version.group(1))
     message += '\nLatest Version: ' + latest_version
 
     if parse_version(version) < parse_version(latest_version):

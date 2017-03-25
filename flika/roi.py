@@ -407,8 +407,9 @@ class ROI_line(ROI_Wrapper, pg.LineSegmentROI):
         x=np.array([p[0] for p in self.pts], dtype=int)
         y=np.array([p[1] for p in self.pts], dtype=int)
         xx, yy = line(x[0],y[0],x[1],y[1])
-        xx = xx[xx < self.window.mx]
-        yy = yy[yy < self.window.my]
+        idx_to_keep = np.logical_not( (xx>=self.window.mx) | (xx<0) | (yy>=self.window.my) | (yy<0))
+        xx = xx[idx_to_keep]
+        yy = yy[idx_to_keep]
         return xx, yy
 
     def getPoints(self):
@@ -429,9 +430,9 @@ class ROI_line(ROI_Wrapper, pg.LineSegmentROI):
         mt = len(tif)
         if len(xx) == 0:
             return
-        idx_to_keep = np.logical_not( (xx>=self.window.mx) | (xx<0) | (yy>=self.window.my) | (yy<0))
-        xx = xx[idx_to_keep]
-        yy = yy[idx_to_keep]
+        xx = np.array(xx)
+        yy = np.array(yy)
+        
         if len(xx) == 0:
             return
         mn=np.zeros((mt,len(xx)))
@@ -637,6 +638,10 @@ class ROI(ROI_Wrapper, pg.PolyLineROI):
             mask=np.zeros(self.window.imageDimensions())
             xx,yy=polygon(x,y,shape=mask.shape)
             self._untranslated_mask = xx, yy
+
+        idx_to_keep = np.logical_not( (xx>=self.window.mx) | (xx<0) | (yy>=self.window.my) | (yy<0))
+        xx = xx[idx_to_keep]
+        yy = yy[idx_to_keep]
         return xx, yy
 
 class ROI_rect_line(ROI_Wrapper, QtWidgets.QGraphicsObject):
@@ -809,11 +814,20 @@ class ROI_rect_line(ROI_Wrapper, QtWidgets.QGraphicsObject):
 
     def removeSegment(self, segment=None): 
         """Remove a segment from the ROI."""
-        if segment == None:
+        if isinstance(segment, int):
+            segment = self.lines[segment]
+
+        if not isinstance(segment, pg.ROI):
             segment = self.currentLine
-        self.lines.remove(segment)
+        
         for h in segment.getHandles():
+            if len(h.rois) == 2 and h.parentItem() == segment:
+                otherROI = [line for line in h.rois if line != segment][0]
+                h.setParentItem(otherROI)
+                h.setPos(0, .5)
             h.disconnectROI(segment)
+        if segment in self.lines:
+            self.lines.remove(segment)
 
         self.scene().removeItem(segment)
         segment.sigRegionChanged.disconnect() 
@@ -861,8 +875,9 @@ class ROI_rect_line(ROI_Wrapper, QtWidgets.QGraphicsObject):
         for i in range(len(self.pts)-1):
             p1, p2 = self.pts[i], self.pts[i+1]
             xx, yy = line(int(p1[0]), int(p1[1]), int(p2[0]), int(p2[1]))
-            xx = xx[xx < self.window.mx]
-            yy = yy[yy < self.window.my]
+            idx_to_keep = np.logical_not( (xx>=self.window.mx) | (xx<0) | (yy>=self.window.my) | (yy<0))
+            xx = xx[idx_to_keep]
+            yy = yy[idx_to_keep]
             xxs.extend(xx)
             yys.extend(yy)
 
@@ -922,7 +937,8 @@ class ROI_rect_line(ROI_Wrapper, QtWidgets.QGraphicsObject):
         if self.kymograph is None:
             self.createKymograph(mn)
         else:
-            self.kymograph.imageview.setImage(mn,autoLevels=False,autoRange=False)
+            if mn.size > 0:
+                self.kymograph.imageview.setImage(mn,autoLevels=False,autoRange=False)
             #self.kymograph.imageview.view.setAspectLocked(lock=True,ratio=mn.shape[1]/mn.shape[0])
 
     def setWidth(self, newWidth=None):
