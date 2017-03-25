@@ -116,9 +116,7 @@ def checkUpdates():
         return
     
     data = urlopen(url).read().decode('utf-8')
-    print(data)
     latest_version = re.match(r'__version__\s*=\s*([\d\.\']*)', data)
-    print(latest_version)
     from .version import __version__
     version = __version__
     message = "Installed version: " + version
