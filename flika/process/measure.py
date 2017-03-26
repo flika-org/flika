@@ -1,10 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Flika
-@author: Kyle Ellefsen
-@author: Brett Settle
-@license: MIT
-"""
 import os
 import numpy as np
 import pyqtgraph as pg

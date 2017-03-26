@@ -1,11 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Flika
-@author: Kyle Ellefsen
-@author: Brett Settle
-@license: MIT
-"""
-
 import sys
 import atexit
 from contextlib import contextmanager

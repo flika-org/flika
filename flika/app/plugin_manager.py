@@ -1,10 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Flika
-@author: Kyle Ellefsen
-@author: Brett Settle
-@license: MIT
-"""
 from glob import glob
 import os, sys, difflib, zipfile, time, shutil, traceback
 import importlib.util

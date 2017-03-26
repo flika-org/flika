@@ -1,10 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Flika
-@author: Kyle Ellefsen
-@author: Brett Settle
-@license: MIT
-"""
 from inspect import getmembers, ismodule
 import numpy as np
 import scipy

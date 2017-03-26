@@ -1,11 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Flika
-@author: Kyle Ellefsen
-@author: Brett Settle
-@license: MIT
-"""
-
 import numpy as np
 from urllib.request import urlopen
 from urllib.error import HTTPError
@@ -21,6 +14,10 @@ import shutil
 __all__ = ['m', 'Settings', 'menus', 'checkUpdates', 'alert']
 
 class Settings(MutableMapping): #http://stackoverflow.com/questions/3387691/python-how-to-perfectly-override-a-dict
+    """
+    This is an awesome thing...
+
+    """
     initial_settings = {'filename': None, 
                         'internal_data_type': 'float64',
                         'multiprocessing': True, 

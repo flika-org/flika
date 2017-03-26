@@ -1,10 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Flika
-@author: Kyle Ellefsen
-@author: Brett Settle
-@license: MIT
-"""
 import sys, time
 from qtpy import QtCore, QtGui, QtWidgets
 from multiprocessing import Process, Queue, cpu_count, Pipe

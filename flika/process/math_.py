@@ -1,10 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Flika
-@author: Kyle Ellefsen
-@author: Brett Settle
-@license: MIT
-"""
 import numpy as np
 from qtpy import QtGui, QtWidgets, QtCore
 from .. import global_vars as g

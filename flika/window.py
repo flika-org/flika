@@ -1,10 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Flika
-@author: Kyle Ellefsen
-@author: Brett Settle
-@license: MIT
-"""
 from qtpy import QtCore, QtGui, QtWidgets
 import pyqtgraph as pg
 import os, time
@@ -17,6 +11,12 @@ pg.setConfigOptions(useWeave=False)
 
 
 class Window(QtWidgets.QWidget):
+    """
+    Window objects are the central objects in flika. Almost all functions in the 
+    :mod:`process <flika.process>` module are performed on Window objects and 
+    output Window objects. 
+
+    """
     closeSignal = QtCore.Signal()
     keyPressSignal = QtCore.Signal(QtCore.QEvent)
     sigTimeChanged = QtCore.Signal(int)
@@ -68,7 +68,6 @@ class Window(QtWidgets.QWidget):
         self.imageview.setImage(tif)
         self.image = tif
         self.volume = None  # When attaching a 4D array to this Window object, where self.image is a 3D slice of this volume, attach it here. This will remain None for all 3D Windows
-        """ Here we set the initial range of the look up table.  """
         self.nDims = len(np.shape(self.image))
         if self.nDims == 3:
             if metadata['is_rgb']:

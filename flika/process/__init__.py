@@ -1,11 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Flika
-@author: Kyle Ellefsen
-@author: Brett Settle
-@license: MIT
-"""
-
 from .stacks import *
 from .math_ import *
 from .filters import *

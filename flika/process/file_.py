@@ -1,11 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Flika
-@author: Kyle Ellefsen
-@author: Brett Settle
-@license: MIT
-"""
-
 import pyqtgraph as pg
 import pyqtgraph.exporters
 import time
@@ -38,11 +31,14 @@ __all__ = ['save_file', 'save_points', 'export_movie_gui', 'open_file', 'open_fi
 
 
 def save_file(filename=None):
-    """ save_file(filename)
+    """
     Save the image in the currentWindow to a .tif file.
 
-    Parameters:
-        | filename (str) -- The image or movie will be saved here.
+    Parameters
+    ----------
+    filename : str
+        The image or movie will be saved here.
+
     """
     if filename is None or filename is False:
         filetypes = '*.tif'

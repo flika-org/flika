@@ -1,10 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Flika
-@author: Kyle Ellefsen
-@author: Brett Settle
-@license: MIT
-"""
 from qtpy import QtGui, QtCore, QtWidgets
 import pyqtgraph as pg
 from pyqtgraph.graphicsItems.ROI import Handle
@@ -999,6 +993,17 @@ def makeROI(kind, pts, window=None, **kargs):
     return roi
 
 def import_rois(filename=None):
+    """
+    Open an roi.txt file, creates ROI objects and places them in the current Window.
+    
+    Args:
+        filename (str): The filename (including full path) of the roi.txt file.
+
+    Returns:
+        list of rois
+
+
+    """
     if filename is None:
         filetypes = '*.txt'
         prompt = 'Load ROIs from file'
