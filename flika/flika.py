@@ -15,7 +15,7 @@ from .app.application import FlikaApplication
 warnings.filterwarnings("ignore", category=np.VisibleDeprecationWarning)
 
 def parse_arguments(argv):
-    ''' Parses command line arguments for valid Flika args
+    ''' Parses command line arguments for valid flika args
 
     :param argv: Arguments passed to program
 

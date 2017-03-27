@@ -27,16 +27,16 @@ plugin_list = {
 }
 
 helpHTML = '''
-<h1 style="width:100%; text-align:center">Welcome the the Flika Plugin Manager</h1>
+<h1 style="width:100%; text-align:center">Welcome the the flika Plugin Manager</h1>
 <p>Use the search bar to the left to find a specific plugin, or browse the list below it.</p>
 
 <div>
     <h3>Develop a new plugin</h3>
     <p> If you would like to develop your own plugin for flika, follow these simple steps:</p>
     <ul list-style=none>
-        <li>1. Download <a href="https://github.com/flika-org/flika_plugin_template">Flika Plugin Template</a> and place it in your .FLIKA/plugins directory</li>
+        <li>1. Download <a href="https://github.com/flika-org/flika_plugin_template">flika Plugin Template</a> and place it in your .FLIKA/plugins directory</li>
         <li>2. Update the info.xml file for your plugin</li>
-        <li>3. Refer to the <a href="http://flika-org.github.io/documentation.html">Flika Documentation</a> for assistance developing your plugin.</li>
+        <li>3. Refer to the <a href="http://flika-org.github.io/writing_plugins.html">flika Documentation</a> for assistance developing your plugin.</li>
         <li>4. Update the description.html file for your plugin</li>
         <li>5. Send your plugin repo to us and we'll add it to the Plugin Manager!</li>
     </ul>
@@ -222,7 +222,7 @@ class PluginManager(QtWidgets.QMainWindow):
         #PluginManager.load_online_plugins()
         QtWidgets.QMainWindow.show(PluginManager.gui)
         if not os.access(get_plugin_directory(), os.W_OK):
-            g.alert("Plugin folder write permission denied. Restart Flika as administrator to enable plugin installation.")
+            g.alert("Plugin folder write permission denied. Restart flika as administrator to enable plugin installation.")
 
         PluginManager.gui.showHelpScreen()
 
@@ -426,7 +426,7 @@ class PluginManager(QtWidgets.QMainWindow):
                 g.alert("""Failed to install the dependency '{0}'. You must install {0} manually.
 Download {0}-x-cp{1}-cp{1}m-win{2}.whl.
 
-Once the wheel is downloaded, drag it into Flika to install.
+Once the wheel is downloaded, drag it into flika to install.
 
 Then try installing the plugin again.""".format(pl, v, arch))
             else:
@@ -442,7 +442,7 @@ Then try installing the plugin again.""".format(pl, v, arch))
         try:
             data = urlopen(plugin.url).read()
         except:
-            g.alert(title="Download Error", msg="Failed to connect to %s to install the %s Flika Plugin. Check your internet connection and try again, or download the plugin manually." % (PluginManager.gui.link, plugin.name), icon=QtWidgets.QMessageBox.Warning)
+            g.alert(title="Download Error", msg="Failed to connect to %s to install the %s flika Plugin. Check your internet connection and try again, or download the plugin manually." % (PluginManager.gui.link, plugin.name), icon=QtWidgets.QMessageBox.Warning)
             return
 
         try:
@@ -461,7 +461,7 @@ Then try installing the plugin again.""".format(pl, v, arch))
             if os.path.exists(folder_name):
                 shutil.rmtree(folder_name)
             if isinstance(e, PermissionError):
-                g.alert("Unable to download plugin to {}. Rerun Flika as administor and download the plugin again.".format(plugin.name), title='Permission Denied')
+                g.alert("Unable to download plugin to {}. Rerun flika as administrator and download the plugin again.".format(plugin.name), title='Permission Denied')
             else:
                 g.alert("Error occurred while installing {}.\n\t{}".format(plugin.name, e), title='Plugin Install Failed')    
             

@@ -23,7 +23,7 @@ class TraceFig(QtWidgets.QWidget):
         self.setCurrentTraceWindow()
         if 'tracefig_settings' in g.settings and 'coords' in g.settings['tracefig_settings']:
             self.setGeometry(QtCore.QRect(*g.settings['tracefig_settings']['coords']))
-        self.setWindowTitle('Flika')
+        self.setWindowTitle('flika')
         self.l = QtWidgets.QVBoxLayout()
         self.l.setContentsMargins(0,0,0,0)
         self.setLayout(self.l)

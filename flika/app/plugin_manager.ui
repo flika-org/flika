@@ -76,7 +76,7 @@
       <item>
        <widget class="QPushButton" name="tutorialButton">
         <property name="text">
-         <string>Flika Plugin Template</string>
+         <string>flika Plugin Template</string>
         </property>
        </widget>
       </item>

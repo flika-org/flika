@@ -170,7 +170,7 @@ class Logger(QtWidgets.QWidget):
 
 class FlikaApplication(QtWidgets.QMainWindow):
     def __init__(self):
-        print('Launching Flika')
+        print('Launching flika')
         self.app = get_qapp()
         super(FlikaApplication, self).__init__()
         self.app.setQuitOnLastWindowClosed(True)
@@ -339,7 +339,7 @@ class FlikaApplication(QtWidgets.QMainWindow):
             g.windows.pop(0).close()
 
     def closeEvent(self, event):
-        print('Closing Flika')
+        print('Closing flika')
         event.accept()
         for win in g.dialogs[:] + g.traceWindows[:] + g.windows[:]:
             win.close()

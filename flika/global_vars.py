@@ -109,7 +109,7 @@ def checkUpdates():
     try:
         url = "https://raw.githubusercontent.com/flika-org/flika/master/flika/version.py"
     except Exception as e:
-        alert("Connection Failed", "Cannot connect to Flika Repository. Connect to the internet to check for updates. %s" % e)
+        alert("Connection Failed", "Cannot connect to flika Repository. Connect to the internet to check for updates. %s" % e)
         return
     
     data = urlopen(url).read().decode('utf-8')
@@ -160,12 +160,12 @@ def updateFlika():
                         shutil.copy(new, old)
         shutil.rmtree(extract_location)
     except Exception as e:
-        messageBox("Update Error", "Failed to remove and replace old Flika. %s" % e, icon=QtWidgets.QMessageBox.Warning)
+        messageBox("Update Error", "Failed to remove and replace old version of flika. %s" % e, icon=QtWidgets.QMessageBox.Warning)
 
     #if not 'SPYDER_SHELL_ID' in os.environ:
     #    Popen('python flika.py', shell=True)
 
-    alert('Update successful. Restart Flika to complete update.')
+    alert('Update successful. Restart flika to complete update.')
     
 
 def setConsoleVisible(v):
@@ -184,7 +184,7 @@ class SetCurrentWindowSignal(QtWidgets.QWidget):
         self.hide()
 
 
-def alert(msg, title="Flika - Alert"):
+def alert(msg, title="flika - Alert"):
     print('\nAlert: ' + msg)
     msgbx = QtWidgets.QMessageBox(m)
     msgbx.setIcon(QtWidgets.QMessageBox.Information)

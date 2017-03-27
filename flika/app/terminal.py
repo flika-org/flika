@@ -309,7 +309,7 @@ def ipython_terminal(banner='', **kwargs):
 
         :rtype: QWidget
     """
-    Terminal.banner = '''Flika version {}
+    Terminal.banner = '''flika version {}
 
 {}
 

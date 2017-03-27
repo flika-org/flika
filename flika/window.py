@@ -23,7 +23,7 @@ class Window(QtWidgets.QWidget):
     gainedFocusSignal = QtCore.Signal()
     lostFocusSignal = QtCore.Signal()
 
-    def __init__(self, tif, name='Flika', filename='', commands=[], metadata=dict()):
+    def __init__(self, tif, name='flika', filename='', commands=[], metadata=dict()):
         QtWidgets.QWidget.__init__(self)
         self.commands = commands #commands is a list of the commands used to create this window, starting with loading the file
         self.metadata = metadata
@@ -323,7 +323,7 @@ class Window(QtWidgets.QWidget):
             g.currentWindow.lostFocusSignal.emit()
         g.currentWindow=self
         g.m.currentWindow = g.currentWindow
-        g.m.setWindowTitle("Flika - {}".format(self.name))
+        g.m.setWindowTitle("flika - {}".format(self.name))
         self.setStyleSheet("border:1px solid rgb(0, 255, 0); ")
         g.m.setCurrentWindowSignal.sig.emit()
         self.gainedFocusSignal.emit()
@@ -411,8 +411,8 @@ class Window(QtWidgets.QWidget):
                     self.currentROI.drawFinished()
             elif mm == 'freehand' and g.settings['default_roi_on_click']:
                 # Before using this script to get the outlines of cells from a raw movie of fluorescence, you need to do some processing.
-                # Get a good image of cells by averaging the movie using the zproject() function inside Flika.
-                # Then threshold the image and use a combination of binary dilation and binary erosion to clean it up (all functions inside Flika)
+                # Get a good image of cells by averaging the movie using the zproject() function inside flika.
+                # Then threshold the image and use a combination of binary dilation and binary erosion to clean it up (all functions inside flika)
                 if not (np.all(self.image >= 0) and np.all(self.image <= 1)):
                     return
                 from skimage import measure
