@@ -12,11 +12,11 @@ Website
 
 Documentation
 -------------
-`http://flika-org.github.io/contents.html <http://flika-org.github.io/contents.html>`_
+`flika-org.github.io/contents.html <http://flika-org.github.io/contents.html>`_
 
 Install
 -------
-`http://flika-org.github.io/getting-started.html#installation <http://flika-org.github.io/getting-started.html#installation>`_
+`flika-org.github.io/getting-started.html#installation <http://flika-org.github.io/getting-started.html#installation>`_
 
 .. code:: python
 

@@ -1,9 +1,13 @@
 #!/usr/bin/env python
-from __future__ import print_function
+"""
+Commands to upload to pypi:
 
+python setup.py sdist bdist_wheel
+twine upload dist/*
+"""
 from setuptools import setup, find_packages
 from distutils.core import Command
-
+import pypandoc
 import os
 import re
 import sys
@@ -12,15 +16,9 @@ import subprocess
 with open('flika/version.py') as infile:
     exec(infile.read())
 
-try:
-    import pypandoc
-    LONG_DESCRIPTION = pypandoc.convert('README.md', 'rst')
-except (IOError, ImportError):
-    #if 'sdist' in sys.argv or 'register' in sys.argv:
-    #    raise  # don't let this pass silently
-    with open('README.md') as infile:
-        LONG_DESCRIPTION = infile.read()
-
+with open('README.rst') as readme:
+    LONG_DESCRIPTION = readme.read()
+    LONG_DESCRIPTION = LONG_DESCRIPTION.replace('.. image:: flika/docs/_static/img/flika_screencapture.gif', '')
 
 cmdclass = {}
 
@@ -75,6 +73,7 @@ setup(name='flika',
       url='http://flika-org.github.io',
       setup_requires=setup_requires,
       install_requires=install_requires,
+      license='MIT',
       classifiers=[
           'Intended Audience :: Science/Research',
           'Operating System :: OS Independent',
