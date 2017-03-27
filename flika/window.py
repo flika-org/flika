@@ -29,19 +29,26 @@ class Window(QtWidgets.QWidget):
         self.metadata = metadata
         if 'is_rgb' not in metadata.keys():
             metadata['is_rgb'] = tif.ndim == 4
-
         if g.currentWindow is None:
-            width = 684
-            height = 585
-            nwindows = len(g.windows)
-            x = 10+10*nwindows
-            y = 484+10*nwindows
+            if 'window_settings' not in g.settings:
+                g.settings['window_settings'] = dict()
+            if 'coords' in g.settings['window_settings']:
+                geometry = QtCore.QRect(*g.settings['window_settings']['coords'])
+            else:
+                width = 684
+                height = 585
+                nwindows = len(g.windows)
+                x = 10 + 10 * nwindows
+                y = 300 + 10 * nwindows
+                geometry = QtCore.QRect(x, y, width, height)
+                g.settings['window_settings']['coords'] = geometry.getRect()
         else:
-            oldGeometry = g.currentWindow.geometry()
-            width = oldGeometry.width()
-            height = oldGeometry.height()
-            x = oldGeometry.x()+10
-            y = oldGeometry.y()+10
+            geometry = g.currentWindow.geometry()
+            geometry.setX(geometry.x()+10)
+            geometry.setY(geometry.y() + 10)
+
+        self.resizeEvent = self.onResize
+        self.moveEvent = self.onMove
         self.name = name
         self.filename = filename
         self.setAsCurrentWindow()
@@ -69,6 +76,10 @@ class Window(QtWidgets.QWidget):
         self.image = tif
         self.volume = None  # When attaching a 4D array to this Window object, where self.image is a 3D slice of this volume, attach it here. This will remain None for all 3D Windows
         self.nDims = len(np.shape(self.image))
+        dimensions_txt = ""
+        mx = 0
+        my = 0
+        mt = 0
         if self.nDims == 3:
             if metadata['is_rgb']:
                 mx,my,mc = tif.shape
@@ -84,7 +95,9 @@ class Window(QtWidgets.QWidget):
             mt = 1
             mx, my = tif.shape
             dimensions_txt = "{}x{} pixels; ".format(mx, my)
-        self.mx = mx; self.my = my; self.mt = mt
+        self.mx = mx
+        self.my = my
+        self.mt = mt
         dtype = self.image.dtype
         dimensions_txt += 'dtype=' + str(dtype)
         if 'timestamps' in self.metadata:
@@ -93,24 +106,23 @@ class Window(QtWidgets.QWidget):
             dimensions_txt += '; {:.4f} {}/frame'.format(self.framerate, self.metadata['timestamp_units'])
         self.top_left_label = pg.LabelItem(dimensions_txt, justify='right')
         self.imageview.ui.graphicsView.addItem(self.top_left_label)
-        
         self.imageview.timeLine.sigPositionChanged.connect(self.updateindex)
-        self.currentIndex=self.imageview.currentIndex
+        self.currentIndex = self.imageview.currentIndex
         self.normLUT()
         self.layout = QtWidgets.QVBoxLayout(self)
         self.layout.addWidget(self.imageview)
-        self.layout.setContentsMargins(0,0,0,0)
-        self.setGeometry(QtCore.QRect(x, y, width, height))
+        self.layout.setContentsMargins(0, 0, 0, 0)
+        self.setGeometry(geometry)
         self.imageview.scene.sigMouseMoved.connect(self.mouseMoved)
-        self.imageview.view.mouseDragEvent=self.mouseDragEvent
-        self.imageview.view.mouseClickEvent=self.mouseClickEvent
-        self.rois=[]
-        self.currentROI=None
-        self.creatingROI=False
-        pointSize=g.settings['point_size']
+        self.imageview.view.mouseDragEvent = self.mouseDragEvent
+        self.imageview.view.mouseClickEvent = self.mouseClickEvent
+        self.rois = []
+        self.currentROI = None
+        self.creatingROI = False
+        pointSize = g.settings['point_size']
         pointColor = QtGui.QColor(g.settings['point_color'])
-        self.scatterPlot=pg.ScatterPlotItem(size=pointSize, pen=pg.mkPen([0,0,0,255]), brush=pg.mkBrush(*pointColor.getRgb()))  #this is the plot that all the red points will be drawn on
-        self.scatterPoints=[[] for _ in np.arange(mt)]
+        self.scatterPlot = pg.ScatterPlotItem(size=pointSize, pen=pg.mkPen([0, 0, 0, 255]), brush=pg.mkBrush(*pointColor.getRgb()))  #this is the plot that all the red points will be drawn on
+        self.scatterPoints = [[] for _ in np.arange(mt)]
         self.scatterPlot.sigClicked.connect(self.clickedScatter)
         self.imageview.addItem(self.scatterPlot)
         self.pasteAct = QtWidgets.QAction("&Paste", self, triggered=self.paste)
@@ -123,13 +135,18 @@ class Window(QtWidgets.QWidget):
         self.closed=False
 
         from .process.measure import measure
-        self.measure=measure
+        self.measure = measure
         def clicked(evt):
             self.measure.pointclicked(evt, window=self)
         self.imageview.scene.sigMouseClicked.connect(clicked)
-
         self.linkedWindows = set()
         self.makeMenu()
+
+    def onResize(self, event):
+        g.settings['window_settings']['coords'] = self.geometry().getRect()
+
+    def onMove(self, event):
+        g.settings['window_settings']['coords'] = self.geometry().getRect()
 
     def save(self, filename):
         from .process.file_ import save_file

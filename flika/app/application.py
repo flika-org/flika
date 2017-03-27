@@ -223,7 +223,7 @@ class FlikaApplication(QtWidgets.QMainWindow):
         #self.setFixedSize(326, 80)
         #self.setMaximumSize(width_px*3, 120)
         self.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum);
-        self.move(15,33)
+        self.move(0, 0)
 
     def _make_menu(self):
         fileMenu = self.menuBar().addMenu('File')

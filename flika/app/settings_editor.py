@@ -63,7 +63,7 @@ class SettingsEditor(BaseDialog):
             roi_color.setEnabled(g.settings['roi_color'] != 'random')
             
 
-        super(SettingsEditor, self).__init__(items, 'FLIKA Settings', '')
+        super(SettingsEditor, self).__init__(items, 'flika settings', '')
         self.accepted.connect(update)
         self.changeSignal.connect(update)
         g.dialogs.append(self)

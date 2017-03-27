@@ -182,7 +182,7 @@ class ProgressBar(QtWidgets.QWidget):
 #            self.imageview.setImage(np.zeros((2,2))) #clear the memory
 #            self.imageview.close()
 #            del self.imageview
-#            g.m.setWindowTitle("FLIKA")
+#            g.m.setWindowTitle("flika")
 #            if g.currentWindow==self:
 #                g.currentWindow=None
 #            if self in g.windows:
