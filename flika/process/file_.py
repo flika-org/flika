@@ -283,7 +283,14 @@ def load_points(filename=None):
         if filename is None:
             return None
     g.m.statusBar().showMessage('Loading points from {}'.format(os.path.basename(filename)))
-    pts = np.loadtxt(filename)
+    try:
+        pts = np.loadtxt(filename)
+    except UnicodeDecodeError:
+        g.alert('This points file contains text that cannot be read. No points loaded.')
+        return None
+    if len(pts) == 0:
+        g.alert('This points file is empty. No points loaded.')
+        return None
     nCols = pts.shape[1]
     pointSize = g.settings['point_size']
     pointColor = QtGui.QColor(g.settings['point_color'])

@@ -90,8 +90,8 @@ class Logger(QtWidgets.QWidget):
         clear = QtWidgets.QPushButton("Clear")
         clear.clicked.connect(nonpartial(self._clear))
 
-        report = QtWidgets.QPushButton("Send Bug Report")
-        report.clicked.connect(nonpartial(self._send_report))
+        #report = QtWidgets.QPushButton("Send Bug Report")
+        #report.clicked.connect(nonpartial(self._send_report))
 
         XStream.stderr().messageWritten.connect( self.write )
 
@@ -109,7 +109,7 @@ class Logger(QtWidgets.QWidget):
 
         l.addWidget(self._text)
         h.insertStretch(0)
-        h.addWidget(report)
+        #h.addWidget(report)
         h.addWidget(clear)
         l.addLayout(h)
 
