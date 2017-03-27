@@ -254,7 +254,7 @@ class FlikaApplication(QtWidgets.QMainWindow):
         self.scriptMenu.aboutToShow.connect(self._make_script_menu)
 
         helpMenu = self.menuBar().addMenu("Help")
-        url='http://flika-org.github.io/documentation.html'
+        url = 'http://flika-org.github.io'
         helpMenu.addAction("Documentation", lambda: QtGui.QDesktopServices.openUrl(QtCore.QUrl(url)))
         helpMenu.addAction("Check For Updates", g.checkUpdates)
 
