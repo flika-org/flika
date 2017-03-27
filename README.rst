@@ -1,7 +1,7 @@
 flika
 =====
 
-.. image:: http://flika-org.github.io/_images/flika_screencapture.gif
+.. image:: flika/docs/_static/img/flika_screencapture.gif
 
 **flika** is an interactive image processing program for biologists written in Python.
 
