@@ -7,14 +7,14 @@ twine upload dist/*
 """
 from setuptools import setup, find_packages
 from distutils.core import Command
-import pypandoc
 import os
 import re
 import sys
 import subprocess
 
 with open('flika/version.py') as infile:
-    exec(infile.read())
+    __version__ = '0.0.0'
+    exec(infile.read())  # This sets the __version__ variable.
 
 with open('README.rst') as readme:
     LONG_DESCRIPTION = readme.read()
@@ -38,6 +38,7 @@ class PyTest(Command):
         import pytest
         errno = pytest.main(self.pytest_args + ' flika')
         sys.exit(errno)
+
 
 cmdclass['test'] = PyTest
 
@@ -89,3 +90,12 @@ setup(name='flika',
       include_package_data=True,
       package_data={'gui': ['*.ui'],
                     'images': ['*.ico', '*.png', '*.txt', '*.tif']})
+
+
+
+
+
+
+
+
+
