@@ -59,7 +59,7 @@ class Time_Stamp(BaseProcess):
 time_stamp=Time_Stamp()
 
 
-class ShowCheckbox(QtWidgets.QCheckBox):
+class ShowCheckbox(CheckBox):
 
     def __init__(self, opacity_slider, parent=None):
         super().__init__(parent)

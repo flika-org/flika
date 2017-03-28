@@ -310,7 +310,6 @@ class ZProject(BaseProcess):
         self.items.append({'name':'firstFrame','string':'First Frame','object':firstFrame})
         lastFrame=QtWidgets.QSpinBox()
         lastFrame.setRange(1,nFrames-1)
-        lastFrame.setValue(nFrames-1)
         self.items.append({'name':'lastFrame','string':'Last Frame','object':lastFrame})
         projection_type=ComboBox()
         projection_type.addItem('Average')
@@ -321,6 +320,7 @@ class ZProject(BaseProcess):
         projection_type.addItem('Median')
         self.items.append({'name':'projection_type','string':'Projection Type','object':projection_type})
         super().gui()
+        lastFrame.setValue(nFrames - 1)
 
     def __call__(self, firstFrame, lastFrame, projection_type, keepSourceWindow=False):
         self.start(keepSourceWindow)
