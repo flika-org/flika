@@ -27,5 +27,5 @@ Module: roi
 
 .. autofunction:: flika.roi.makeROI
 
-.. autofunction:: flika.roi.import_rois
+.. autofunction:: flika.roi.open_rois
 

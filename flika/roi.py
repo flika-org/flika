@@ -992,7 +992,7 @@ def makeROI(kind, pts, window=None, **kargs):
     roi.setPen(pen)
     return roi
 
-def import_rois(filename=None):
+def open_rois(filename=None):
     """
     Open an roi.txt file, creates ROI objects and places them in the current Window.
     

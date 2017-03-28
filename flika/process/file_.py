@@ -22,7 +22,7 @@ from ..window import Window
 from ..utils.misc import open_file_gui, save_file_gui
 from ..utils.io import tifffile
 
-__all__ = ['save_file', 'save_points', 'export_movie_gui', 'open_file', 'open_file_from_gui', 'load_points', 'close']
+__all__ = ['save_file', 'save_points', 'save_movie_gui', 'open_file', 'open_file_from_gui', 'open_points', 'close']
 
 ########################################################################################################################
 ######################                  SAVING FILES                                         ###########################
@@ -85,15 +85,15 @@ def save_points(filename=None):
     return filename
 
 
-def export_movie_gui():
+def save_movie_gui():
     rateSpin = pg.SpinBox(value=50, bounds=[1, 1000], suffix='fps', int=True, step=1)
     rateDialog = BaseDialog([{'string': 'Framerate', 'object': rateSpin}], 'Save Movie', 'Set the framerate')
-    rateDialog.accepted.connect(lambda: export_movie(rateSpin.value()))
+    rateDialog.accepted.connect(lambda: save_movie(rateSpin.value()))
     g.dialogs.append(rateDialog)
     rateDialog.show()
 
 
-def export_movie(rate, filename=None):
+def save_movie(rate, filename=None):
     """save_movie(rate, filename)
     Saves the currentWindow video as a .mp4 movie by joining .jpg frames together
 
@@ -272,7 +272,7 @@ def open_file(filename=None, from_gui=False):
     return newWindow
 
         
-def load_points(filename=None):
+def open_points(filename=None):
     if g.currentWindow is None:
         g.alert('Points cannot be loaded if no window is selected. Open a file and click on a window.')
         return None

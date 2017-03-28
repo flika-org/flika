@@ -5,7 +5,7 @@ from . import global_vars as g
 from .window import Window
 from .version import __version__
 from .process import *
-from .roi import import_rois
+from .roi import open_rois
 
 # import modules that are commonly used inside flika
 import numpy as np

@@ -7,7 +7,7 @@ from ..window import Window
 import numpy as np
 import time
 import pytest
-from ..roi import makeROI, import_rois
+from ..roi import makeROI, open_rois
 import pyqtgraph as pg
 from qtpy import QtGui
 im = np.random.random([150, 60, 60])
@@ -38,7 +38,7 @@ class Test_File():
 		w.addPoint([1, 2, 3])
 		w.addPoint([3, 1, 2])
 		ps = save_points('test.pos')
-		load_points('test.pos')
+		open_points('test.pos')
 		os.remove('test.pos')
 
 		w.close()
@@ -48,7 +48,7 @@ class Test_File():
 		a = makeROI('rectangle', [[3, 7], [6, 5]])
 		w.exportROIs('test.roi')
 		a.delete()
-		b = import_rois('test.roi')[0]
+		b = open_rois('test.roi')[0]
 		os.remove('test.roi')
 		assert np.array_equal(b.pts, [[3, 7], [6, 5]])
 		w.close()

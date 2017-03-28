@@ -6,7 +6,7 @@ import pyqtgraph as pg
 from .. import process
 from .. import global_vars as g
 from .. import window
-from ..roi import import_rois
+from ..roi import open_rois
 
 
 def getnamespace():
