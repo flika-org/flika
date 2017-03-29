@@ -3,6 +3,7 @@ from qtpy import QtCore, QtGui, QtWidgets
 import pyqtgraph as pg
 import os, time
 import numpy as np
+from skimage import measure
 from .tracefig import TraceFig
 from . import global_vars as g
 from .roi import *
@@ -25,7 +26,7 @@ class Window(QtWidgets.QWidget):
 
     def __init__(self, tif, name='flika', filename='', commands=[], metadata=dict()):
         QtWidgets.QWidget.__init__(self)
-        self.commands = commands #commands is a list of the commands used to create this window, starting with loading the file
+        self.commands = commands  # commands is a list of the commands used to create this window, starting with loading the file.
         self.metadata = metadata
         if 'is_rgb' not in metadata.keys():
             metadata['is_rgb'] = tif.ndim == 4
@@ -82,14 +83,14 @@ class Window(QtWidgets.QWidget):
         mt = 0
         if self.nDims == 3:
             if metadata['is_rgb']:
-                mx,my,mc = tif.shape
+                mx, my, mc = tif.shape
                 mt = 1
                 dimensions_txt = "{}x{} pixels; {} colors; ".format(mx,my,mc)
             else:
                 mt, mx, my = tif.shape
                 dimensions_txt = "{} frames; {}x{} pixels; ".format(mt, mx, my)
         elif self.nDims == 4:
-            mt,mx,my,mc = tif.shape
+            mt, mx ,my, mc = tif.shape
             dimensions_txt = "{} frames; {}x{} pixels; {} colors; ".format(mt, mx, my, mc)
         elif self.nDims == 2:
             mt = 1
@@ -241,8 +242,8 @@ class Window(QtWidgets.QWidget):
             g.m.statusBar().showMessage(msg)
 
     def setName(self,name):
-        name=str(name)
-        self.name=name
+        name = str(name)
+        self.name = name
         self.setWindowTitle(name)
         
     def reset(self):
@@ -274,36 +275,36 @@ class Window(QtWidgets.QWidget):
             event.accept() # let the window close
 
     def imageArray(self):
-        '''
+        """
         returns image as a 3d array, correcting for color or 2d image
-        '''
-        tif=self.image
-        nDims=len(tif.shape)
-        if nDims==4: #if this is an RGB image stack  #[t, x, y, colors]
-            tif=np.mean(tif,3)
-            mx,my=tif[0,:,:].shape
-        elif nDims==3:
+        """
+        tif = self.image
+        nDims = len(tif.shape)
+        if nDims == 4:  # If this is an RGB image stack  #[t, x, y, colors]
+            tif = np.mean(tif,3)
+            mx, my = tif[0,:,:].shape
+        elif nDims == 3:
             if self.metadata['is_rgb']:  # [x, y, colors]
-                tif=np.mean(tif,2)
-                mx,my=tif.shape
-                tif=tif[np.newaxis]
+                tif = np.mean(tif,2)
+                mx, my = tif.shape
+                tif = tif[np.newaxis]
             else: 
-                mx,my=tif[0,:,:].shape
-        elif nDims==2:
-            mx,my=tif.shape
-            tif=tif[np.newaxis]
+                mx, my = tif[0,:,:].shape
+        elif nDims == 2:
+            mx, my = tif.shape
+            tif = tif[np.newaxis]
         return tif
 
     def imageDimensions(self):
-        nDims=self.image.shape
-        if len(nDims)==4: #if this is an RGB image stack
+        nDims = self.image.shape
+        if len(nDims) == 4: #if this is an RGB image stack
             return nDims[1:3]
-        elif len(nDims)==3:
+        elif len(nDims) == 3:
             if self.metadata['is_rgb']:  # [x, y, colors]
                 return nDims[:2]
             else:                               # [t, x, y]
                 return nDims[1:]
-        if len(nDims)==2: #if this is a static image
+        if len(nDims) == 2:  # If this is a static image
             return nDims
         return nDims
 
@@ -312,8 +313,9 @@ class Window(QtWidgets.QWidget):
         self.imageview.resize(self.size())
 
     def paste(self):
-        ''' This function pastes an ROI from one window into another.
-        The ROIs will be linked so that when you translate one of them, the other one also moves'''
+        """ This function pastes an ROI from one window into another.
+        The ROIs will be linked so that when you translate one of them, the other one also moves.
+        """
         def pasteROI(roi):
             if roi in self.rois:
                 return None
@@ -377,8 +379,8 @@ class Window(QtWidgets.QWidget):
         self.menu = QtWidgets.QMenu(self)
 
         def updateMenu():
-            from .roi import ROI_Wrapper
-            pasteAct.setEnabled(isinstance(g.clipboard, (list, ROI_Wrapper)))
+            from .roi import ROI_Base
+            pasteAct.setEnabled(isinstance(g.clipboard, (list, ROI_Base)))
 
         pasteAct = QtWidgets.QAction("&Paste", self, triggered=self.paste)
         plotAllAct = QtWidgets.QAction('&Plot All ROIs', self.menu, triggered=self.plotAllROIs )
@@ -417,10 +419,10 @@ class Window(QtWidgets.QWidget):
         self.scatterPlot.addPoints(pos=[[x, y]], size=pointSize, brush=pg.mkBrush(*pointColor.getRgb()))
 
     def mouseClickEvent(self,ev):
-        self.EEEE=ev
-        if self.x is not None and self.y is not None and ev.button()==2 and not self.creatingROI:
-            mm=g.settings['mousemode']
-            if mm=='point':
+        self.EEEE = ev
+        if self.x is not None and self.y is not None and ev.button() == 2 and not self.creatingROI:
+            mm = g.settings['mousemode']
+            if mm == 'point':
                 self.addPoint()
             elif mm == 'rectangle' and g.settings['default_roi_on_click']:
                     self.currentROI = ROI_Drawing(self, self.x - g.settings['rect_width']/2, self.y - g.settings['rect_height']/2, mm)
@@ -432,8 +434,7 @@ class Window(QtWidgets.QWidget):
                 # Then threshold the image and use a combination of binary dilation and binary erosion to clean it up (all functions inside flika)
                 if not (np.all(self.image >= 0) and np.all(self.image <= 1)):
                     return
-                from skimage import measure
-                from roi import makeROI
+
 
                 thresholded_image = np.squeeze(self.image[self.currentIndex] if self.image.ndim == 3 else self.image)
                 labelled=measure.label(thresholded_image)
@@ -501,10 +502,10 @@ class Window(QtWidgets.QWidget):
                 if ev.isStart():
                     self.ev = ev
                     pt = self.imageview.getImageItem().mapFromScene(ev.buttonDownScenePos())
-                    self.x = pt.x() # this sets x and y to the button down position, not the current position
+                    self.x = pt.x()  # This sets x and y to the button down position, not the current position.
                     self.y = pt.y()
                     self.creatingROI = True
-                    self.currentROI = ROI_Drawing(self,self.x,self.y, mm)
+                    self.currentROI = ROI_Drawing(self, self.x, self.y, mm)
                 if ev.isFinish():
                     if self.creatingROI:   
                         if ev._buttons | QtCore.Qt.RightButton != ev._buttons:
@@ -516,24 +517,24 @@ class Window(QtWidgets.QWidget):
                     else:
                         for r in self.currentROIs:
                             r.finish_translate()
-                else: # if we are in the middle of the drag between starting and finishing
+                else:  # If we are in the middle of the drag between starting and finishing.
                     if self.creatingROI:
                         self.currentROI.extend(self.x, self.y)
+
     def updateTimeStampLabel(self,frame):
         label = self.timeStampLabel
         if self.framerate == 0:
             label.setHtml("<span style='font-size: 12pt;color:white;background-color:None;'>Frame rate is 0 Hz</span>" )
             return False
-        ttime = frame/self.framerate
-        
-        if ttime<1:
-            ttime = ttime*1000
+        ttime = frame/self.framerate  # Time elapsed since the first frame until the current frame, in seconds.
+        if ttime < 1:
+            ttime = ttime * 1000
             label.setHtml("<span style='font-size: 12pt;color:white;background-color:None;'>{:.0f} ms</span>".format(ttime))
-        elif ttime<60:
+        elif ttime < 60:
             label.setHtml("<span style='font-size: 12pt;color:white;background-color:None;'>{:.3f} s</span>".format(ttime))
-        elif ttime<3600:
-            minutes=int(np.floor(ttime/60))
-            seconds=ttime % 60
+        elif ttime < 3600:
+            minutes = int(np.floor(ttime/60))
+            seconds = ttime % 60
             label.setHtml("<span style='font-size: 12pt;color:white;background-color:None;'>{}m {:.3f} s</span>".format(minutes,seconds))
         else:
             hours = int(np.floor(ttime/3600))

@@ -11,7 +11,11 @@ from .utils.misc import random_color, open_file_gui
 from .tracefig import roiPlot
 
 class ROI_Drawing(pg.GraphicsObject):
-    def __init__(self, window, x, y, type):
+    """
+    This class is used by the g.currentWindow when an roi is being created. Once the creation is finished, drawFinished()
+    is called and this class returns an ROI object.
+    """
+    def __init__(self, window, x, y, kind):
         pg.GraphicsObject.__init__(self)
         window.imageview.addItem(self)
         self.window = window
@@ -19,10 +23,9 @@ class ROI_Drawing(pg.GraphicsObject):
         if self.extendRectLine():
             window.imageview.removeItem(self)
             return
-        self.type = type
+        self.kind = kind
         self.state = {'pos': pg.Point(x, y), 'size': pg.Point(0, 0)}
         self.color = QtGui.QColor(g.settings['roi_color']) if g.settings['roi_color'] != 'random' else random_color()
-        
 
     def cancel(self):
         g.currentWindow.imageview.removeItem(self)
@@ -43,10 +46,10 @@ class ROI_Drawing(pg.GraphicsObject):
 
     def extend(self, x, y):
         new_pt = pg.Point(round(x), round(y))
-        if self.type == 'freehand':
+        if self.kind == 'freehand':
             if self.pts[-1] != new_pt:
                 self.pts.append(new_pt)
-        elif self.type in ('line', 'rectangle', 'rect_line'):
+        elif self.kind in ('line', 'rectangle', 'rect_line'):
             if len(self.pts) == 1:
                 self.pts.append(new_pt)
             else:
@@ -64,24 +67,24 @@ class ROI_Drawing(pg.GraphicsObject):
         pen = QtGui.QPen(self.color)
         pen.setWidth(0)
         p.setPen(pen)
-        if self.type == 'freehand':
+        if self.kind == 'freehand':
             p.drawPolyline(*self.pts)
-        elif self.type == 'rectangle':
+        elif self.kind == 'rectangle':
             p.drawRect(self.boundingRect())
-        elif self.type in ('rect_line', 'line'):
+        elif self.kind in ('rect_line', 'line'):
             p.drawLine(*self.pts)
 
     def drawFinished(self):
         self.window.imageview.removeItem(self)
-        if self.type == 'freehand':
+        if self.kind == 'freehand':
             if len(self.pts) < 4:
                 return None
             r = ROI(self.window, self.pts)
-        elif self.type == 'rectangle':
+        elif self.kind == 'rectangle':
             r = ROI_rectangle(self.window, self.state['pos'], self.state['size'])
-        elif self.type == 'line':
+        elif self.kind == 'line':
             r = ROI_line(self.window, self.pts)
-        elif self.type == 'rect_line':
+        elif self.kind == 'rect_line':
             r = ROI_rect_line(self.window, self.pts)
 
         r.drawFinished()
@@ -98,10 +101,11 @@ class ROI_Drawing(pg.GraphicsObject):
     def boundingRect(self):
         return QtCore.QRectF(self.state['pos'].x(), self.state['pos'].y(), self.state['size'].x(), self.state['size'].y())
 
-class ROI_Wrapper():
-    ''' ROI wrapper interface for all ROI types, template class for duplicate functions and functions to override
-        connect window closeEvent to ROI delete
-        set the window currentROI to self
+
+class ROI_Base():
+    """ ROI_Base interface for all ROI types, template class for duplicate functions and functions to override.
+        connect window.closeEvent to ROI delete
+        set the window.currentROI to self
 
     Attributes:
         colorDialog: dialog for selecting the color of the ROI and its trace
@@ -133,9 +137,10 @@ class ROI_Wrapper():
         drawFinished():
             add the ROI to the window, called by ROI_Drawing
         str():
-            return type and self.pts for recreating the ROI
-    '''
+            return kind and self.pts for recreating the ROI
+    """
     INITIAL_ARGS = {'translateSnap': True, 'removable': True, 'snapSize': 1, 'scaleSnap': True}
+
     def __init__(self, window, pts):
         self.window = window
         self.colorDialog=QtWidgets.QColorDialog()
@@ -341,10 +346,10 @@ class ROI_Wrapper():
         return Window(im)
 
 
-class ROI_line(ROI_Wrapper, pg.LineSegmentROI):
+class ROI_line(ROI_Base, pg.LineSegmentROI):
     '''
     ROI Line class for selecting a straight line of pixels between two points
-        Extends from the ROI_Wrapper class and pyqtgraph ROI.LineSegmentROI
+        Extends from the ROI_Base class and pyqtgraph ROI.LineSegmentROI
     '''
     kind = 'line'
     plotSignal = QtCore.Signal()
@@ -355,7 +360,7 @@ class ROI_line(ROI_Wrapper, pg.LineSegmentROI):
         pg.LineSegmentROI.__init__(self, positions=positions, **roiArgs)
         self.kymograph = None
         self.kymographAct = QtWidgets.QAction("&Kymograph", self, triggered=self.update_kymograph)
-        ROI_Wrapper.__init__(self, window, positions)
+        ROI_Base.__init__(self, window, positions)
 
     def paint(self, p, *args):
         p.setRenderHint(QtGui.QPainter.Antialiasing)
@@ -365,7 +370,7 @@ class ROI_line(ROI_Wrapper, pg.LineSegmentROI):
         p.drawLine(h1, h2)
 
     def resetSignals(self):
-        ROI_Wrapper.resetSignals(self)
+        ROI_Base.resetSignals(self)
         self.sigRegionChanged.connect(self.snapPoints)
 
     def snapPoints(self):
@@ -393,7 +398,7 @@ class ROI_line(ROI_Wrapper, pg.LineSegmentROI):
             self.sigRegionChangeFinished.emit(self)
 
     def delete(self):
-        ROI_Wrapper.delete(self)
+        ROI_Base.delete(self)
         if self.kymograph:
             self.deleteKymograph()
 
@@ -410,7 +415,7 @@ class ROI_line(ROI_Wrapper, pg.LineSegmentROI):
         return np.array([handle['pos'] + self.state['pos'] for handle in self.handles])
 
     def makeMenu(self):
-        ROI_Wrapper.makeMenu(self)
+        ROI_Base.makeMenu(self)
         self.menu.addAction(self.kymographAct)
         self.kymographAct.setEnabled(self.window.image.ndim == 3 and not self.window.metadata['is_rgb'])
 
@@ -452,10 +457,11 @@ class ROI_line(ROI_Wrapper, pg.LineSegmentROI):
         self.kymograph.closeSignal.disconnect(self.deleteKymograph)
         self.kymograph=None
 
-class ROI_rectangle(ROI_Wrapper, pg.ROI):
+
+class ROI_rectangle(ROI_Base, pg.ROI):
     '''
     ROI rectangle class for selecting a set width and height group of pixels on an image
-        Extends from pyqtgraph ROI and ROI_Wrapper
+        Extends from pyqtgraph ROI and ROI_Base
 
     Parameters:
         window: parent window to draw the ROI in
@@ -484,7 +490,7 @@ class ROI_rectangle(ROI_Wrapper, pg.ROI):
             self.addScaleHandle([0, 0], [1, 1])
             self.addScaleHandle([1, 1], [0, 0])
         self.cropAction = QtWidgets.QAction('&Crop', self, triggered=self.crop)
-        ROI_Wrapper.__init__(self, window, [pos, size])
+        ROI_Base.__init__(self, window, [pos, size])
 
     def center_around(self, x, y):
         old_pts = self.getPoints()
@@ -523,7 +529,7 @@ class ROI_rectangle(ROI_Wrapper, pg.ROI):
             self.sigRegionChangeFinished.emit(self)
 
     def makeMenu(self):
-        ROI_Wrapper.makeMenu(self)
+        ROI_Base.makeMenu(self)
         self.menu.addAction(self.cropAction)
 
     def crop(self):
@@ -562,7 +568,8 @@ class ROI_rectangle(ROI_Wrapper, pg.ROI):
             return None
         return Window(newtif,self.window.name+' Cropped',metadata=self.window.metadata)
 
-class ROI(ROI_Wrapper, pg.PolyLineROI):
+
+class ROI_freehand(ROI_Base, pg.PolyLineROI):
     kind = 'freehand'
     plotSignal = QtCore.Signal()
     def __init__(self, window, pts, **kargs):
@@ -570,7 +577,7 @@ class ROI(ROI_Wrapper, pg.PolyLineROI):
         roiArgs.update(kargs)
         roiArgs['closed'] = True
         pg.PolyLineROI.__init__(self, pts, **roiArgs)
-        ROI_Wrapper.__init__(self, window, pts)
+        ROI_Base.__init__(self, window, pts)
         self._untranslated_mask = None
 
     def draw_from_points(self, pts, finish=False):
@@ -638,7 +645,11 @@ class ROI(ROI_Wrapper, pg.PolyLineROI):
         yy = yy[idx_to_keep]
         return xx, yy
 
-class ROI_rect_line(ROI_Wrapper, QtWidgets.QGraphicsObject):
+
+class ROI_rect_line(ROI_Base, QtWidgets.QGraphicsObject):
+    """
+    This ROI is a line with an adjustable width that can be composed of multiple straight line segments.
+    """
     kind = 'rect_line'
     plotSignal = QtCore.Signal()
     sigRegionChanged = QtCore.Signal(object)
@@ -655,7 +666,7 @@ class ROI_rect_line(ROI_Wrapper, QtWidgets.QGraphicsObject):
         self.kymographAct = QtWidgets.QAction("&Kymograph", self, triggered=self.update_kymograph)
         self.removeLinkAction = QtWidgets.QAction('Remove Last Link', self, triggered=self.removeSegment)
         self.setWidthAction = QtWidgets.QAction("Set Width", self, triggered=lambda: self.setWidth())
-        ROI_Wrapper.__init__(self, window, pts)
+        ROI_Base.__init__(self, window, pts)
         self.getPoints = self.getHandlePositions
         self.pen = QtGui.QPen(QtGui.QColor(255, 255, 0))
         self.pen.setWidth(0)
@@ -668,7 +679,7 @@ class ROI_rect_line(ROI_Wrapper, QtWidgets.QGraphicsObject):
         self.extending = False
 
     def delete(self):
-        ROI_Wrapper.delete(self)
+        ROI_Base.delete(self)
         if self.kymograph:
             self.deleteKymograph()
 
@@ -804,7 +815,6 @@ class ROI_rect_line(ROI_Wrapper, QtWidgets.QGraphicsObject):
                         h = l.handles[i]['item']
                         dist = d
         return h
-    
 
     def removeSegment(self, segment=None): 
         """Remove a segment from the ROI."""
@@ -832,10 +842,11 @@ class ROI_rect_line(ROI_Wrapper, QtWidgets.QGraphicsObject):
             self.sigRegionChanged.emit(self)
 
     def extend(self, x, y, finish=True):
+        print('extend being called {} {}'.format(x,y,))
         point = self.lines[0].getSnapPosition([x, y])
         if not self.extending:
             h = self.getNearestHandle(pg.Point(x, y))
-            if h != None and len(h.rois) > 1:
+            if h is not None and len(h.rois) > 1:
                 return
             self.extending = True
             self.addSegment(point, connectTo=h)
@@ -846,6 +857,7 @@ class ROI_rect_line(ROI_Wrapper, QtWidgets.QGraphicsObject):
             self.sigRegionChangeFinished.emit(self)
 
     def extendFinished(self):
+        print('extend finished')
         self.extending = False
         self.extendHandle = None
         self.sigRegionChangeFinished.emit(self)
@@ -853,6 +865,7 @@ class ROI_rect_line(ROI_Wrapper, QtWidgets.QGraphicsObject):
             self.lines.insert(0, self.lines[-1])
             self.lines = self.lines[:-1]
             self.lines[0].handles = self.lines[0].handles[::-1]
+
 
     def hoverEvent(self, l, ev):
         self.currentLine = l
@@ -878,7 +891,7 @@ class ROI_rect_line(ROI_Wrapper, QtWidgets.QGraphicsObject):
         return np.array(xxs, dtype=int), np.array(yys, dtype=int)
 
     def makeMenu(self):
-        ROI_Wrapper.makeMenu(self)
+        ROI_Base.makeMenu(self)
         self.menu.addAction(self.removeLinkAction)
         self.menu.addAction(self.setWidthAction)
         self.menu.addAction(self.kymographAct)
@@ -891,7 +904,7 @@ class ROI_rect_line(ROI_Wrapper, QtWidgets.QGraphicsObject):
         else:
             self.removeLinkAction.setVisible(False)
         
-        ROI_Wrapper.raiseContextMenu(self, ev)
+        ROI_Base.raiseContextMenu(self, ev)
 
     def boundingRect(self):
         return QtCore.QRectF()
@@ -960,16 +973,16 @@ class ROI_rect_line(ROI_Wrapper, QtWidgets.QGraphicsObject):
         self.kymograph.closeSignal.disconnect(self.deleteKymograph)
         self.kymograph=None
 
+
 def makeROI(kind, pts, window=None, **kargs):
     if window is None:
         window = g.currentWindow
         if window is None:
             g.alert('ERROR: In order to make and ROI a window needs to be selected')
             return None
-
-    if kind=='freehand':
-        roi=ROI(window, pts, **kargs)
-    elif kind=='rectangle':
+    if kind == 'freehand':
+        roi = ROI_freehand(window, pts, **kargs)
+    elif kind == 'rectangle':
         if len(pts) > 2:
             size = np.ptp(pts,0)
             top_left = np.min(pts,0)
@@ -977,12 +990,12 @@ def makeROI(kind, pts, window=None, **kargs):
             size = pts[1]
             top_left = pts[0]
         roi=ROI_rectangle(window, top_left, size, **kargs)
-    elif kind=='line':
-        roi=ROI_line(window, (pts), **kargs)
+    elif kind == 'line':
+        roi = ROI_line(window, (pts), **kargs)
     elif kind == 'rect_line':
         roi = ROI_rect_line(window, pts, **kargs)
     else:
-        g.alert("ERROR: THIS TYPE OF ROI COULD NOT BE FOUND: {}".format(kind))
+        g.alert("ERROR: THIS KIND OF ROI COULD NOT BE FOUND: {}".format(kind))
         return None
 
     pen = QtGui.QPen(QtGui.QColor(g.settings['roi_color']) if g.settings['roi_color'] != 'random' else random_color())
@@ -991,6 +1004,7 @@ def makeROI(kind, pts, window=None, **kargs):
     roi.drawFinished()
     roi.setPen(pen)
     return roi
+
 
 def open_rois(filename=None):
     """
@@ -1016,8 +1030,8 @@ def open_rois(filename=None):
     pts = None
     for text_line in text.split('\n'):
         if kind is None:
-            kind=text_line
-            pts=[]
+            kind = text_line
+            pts = []
         elif text_line == '':
             roi = makeROI(kind,pts)
             rois.append(roi)

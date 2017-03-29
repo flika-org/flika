@@ -190,8 +190,8 @@ class TraceFig(QtWidgets.QWidget):
         self.rois.append(dict({'roi':roi,'p1trace':p1trace,'p2trace':p2trace,'toBeRedrawn':False,'toBeRedrawnFull':False}))
 
     def removeROI(self,roi):
-        from .roi import ROI_Wrapper
-        if isinstance(roi, ROI_Wrapper):
+        from .roi import ROI_Base
+        if isinstance(roi, ROI_Base):
             index=[r['roi'] for r in self.rois].index(roi) #this is the index of the roi in self.rois
         elif isinstance(roi, int):
             index = roi

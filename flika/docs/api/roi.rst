@@ -5,9 +5,9 @@ Module: roi
 
 .. automodule:: flika.roi
 
-.. autoclass:: flika.roi.ROI_Wrapper
+.. autoclass:: flika.roi.ROI_Base
 
-.. autoclass:: flika.roi.ROI_Wrapper
+.. autoclass:: flika.roi.ROI_Base
 
 .. autoclass:: flika.roi.ROI_line
 
