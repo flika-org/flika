@@ -10,6 +10,7 @@ from . import global_vars as g
 from .utils.misc import random_color, open_file_gui
 from .tracefig import roiPlot
 
+
 class ROI_Drawing(pg.GraphicsObject):
     """
     This class is used by the g.currentWindow when an roi is being created. Once the creation is finished, drawFinished()
@@ -76,22 +77,12 @@ class ROI_Drawing(pg.GraphicsObject):
 
     def drawFinished(self):
         self.window.imageview.removeItem(self)
-        if self.kind == 'freehand':
-            if len(self.pts) < 4:
-                return None
-            r = ROI(self.window, self.pts)
-        elif self.kind == 'rectangle':
-            r = ROI_rectangle(self.window, self.state['pos'], self.state['size'])
-        elif self.kind == 'line':
-            r = ROI_line(self.window, self.pts)
-        elif self.kind == 'rect_line':
-            r = ROI_rect_line(self.window, self.pts)
+        if self.kind == 'rectangle':
+            pts = [self.state['pos'], self.state['size']]
+        else:
+            pts = self.pts
+        return makeROI(self.kind, pts, self.window)
 
-        r.drawFinished()
-        pen = QtGui.QPen(self.color)
-        pen.setWidth(0)
-        r.setPen(pen)
-        return r
 
     def contains(self, *args):
         if len(args) == 2:
@@ -152,6 +143,36 @@ class ROI_Base():
         self.linkedROIs = set()
         self.resetSignals()
         self.makeMenu()
+        self.mouseHovering = False
+        self.pen = None  # This is the permanent pen for the ROI.
+        self.currentPen = None  # This is the current, temporary pen.
+        self.set_ROI_pen()
+        self.drawFinished()
+
+    def set_ROI_pen(self, pen=None):
+        """ This should be called when permanently setting the pen. This doesn't need to be overwritten when the ROI has
+        components that need to be set individually. """
+        if pen is None:
+            color = QtGui.QColor(g.settings['roi_color']) if g.settings['roi_color'] != 'random' else random_color()
+            pen = QtGui.QPen(color)
+            pen.setWidth(0)
+        self.pen = pen
+        self.set_currentPen(pen)
+
+    def set_currentPen(self, pen):
+        """ This should be called when temporarily setting the pen. This needs to be overwritten when the ROI has
+        components that need to be set individually. """
+        self.currentPen = pen
+        self.setPen(self.currentPen)
+        self.update()
+
+    def paint(self, p, *args):
+        """ This is overwritten by most classes"""
+        pass
+
+    def setPen(self, pen):
+        """ This is overwritten by most classes"""
+        pass
 
     def resetSignals(self):
         try:
@@ -243,16 +264,20 @@ class ROI_Base():
         raise NotImplementedError()
 
     def setMouseHover(self, hover):
-        ## Inform the ROI that the mouse is(not) hovering over it
-        if self.mouseHovering == hover:
+        """
+        Inform the ROI that the mouse is or is not hovering over it.
+
+        Args:
+            hover (bool)
+
+        """
+        if self.mouseHovering is hover:
             return
         self.mouseHovering = hover
         if hover:
-            self.currentPen = pg.mkPen(QtGui.QColor(255, 0, 0))
+            self.set_currentPen(QtGui.QPen(QtGui.QColor(255, 0, 0)))
         else:
-            self.currentPen = self.pen
-
-        self.update()
+            self.set_currentPen(self.pen)
 
     def plot(self):
         self.traceWindow = roiPlot(self)
@@ -267,7 +292,7 @@ class ROI_Base():
         
     def colorSelected(self, color):
         if color.isValid():
-            self.setPen(QtGui.QColor(color.name()))
+            self.set_ROI_pen(QtGui.QPen(QtGui.QColor(color.name())))
             self.sigRegionChangeFinished.emit(self)
 
     def unplot(self):
@@ -313,7 +338,6 @@ class ROI_Base():
         self.menu.addAction(remAct)
         self.menu.aboutToShow.connect(updateMenu)
 
-
     def delete(self):
         self.unplot()
         for roi in self.linkedROIs:
@@ -335,7 +359,7 @@ class ROI_Base():
     def str(self):
         s = self.kind + '\n'
         for x, y in self.pts:
-            s += '%d %d\n' % (x, y)
+            s += '{} {}\n'.format(x, y)
         return s
 
     def showMask(self):
@@ -507,7 +531,6 @@ class ROI_rectangle(ROI_Base, pg.ROI):
         target = np.array([x, y])
         return np.all(self.pts[0] < target) and np.all(target < self.pts[0]+self.pts[1])
 
-
     def getMask(self):
         x, y = self.state['pos']
         w, h = self.state['size']
@@ -520,6 +543,9 @@ class ROI_rectangle(ROI_Base, pg.ROI):
         xx, yy = np.meshgrid(np.arange(xmin, xmax, dtype=int), np.arange(ymin, ymax, dtype=int))
 
         return xx.flatten(), yy.flatten()
+
+    def paint(self, p, *args):
+        pg.ROI.paint(self, p, *args)
 
     def draw_from_points(self, pts, finish=True):
         self.setPos(pts[0], finish=False)
@@ -576,6 +602,7 @@ class ROI_freehand(ROI_Base, pg.PolyLineROI):
         roiArgs = self.INITIAL_ARGS.copy()
         roiArgs.update(kargs)
         roiArgs['closed'] = True
+        self.pen = None
         pg.PolyLineROI.__init__(self, pts, **roiArgs)
         ROI_Base.__init__(self, window, pts)
         self._untranslated_mask = None
@@ -586,9 +613,10 @@ class ROI_freehand(ROI_Base, pg.PolyLineROI):
         self.setPoints([pg.Point(p) for p in pts], closed=True)
         self.blockSignals(False)
 
-    def setMouseHover(self, hover):
+    def set_currentPen(self, pen):
+        super(ROI_freehand, self).set_currentPen(pen)
         for seg in self.segments:
-            seg.setPen(QtGui.QColor(255, 0, 0) if hover else self.currentPen)
+            seg.setPen(self.currentPen)
 
     def translate(self, pos, y=None, *args, **kargs):
         if y is None:
@@ -666,13 +694,14 @@ class ROI_rect_line(ROI_Base, QtWidgets.QGraphicsObject):
         self.kymographAct = QtWidgets.QAction("&Kymograph", self, triggered=self.update_kymograph)
         self.removeLinkAction = QtWidgets.QAction('Remove Last Link', self, triggered=self.removeSegment)
         self.setWidthAction = QtWidgets.QAction("Set Width", self, triggered=lambda: self.setWidth())
+        self.lines = []
         ROI_Base.__init__(self, window, pts)
         self.getPoints = self.getHandlePositions
         self.pen = QtGui.QPen(QtGui.QColor(255, 255, 0))
         self.pen.setWidth(0)
-        self.lines = []
         if len(pts) < 2:
             raise Exception("Must start with at least 2 points")
+        print('ROI_rect_line self.pts at drawFinished: {}'.format(pts))
         self.addSegment(pts[1], connectTo=pts[0])
         for p in pts[2:]:
             self.addSegment(p)
@@ -722,6 +751,7 @@ class ROI_rect_line(ROI_Base, QtWidgets.QGraphicsObject):
             self.prev.imageview.setImage(im)
 
     def lineRegionChange(self, line):
+        print('lineRegionChange')
         line.blockSignals(True)
         for i in range(2):
             p = self.mapFromScene(line.getHandles()[i].scenePos())
@@ -734,6 +764,8 @@ class ROI_rect_line(ROI_Base, QtWidgets.QGraphicsObject):
 
     def getHandlePositions(self):
         """Return the positions of all handles in local coordinates."""
+        print("getHandlePositions")
+        return None
         p = self.mapFromScene(self.lines[0].getHandles()[0].scenePos())
         p = self.lines[0].getSnapPosition([p.x(), p.y()])
         pos = [p]
@@ -766,7 +798,7 @@ class ROI_rect_line(ROI_Base, QtWidgets.QGraphicsObject):
         
         return np.concatenate(rgns, axis=axes[0])
         
-    def addSegment(self, pos=(0,0), connectTo=None):
+    def addSegment(self, pos=(0, 0), connectTo=None):
         """
         Add a new segment to the ROI connecting from the previous endpoint to *pos*.
         (pos is specified in the parent coordinate system of the MultiRectROI)
@@ -842,7 +874,6 @@ class ROI_rect_line(ROI_Base, QtWidgets.QGraphicsObject):
             self.sigRegionChanged.emit(self)
 
     def extend(self, x, y, finish=True):
-        print('extend being called {} {}'.format(x,y,))
         point = self.lines[0].getSnapPosition([x, y])
         if not self.extending:
             h = self.getNearestHandle(pg.Point(x, y))
@@ -857,7 +888,6 @@ class ROI_rect_line(ROI_Base, QtWidgets.QGraphicsObject):
             self.sigRegionChangeFinished.emit(self)
 
     def extendFinished(self):
-        print('extend finished')
         self.extending = False
         self.extendHandle = None
         self.sigRegionChangeFinished.emit(self)
@@ -866,17 +896,17 @@ class ROI_rect_line(ROI_Base, QtWidgets.QGraphicsObject):
             self.lines = self.lines[:-1]
             self.lines[0].handles = self.lines[0].handles[::-1]
 
-
     def hoverEvent(self, l, ev):
         self.currentLine = l
         if ev.enter:
             pen = QtGui.QPen(QtGui.QColor(255, 0, 0))
             pen.setWidth(0)
-            self.setCurrentPen(pen)
+            self.set_currentPen(pen)
         elif ev.exit:
-            self.setCurrentPen(self.pen)
+            self.set_currentPen(self.pen)
 
     def getMask(self):
+        print('getMask')
         xxs = []
         yys = []
         for i in range(len(self.pts)-1):
@@ -909,21 +939,10 @@ class ROI_rect_line(ROI_Base, QtWidgets.QGraphicsObject):
     def boundingRect(self):
         return QtCore.QRectF()
 
-    def paint(self, p, *args):
-        pass
-
-    def setPen(self, pen):
-        pen = QtGui.QPen(pen)
-        pen.setWidth(0)
-        self.pen = pen
-        self.setCurrentPen(pen)
-
-    def setCurrentPen(self, pen):
-        pen = QtGui.QPen(pen)
-        pen.setWidth(0)
-        for l in self.lines:
-            l.currentPen = pen
-            l.update()
+    def set_currentPen(self, pen):
+        super(ROI_rect_line, self).set_currentPen(pen)
+        for line in self.lines:
+            line.setPen(pen)
 
     def update_kymograph(self):
         tif=self.window.image
@@ -981,6 +1000,8 @@ def makeROI(kind, pts, window=None, **kargs):
             g.alert('ERROR: In order to make and ROI a window needs to be selected')
             return None
     if kind == 'freehand':
+        if len(pts) < 4:
+            return None
         roi = ROI_freehand(window, pts, **kargs)
     elif kind == 'rectangle':
         if len(pts) > 2:
@@ -997,12 +1018,6 @@ def makeROI(kind, pts, window=None, **kargs):
     else:
         g.alert("ERROR: THIS KIND OF ROI COULD NOT BE FOUND: {}".format(kind))
         return None
-
-    pen = QtGui.QPen(QtGui.QColor(g.settings['roi_color']) if g.settings['roi_color'] != 'random' else random_color())
-    pen.setWidth(0)
-
-    roi.drawFinished()
-    roi.setPen(pen)
     return roi
 
 
