@@ -51,6 +51,7 @@ setup_requires = ['numpy', 'scipy']
 
 # must have numpy and scipy installed already
 install_requires = [
+      'PyQt5',
       'pandas>=0.14',
       'matplotlib>=1.4',
       'pyqtgraph>=0.9',
