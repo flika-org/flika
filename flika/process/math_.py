@@ -28,6 +28,7 @@ def upgrade_dtype(dtype):
     elif dtype==np.float32:
         return np.float64
 
+
 class Subtract(BaseProcess):
     """ subtract(value, keepSourceWindow=False)
     This takes a value and subtracts it from the current window's image.
@@ -52,7 +53,7 @@ class Subtract(BaseProcess):
     def __call__(self,value,keepSourceWindow=False):
         self.start(keepSourceWindow)
         if hasattr(value,'is_integer') and value.is_integer():
-            value=int(value)
+            value = int(value)
         if np.issubdtype(self.tif.dtype,np.integer):
             ddtype=np.iinfo(self.tif.dtype)
             while np.min(self.tif)-value<ddtype.min or np.max(self.tif)-value>ddtype.max: # if we exceed the bounds of the datatype
