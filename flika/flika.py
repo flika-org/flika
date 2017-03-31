@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import sys, os
+import platform
 import optparse
 import warnings
 import numpy as np
@@ -100,7 +101,22 @@ def exec_():
     fa = start_flika()
     return fa.app.exec_()
 
-
+def post_install():
+    if platform.system() == 'Windows':
+        print("Creating start menu shortcut...")
+        import winshell
+        icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'images', 'favicon.ico')
+        flika_exe = os.path.join(sys.exec_prefix, 'Scripts', 'flika.exe')
+        link_path = os.path.join(winshell.programs(), "flika.lnk")
+        with winshell.shortcut(link_path) as link:
+            link.path = flika_exe
+            link.description = "flika"
+            link.icon_location = (icon_path, 0)
+        link_path = os.path.join(winshell.desktop(), "flika.lnk")
+        with winshell.shortcut(link_path) as link:
+            link.path = flika_exe
+            link.description = "flika"
+            link.icon_location = (icon_path, 0)
 
 if __name__ == '__main__':
     start_flika()

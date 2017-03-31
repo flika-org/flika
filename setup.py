@@ -7,10 +7,10 @@ twine upload dist/*
 """
 from setuptools import setup, find_packages
 from distutils.core import Command
+from setuptools.command.install import install
+import platform
 import os
-import re
 import sys
-import subprocess
 
 with open('flika/version.py') as infile:
     __version__ = '0.0.0'
@@ -45,13 +45,13 @@ cmdclass['test'] = PyTest
 entry_points = """
 [console_scripts]
 flika = flika.flika:exec_
+flika_post_install = flika.flika:post_install
 """
 
 setup_requires = ['numpy', 'scipy']
 
 # must have numpy and scipy installed already
 install_requires = [
-      'PyQt5',
       'pandas>=0.14',
       'matplotlib>=1.4',
       'pyqtgraph>=0.9',
@@ -64,6 +64,11 @@ install_requires = [
       'qtconsole',
       'pyopengl',
       'nd2reader']
+
+if sys.platform == 'win32':
+    install_requires += ['winshell', 'pypiwin32']
+
+
 
 setup(name='flika',
       version=__version__,
@@ -84,6 +89,7 @@ setup(name='flika',
           'Programming Language :: Python :: 3.3',
           'Programming Language :: Python :: 3.4',
           'Programming Language :: Python :: 3.5',
+          'Programming Language :: Python :: 3.6',
           'Topic :: Scientific/Engineering :: Visualization',
           ],
       packages=find_packages(),
