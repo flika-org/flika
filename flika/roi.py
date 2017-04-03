@@ -227,7 +227,7 @@ class ROI_Base():
             return
         self.mouseHovering = hover
         if hover:
-            self.currentPen = QtGui.QPen(QtGui.QColor(255, 0, 0))
+            self.currentPen = pg.mkPen(QtGui.QColor(255, 0, 0))
         else:
             self.currentPen = self.pen
 
