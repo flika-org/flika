@@ -20,7 +20,7 @@ Main flika objects
 
 :class:`Window <flika.window.Window>`
 
-:func:`import_rois() <flika.roi.import_rois>`
+:func:`open_rois() <flika.roi.open_rois>`
 
 
 

@@ -5,9 +5,9 @@ Module: roi
 
 .. automodule:: flika.roi
 
-.. autoclass:: flika.roi.ROI_Wrapper
+.. autoclass:: flika.roi.ROI_Base
 
-.. autoclass:: flika.roi.ROI_Wrapper
+.. autoclass:: flika.roi.ROI_Base
 
 .. autoclass:: flika.roi.ROI_line
 
@@ -27,5 +27,5 @@ Module: roi
 
 .. autofunction:: flika.roi.makeROI
 
-.. autofunction:: flika.roi.import_rois
+.. autofunction:: flika.roi.open_rois
 

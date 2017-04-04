@@ -10,9 +10,9 @@ from ..process.file_ import *
 from .. import global_vars as g
 from .plugin_manager import PluginManager, load_local_plugins
 from .script_editor import ScriptEditor
-from ..utils.misc import load_ui
+from ..utils.misc import load_ui, send_error_report, send_user_stats
 from ..images import image_path
-from ..roi import import_rois
+from ..roi import open_rois
 from ..logger import logger
 from ..version import __version__
 
@@ -90,8 +90,8 @@ class Logger(QtWidgets.QWidget):
         clear = QtWidgets.QPushButton("Clear")
         clear.clicked.connect(nonpartial(self._clear))
 
-        #report = QtWidgets.QPushButton("Send Bug Report")
-        #report.clicked.connect(nonpartial(self._send_report))
+        report = QtWidgets.QPushButton("Send Bug Report")
+        report.clicked.connect(nonpartial(self._send_report))
 
         XStream.stderr().messageWritten.connect( self.write )
 
@@ -109,7 +109,7 @@ class Logger(QtWidgets.QWidget):
 
         l.addWidget(self._text)
         h.insertStretch(0)
-        #h.addWidget(report)
+        h.addWidget(report)
         h.addWidget(clear)
         l.addLayout(h)
 
@@ -142,8 +142,9 @@ class Logger(QtWidgets.QWidget):
         Send the contents of the log as a bug report
         """
         text = self._text.document().toPlainText()
-        g.alert('function Logger._send_report() not yet implemented')
-        print('Error Log:\n' + text)
+        email = QtWidgets.QInputDialog.getText(self, "Response email", "Enter your email to receive updates on this error.")
+
+        send_error_report(email, text)
 
     def _clear(self):
         """
@@ -199,6 +200,7 @@ class FlikaApplication(QtWidgets.QMainWindow):
 
 
         self._log = Logger()
+        g.dialogs.append(self._log)
         self._log.window().setWindowTitle("Console Log")
         self._log.resize(550, 550)
 
@@ -212,6 +214,7 @@ class FlikaApplication(QtWidgets.QMainWindow):
     def start(self):
         self.show()
         self.raise_()
+        send_user_stats()
         #if 'PYCHARM_HOSTED' not in os.environ and 'SPYDER_SHELL_ID' not in os.environ:
         #    return self.app.exec_()
 
@@ -227,19 +230,17 @@ class FlikaApplication(QtWidgets.QMainWindow):
 
     def _make_menu(self):
         fileMenu = self.menuBar().addMenu('File')
-        openAction = fileMenu.addAction("Open File", open_file_from_gui)
-        
+        openMenu = fileMenu.addMenu("Open")
+        openMenu.addAction("Open Image", open_file_from_gui)
+        openMenu.addAction("Open ROIs", open_rois)
+        openMenu.addAction("Open Points", open_points)
         self.recentFileMenu = fileMenu.addMenu('Recent Files')
         self.recentFileMenu.aboutToShow.connect(self._make_recents)
         self.recentFileMenu.triggered.connect(lambda a: open_file(a.text()))
-
-        fileMenu.addAction("Save As", save_file)
-        importMenu = fileMenu.addMenu("Import")
-        exportMenu = fileMenu.addMenu("Export")
-        importMenu.addAction("Import ROIs", import_rois)
-        importMenu.addAction("Import Points", load_points)
-        exportMenu.addAction("Export Movie", export_movie_gui)
-        exportMenu.addAction("Export Points", save_points)
+        saveMenu = fileMenu.addMenu("Save")
+        saveMenu.addAction("Save Image", save_file)
+        saveMenu.addAction("Save Movie (.mp4)", save_movie_gui)
+        saveMenu.addAction("Save Points", save_points)
 
         fileMenu.addAction("Settings", SettingsEditor.show)
         fileMenu.addAction("&Quit", self.close)#app.quit)
@@ -307,7 +308,8 @@ class FlikaApplication(QtWidgets.QMainWindow):
             self.recentFileMenu.addAction(noAction)
         else:
             for name in g.settings['recent_files'][::-1]:
-                self.recentFileMenu.addAction(name)
+                if isinstance(name, str) and os.path.exists(name):
+                    self.recentFileMenu.addAction(name)
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls():
