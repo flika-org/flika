@@ -43,6 +43,27 @@ def capture():
         out[1] = out[1].getvalue()
 
 
+def path_walk(top, topdown=False, followlinks=False):
+    """
+         See Python docs for os.walk, exact same behavior but it yields Path() instances instead
+    """
+    names = list(top.iterdir())
+
+    dirs = (node for node in names if node.is_dir() is True)
+    nondirs = (node for node in names if node.is_dir() is False)
+
+    if topdown:
+        yield top, dirs, nondirs
+
+    for name in dirs:
+        if followlinks or name.is_symlink() is False:
+            for x in path_walk(name, topdown, followlinks):
+                yield x
+
+    if topdown is not True:
+        yield top, dirs, nondirs
+
+
 def get_pypi_version():
     with capture() as out:
         pip.main(['search', 'flika'])
@@ -90,26 +111,6 @@ def checkUpdates():
         g.messageBox("Up to date", "Your version of Flika is up to date\n" + message)
 
 
-def path_walk(top, topdown=False, followlinks=False):
-    """
-         See Python docs for os.walk, exact same behavior but it yields Path() instances instead
-    """
-    names = list(top.iterdir())
-
-    dirs = (node for node in names if node.is_dir() is True)
-    nondirs = (node for node in names if node.is_dir() is False)
-
-    if topdown:
-        yield top, dirs, nondirs
-
-    for name in dirs:
-        if followlinks or name.is_symlink() is False:
-            for x in path_walk(name, topdown, followlinks):
-                yield x
-
-    if topdown is not True:
-        yield top, dirs, nondirs
-
 def updateFlika():
     installed_via_pip = check_if_installed_via_pip()
     if installed_via_pip:
@@ -119,14 +120,12 @@ def updateFlika():
         print(stdout)
         g.alert('Update successful. Restart flika to complete update.')
     else:
-        __file__ = r'C:\Users\kyle\Desktop\great_test\flika\flika\update_flika.py'
         flika_location = pathlib.Path(__file__).parents[1]
         assert flika_location.stem == 'flika'
         if flika_location.joinpath('.git').exists():
             g.alert("This installation of flika is managed by git. Upgrade will not proceed. Use git to upgrade.")
             return False
-        #extract_location = tempfile.mkdtemp()
-        extract_location = r'C:/Users/kyle/Desktop/tmptmptmp'
+        extract_location = tempfile.mkdtemp()
         url = urlopen('https://github.com/flika-org/flika/archive/master.zip')
         print("Downloading flika from Github to {}".format(extract_location))
         try:
@@ -143,12 +142,10 @@ def updateFlika():
         new_flika_location = extract_location.joinpath('flika-master')
         assert new_flika_location.exists()
         try:
-            #  new_flika_location.replace(flika_location)
             for src_path, subs, fs in path_walk(new_flika_location):
                 dst_path = flika_location.joinpath(src_path.relative_to(new_flika_location))
                 for src_f in fs:
-                    print(src_f)
-                    if src_f.__str__().endswith(('.py', '.ui', '.png', '.txt', '.xml')):
+                    if src_f.__str__().endswith(('.py', '.ui', '.png', '.txt', '.xml', '.in', '.ico', '.rst')):
                         g.m.statusBar().showMessage('replacing %s' % src_f)
                         dst_f = flika_location.joinpath(src_f.relative_to(new_flika_location))
                         shutil.copy(src_f.__str__(), dst_f.__str__())
