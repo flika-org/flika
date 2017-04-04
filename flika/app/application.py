@@ -143,9 +143,17 @@ class Logger(QtWidgets.QWidget):
         Send the contents of the log as a bug report
         """
         text = self._text.document().toPlainText()
-        email = QtWidgets.QInputDialog.getText(self, "Response email", "Enter your email to receive updates on this error.")
-
-        send_error_report(email, text)
+        email = QtWidgets.QInputDialog.getText(self, "Response email", "Enter your email if you would like us to contact you about this bug.")
+        if isinstance(email, tuple) and len(email) == 2:
+            email = email[0]
+        response = send_error_report(email, text)
+        if response.status_code != 200:
+            g.alert("Failed to send error report. Response {}:\n{}".format((response.status_code, response._content)))
+        else:
+            if email != '' or email is not None:
+                g.alert("Bug report sent. We will contact you as soon as we can.")
+            else:
+                g.alert("Bug report sent. Thank you!")
 
     def _clear(self):
         """

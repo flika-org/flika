@@ -154,8 +154,6 @@ def send_error_report(email, report):
     gmt = time.strftime('%c', time.gmtime())
     kargs = {'address': address, 'email': email, 'report': report, 'timezone': timezone, 'gmt': gmt}
     r = requests.post("http://flikarest.pythonanywhere.com/reports/submit", data=kargs)
-    if r.status_code != 200:
-        g.alert("Failed to send error report. Reponse %s:\n%s" % (r.status_code, r._content))
     return r
 
 def send_user_stats():
