@@ -1,17 +1,12 @@
 # -*- coding: utf-8 -*-
-import numpy as np
-from urllib.request import urlopen
-from urllib.error import HTTPError
-import re, os
+import os
 from multiprocessing import cpu_count
 from os.path import expanduser
 from qtpy import QtWidgets, QtGui, QtCore
 from collections.abc import MutableMapping
-import json, zipfile
-from pkg_resources import parse_version
-import shutil
+import json
 
-__all__ = ['m', 'Settings', 'menus', 'checkUpdates', 'alert']
+__all__ = ['m', 'Settings', 'menus', 'alert']
 
 class Settings(MutableMapping): #http://stackoverflow.com/questions/3387691/python-how-to-perfectly-override-a-dict
     """
@@ -103,69 +98,6 @@ def messageBox(title, text, buttons=QtWidgets.QMessageBox.Ok, icon=QtWidgets.QMe
     m.messagebox.show()
     while m.messagebox.isVisible(): QtWidgets.QApplication.instance().processEvents()
     return m.messagebox.result()
-
-
-def checkUpdates():
-    try:
-        url = "https://raw.githubusercontent.com/flika-org/flika/master/flika/version.py"
-    except Exception as e:
-        alert("Connection Failed", "Cannot connect to flika Repository. Connect to the internet to check for updates. %s" % e)
-        return
-    
-    data = urlopen(url).read().decode('utf-8')
-    latest_version = re.match(r'__version__\s*=\s*([\d\.\']*)', data)
-    from .version import __version__
-    version = __version__
-    message = "Installed version: " + version
-    if latest_version is None:
-        latest_version = 'Unknown'
-    else:
-        latest_version = eval(latest_version.group(1))
-    message += '\nLatest Version: ' + latest_version
-
-    if parse_version(version) < parse_version(latest_version):
-        if messageBox("Update Recommended", message + '\n\nWould you like to update?', QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.Question) == QtWidgets.QMessageBox.Yes:
-            updateFlika()
-    else:
-        messageBox("Up to date", "Your version of Flika is up to date\n" + message)
-
-
-def updateFlika():
-    folder = os.path.dirname(__file__)
-    parent_dir = os.path.dirname(folder)
-    new_folder = folder + '-new'
-    url = 'https://github.com/flika-org/flika/archive/master.zip'
-    data = urlopen(url).read()
-    output = open("flika.zip", "wb")
-    output.write(data)
-    output.close()
-
-    extract_location = os.path.join(parent_dir, "temp_flika")
-
-    with zipfile.ZipFile('flika.zip', "r") as z:
-        folder_name = os.path.dirname(z.namelist()[0])
-        if os.path.exists(extract_location):
-            shutil.rmtree(extract_location)
-        z.extractall(extract_location)
-    os.remove('flika.zip')
-    print("file: {}".format(__file__))
-    try:
-        for path, subs, fs in os.walk(folder):
-            extract_path = path.replace(os.path.basename(folder), os.path.join('temp_flika', 'flika-master'))
-            for f in fs:
-                if f.endswith(('.py', '.ui', '.png', '.txt', '.xml')):
-                    old, new = os.path.join(path, f), os.path.join(extract_path, f)
-                    if os.path.exists(old) and os.path.exists(new):
-                        m.statusBar().showMessage('replacing %s' % f)
-                        shutil.copy(new, old)
-        shutil.rmtree(extract_location)
-    except Exception as e:
-        messageBox("Update Error", "Failed to remove and replace old version of flika. %s" % e, icon=QtWidgets.QMessageBox.Warning)
-
-    #if not 'SPYDER_SHELL_ID' in os.environ:
-    #    Popen('python flika.py', shell=True)
-
-    alert('Update successful. Restart flika to complete update.')
     
 
 def setConsoleVisible(v):

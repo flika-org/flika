@@ -1,0 +1,123 @@
+# -*- coding: utf-8 -*-
+import os, sys
+from urllib.request import urlopen
+from urllib.error import HTTPError
+import re
+import pip
+import sys
+from io import StringIO, BytesIO
+import contextlib
+import pathlib
+import tempfile
+from zipfile import ZipFile
+from pkg_resources import parse_version
+import shutil
+from distutils.sysconfig import get_python_lib
+from qtpy import QtWidgets, QtGui, QtCore
+from . import global_vars as g
+from .version import __version__ as installed_flika_version
+
+
+
+__all__ = ['checkUpdates']
+
+
+def check_if_installed_via_pip():
+    s_loc = get_python_lib()
+    f_loc = __file__
+    s_loc = os.path.realpath(s_loc)
+    f_loc = os.path.realpath(f_loc)
+    return f_loc.startswith(s_loc)
+
+
+@contextlib.contextmanager
+def capture():
+    oldout, olderr = sys.stdout, sys.stderr
+    try:
+        out = [StringIO(), StringIO()]
+        sys.stdout, sys.stderr = out
+        yield out
+    finally:
+        sys.stdout, sys.stderr = oldout, olderr
+        out[0] = out[0].getvalue()
+        out[1] = out[1].getvalue()
+
+
+def get_pypi_version():
+    with capture() as out:
+        pip.main(['search', 'flika'])
+    stdout, stderr = out
+    pypi_version = re.search(r'\((.*?)\)', stdout).group(1)
+    return pypi_version
+
+
+def get_github_version():
+    url = "https://raw.githubusercontent.com/flika-org/flika/master/flika/version.py"
+    try:
+        data = urlopen(url).read().decode('utf-8')
+    except Exception as e:
+        g.alert("Connection Failed",
+                "Cannot connect to flika Repository. Connect to the internet to check for updates. %s" % e)
+        return
+    github_version = re.match(r'__version__\s*=\s*\'([\d\.\']*)\'', data).group(1)
+    return github_version
+
+
+def checkUpdates():
+    """
+    If flika was installed via pip, this function uses pip to lookup the current version.
+
+    If flika was downloaded directly from Github, this will check the current version in the master branch of the Github
+    repository.
+
+    """
+    installed_via_pip = check_if_installed_via_pip()
+    if installed_via_pip:
+        latest_version = get_pypi_version()
+    else:
+        latest_version = get_github_version()
+    message = "Installed version: " + installed_flika_version
+    if latest_version is None:
+        latest_version = 'Unknown'
+    message += '\nLatest Version: ' + latest_version
+
+    if parse_version(installed_flika_version) < parse_version(latest_version):
+        if g.messageBox("Update Recommended", message + '\n\nWould you like to update?',
+                      QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+                      QtWidgets.QMessageBox.Question) == QtWidgets.QMessageBox.Yes:
+            updateFlika()
+    else:
+        g.messageBox("Up to date", "Your version of Flika is up to date\n" + message)
+
+
+def updateFlika():
+    installed_via_pip = check_if_installed_via_pip()
+    if installed_via_pip:
+        with capture() as out:
+            pip.main(['install', '-U', '--no-deps', 'flika'])
+        stdout, stderr = out
+        print(stdout)
+        g.alert('Update successful. Restart flika to complete update.')
+    else:
+        flika_location = pathlib.Path(__file__).parents[1]
+        assert flika_location.stem == 'flika'
+        if flika_location.joinpath('.git').exists():
+            g.alert("This installation of flika is managed by git. Use git to upgrade.")
+            return False
+        extract_location = tempfile.mkdtemp()
+        url = urlopen('https://github.com/flika-org/flika/archive/master.zip')
+        print("Downloading flika from Github to {}".format(extract_location))
+        try:
+            with ZipFile(BytesIO(url.read())) as z:
+                folder_name = os.path.dirname(z.namelist()[0])
+                if os.path.exists(extract_location):
+                    shutil.rmtree(extract_location)
+                z.extractall(extract_location)
+        except Exception as e:
+            g.messageBox("Update Error", "Failed to remove and replace old version of flika. %s" % e,
+                         icon=QtWidgets.QMessageBox.Warning)
+        extract_location = pathlib.Path(extract_location)
+        new_flika_location = extract_location.joinpath('flika-master')
+        assert new_flika_location.exists()
+        new_flika_location.replace(flika_location)
+        g.alert('Update successful. Restart flika to complete update.')
