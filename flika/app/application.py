@@ -150,7 +150,7 @@ class Logger(QtWidgets.QWidget):
         if response.status_code != 200:
             g.alert("Failed to send error report. Response {}:\n{}".format((response.status_code, response._content)))
         else:
-            if email != '' or email is not None:
+            if email != '':
                 g.alert("Bug report sent. We will contact you as soon as we can.")
             else:
                 g.alert("Bug report sent. Thank you!")
