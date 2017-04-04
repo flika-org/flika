@@ -15,6 +15,7 @@ from ..images import image_path
 from ..roi import open_rois
 from ..logger import logger
 from ..version import __version__
+from ..update_flika import checkUpdates
 
 def addMenuItem(menu, label, item):
     if type(item) == QtWidgets.QMenu:
@@ -257,7 +258,7 @@ class FlikaApplication(QtWidgets.QMainWindow):
         helpMenu = self.menuBar().addMenu("Help")
         url = 'http://flika-org.github.io'
         helpMenu.addAction("Documentation", lambda: QtGui.QDesktopServices.openUrl(QtCore.QUrl(url)))
-        helpMenu.addAction("Check For Updates", g.checkUpdates)
+        helpMenu.addAction("Check For Updates", checkUpdates)
 
     def __getattr__(self, item):
         if item in self.__dict__:
