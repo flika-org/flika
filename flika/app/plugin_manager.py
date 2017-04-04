@@ -338,6 +338,12 @@ class PluginManager(QtWidgets.QMainWindow):
         self.updateButton.setVisible(plugin.version != '' and version < latest_version)
         self.downloadButton.setText("Install" if plugin.version == '' else 'Uninstall')
         self.documentationButton.setVisible(plugin.documentation != None)
+        if plugin.version == '':
+            plugin.listWidget.setIcon(QtGui.QIcon())
+        elif parse_version(plugin.version) < parse_version(plugin.latest_version):
+            plugin.listWidget.setIcon(QtGui.QIcon(image_path('exclamation.png')))
+        else:
+            plugin.listWidget.setIcon(QtGui.QIcon(image_path('check.png')))
 
         self.infoLabel.setText(info)
         self.descriptionLabel.setHtml(plugin.description)
