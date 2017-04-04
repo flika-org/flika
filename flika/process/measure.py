@@ -78,7 +78,7 @@ class Measure(BaseProcess):
                 self.fig = window
                 self.viewbox = self.fig.imageview.view
                 self.pathitem=QtWidgets.QGraphicsPathItem(self.viewbox)
-                self.pathitem.setPen(QtGui.QPen(QtCore.Qt.red))
+                self.pathitem.setPen(QtGui.QPen(QtCore.Qt.red, 0))
                 self.viewbox.addItem(self.pathitem,ignoreBounds=True)
             mousePoint = self.fig.imageview.getImageItem().mapFromScene(pos)
             pos = np.array([mousePoint.y(),mousePoint.x()])
@@ -90,7 +90,7 @@ class Measure(BaseProcess):
                 if not g.currentTrace.p1.plotItem.sceneBoundingRect().contains(pos):
                     return
                 self.pathitem=QtWidgets.QGraphicsPathItem(self.viewbox)
-                self.pathitem.setPen(QtGui.QPen(QtCore.Qt.red))
+                self.pathitem.setPen(QtGui.QPen(QtCore.Qt.red, 0))
                 self.viewbox.addItem(self.pathitem,ignoreBounds=True)
             mousePoint = self.viewbox.mapSceneToView(pos) if not overwrite else pos
             pos = np.array([mousePoint.x(),mousePoint.y()])
