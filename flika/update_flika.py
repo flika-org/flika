@@ -23,11 +23,11 @@ __all__ = ['checkUpdates']
 
 
 def check_if_installed_via_pip():
-    s_loc = get_python_lib()
-    f_loc = __file__
-    s_loc = os.path.realpath(s_loc)
-    f_loc = os.path.realpath(f_loc)
-    return f_loc.startswith(s_loc)
+    s_loc = pathlib.Path(get_python_lib())
+    f_loc = pathlib.Path(__file__)
+    assert f_loc.exists()
+    assert s_loc.exists()
+    return s_loc in f_loc.parents
 
 
 @contextlib.contextmanager
