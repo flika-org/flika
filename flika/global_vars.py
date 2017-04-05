@@ -5,6 +5,7 @@ from os.path import expanduser
 from qtpy import QtWidgets, QtGui, QtCore
 from collections.abc import MutableMapping
 import json
+from .logger import logger
 
 __all__ = ['m', 'Settings', 'menus', 'alert']
 
@@ -68,13 +69,15 @@ class Settings(MutableMapping): #http://stackoverflow.com/questions/3387691/pyth
 
     def load(self):
         """ Load settings file. """
+        if not os.path.exists(self.settings_file):
+            print('No settings file found. Creating settings file.')
+            self.save()
         try:
             with open(self.settings_file, 'r') as fp:
                 d = json.load(fp)
             d = {k: d[k] for k in d if d[k] is not None}
             self.d.update(d)
         except Exception as e:
-            from .logger import logger
             msg = "Failed to load settings file. {}\nDefault settings restored.".format(e)
             logger.info(msg)
             print(msg)
