@@ -371,7 +371,7 @@ class ROI_line(ROI_Base, pg.LineSegmentROI):
 
     def resetSignals(self):
         ROI_Base.resetSignals(self)
-        #self.sigRegionChanged.connect(self.snapPoints)
+        self.sigRegionChanged.connect(self.snapPoints)
 
     def snapPoints(self):
         """Correct ROI points to be at the center of pixels, for clarity
@@ -380,7 +380,7 @@ class ROI_line(ROI_Base, pg.LineSegmentROI):
         self.blockSignals(True)
         for handle in self.handles:
             pos = handle['pos']
-            pos_snap = self.getSnapPosition(pg.Point(pos)) + pg.Point(.5, .5)
+            pos_snap = self.getSnapPosition(pg.Point(pos))# + pg.Point(.5, .5)
             if not (pos == pos_snap):
                 handle['item'].setPos(pos_snap)
                 handle['pos'] = pos_snap
