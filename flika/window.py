@@ -68,10 +68,12 @@ class Window(QtWidgets.QWidget):
         self.linkMenu = QtWidgets.QMenu("Link frame")
         rp.ctrlMenu = self.linkMenu
         self.linkMenu.aboutToShow.connect(self.make_link_menu)
-
-        if np.any(np.isinf(tif)):
-            tif[np.isinf(tif)] = 0
-            g.alert('Some array values were inf. Setting those values to 0')
+        try:
+            if np.any(np.isinf(tif)):
+                tif[np.isinf(tif)] = 0
+                g.alert('Some array values were inf. Setting those values to 0')
+        except MemoryError:
+            pass
 
         self.imageview.setImage(tif)
         self.image = tif
