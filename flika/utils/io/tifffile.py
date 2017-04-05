@@ -296,17 +296,8 @@ except ImportError:
     except ImportError:
         lzma = None
 
-try:
-    if __package__:
-        from . import _tifffile  # noqa
-    else:
-        import _tifffile  # noqa
-except ImportError:
-    warnings.warn(
-        "ImportError: No module named '_tifffile'. "
-        "Loading of some compressed images will be very slow. "
-        "Tifffile.c can be obtained at http://www.lfd.uci.edu/~gohlke/")
-
+from ... import global_vars as g
+from qtpy import QtWidgets
 
 __version__ = '2017.03.17'
 __docformat__ = 'restructuredtext en'
@@ -1552,7 +1543,13 @@ class TiffFile(object):
                         self.parent.filehandle.close()
 
             keep = KeepOpen(self, self._multifile_close)
-            for page in pages:
+            percent = 0
+            nPages = len(pages)
+            for i, page in enumerate(pages):
+                if percent < int(100 * i / nPages):
+                    percent = int(100 * i / nPages)
+                    g.m.statusBar().showMessage('Loading file {}%'.format(percent))
+                    QtWidgets.qApp.processEvents()
                 keep.open(page)
                 if page:
                     a = page.asarray(memmap=False, colormapped=False,
@@ -4958,7 +4955,13 @@ def stack_pages(pages, memmap=False, tempdir=None, *args, **kwargs):
     if memmap:
         data.flush()
     del data0
+    nPages = len(pages)
+    percent = 0
     for i, page in enumerate(pages[1:]):
+        if percent < int(100*i/nPages):
+            percent = int(100 * i / nPages)
+            g.m.statusBar().showMessage('Loading file {}%'.format(percent))
+            QtWidgets.qApp.processEvents()
         data[i+1] = page.asarray(*args, **kwargs)
         if memmap:
             data.flush()

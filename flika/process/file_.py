@@ -215,7 +215,7 @@ def open_file(filename=None, from_gui=False):
         Tiff.close()
         axes = [tifffile.AXES_LABELS[ax] for ax in Tiff.pages[0].axes]
         # print("Original Axes = {}".format(axes)) #sample means RBGA, plane means frame, width means X, height means Y
-        if Tiff.is_rgb:
+        if metadata['is_rgb']:
             if A.ndim == 3:  # still color image.  [X, Y, RBGA]
                 A = np.transpose(A, (1, 0, 2))
             elif A.ndim == 4:  # movie in color.  [T, X, Y, RGBA]
