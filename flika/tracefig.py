@@ -11,6 +11,20 @@ pg.setConfigOptions(useWeave=False)
 
 
 class TraceFig(QtWidgets.QWidget):
+    """Trace Window to display ROI traces.
+    
+    Attributes:
+        p1 (pg.PlotWidget): top plot widget displaying selected region of traces
+        p2 (pg.PlotWidget): bottom plot widget displaying entire traces with region selection
+        rois ([dict]): list of roi information dicts for reference
+
+
+    Signals:
+        indexChanged(int): emits the index of the mouse when the mouse moves over the top plotWidget
+        finishedDrawingSignal(): emits when the bottom ROI is finished updating
+        keyPressSignal(QtCore.QEvent): emits when the traceWindow is selected and a key is pressed
+        partialThreadUpdatedSignal(): emits when the top plot widget is updated
+    """
     indexChanged=QtCore.Signal(int)
     finishedDrawingSignal=QtCore.Signal()
     keyPressSignal=QtCore.Signal(QtCore.QEvent)

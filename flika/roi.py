@@ -11,9 +11,17 @@ from .utils.misc import random_color, open_file_gui, nonpartial
 from .tracefig import roiPlot
 
 class ROI_Drawing(pg.GraphicsObject):
-    """
-    This class is used by the g.currentWindow when an roi is being created. Once the creation is finished, drawFinished()
-    is called and this class returns an ROI object.
+    """Graphics Object for ROIs while initially being drawn
+
+    Only used on initial mouse drag, the drawFinished method returns the
+    resulting ROI object which can then be modified
+
+    Attributes:
+        window (window.Window): Window object to draw the ROI in
+        x (int): x coordinate of mouse press
+        y (int): y coordinate of mouse press
+        kind (str): one of ['rectangle', 'line', 'freehand', 'rect_line']
+        color (QtGui.QColor): pen color to draw ROI with
     """
     def __init__(self, window, x, y, kind):
         pg.GraphicsObject.__init__(self)
@@ -64,7 +72,7 @@ class ROI_Drawing(pg.GraphicsObject):
             pts = [self.state['pos'], self.state['size']]
         else:
             pts = self.pts
-        return makeROI(self.kind, pts, self.window)
+        return makeROI(self.kind, pts, self.window, color=self.color)
 
 
     def contains(self, *args):
@@ -76,41 +84,21 @@ class ROI_Drawing(pg.GraphicsObject):
         return QtCore.QRectF(self.state['pos'].x(), self.state['pos'].y(), self.state['size'].x(), self.state['size'].y())
 
 class ROI_Base():
-    """ ROI_Base interface for all ROI types, template class for duplicate functions and functions to override.
-        connect window.closeEvent to ROI delete
-        set the window.currentROI to self
+    """ROI_Base interface for all ROI types
+
+    Template class for common and abstract functions, connects window.closeEvent to ROI.delete, set the window.currentROI to self
 
     Attributes:
         colorDialog: dialog for selecting the color of the ROI and its trace
         traceWindow: the tracewindow that this ROI is plotted to, or None
-        mask: array of XY values that are contained within the ROI
         pts: array of XY values used to copy the ROI
         linkedROIs: set of rois that act as one ROI
 
-    Not Implemented Functions:
+    Abstract Functions:
         getMask()
         getPoints()
+        draw_from_points(pts, finish=True)
 
-    Functions:
-        plot():
-            run the roiPlot function and link this window to the traceWindow
-            Returns the traceWindow
-        unplot():
-            Remove the roi from its traceWindow
-        link(roi):
-            add an roi to the linkedROIs set, so they translate together
-        colorSelected(QColor):
-            set the color of the roi
-        copy():
-            store the roi in the clipboard
-        paste():
-            Create an roi from the clipboard ROI using roi.getPoints()
-        delete():
-            unplot the ROI, remove the ROI from the window, clear it from the clipboard if it was copied, disconnect all signals
-        drawFinished():
-            add the ROI to the window, called by ROI_Drawing
-        str():
-            return kind and self.pts for recreating the ROI
     """
     INITIAL_ARGS = {'translateSnap': True, 'removable': True, 'snapSize': 1, 'scaleSnap': True}
 
@@ -150,12 +138,10 @@ class ROI_Base():
             roi.blockSignals(False)
 
     def redraw_trace(self):
+        """Emit the translateFinished signal which redraws the ROI trace
+        """
         if self.traceWindow is not None:
             self.traceWindow.translateFinished(self)
-
-    def getSnapPosition(self, *args, **kargs):
-        shift = pg.Point(.5, .5) if isinstance(self, (ROI_rect_line, )) else pg.Point(0, 0)
-        return pg.ROI.getSnapPosition(self, *args, **kargs) + shift
 
     def onRegionChange(self):
         self.pts = self.getPoints()
@@ -166,7 +152,7 @@ class ROI_Base():
         self.updateLinkedROIs(finish=True)
 
     def link(self,roi):
-        '''This function links this roi to another, so a translation of one will cause a translation of the other'''
+        '''Link this roi to another, so a translation of one will cause a translation of the other'''
         if not isinstance(roi, type(self)):
             return
         join = self.linkedROIs | roi.linkedROIs | {self, roi}
@@ -174,14 +160,15 @@ class ROI_Base():
         roi.linkedROIs = join - {roi}
 
     def getMask(self):
-        '''
-        Returns the list of integer points contained within the ROI
+        '''Returns the list of integer points contained within the ROI. Differs by ROI type
         '''
         raise NotImplementedError()
 
     def getTrace(self, bounds=None):
-        '''
-        Compute the average of the pixels within this ROI for the window of this ROI, return an array of average values, cropped by bounds
+        '''Compute the average of the pixels within this ROI in its window
+
+        Returns:
+            Average value within ROI mask, as an Array. Cropped to bounds if specified
         '''
         trace = None
         if self.window.image.ndim == 4 or self.window.metadata['is_rgb']:
@@ -204,14 +191,16 @@ class ROI_Base():
         return trace
 
     def getPoints(self):
-        '''
-        return the points that represent this ROI. Used for exporting
+        '''Get points that represent this ROI. Used for exporting
         '''
         raise NotImplementedError()
 
     def draw_from_points(self, pts, finish=True):
-        '''
-        Redraw the ROI from the given points, used on linked ROIs
+        '''Redraw the ROI from the given points, used on linked ROIs
+
+        Args:
+            pts: points used to represent ROI, often handle positions
+            finish: whether or not to emit the onRegionChangeFinished signal
         '''
         raise NotImplementedError()
 
@@ -234,6 +223,11 @@ class ROI_Base():
         self.update()
 
     def plot(self):
+        """Plot the ROI trace in a traceWindow
+
+        Returns:
+            tracefig.TraceFig: the trace window that the ROI was plotted to
+        """
         self.traceWindow = roiPlot(self)
         if self.traceWindow == None:
             return
@@ -245,11 +239,18 @@ class ROI_Base():
         self.colorDialog.open()
         
     def colorSelected(self, color):
+        """Set the pen color of the ROI
+
+        Args:
+            color (QtGui.QColor): new color for the ROI
+        """
         if color.isValid():
             self.setPen(QtGui.QColor(color.name()))
             self.sigRegionChangeFinished.emit(self)
 
     def unplot(self):
+        """Remove the ROI from its traceWindow
+        """
         try:
             self.traceWindow.indexChanged.disconnect(self.window.setIndex)
         except:
@@ -260,6 +261,8 @@ class ROI_Base():
             self.traceWindow = None
 
     def copy(self):
+        """Store this ROI in the clipboard
+        """
         g.clipboard=self
 
     def raiseContextMenu(self, ev):
@@ -294,6 +297,7 @@ class ROI_Base():
 
 
     def delete(self):
+        """Remove the ROI from its window, unlink all ROIs and delete the object"""
         self.unplot()
         for roi in self.linkedROIs:
             if self in roi.linkedROIs:
@@ -312,23 +316,39 @@ class ROI_Base():
         self.window.currentROI = self
 
     def str(self):
+        """Return ROI kind and points for easy export and import
+    
+        Returns:
+            str: ROI string representation
+        """
         s = self.kind + '\n'
         for x, y in self.pts:
             s += '{} {}\n'.format(x, y)
         return s
 
     def showMask(self):
+        """Create a new binary window that visualizes the ROI mask
+
+        Returns:
+            window.Window: created mask window
+        """
         from .window import Window
+        self.copy()
         im = np.zeros_like(self.window.imageview.getImageItem().image)
         s1, s2 = self.getMask()
         im[s1, s2] = 1
-        return Window(im)
+        w = Window(im)
+        w.paste()
+        return w
 
 
 class ROI_line(ROI_Base, pg.LineSegmentROI):
-    '''
-    ROI Line class for selecting a straight line of pixels between two points
-        Extends from the ROI_Base class and pyqtgraph ROI.LineSegmentROI
+    '''ROI Line class for selecting a straight line of pixels between two points
+    
+    Extends from the ROI_Base class and pyqtgraph ROI.LineSegmentROI
+
+    Attributes:
+        kymograph (window.Window): window showing 2d kymograph.
     '''
     kind = 'line'
     plotSignal = QtCore.Signal()
@@ -340,6 +360,7 @@ class ROI_line(ROI_Base, pg.LineSegmentROI):
         self.kymograph = None
         self.kymographAct = QtWidgets.QAction("&Kymograph", self, triggered=self.update_kymograph)
         ROI_Base.__init__(self, window, positions)
+        #self.snapPoints()
 
     def paint(self, p, *args):
         p.setRenderHint(QtGui.QPainter.Antialiasing)
@@ -350,14 +371,16 @@ class ROI_line(ROI_Base, pg.LineSegmentROI):
 
     def resetSignals(self):
         ROI_Base.resetSignals(self)
-        self.sigRegionChanged.connect(self.snapPoints)
+        #self.sigRegionChanged.connect(self.snapPoints)
 
     def snapPoints(self):
+        """Correct ROI points to be at the center of pixels, for clarity
+        """
         fix = False
         self.blockSignals(True)
         for handle in self.handles:
             pos = handle['pos']
-            pos_snap = self.getSnapPosition(pg.Point(pos))# + pg.Point(.5, .5)
+            pos_snap = self.getSnapPosition(pg.Point(pos)) + pg.Point(.5, .5)
             if not (pos == pos_snap):
                 handle['item'].setPos(pos_snap)
                 handle['pos'] = pos_snap
@@ -437,25 +460,21 @@ class ROI_line(ROI_Base, pg.LineSegmentROI):
         self.kymograph=None
 
 class ROI_rectangle(ROI_Base, pg.ROI):
-    '''
-    ROI rectangle class for selecting a set width and height group of pixels on an image
-        Extends from pyqtgraph ROI and ROI_Base
-
-    Parameters:
-        window: parent window to draw the ROI in
-        pos: XY coordinate of the upper left corner of the rectangle
-        size: (width, height) tuple of the ROI
-        resizable: scale handles will be drawn on each corner if this is True
-        See pg.ROI for other parameters
-
-    Functions:
-        crop():
-            create a new window with the original image cropped within this ROI
+    '''ROI rectangle class for selecting a set width and height group of pixels on an image
+    
+    Extends from pyqtgraph.ROI and ROI_Base
     '''
     kind = 'rectangle'
     plotSignal = QtCore.Signal()
 
     def __init__(self, window, pos, size, resizable=True, **kargs):
+        """__init__ of ROI_rectangle class
+
+        Args:
+            pos (2-tuple): position of top left corner
+            size: (2-tuple): width and height of the rectangle
+            resizable (bool): add resize handles to ROI. This cannot be changed after creation
+        """
         roiArgs = self.INITIAL_ARGS.copy()
         roiArgs.update(kargs)
         pos = np.array(pos, dtype=int)
@@ -471,6 +490,12 @@ class ROI_rectangle(ROI_Base, pg.ROI):
         ROI_Base.__init__(self, window, [pos, size])
 
     def center_around(self, x, y):
+        """Relocate ROI so center lies at Point (x, y). size is not changed
+
+        Args:
+            x (int): new center for rectangle on X axis
+            y (int): new center for rectangle on Y axis
+        """
         old_pts = self.getPoints()
         old_center = old_pts[0] + .5 * old_pts[1]
         new_center = np.array([x, y])
@@ -484,7 +509,6 @@ class ROI_rectangle(ROI_Base, pg.ROI):
     def contains_pts(self, x, y):
         target = np.array([x, y])
         return np.all(self.pts[0] < target) and np.all(target < self.pts[0]+self.pts[1])
-
 
     def getMask(self):
         x, y = self.state['pos']
@@ -511,6 +535,11 @@ class ROI_rectangle(ROI_Base, pg.ROI):
         self.menu.addAction(self.cropAction)
 
     def crop(self):
+        """Create a new window of the image cropped to this ROI
+
+        Returns:
+            window.Window: cropped image Window
+        """
         from .window import Window
         r = self.boundingRect()
         p1 = r.topLeft() + self.state['pos']
@@ -548,6 +577,12 @@ class ROI_rectangle(ROI_Base, pg.ROI):
 
 
 class ROI_freehand(ROI_Base, pg.PolyLineROI):
+    """ROI freehand class for selecting a polygon from the original image
+
+    Extends from pyqtgraph.PolyLineROI and ROI_Base
+
+    Workaround sets Handle opacities to 0
+    """
     kind = 'freehand'
     plotSignal = QtCore.Signal()
     def __init__(self, window, pts, **kargs):
@@ -560,9 +595,9 @@ class ROI_freehand(ROI_Base, pg.PolyLineROI):
 
     def draw_from_points(self, pts, finish=False):
         return
-        self.blockSignals(True)
-        self.setPoints([pg.Point(p) for p in pts], closed=True)
-        self.blockSignals(False)
+        #self.blockSignals(True)
+        #self.setPoints([pg.Point(p) for p in pts], closed=True)
+        #self.blockSignals(False)
 
     def setMouseHover(self, hover):
         for seg in self.segments:
@@ -625,8 +660,9 @@ class ROI_freehand(ROI_Base, pg.PolyLineROI):
 
 
 class ROI_rect_line(ROI_Base, QtWidgets.QGraphicsObject):
-    """
-    This ROI is a line with an adjustable width that can be composed of multiple straight line segments.
+    """ROI is a line with an adjustable width that can be composed of multiple straight line segments.
+
+    Extends from ROI_Base and QtWidgets.QGraphicsObject
     """
     kind = 'rect_line'
     plotSignal = QtCore.Signal()
@@ -956,7 +992,19 @@ class ROI_rect_line(ROI_Base, QtWidgets.QGraphicsObject):
         self.kymograph.closeSignal.disconnect(self.deleteKymograph)
         self.kymograph=None
 
-def makeROI(kind, pts, window=None, **kargs):
+def makeROI(kind, pts, window=None, color=None, **kargs):
+    """Create an ROI object in window with the given points
+
+    Args:
+        kind (str): one of ['line', 'rectangle', 'freehand', 'rect_line']
+        pts ([N, 2] list of coords): points used to draw the ROI. Differs by kind
+        window (window.Window): window to draw the ROI in, or currentWindow if not specified
+        color (QtGui.QColor): pen color of the new ROI
+        **kargs: additional arguments to pass to the ROI __init__ function
+
+    Returns:
+        ROI Object extending ROI_Base
+    """
     if window is None:
         window = g.currentWindow
         if window is None:
@@ -980,7 +1028,10 @@ def makeROI(kind, pts, window=None, **kargs):
         g.alert("ERROR: THIS KIND OF ROI COULD NOT BE FOUND: {}".format(kind))
         return None
 
-    pen = QtGui.QPen(QtGui.QColor(g.settings['roi_color']) if g.settings['roi_color'] != 'random' else random_color())
+    if color is None or not isinstance(color, QtGui.QColor):
+        pen = QtGui.QPen(QtGui.QColor(g.settings['roi_color']) if g.settings['roi_color'] != 'random' else random_color())
+    else:
+        pen = QtGui.QPen(color)
     pen.setWidth(0)
 
     roi.drawFinished()
@@ -996,7 +1047,6 @@ def open_rois(filename=None):
 
     Returns:
         list of rois
-
 
     """
     if filename is None:

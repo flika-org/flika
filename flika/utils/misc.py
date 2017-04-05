@@ -9,8 +9,7 @@ from qtpy import uic, QtGui, QtWidgets
 __all__ = ['nonpartial', 'setConsoleVisible', 'load_ui', 'random_color', 'save_file_gui', 'open_file_gui']
 
 def nonpartial(func, *args, **kwargs):
-    """
-    Like functools.partial, this returns a function which, when called, calls
+    """Like functools.partial, this returns a function which, when called, calls
     ``func(*args, **kwargs)``.
 
     Unlike functools.partial, extra arguments passed to the returned function
@@ -22,6 +21,13 @@ def nonpartial(func, *args, **kwargs):
     return result
 
 def setConsoleVisible(v):
+    """ Set visibility of the console when running flika. This only works on windows systems
+    when running flika as a standalone process and may be removed soon.
+
+    Args:
+        v (bool): True to show console, False to hide
+
+    """
     if platform.system() == 'Windows':
         from ctypes import windll
         GetConsoleWindow = windll.kernel32.GetConsoleWindow
@@ -32,6 +38,11 @@ def setConsoleVisible(v):
         print('Displaying the console on non-windows systems not yet supported')
 
 def random_color():
+    """ Generate an QColor that is bright enough to see on a black and white background
+    
+    Returns:
+        QtGui.QColor: randomly generated color object
+    """ 
     colors = [(165,42,42), (178,34,34), (220,20,60), (255,0,0), (255,99,71), (255,127,80), (205,92,92), (240,128,128), (233,150,122), 
     (250,128,114), (255,160,122), (255,69,0), (255,140,0), (255,165,0), (255,215,0), (184,134,11), (218,165,32), (238,232,170), (240,230,140),
     (128,128,0), (255,255,0), (154,205,50), (85,107,47), (107,142,35), (124,252,0), (127,255,0), (173,255,47), (34,139,34), (0,255,0),
@@ -48,21 +59,14 @@ def random_color():
     return QtGui.QColor(*colors[ind])
 
 def load_ui(path, parent=None, directory=None):
-    """
-    Load a .ui file
+    """Load a .ui file
 
-    Parameters
-    ----------
-    path : str
-        Name of ui file to load
+    Args:
+        path (str): Name of ui file to load
+        parent (QtCore.QObject): Object to use as the parent of this widget
 
-    parent : QObject
-        Object to use as the parent of this widget
-
-    Returns
-    -------
-    w : QtWidgets.QWidget
-        The new widget
+    Returns:
+        QtWidgets.QWidget: The widget created from the specified ui file
     """
 
     if directory is not None:
@@ -77,19 +81,16 @@ def load_ui(path, parent=None, directory=None):
     return uic.loadUi(full_path, parent)
 
 def save_file_gui(prompt="Save file", directory=None, filetypes=''):
-    ''' File dialog for saving a new file, isolated to handle tuple/string return value
-    Parameters
-    ----------
-    prompt : str
-        string to display at the top of the window
-    directory : str
-        initial directory to save the file to
-    filetypes: str
-        argument for filtering file types separated by ;; (*.png) or (Images *.png);;(Other *.*)
-    Returns
-    -------
-    str: the file path selected, or empty string if none
-    '''
+    """ File dialog for saving a new file, isolated to handle tuple/string return value
+    
+    Args:
+        prompt (str): string to display at the top of the window
+        directory (str): initial directory to save the file to
+        filetypes (str): argument for filtering file types separated by ;; (*.png) or (Images *.png);;(Other *.*)
+    
+    Returns:
+        str: the file path selected, or empty string if canceled
+    """
     from .. import global_vars as g
     if directory is None or directory == '':
         filename = g.settings['filename']
@@ -113,19 +114,16 @@ def save_file_gui(prompt="Save file", directory=None, filetypes=''):
 
 
 def open_file_gui(prompt="Open File", directory=None, filetypes=''):
-    ''' File dialog for opening an existing file, isolated to handle tuple/string return value
-    Parameters
-    ----------
-    prompt : str
-        string to display at the top of the window
-    directory : str
-        initial directory to open
-    filetypes: str
-        argument for filtering file types separated by ;; (*.png) or (Images *.png);;(Other *.*)
-    Returns
-    -------
-    str: the file (path+file+extension) selected, or None
-    '''
+    """ File dialog for opening an existing file, isolated to handle tuple/string return value
+    
+    Args:
+        prompt (str): string to display at the top of the window
+        directory (str): initial directory to open
+        filetypes (str): argument for filtering file types separated by ;; (*.png) or (Images *.png);;(Other *.*)
+    
+    Returns:
+        str: the file (path+file+extension) selected, or None
+    """
     from .. import global_vars as g
 
     if directory is None:
