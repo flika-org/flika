@@ -63,6 +63,7 @@ install_requires = [
       'ipykernel',
       'qtconsole',
       'pyopengl',
+      'requests',
       'nd2reader']
 
 if sys.platform == 'win32':
