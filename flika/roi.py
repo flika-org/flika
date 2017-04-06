@@ -1,4 +1,28 @@
 # -*- coding: utf-8 -*-
+"""This module declares Region Of Interest (ROI) types as extensions of pyqtgraph.ROI objects.
+
+Current ROI types are:
+    * line
+    * rectangle
+    * freehand
+    * rect_line
+
+The ROI_Drawing class is used while the user is drawing an ROI
+
+Example:
+    >>> roi = makeROI('line', [[10, 10], [20, 15]])
+    >>> roi.plot()
+    >>> roi.copy()
+    >>> win2 = open_file()
+    >>> roi2 = win2.paste()
+
+Todo:
+    * Correct ROI line handles to be at center of pixel
+    * Optimize ROI freehand to not extend PolylineROI
+    * Add point as another ROI type
+
+"""
+
 from qtpy import QtGui, QtCore, QtWidgets
 import pyqtgraph as pg
 from pyqtgraph.graphicsItems.ROI import Handle
@@ -11,7 +35,7 @@ from .utils.misc import random_color, open_file_gui, nonpartial
 from .tracefig import roiPlot
 
 class ROI_Drawing(pg.GraphicsObject):
-    """Graphics Object for ROIs while initially being drawn
+    """Graphics Object for ROIs while initially being drawn. Extends pyqtrgaph.GraphicsObject
 
     Only used on initial mouse drag, the drawFinished method returns the
     resulting ROI object which can then be modified
@@ -86,18 +110,22 @@ class ROI_Drawing(pg.GraphicsObject):
 class ROI_Base():
     """ROI_Base interface for all ROI types
 
-    Template class for common and abstract functions, connects window.closeEvent to ROI.delete, set the window.currentROI to self
+    Template class for common and abstract functions, connects window.closeEvent to pyqtgraph.ROI.delete, set the window.currentROI to self
 
     Attributes:
         colorDialog: dialog for selecting the color of the ROI and its trace
-        traceWindow: the tracewindow that this ROI is plotted to, or None
+        traceWindow: the :class:`TraceFig <flika.tracefig.TraceFig>` that this ROI is plotted to, or None
         pts: array of XY values used to copy the ROI
         linkedROIs: set of rois that act as one ROI
 
-    Abstract Functions:
-        getMask()
-        getPoints()
-        draw_from_points(pts, finish=True)
+    Note:
+        All ROI objects implement the following methods:
+            getMask():
+                returns the [2, N] array of mask coordinates
+            getPoints():
+                returns the [N, 2] points that make up the ROI   
+            draw_from_points(pts, finish=True):
+                updates the point locations that make the ROI, used in linked ROIs
 
     """
     INITIAL_ARGS = {'translateSnap': True, 'removable': True, 'snapSize': 1, 'scaleSnap': True}
@@ -160,7 +188,7 @@ class ROI_Base():
         roi.linkedROIs = join - {roi}
 
     def getMask(self):
-        '''Returns the list of integer points contained within the ROI. Differs by ROI type
+        '''Returns the list of integer points contained within the ROI, differs by ROI type
         '''
         raise NotImplementedError()
 
@@ -168,7 +196,7 @@ class ROI_Base():
         '''Compute the average of the pixels within this ROI in its window
 
         Returns:
-            Average value within ROI mask, as an Array. Cropped to bounds if specified
+            Average value within ROI mask, as an array. Cropped to bounds if specified
         '''
         trace = None
         if self.window.image.ndim == 4 or self.window.metadata['is_rgb']:
@@ -191,7 +219,7 @@ class ROI_Base():
         return trace
 
     def getPoints(self):
-        '''Get points that represent this ROI. Used for exporting
+        '''Get points that represent this ROI, used for exporting
         '''
         raise NotImplementedError()
 
@@ -223,7 +251,7 @@ class ROI_Base():
         self.update()
 
     def plot(self):
-        """Plot the ROI trace in a traceWindow
+        """Plot the ROI trace in a :class:`TraceFig <flika.tracefig.TraceFig>`
 
         Returns:
             tracefig.TraceFig: the trace window that the ROI was plotted to
@@ -249,7 +277,7 @@ class ROI_Base():
             self.sigRegionChangeFinished.emit(self)
 
     def unplot(self):
-        """Remove the ROI from its traceWindow
+        """Remove the ROI from its :class:`TraceFig <flika.tracefig.TraceFig>`
         """
         try:
             self.traceWindow.indexChanged.disconnect(self.window.setIndex)
@@ -343,12 +371,12 @@ class ROI_Base():
 
 
 class ROI_line(ROI_Base, pg.LineSegmentROI):
-    '''ROI Line class for selecting a straight line of pixels between two points
-    
-    Extends from the ROI_Base class and pyqtgraph ROI.LineSegmentROI
+    '''ROI Line class for selecting a straight line of pixels between two points.
+
+    Extends from :class:`ROI_Base <flika.roi.ROI_Base>` and pyqtgraph pyqtgraph.LineSegmentROI
 
     Attributes:
-        kymograph (window.Window): window showing 2d kymograph.
+        kymograph (Window): :class:`Window <flika.window.Window>` showing 2d kymograph.
     '''
     kind = 'line'
     plotSignal = QtCore.Signal()
@@ -460,9 +488,9 @@ class ROI_line(ROI_Base, pg.LineSegmentROI):
         self.kymograph=None
 
 class ROI_rectangle(ROI_Base, pg.ROI):
-    '''ROI rectangle class for selecting a set width and height group of pixels on an image
-    
-    Extends from pyqtgraph.ROI and ROI_Base
+    '''ROI rectangle class for selecting a set width and height group of pixels on an image.
+
+    Extends from :class:`ROI_Base <flika.roi.ROI_Base>` and pyqtgraph.ROI
     '''
     kind = 'rectangle'
     plotSignal = QtCore.Signal()
@@ -473,7 +501,7 @@ class ROI_rectangle(ROI_Base, pg.ROI):
         Args:
             pos (2-tuple): position of top left corner
             size: (2-tuple): width and height of the rectangle
-            resizable (bool): add resize handles to ROI. This cannot be changed after creation
+            resizable (bool): add resize handles to ROI, this cannot be changed after creation
         """
         roiArgs = self.INITIAL_ARGS.copy()
         roiArgs.update(kargs)
@@ -577,11 +605,9 @@ class ROI_rectangle(ROI_Base, pg.ROI):
 
 
 class ROI_freehand(ROI_Base, pg.PolyLineROI):
-    """ROI freehand class for selecting a polygon from the original image
+    """ROI freehand class for selecting a polygon from the original image.
 
-    Extends from pyqtgraph.PolyLineROI and ROI_Base
-
-    Workaround sets Handle opacities to 0
+    Extends from :class:`ROI_Base <flika.roi.ROI_Base>` and pyqtgraph.PolyLineROI. Workaround sets Handle opacities to 0
     """
     kind = 'freehand'
     plotSignal = QtCore.Signal()
@@ -660,9 +686,12 @@ class ROI_freehand(ROI_Base, pg.PolyLineROI):
 
 
 class ROI_rect_line(ROI_Base, QtWidgets.QGraphicsObject):
-    """ROI is a line with an adjustable width that can be composed of multiple straight line segments.
+    """Collection of linked line segments with adjustable width.
 
-    Extends from ROI_Base and QtWidgets.QGraphicsObject
+    Extends from :class:`ROI_Base <flika.roi.ROI_Base>` and QtWidgets.QGraphicsObject
+
+    Attributes:
+        kymograph (Window): :class:`Window <flika.window.Window>` showing 2d kymograph.
     """
     kind = 'rect_line'
     plotSignal = QtCore.Signal()
@@ -837,7 +866,7 @@ class ROI_rect_line(ROI_Base, QtWidgets.QGraphicsObject):
         return newRoi, h2
 
     def removeSegment(self, segment=None): 
-        """Remove a segment from the ROI."""
+        """Remove a segment from the ROI"""
         if segment is None:
             segment = self.removeLinkAction.data()
             if segment is None:
@@ -968,6 +997,11 @@ class ROI_rect_line(ROI_Base, QtWidgets.QGraphicsObject):
             #self.kymograph.imageview.view.setAspectLocked(lock=True,ratio=mn.shape[1]/mn.shape[0])
 
     def setWidth(self, newWidth=None):
+        """Set the width of each segment in the ROI
+
+        Args:
+            newWidth (int): new width of all segments
+        """
         s = True
         if newWidth == None:
             newWidth, s = QtWidgets.QInputDialog.getInt(None, "Enter a width value", 'Float Value', value = self.width)
@@ -997,7 +1031,7 @@ def makeROI(kind, pts, window=None, color=None, **kargs):
 
     Args:
         kind (str): one of ['line', 'rectangle', 'freehand', 'rect_line']
-        pts ([N, 2] list of coords): points used to draw the ROI. Differs by kind
+        pts ([N, 2] list of coords): points used to draw the ROI, differs by kind
         window (window.Window): window to draw the ROI in, or currentWindow if not specified
         color (QtGui.QColor): pen color of the new ROI
         **kargs: additional arguments to pass to the ROI __init__ function
