@@ -5,7 +5,9 @@ from os.path import expanduser
 from qtpy import QtWidgets, QtGui, QtCore
 from collections.abc import MutableMapping
 import json
+from uuid import getnode
 from .logger import logger
+from .utils.misc import get_location
 
 __all__ = ['m', 'Settings', 'menus', 'alert']
 
@@ -83,6 +85,16 @@ class Settings(MutableMapping): #http://stackoverflow.com/questions/3387691/pyth
             print(msg)
             self.save()
         self.d['mousemode'] = 'rectangle'  # don't change initial mousemode
+        self._load_user_information()
+
+    def _load_user_information(self):
+        if 'user_information' not in self.d:
+            self.d['user_information'] = {}
+        if self.d['user_information']['UUID'] is None:
+            self.d['user_information']['UUID'] = getnode()
+        if self.d['user_information']['location'] is None:
+            self.d['user_information']['location'] = get_location()
+
 
     def setmousemode(self,mode):
         self['mousemode']=mode

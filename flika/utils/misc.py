@@ -2,11 +2,11 @@ import os
 import random
 import numpy as np
 import platform
+import json
 import requests
 import time
-from uuid import getnode
 from qtpy import uic, QtGui, QtWidgets
-__all__ = ['nonpartial', 'setConsoleVisible', 'load_ui', 'random_color', 'save_file_gui', 'open_file_gui']
+__all__ = ['nonpartial', 'setConsoleVisible', 'load_ui', 'random_color', 'save_file_gui', 'open_file_gui', 'get_location']
 
 def nonpartial(func, *args, **kwargs):
     """Like functools.partial, this returns a function which, when called, calls
@@ -147,19 +147,35 @@ def open_file_gui(prompt="Open File", directory=None, filetypes=''):
         return str(filename)
 
 def send_error_report(email, report):
-    address = getnode()
-    timezone = time.tzname
-    gmt = time.strftime('%c', time.gmtime())
-    kargs = {'address': address, 'email': email, 'report': report, 'timezone': timezone, 'gmt': gmt}
-    r = requests.post("http://flikarest.pythonanywhere.com/reports/submit", data=kargs)
+    from .. import global_vars as g
+    address = g.settings['user_information']['UUID']
+    location = g.settings['user_information']['location']
+
+    kargs = {'address': address, 'email': email, 'report': report, 'location': location}
+    try:
+        r = requests.post("http://flikarest.pythonanywhere.com/reports/submit", data=kargs)
+    except requests.exceptions.ConnectionError:
+        return None
     return r
 
 def send_user_stats():
-    timezone = time.tzname[0]
-    gmt = time.strftime('%c', time.gmtime())
-    address = getnode()
-    kargs = {'address': address, 'timezone': timezone, 'gmt': gmt}
-    r = requests.post("http://flikarest.pythonanywhere.com/user_stats/log_user", data=kargs)
-    if r.status_code != 200:
-        pass
+    from .. import global_vars as g
+    address = g.settings['user_information']['UUID']
+    location = g.settings['user_information']['location']
+
+    kargs = {'address': address, 'location': location}
+    try:
+        r = requests.post("http://flikarest.pythonanywhere.com/user_stats/log_user", data=kargs)
+    except requests.exceptions.ConnectionError:
+        return None
     return r
+
+def get_location():
+    send_url = 'http://freegeoip.net/json'
+    try:
+        r = requests.get(send_url)
+    except (requests.exceptions.ConnectionError, Exception):
+        return None
+    j = json.loads(r.text)
+    location = "{}, {}, {}".format(j['city'], j['region_name'], j['country_name'])
+    return location

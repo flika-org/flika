@@ -128,8 +128,8 @@ class Logger(QtWidgets.QWidget):
         email = QtWidgets.QInputDialog.getText(self, "Response email", "Enter your email if you would like us to contact you about this bug.")
         if isinstance(email, tuple) and len(email) == 2:
             email = email[0]
-        response = send_error_report(email, text)
-        if response.status_code != 200:
+        response = send_error_report(email=email, report=text)
+        if response is None or response.status_code != 200:
             g.alert("Failed to send error report. Response {}:\n{}".format((response.status_code, response._content)))
         else:
             if email != '':
