@@ -98,14 +98,11 @@ class Window(QtWidgets.QWidget):
             mt = 1
             mx, my = tif.shape
             dimensions_txt = "{}x{} pixels; ".format(mx, my)
-        """
-        self.mx is a test.
-        """
-        self.mx = mx
-        self.my = my
-        self.mt = mt
-        dtype = self.image.dtype  #: dtype: The datatype of the stored image, e.g. ``uint8``.
-        dimensions_txt += 'dtype=' + str(dtype)
+        self.mx = mx  #: int: The number of pixels wide the image is in the x (left to right) dimension.
+        self.my = my  #: int: The number of pixels heigh the image is in the y (up to down) dimension.
+        self.mt = mt  #: int: The number of frames in the image stack.
+        self.dtype = self.image.dtype  #: dtype: The datatype of the stored image, e.g. ``uint8``.
+        dimensions_txt += 'dtype=' + str(self.dtype)
         if 'timestamps' in self.metadata:
             ts = self.metadata['timestamps']
             self.framerate = (ts[-1] - ts[0]) / len(ts)
@@ -198,6 +195,12 @@ class Window(QtWidgets.QWidget):
             win.link(self)
 
     def unlink(self, win):
+        """
+        This unlinks a window from this one.
+
+        Args:
+            win (flika.window.Window): The window that will be unlinked from this one
+        """
         if win in self.linkedWindows:
             self.linkedWindows.remove(win)
             self.sigTimeChanged.disconnect(win.imageview.setCurrentIndex)
@@ -230,11 +233,17 @@ class Window(QtWidgets.QWidget):
                 self.scatterPlot.setPoints(pos=self.scatterPoints[t], size=pointSizes, brush=brushes)
             self.sigTimeChanged.emit(t)
 
-    def setIndex(self,index):
+    def setIndex(self, index):
+        """
+        This sets the index of this window
+
+        Args:
+            index (int): The index of the image this window will display
+        """
         if hasattr(self, 'image') and self.image.ndim > 2 and 0 <= index < len(self.image):
             self.imageview.setCurrentIndex(index)
 
-    def showFrame(self,index):
+    def showFrame(self, index):
         if index>=0 and index<self.mt:
             msg = 'frame {}'.format(index)
             if 'timestamps' in self.metadata and self.metadata['timestamp_units']=='ms':
@@ -254,10 +263,13 @@ class Window(QtWidgets.QWidget):
                     mminutes = seconds - hours * 3600
                     minutes = int(np.floor(mminutes / 60))
                     seconds = mminutes - minutes * 60
-                    '; {} h {} m {:.4f} s'.format(hours, minutes, seconds)
+                    msg += '; {} h {} m {:.4f} s'.format(hours, minutes, seconds)
             g.m.statusBar().showMessage(msg)
 
     def setName(self,name):
+        """
+        set the name of this window.
+        """
         name = str(name)
         self.name = name
         self.setWindowTitle(name)
@@ -330,7 +342,7 @@ class Window(QtWidgets.QWidget):
 
     def paste(self):
         """ This function pastes an ROI from one window into another.
-        The ROIs will be linked so that when you translate one of them, the other one also moves.
+        The ROIs will be linked so that when you alter one of them, the other will be altered in the same way.
         """
         def pasteROI(roi):
             if roi in self.rois:
@@ -386,6 +398,10 @@ class Window(QtWidgets.QWidget):
             self.scatterPlot.setPoints(pos=self.scatterPoints[t], size=pointSizes, brush=brushes)
 
     def getScatterPts(self):
+        """
+        Returns:
+            numpy array: an Nx3 array of scatter points, where N is the number of points. Col0 is frame, Col1 is x, Col2 is y. 
+        """
         p_out=[]
         p_in=self.scatterPoints
         for t in np.arange(len(p_in)):
@@ -405,7 +421,7 @@ class Window(QtWidgets.QWidget):
         plotAllAct = QtWidgets.QAction('&Plot All ROIs', self.menu, triggered=self.plotAllROIs )
         copyAll = QtWidgets.QAction("Copy All ROIs", self.menu, triggered = lambda a: setattr(g, 'clipboard', self.rois))
         removeAll = QtWidgets.QAction("Remove All ROIs", self.menu, triggered = self.removeAllROIs)
-        saveAll = QtWidgets.QAction("&Save All ROIs",self, triggered=self.exportROIs)
+        saveAll = QtWidgets.QAction("&Save All ROIs",self, triggered=self.save_rois)
 
         self.menu.addAction(pasteAct)
         self.menu.addAction(plotAllAct)
@@ -467,7 +483,12 @@ class Window(QtWidgets.QWidget):
             self.currentROI.cancel()
             self.creatingROI = None
 
-    def exportROIs(self, filename=None):
+    def save_rois(self, filename=None):
+        """
+        Args:
+            filename (str): The filename, including the full path, where the ROI file will be saved. 
+
+        """
         if not isinstance(filename, str):
             if filename is not None and os.path.isfile(filename):
                 filename = os.path.splitext(g.settings['filename'])[0]

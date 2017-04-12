@@ -109,7 +109,7 @@ class ROITest():
 
 	def test_export_import(self):
 		s = str(self.roi)
-		self.roi.window.exportROIs("test.txt")
+		self.roi.window.save_rois("test.txt")
 		from ..roi import open_rois
 		rois = open_rois('test.txt')
 		assert len(rois) == 1, "Import ROI failure"
@@ -339,7 +339,7 @@ class TestTracefig():
 		assert self.w1.currentIndex == 20, "trace indexChanged"
 
 	def test_export(self):
-		self.rect.window.exportROIs('tempROI.txt')
+		self.rect.window.save_rois('tempROI.txt')
 		t = open('tempROI.txt').read()
 		assert t == 'rectangle\n3 2\n4 5\n'
 		os.remove('tempROI.txt')
