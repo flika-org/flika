@@ -90,9 +90,9 @@ class Settings(MutableMapping): #http://stackoverflow.com/questions/3387691/pyth
     def _load_user_information(self):
         if 'user_information' not in self.d:
             self.d['user_information'] = {}
-        if self.d['user_information']['UUID'] is None:
+        if 'UUID' not in self.d['user_information'] or self.d['user_information']['UUID'] is None:
             self.d['user_information']['UUID'] = getnode()
-        if self.d['user_information']['location'] is None:
+        if 'location' not in self.d['user_information'] or self.d['user_information']['location'] is None:
             self.d['user_information']['location'] = get_location()
 
 

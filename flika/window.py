@@ -26,8 +26,8 @@ class Window(QtWidgets.QWidget):
 
     def __init__(self, tif, name='flika', filename='', commands=[], metadata=dict()):
         QtWidgets.QWidget.__init__(self)
-        self.commands = commands  # commands is a list of the commands used to create this window, starting with loading the file.
-        self.metadata = metadata
+        self.commands = commands  #: list of str: a list of the commands used to create this window, starting with loading the file.
+        self.metadata = metadata  #: dict: a dictionary containing the original file's metadata.
         if 'is_rgb' not in metadata.keys():
             metadata['is_rgb'] = tif.ndim == 4
         if g.currentWindow is None:
@@ -50,8 +50,8 @@ class Window(QtWidgets.QWidget):
 
         self.resizeEvent = self.onResize
         self.moveEvent = self.onMove
-        self.name = name
-        self.filename = filename
+        self.name = name #: str: The name of the window.
+        self.filename = filename #: str: The filename (including full path) of file this window's image orinated from.
         self.setAsCurrentWindow()
         self.setWindowTitle(name)
         self.imageview = pg.ImageView(self)
@@ -76,9 +76,9 @@ class Window(QtWidgets.QWidget):
             pass
 
         self.imageview.setImage(tif)
-        self.image = tif
+        self.image = tif #: numpy array: The image stored in and displayed by this window. This can be 2D, 3D, 2D with color channels, or 3D with color channels. 
         self.volume = None  # When attaching a 4D array to this Window object, where self.image is a 3D slice of this volume, attach it here. This will remain None for all 3D Windows
-        self.nDims = len(np.shape(self.image))
+        self.nDims = len(np.shape(self.image))  #: int: The number of dimensions of the stored image. 
         dimensions_txt = ""
         mx = 0
         my = 0
@@ -98,10 +98,13 @@ class Window(QtWidgets.QWidget):
             mt = 1
             mx, my = tif.shape
             dimensions_txt = "{}x{} pixels; ".format(mx, my)
+        """
+        self.mx is a test.
+        """
         self.mx = mx
         self.my = my
         self.mt = mt
-        dtype = self.image.dtype
+        dtype = self.image.dtype  #: dtype: The datatype of the stored image, e.g. ``uint8``.
         dimensions_txt += 'dtype=' + str(dtype)
         if 'timestamps' in self.metadata:
             ts = self.metadata['timestamps']
@@ -119,8 +122,8 @@ class Window(QtWidgets.QWidget):
         self.imageview.scene.sigMouseMoved.connect(self.mouseMoved)
         self.imageview.view.mouseDragEvent = self.mouseDragEvent
         self.imageview.view.mouseClickEvent = self.mouseClickEvent
-        self.rois = []
-        self.currentROI = None
+        self.rois = []  #: list of ROIs: a list of all the :class:`ROIs <flika.roi.ROI_Base>` inside this window. 
+        self.currentROI = None  #: :class:`ROI <flika.roi.ROI_Base>`: When an ROI is clicked, it becomes the currentROI of that window and can be accessed via this variable.
         self.creatingROI = False
         pointSize = g.settings['point_size']
         pointColor = QtGui.QColor(g.settings['point_color'])
@@ -135,7 +138,7 @@ class Window(QtWidgets.QWidget):
         self.sigTimeChanged.connect(self.showFrame)
         if self not in g.windows:
             g.windows.append(self)
-        self.closed=False
+        self.closed = False  #: bool: True if the window has been closed, False otherwise. 
 
         from .process.measure import measure
         self.measure = measure
@@ -152,6 +155,11 @@ class Window(QtWidgets.QWidget):
         g.settings['window_settings']['coords'] = self.geometry().getRect()
 
     def save(self, filename):
+        """
+        Args:
+            filename (str): The filename, including the full path, where this (.tif) file will be saved. 
+
+        """
         from .process.file_ import save_file
         old_curr_win = g.currentWindow
         self.setAsCurrentWindow()
@@ -178,6 +186,12 @@ class Window(QtWidgets.QWidget):
                 self.imageview.setLevels(-.01, 1.01)  # set levels from slightly below 0 to 1
     
     def link(self, win):
+        """
+        Linking a window to another means when the current index of one changes, the index of the other will automatically change.
+
+        Args:
+            win (flika.window.Window): The window that will be linked with this one
+        """
         if win not in self.linkedWindows:
             self.sigTimeChanged.connect(win.imageview.setCurrentIndex)
             self.linkedWindows.add(win)
@@ -339,6 +353,9 @@ class Window(QtWidgets.QWidget):
         self.setAsCurrentWindow()
 
     def setAsCurrentWindow(self):
+        """This function sets this window as the current window. There is only one current window. All operations are performed on the
+        current window. The current window can be accessed from the variable ``g.currentWindow``. 
+        """
         if g.currentWindow is not None:
             g.currentWindow.setStyleSheet("border:1px solid rgb(0, 0, 0); ")
             g.currentWindow.lostFocusSignal.emit()
@@ -459,7 +476,7 @@ class Window(QtWidgets.QWidget):
                 filename = save_file_gui('Save ROI', '', '*.txt')
 
         if filename != '' and isinstance(filename, str):
-            reprs = [roi.str() for roi in self.rois]
+            reprs = [roi._str() for roi in self.rois]
             reprs = '\n'.join(reprs)
             open(filename, 'w').write(reprs)
         else:
