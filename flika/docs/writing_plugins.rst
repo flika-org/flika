@@ -13,14 +13,14 @@ is your username.)
 The directory containing your plugin must contain the following files
 
 - ``__init__.py`` - Plugins are python modules and have to be imported. This can be empty
-- ``about.html`` - The html in this file will be displayed by Flika's plugin manager.
-- ``info.xml`` - This specifies plugin metadata that Flika's plugin manager will use and display.
+- ``about.html`` - The html in this file will be displayed by flika's plugin manager.
+- ``info.xml`` - This specifies plugin metadata that flika's plugin manager will use and display.
     
 The ``info.xml`` file should look something like this
 
 .. code-block:: xml
 
-  <plugin name='Flika plugin template'>
+  <plugin name='flika plugin template'>
     <directory>
       flika_plugin_template
     </directory>

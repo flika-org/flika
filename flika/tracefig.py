@@ -1,10 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Flika
-@author: Kyle Ellefsen
-@author: Brett Settle
-@license: MIT
-"""
 import os
 import time
 import numpy as np
@@ -17,6 +11,19 @@ pg.setConfigOptions(useWeave=False)
 
 
 class TraceFig(QtWidgets.QWidget):
+    """Pyqtgraph PlotWidget with frame range selector. Display average trace of ROIs and updates in realtime.
+    
+    Attributes:
+        p1 (pg.PlotWidget): top plot widget displaying selected region of traces
+        p2 (pg.PlotWidget): bottom plot widget displaying entire traces with region selection
+        rois ([dict]): list of roi information dicts for reference
+
+    Signals:
+        :indexChanged(int): emits the index of the mouse when the user hovers over the top plotWidget
+        :finishedDrawingSignal(): emits when the bottom ROI is finished updating
+        :keyPressSignal(QtCore.QEvent): emits when the traceWindow is selected and a key is pressed
+        :partialThreadUpdatedSignal(): emits when the top plot widget is updated
+    """
     indexChanged=QtCore.Signal(int)
     finishedDrawingSignal=QtCore.Signal()
     keyPressSignal=QtCore.Signal(QtCore.QEvent)
@@ -29,7 +36,9 @@ class TraceFig(QtWidgets.QWidget):
         self.setCurrentTraceWindow()
         if 'tracefig_settings' in g.settings and 'coords' in g.settings['tracefig_settings']:
             self.setGeometry(QtCore.QRect(*g.settings['tracefig_settings']['coords']))
-        self.setWindowTitle('Flika')
+        else:
+            self.setGeometry(QtCore.QRect(355, 30, 1219, 148))
+        self.setWindowTitle('flika')
         self.l = QtWidgets.QVBoxLayout()
         self.l.setContentsMargins(0,0,0,0)
         self.setLayout(self.l)
@@ -194,8 +203,8 @@ class TraceFig(QtWidgets.QWidget):
         self.rois.append(dict({'roi':roi,'p1trace':p1trace,'p2trace':p2trace,'toBeRedrawn':False,'toBeRedrawnFull':False}))
 
     def removeROI(self,roi):
-        from .roi import ROI_Wrapper
-        if isinstance(roi, ROI_Wrapper):
+        from .roi import ROI_Base
+        if isinstance(roi, ROI_Base):
             index=[r['roi'] for r in self.rois].index(roi) #this is the index of the roi in self.rois
         elif isinstance(roi, int):
             index = roi

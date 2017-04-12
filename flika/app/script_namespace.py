@@ -1,10 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Flika
-@author: Kyle Ellefsen
-@author: Brett Settle
-@license: MIT
-"""
 from inspect import getmembers, ismodule
 import numpy as np
 import scipy
@@ -12,7 +6,7 @@ import pyqtgraph as pg
 from .. import process
 from .. import global_vars as g
 from .. import window
-from ..roi import import_rois
+from ..roi import open_rois
 
 
 def getnamespace():

@@ -1,11 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Flika
-@author: Kyle Ellefsen
-@author: Brett Settle
-@license: MIT
-"""
-
 from .stacks import *
 from .math_ import *
 from .filters import *
@@ -19,7 +12,7 @@ from .file_ import *
 def setup_menus():
     from .. import global_vars as g
     if len(g.menus) > 0:
-        print("Flika menubar already initialized.")
+        print("flika menubar already initialized.")
         return
     from qtpy import QtGui, QtWidgets
     imageMenu = QtWidgets.QMenu("Image")

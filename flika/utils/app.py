@@ -6,6 +6,15 @@ qapp = None
 
 
 def get_qapp(icon_path=None):
+    """Get the QApplication instance currently in use. If no QApplication exists,
+    one is created and the standard windoe icon is set to icon_path
+
+    Args:
+        icon_path (str): location of icon to use as default window icon
+
+    Returns:
+        QtGui.QApplication: the current application process 
+    """
     global qapp
     qapp = QtWidgets.QApplication.instance()
     if qapp is None:

@@ -1,10 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Flika
-@author: Kyle Ellefsen
-@author: Brett Settle
-@license: MIT
-"""
 import numpy as np
 import skimage
 import skimage.filters
@@ -20,13 +14,16 @@ __all__ = ['gaussian_blur','mean_filter','median_filter','butterworth_filter','b
 ###############################################################################
 class Gaussian_blur(BaseProcess):
     """ gaussian_blur(sigma, norm_edges=False, keepSourceWindow=False)
+
     This applies a spatial gaussian_blur to every frame of your stack.  
     
-    Parameters:
-        | sigma (float) -- The width of the gaussian
-        | norm_edges (bool) -- If true, this reduces the values of the pixels near the edges so they have the same standard deviation as the rest of the image
+    Args:
+        sigma (float): The width of the gaussian
+        norm_edges (bool): If true, this reduces the values of the pixels near the edges so they have the same standard deviation as the rest of the image
+
     Returns:
-        newWindow
+        flika.window.Window
+
     """
     def __init__(self):
         super().__init__()

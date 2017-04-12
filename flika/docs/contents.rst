@@ -16,6 +16,7 @@ Full flika documentation
    contact
    changelog
    license
+   api
 
 .. only:: html
 

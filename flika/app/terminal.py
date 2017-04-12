@@ -1,11 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Flika
-@author: Kyle Ellefsen
-@author: Brett Settle
-@license: MIT
-"""
-
 import sys
 import atexit
 from contextlib import contextmanager
@@ -316,7 +309,7 @@ def ipython_terminal(banner='', **kwargs):
 
         :rtype: QWidget
     """
-    Terminal.banner = '''Flika version {}
+    Terminal.banner = '''flika version {}
 
 {}
 

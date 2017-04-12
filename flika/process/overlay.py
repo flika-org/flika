@@ -1,10 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Flika
-@author: Kyle Ellefsen
-@author: Brett Settle
-@license: MIT
-"""
 import numpy as np
 import pyqtgraph as pg
 from qtpy import QtWidgets, QtCore, QtGui
@@ -65,7 +59,7 @@ class Time_Stamp(BaseProcess):
 time_stamp=Time_Stamp()
 
 
-class ShowCheckbox(QtWidgets.QCheckBox):
+class ShowCheckbox(CheckBox):
 
     def __init__(self, opacity_slider, parent=None):
         super().__init__(parent)

@@ -1,26 +1,24 @@
 #!/usr/bin/env python
-from __future__ import print_function
+"""
+Commands to upload to pypi:
 
+python setup.py sdist bdist_wheel
+twine upload dist/*
+"""
 from setuptools import setup, find_packages
 from distutils.core import Command
-
+from setuptools.command.install import install
+import platform
 import os
-import re
 import sys
-import subprocess
 
 with open('flika/version.py') as infile:
-    exec(infile.read())
+    __version__ = '0.0.0'
+    exec(infile.read())  # This sets the __version__ variable.
 
-try:
-    import pypandoc
-    LONG_DESCRIPTION = pypandoc.convert('README.md', 'rst')
-except (IOError, ImportError):
-    #if 'sdist' in sys.argv or 'register' in sys.argv:
-    #    raise  # don't let this pass silently
-    with open('README.md') as infile:
-        LONG_DESCRIPTION = infile.read()
-
+with open('README.rst') as readme:
+    LONG_DESCRIPTION = readme.read()
+    LONG_DESCRIPTION = LONG_DESCRIPTION.replace('.. image:: flika/docs/_static/img/flika_screencapture.gif', '')
 
 cmdclass = {}
 
@@ -41,11 +39,13 @@ class PyTest(Command):
         errno = pytest.main(self.pytest_args + ' flika')
         sys.exit(errno)
 
+
 cmdclass['test'] = PyTest
 
 entry_points = """
 [console_scripts]
 flika = flika.flika:exec_
+flika_post_install = flika.flika:post_install
 """
 
 setup_requires = ['numpy', 'scipy']
@@ -63,7 +63,13 @@ install_requires = [
       'ipykernel',
       'qtconsole',
       'pyopengl',
+      'requests',
       'nd2reader']
+
+if sys.platform == 'win32':
+    install_requires += ['winshell', 'pypiwin32']
+
+
 
 setup(name='flika',
       version=__version__,
@@ -75,6 +81,7 @@ setup(name='flika',
       url='http://flika-org.github.io',
       setup_requires=setup_requires,
       install_requires=install_requires,
+      license='MIT',
       classifiers=[
           'Intended Audience :: Science/Research',
           'Operating System :: OS Independent',
@@ -83,6 +90,7 @@ setup(name='flika',
           'Programming Language :: Python :: 3.3',
           'Programming Language :: Python :: 3.4',
           'Programming Language :: Python :: 3.5',
+          'Programming Language :: Python :: 3.6',
           'Topic :: Scientific/Engineering :: Visualization',
           ],
       packages=find_packages(),
@@ -90,3 +98,12 @@ setup(name='flika',
       include_package_data=True,
       package_data={'gui': ['*.ui'],
                     'images': ['*.ico', '*.png', '*.txt', '*.tif']})
+
+
+
+
+
+
+
+
+

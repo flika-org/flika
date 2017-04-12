@@ -1,11 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Flika
-@author: Kyle Ellefsen
-@author: Brett Settle
-@license: MIT
-"""
-
 import numpy as np
 from qtpy import QtWidgets
 from ..window import Window
@@ -308,7 +301,7 @@ class ZProject(BaseProcess):
         self.gui_reset()
         nFrames=1
         if g.currentWindow and len(g.currentWindow.image.shape) != 3:
-            g.m.statusBar().showMessage('zproject only works on 3 dimensional windows')
+            g.alert('zproject only works on 3 dimensional windows')
             return False
         if g.currentWindow is not None:
             nFrames=g.currentWindow.image.shape[0]
@@ -317,7 +310,6 @@ class ZProject(BaseProcess):
         self.items.append({'name':'firstFrame','string':'First Frame','object':firstFrame})
         lastFrame=QtWidgets.QSpinBox()
         lastFrame.setRange(1,nFrames-1)
-        lastFrame.setValue(nFrames-1)
         self.items.append({'name':'lastFrame','string':'Last Frame','object':lastFrame})
         projection_type=ComboBox()
         projection_type.addItem('Average')
@@ -328,6 +320,7 @@ class ZProject(BaseProcess):
         projection_type.addItem('Median')
         self.items.append({'name':'projection_type','string':'Projection Type','object':projection_type})
         super().gui()
+        lastFrame.setValue(nFrames - 1)
 
     def __call__(self, firstFrame, lastFrame, projection_type, keepSourceWindow=False):
         self.start(keepSourceWindow)
@@ -380,26 +373,27 @@ class Image_calculator(BaseProcess):
         self.keepSourceWindow=keepSourceWindow
         g.m.statusBar().showMessage('Performing {}...'.format(self.__name__))
         if window1 is None or window2 is None:
-            raise(MissingWindowError("You cannot execute '{}' without selecting a window first.".format(self.__name__)))
-        A=window1.image
-        B=window2.image
-        nDim1=len(A.shape)
-        nDim2=len(B.shape)
-        xyshape1=A.shape
-        xyshape2=B.shape
-        if nDim1==3:
-            xyshape1=xyshape1[1:]
-        if nDim2==3:
-            xyshape2=xyshape2[1:]
-        if xyshape1!=xyshape2:
-            g.m.statusBar().showMessage('The two windows have images of different shapes. They could not be combined')
+            g.alert("You cannot execute '{}' without selecting a window first.".format(self.__name__))
             return None
-        if nDim1==3 and nDim2==3:
+        A = window1.image
+        B = window2.image
+        nDim1 = len(A.shape)
+        nDim2 = len(B.shape)
+        xyshape1 = A.shape
+        xyshape2 = B.shape
+        if nDim1 == 3:
+            xyshape1 = xyshape1[1:]
+        if nDim2 == 3:
+            xyshape2 = xyshape2[1:]
+        if xyshape1 != xyshape2:
+            g.alert('The two windows have images of different shapes. They could not be combined')
+            return None
+        if nDim1 == 3 and nDim2 == 3:
             n1=A.shape[0]; n2=B.shape[0]
-            if n1!=n2: #if the two movies have different # frames
-                n=np.min([n1,n2])
-                A=A[:n] #shrink them so they have the same length
-                B=B[:n]
+            if n1 != n2: #if the two movies have different # frames
+                n = np.min([n1,n2])
+                A = A[:n] #shrink them so they have the same length
+                B = B[:n]
                 
         
         if operation=='Add':
