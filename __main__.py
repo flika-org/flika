@@ -1,4 +1,2 @@
-from flika import start_flika
-fa = start_flika()
-
-fa.app.exec_()
+from flika.flika import exec_
+exec_()

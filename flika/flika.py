@@ -98,7 +98,7 @@ def start_flika(files=[]):
     return fa
 
 def exec_():
-    fa = start_flika()
+    fa = start_flika(sys.argv[1:])
     return fa.app.exec_()
 
 def post_install():
@@ -119,7 +119,7 @@ def post_install():
             link.icon_location = (icon_path, 0)
 
 if __name__ == '__main__':
-    start_flika()
+    start_flika(sys.argv[1:])
 
 
 """
