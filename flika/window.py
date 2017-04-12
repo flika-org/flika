@@ -17,6 +17,14 @@ class Window(QtWidgets.QWidget):
     :mod:`process <flika.process>` module are performed on Window objects and 
     output Window objects. 
 
+    Args:
+        tif (numpy.array): The image the window will store and display
+        name (str): The name of the window.
+        filename (str): The filename (including full path) of file this window's image orinated from.
+        commands (list of str): a list of the commands used to create this window, starting with loading the file.
+        metadata (dict): dict: a dictionary containing the original file's metadata.
+
+
     """
     closeSignal = QtCore.Signal()
     keyPressSignal = QtCore.Signal(QtCore.QEvent)
@@ -235,7 +243,7 @@ class Window(QtWidgets.QWidget):
 
     def setIndex(self, index):
         """
-        This sets the index of this window
+        This sets the index (frame) of this window. 
 
         Args:
             index (int): The index of the image this window will display
