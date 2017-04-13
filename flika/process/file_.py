@@ -227,18 +227,29 @@ def open_file(filename=None, from_gui=False):
             target_axes = ['width', 'height']
         elif set(axes) == set(['height', 'width', 'channel']):  # still image in color.
             target_axes = ['width', 'height', 'channel']
+            metadata['is_rgb'] = True
         elif set(axes) == set(['height', 'width', 'sample']):  # still image in color.
             target_axes = ['width', 'height', 'sample']
+            metadata['is_rgb'] = True
         elif set(axes) == set(['height', 'width', 'series']):  # movie in black and white
             target_axes = ['series', 'width', 'height']
         elif set(axes) == set(['height', 'width', 'time']):  # movie in black and white
             target_axes = ['time', 'width', 'height']
+        elif set(axes) == set(['height', 'width', 'depth']):  # movie in black and white
+            target_axes = ['depth', 'width', 'height']
         elif set(axes) == set(['channel', 'time', 'height', 'width']):  # movie in color
             target_axes = ['time', 'width', 'height', 'channel']
+            metadata['is_rgb'] = True
         elif set(axes) == set(['sample', 'time', 'height', 'width']):  # movie in color
             target_axes = ['time', 'width', 'height', 'sample']
+            metadata['is_rgb'] = True
         perm = get_permutation_tuple(axes, target_axes)
         A = np.transpose(A, perm)
+        if target_axes[-1] in ['channel', 'sample', 'series'] and A.shape[-1] == 2:
+            B = np.zeros(A.shape[:-1])
+            B = np.expand_dims(B, len(B.shape))
+            A = np.append(A, B, len(A.shape)-1) # add a column of zeros to the last dimension.
+
 
         #if A.ndim == 4 and axes[3] == 'sample' and A.shape[3] == 1:
         #    A = np.squeeze(A)  # this gets rid of the meaningless 4th dimention in .stk files
