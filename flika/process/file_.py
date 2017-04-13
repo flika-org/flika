@@ -213,22 +213,37 @@ def open_file(filename=None, from_gui=False):
         metadata = get_metadata_tiff(Tiff)
         A = Tiff.asarray()
         Tiff.close()
-        axes = [tifffile.AXES_LABELS[ax] for ax in Tiff.pages[0].axes]
-        # print("Original Axes = {}".format(axes)) #sample means RBGA, plane means frame, width means X, height means Y
-        if metadata['is_rgb']:
-            if A.ndim == 3:  # still color image.  [X, Y, RBGA]
-                A = np.transpose(A, (1, 0, 2))
-            elif A.ndim == 4:  # movie in color.  [T, X, Y, RGBA]
-                A = np.transpose(A, (0, 2, 1, 3))
-        else:
-            if A.ndim == 2:  # black and white still image [X,Y]
-                A = np.transpose(A, (1, 0))
-            elif A.ndim == 3:  # black and white movie [T,X,Y]
-                A = np.transpose(A, (0, 2, 1))  # This keeps the x and y the same as in FIJI.
-            elif A.ndim == 4:
-                if axes[3] == 'sample' and A.shape[3] == 1:
-                    A = np.squeeze(A)  # this gets rid of the meaningless 4th dimention in .stk files
-                    A = np.transpose(A, (0, 2, 1))
+        axes = [tifffile.AXES_LABELS[ax] for ax in Tiff.series[0].axes]
+        # print("Original Axes = {}".format(Tiff.series[0].axes)) #sample means RBGA, plane means frame, width means X, height means Y
+        try:
+            assert len(axes) == len(A.shape)
+        except AssertionError:
+            msg = 'Tiff could not be loaded because the number of axes in the array does not match the number of axes found by tifffile.py\n'
+            msg += "Shape of array: {}\n".format(A.shape)
+            msg += "Axes found by tifffile.py: {}\n".format(axes)
+            g.alert(msg)
+            return None
+        if set(axes) == set(['height', 'width']):  # still image in black and white.
+            target_axes = ['width', 'height']
+        elif set(axes) == set(['height', 'width', 'channel']):  # still image in color.
+            target_axes = ['width', 'height', 'channel']
+        elif set(axes) == set(['height', 'width', 'sample']):  # still image in color.
+            target_axes = ['width', 'height', 'sample']
+        elif set(axes) == set(['height', 'width', 'series']):  # movie in black and white
+            target_axes = ['series', 'width', 'height']
+        elif set(axes) == set(['height', 'width', 'time']):  # movie in black and white
+            target_axes = ['time', 'width', 'height']
+        elif set(axes) == set(['channel', 'time', 'height', 'width']):  # movie in color
+            target_axes = ['time', 'width', 'height', 'channel']
+        elif set(axes) == set(['sample', 'time', 'height', 'width']):  # movie in color
+            target_axes = ['time', 'width', 'height', 'sample']
+        perm = get_permutation_tuple(axes, target_axes)
+        A = np.transpose(A, perm)
+
+        #if A.ndim == 4 and axes[3] == 'sample' and A.shape[3] == 1:
+        #    A = np.squeeze(A)  # this gets rid of the meaningless 4th dimention in .stk files
+
+
     elif ext == '.nd2':
         nd2 = nd2reader.Nd2(filename)
         mt, mx, my = len(nd2), nd2.width, nd2.height
@@ -317,7 +332,23 @@ def open_points(filename=None):
 ########################################################################################################################
 ######################                INTERNAL HELPER FUNCTIONS                              ###########################
 ########################################################################################################################
+def get_permutation_tuple(src, dst):
+    """
 
+    Parameters
+    ----------
+    src (list): The original ordering of the axes in the tiff.
+    dst (list): The desired ordering of the axes in the tiff.
+
+    Returns
+    -------
+    result (tuple): The required permutation so the axes are ordered as desired.
+    """
+    result = []
+    for i in dst:
+        result.append(src.index(i))
+    result = tuple(result)
+    return result
 
 def append_recent_file(fname):
     if fname in g.settings['recent_files']:
