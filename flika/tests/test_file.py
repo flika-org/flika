@@ -46,7 +46,7 @@ class Test_File():
 	def test_rois_io(self):
 		w = Window(im)
 		a = makeROI('rectangle', [[3, 7], [6, 5]])
-		w.exportROIs('test.roi')
+		w.save_rois('test.roi')
 		a.delete()
 		b = open_rois('test.roi')[0]
 		os.remove('test.roi')

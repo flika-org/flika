@@ -343,7 +343,7 @@ class ROI_Base():
         self.window.rois.append(self)
         self.window.currentROI = self
 
-    def str(self):
+    def _str(self):
         """Return ROI kind and points for easy export and import
     
         Returns:

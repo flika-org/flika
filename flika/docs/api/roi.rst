@@ -11,7 +11,7 @@ Module: roi
 .. automethod:: flika.roi.ROI_Base.unplot
 .. automethod:: flika.roi.ROI_Base.colorSelected
 .. automethod:: flika.roi.ROI_Base.delete
-.. automethod:: flika.roi.ROI_Base.str
+.. automethod:: flika.roi.ROI_Base._str
 
 .. autoclass:: flika.roi.ROI_line
 

@@ -10,8 +10,6 @@ from .. import global_vars as g
 from .. import window
 from ..utils.misc import save_file_gui
 
-__all__ = []
-
         
 class MissingWindowError(Exception):
     def __init__(self, value):
@@ -299,6 +297,10 @@ def convert_to_string(item):
 
 
 class BaseProcess(object):
+    """Subclass BaseProcess when writing your own process. Why would you want to use BaseProcess? 
+
+
+    """
     def __init__(self):
         self.noPriorWindow = False
         self.__name__=self.__class__.__name__.lower()
