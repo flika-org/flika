@@ -10,6 +10,7 @@ from .. import global_vars as g
 from .. import window
 from ..utils.misc import save_file_gui
 
+__all__ = ['MissingWindowError', 'WindowSelector', 'FileSelector', 'ColorSelector', 'SliderLabel', 'SliderLabelOdd', 'CheckBox', 'ComboBox', 'BaseDialog', 'BaseProcess', 'BaseProcess_noPriorWindow']
         
 class MissingWindowError(Exception):
     def __init__(self, value):

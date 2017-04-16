@@ -20,16 +20,19 @@ class Editor(QtWidgets.QPlainTextEdit):
         self.highlight = PythonHighlighter(self.document())
         self.scriptfile = ''
         if scriptfile != '':
-            self.load_file(scriptfile)
+            self.open_file(scriptfile)
         self.installEventFilter(self)
 
     @staticmethod
     def fromWindow(window):
+        if window is None:
+            g.alert("In order to load a script from a window, you need to have a window selected.")
+            return None
         editor = Editor()
         editor.setPlainText('\n'.join(window.commands))
         return editor
         
-    def load_file(self, scriptfile):
+    def open_file(self, scriptfile):
         self.scriptfile = scriptfile
         try:
             script = open(scriptfile, 'r').read()
@@ -37,7 +40,7 @@ class Editor(QtWidgets.QPlainTextEdit):
             print("Failed to read %s: %s" % (scriptfile, e))
             return
         self.setPlainText(script)
-        ScriptEditor.gui.statusBar().showMessage('{} loaded.'.format(os.path.basename(self.scriptfile)), MESSAGE_TIME)
+        ScriptEditor.gui.statusBar().showMessage('{} opened.'.format(os.path.basename(self.scriptfile)), MESSAGE_TIME)
 
     def save_as(self):
         filename = save_file_gui('Save script', ScriptEditor.most_recent_script(), '*.py')
@@ -98,7 +101,7 @@ Useful variables:
         self.actionFrom_File.triggered.connect(lambda f: ScriptEditor.importScript())
         self.actionFrom_Window.triggered.connect(lambda : self.addEditor(Editor.fromWindow(g.currentWindow)))
         self.actionSave_Script.triggered.connect(self.saveCurrentScript)
-        self.menuRecentScripts.aboutToShow.connect(self.load_scripts)
+        self.menuRecentScripts.aboutToShow.connect(self.open_scripts)
         self.actionChangeFontSize.triggered.connect(self.changeFontSize)
         #self.eventeater = ScriptEventEater(self)
         self.setAcceptDrops(True)
@@ -134,7 +137,7 @@ Useful variables:
 
         event.accept()
 
-    def load_scripts(self):
+    def open_scripts(self):
         self.menuRecentScripts.clear()
         def makeFun(script):
             return lambda: ScriptEditor.importScript(script)
@@ -182,9 +185,12 @@ Useful variables:
         if not hasattr(ScriptEditor, 'gui') or not ScriptEditor.gui.isVisible():
             ScriptEditor.show()
         if scriptfile == '':
-            scriptfile = str(QtWidgets.QFileDialog.getOpenFileName(ScriptEditor.gui, 'Load script', os.path.dirname(ScriptEditor.most_recent_script()), '*.py'))
-            if scriptfile == '':
-                return
+            prompt = "Open script"
+            directory = os.path.dirname(ScriptEditor.most_recent_script())
+            filetypes = '*.py'
+            scriptfile = open_file_gui(prompt, directory, filetypes)
+            if scriptfile is None:
+                return None
         if hasattr(ScriptEditor, 'gui'):
             editor = Editor(scriptfile)
             ScriptEditor.add_recent_file(scriptfile)
@@ -192,7 +198,7 @@ Useful variables:
     
     def addEditor(self, editor=None):
         self.setUpdatesEnabled(False)
-        if editor == None:
+        if editor is None:
             editor = Editor()
         if editor.scriptfile == '':
             name = 'New Script'

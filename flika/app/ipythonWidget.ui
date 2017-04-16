@@ -15,16 +15,7 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
-    <property name="leftMargin">
-     <number>0</number>
-    </property>
-    <property name="topMargin">
-     <number>0</number>
-    </property>
-    <property name="rightMargin">
-     <number>0</number>
-    </property>
-    <property name="bottomMargin">
+    <property name="margin">
      <number>0</number>
     </property>
     <property name="spacing">
@@ -32,6 +23,9 @@
     </property>
     <item row="0" column="0">
      <widget class="QSplitter" name="splitter">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
       <property name="childrenCollapsible">
        <bool>false</bool>
       </property>
@@ -116,7 +110,7 @@
     </property>
     <widget class="QMenu" name="menuLoad_Script">
      <property name="title">
-      <string>Load Script</string>
+      <string>Open Script</string>
      </property>
      <addaction name="actionFrom_Window"/>
      <addaction name="actionFrom_File"/>
@@ -148,12 +142,12 @@
   </action>
   <action name="actionFrom_Window">
    <property name="text">
-    <string>From Window</string>
+    <string>From window</string>
    </property>
   </action>
   <action name="actionFrom_File">
    <property name="text">
-    <string>From File</string>
+    <string>From file</string>
    </property>
   </action>
   <action name="actionNo_Recent_Scripts">

@@ -125,14 +125,14 @@ def open_file_gui(prompt="Open File", directory=None, filetypes=''):
         str: the file (path+file+extension) selected, or None
     """
     from .. import global_vars as g
-
+    filename = None
     if directory is None:
         filename = g.settings['filename']
         try:
             directory = os.path.dirname(filename)
         except:
             directory = None
-    if directory is None:
+    if directory is None or filename is None:
         filename = QtWidgets.QFileDialog.getOpenFileName(g.m, prompt, '', filetypes)
     else:
         filename = QtWidgets.QFileDialog.getOpenFileName(g.m, prompt, filename, filetypes)
