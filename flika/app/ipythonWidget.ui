@@ -112,8 +112,8 @@
      <property name="title">
       <string>Open Script</string>
      </property>
-     <addaction name="actionFrom_Window"/>
      <addaction name="actionFrom_File"/>
+     <addaction name="actionFrom_Window"/>
     </widget>
     <widget class="QMenu" name="menuRecentScripts">
      <property name="title">
@@ -142,12 +142,12 @@
   </action>
   <action name="actionFrom_Window">
    <property name="text">
-    <string>From window</string>
+    <string>from window</string>
    </property>
   </action>
   <action name="actionFrom_File">
    <property name="text">
-    <string>From file</string>
+    <string>from file</string>
    </property>
   </action>
   <action name="actionNo_Recent_Scripts">

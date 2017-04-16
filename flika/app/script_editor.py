@@ -179,6 +179,7 @@ Useful variables:
         g.settings['recent_scripts'].insert(0, filename)
         if len(g.settings['recent_scripts']) > 8:
             g.settings['recent_scripts'] = g.settings['recent_scripts'][:-1]
+        g.settings.save()
 
     @staticmethod
     def importScript(scriptfile = ''):
