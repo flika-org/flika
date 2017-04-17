@@ -33,7 +33,8 @@ Class: ROI_rect_line
 .. autoclass:: flika.roi.ROI_rect_line
 .. automethod:: flika.roi.ROI_rect_line.setWidth
 	
-
+Functions
+==========
 .. autofunction:: flika.roi.makeROI
 
 .. autofunction:: flika.roi.open_rois
