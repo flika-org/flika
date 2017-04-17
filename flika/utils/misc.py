@@ -147,6 +147,16 @@ def open_file_gui(prompt="Open File", directory=None, filetypes=''):
         return str(filename)
 
 def send_error_report(email, report):
+    """Log error reports to the flikarest.pythonanywhere REST API to be stored in a SQL database
+
+    Parameters:
+        email (str): Email of the user, optionally entered for response
+        report (str): The complete error that occurred
+
+    Returns:
+        Request Response if the API was reached, or None if connection failed. Use response.status==200 to check success
+
+    """
     from .. import global_vars as g
     address = g.settings['user_information']['UUID']
     location = g.settings['user_information']['location']
@@ -159,6 +169,15 @@ def send_error_report(email, report):
     return r
 
 def send_user_stats():
+    """Log user information to the flikarest.pythonanywhere REST API to be stored in a SQL database
+
+    Currently uses the get_node to get a UUID for the machine, and the IP address location API to get a rough 
+    'city, region, country' location, which are only retrieved once and stored in global settings.
+
+    Returns:
+        Request Response if the API was reached, or None if connection failed. Use response.status==200 to check success
+
+    """
     from .. import global_vars as g
     address = g.settings['user_information']['UUID']
     location = g.settings['user_information']['location']
@@ -171,6 +190,11 @@ def send_user_stats():
     return r
 
 def get_location():
+    """Call to a location REST API that uses the current IP address to get a string representation of the geolocation
+
+    Returns:
+        str: the 'city, region, country' location of the current IP address. Or None if the connection fails
+    """
     send_url = 'http://freegeoip.net/json'
     try:
         r = requests.get(send_url)
