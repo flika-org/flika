@@ -256,8 +256,11 @@ def open_file(filename=None, from_gui=False):
 
 
     elif ext == '.nd2':
-        nd2 = nd2reader.Nd2(filename)
-        mt, mx, my = len(nd2), nd2.width, nd2.height
+        nd2 = nd2reader.ND2Reader(filename)
+        axes = nd2.axes
+        mx = nd2.metadata['width']
+        my = nd2.metadata['height']
+        mt = nd2.metadata['num_frames']
         A = np.zeros((mt, mx, my))
         percent = 0
         for frame in range(mt):
@@ -266,7 +269,7 @@ def open_file(filename=None, from_gui=False):
                 percent = int(100 * float(frame) / mt)
                 g.m.statusBar().showMessage('Loading file {}%'.format(percent))
                 QtWidgets.qApp.processEvents()
-        metadata = get_metadata_nd2(nd2)
+        metadata = nd2.metadata
     elif ext == '.py':
         ScriptEditor.importScript(filename)
         return
@@ -397,17 +400,6 @@ def get_metadata_tiff(Tiff):
     metadata['is_rgb'] = Tiff[0].is_rgb
     return metadata
 
-
-def get_metadata_nd2(nd2):
-    metadata = dict()
-    metadata['channels'] = nd2.channels
-    metadata['date'] = nd2.date
-    metadata['fields_of_view'] = nd2.fields_of_view
-    metadata['frames'] = nd2.frames
-    metadata['height'] = nd2.height
-    metadata['width'] = nd2.width
-    metadata['z_levels'] = nd2.z_levels
-    return metadata
 
 
 def txt2dict(metadata):

@@ -139,6 +139,7 @@ class Window(QtWidgets.QWidget):
         self.pasteAct = QtWidgets.QAction("&Paste", self, triggered=self.paste)
         if g.settings['show_windows']:
             self.show()
+            self.raise_()
             QtWidgets.qApp.processEvents()
         self.sigTimeChanged.connect(self.showFrame)
         if self not in g.windows:
