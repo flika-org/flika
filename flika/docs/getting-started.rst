@@ -61,7 +61,7 @@ If you want to access the variables inside flika with the command line, type::
 	from flika import *
 	start_flika()
 
-
+For more information on starting flika, go to :ref:`startingflika`.
 
 
 .. _`simpletest`:
