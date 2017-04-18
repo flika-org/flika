@@ -7,8 +7,6 @@ Current ROI types are:
     * freehand
     * rect_line
 
-The ROI_Drawing class is used while the user is drawing an ROI
-
 Example:
     >>> roi = makeROI('line', [[10, 10], [20, 15]])
     >>> roi.plot()
@@ -19,7 +17,6 @@ Example:
 Todo:
     * Correct ROI line handles to be at center of pixel
     * Optimize ROI freehand to not extend PolylineROI
-    * Add point as another ROI type
 
 """
 
@@ -131,13 +128,13 @@ class ROI_Base():
     INITIAL_ARGS = {'translateSnap': True, 'removable': True, 'snapSize': 1, 'scaleSnap': True}
 
     def __init__(self, window, pts):
-        self.window = window
+        self.window = window #: window.Window: Parent window that this ROI belongs to
         self.colorDialog=QtWidgets.QColorDialog()
         self.colorDialog.colorSelected.connect(self.colorSelected)
         self.window.closeSignal.connect(self.delete)
         self.window.currentROI = self
-        self.traceWindow = None  # To test if roi is plotted, check if traceWindow is None
-        self.pts = np.array(pts)
+        self.traceWindow = None  #: tracefig.TraceFig: the Trace window that this ROI is plotted in. To test if roi is plotted, check 'roi.traceWindow is None'
+        self.pts = np.array(pts) #: list: Array of points that make up the boundary of the ROI
         self.linkedROIs = set()
         self.resetSignals()
         self.makeMenu()
