@@ -18,8 +18,8 @@ flika in IPython
 
 To start flika from within an IPython command line, you need to `integrate IPython with the Qt event loop <http://ipython.readthedocs.io/en/stable/config/eventloops.html>`_. To do this, type::
 
-    %gui qt
     from flika import *
+    %gui qt
     start_flika()
 
 
