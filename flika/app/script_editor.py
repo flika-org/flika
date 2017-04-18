@@ -245,8 +245,17 @@ Useful variables:
 
     @staticmethod
     def show():
+        try:
+            __IPYTHON__
+        except NameError:
+            INSIDE_IPYTHON = False
+        else:
+            INSIDE_IPYTHON = True
+
         if 'PYCHARM_HOSTED' in os.environ:
             g.alert('You cannot run the script editor from within PyCharm.')
+        elif INSIDE_IPYTHON:
+            g.alert('You cannot run the script editor because flika is already running inside IPython.')
         else:
             if not hasattr(ScriptEditor, 'gui'):
                 ScriptEditor.gui = ScriptEditor()

@@ -78,6 +78,17 @@ def verify(parser, argv):
 
     return err_msg
 
+def ipython_qt_event_loop_setup():
+    try:
+        __IPYTHON__
+    except NameError:
+        return #  If __IPYTHON__ is not defined, we are not in ipython
+    else:
+        print("Starting flika inside IPython")
+        from IPython import get_ipython
+        ipython = get_ipython()
+        ipython.magic("gui qt")
+
 def load_files(files):
     from .process.file_ import open_file
     for f in files:
@@ -95,6 +106,7 @@ def start_flika(files=[]):
     fa = FlikaApplication()
     load_files(files)
     fa.start()
+    ipython_qt_event_loop_setup()
     return fa
 
 def exec_():
