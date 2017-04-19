@@ -55,6 +55,7 @@ class WindowSelector(QtWidgets.QWidget):
         self.button.setChecked(False)
         self.label.setText('...'+os.path.split(self.window.name)[-1][-20:])
         self.valueChanged.emit()
+        self.parent().raise_()
     def value(self):
         return self.window
     def setValue(self, window):
