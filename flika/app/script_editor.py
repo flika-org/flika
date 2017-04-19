@@ -9,6 +9,12 @@ from .syntax import PythonHighlighter
 from ..utils.misc import save_file_gui, open_file_gui, load_ui
 
 MESSAGE_TIME = 2000
+try:
+    __IPYTHON__
+except NameError:
+    INSIDE_IPYTHON = False
+else:
+    INSIDE_IPYTHON = True
 
 def qstr2str(string):
     string=str(string)
@@ -245,12 +251,6 @@ Useful variables:
 
     @staticmethod
     def show():
-        try:
-            __IPYTHON__
-        except NameError:
-            INSIDE_IPYTHON = False
-        else:
-            INSIDE_IPYTHON = True
 
         if 'PYCHARM_HOSTED' in os.environ:
             g.alert('You cannot run the script editor from within PyCharm.')
