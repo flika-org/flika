@@ -251,7 +251,6 @@ Useful variables:
 
     @staticmethod
     def show():
-
         if 'PYCHARM_HOSTED' in os.environ:
             g.alert('You cannot run the script editor from within PyCharm.')
         elif INSIDE_IPYTHON:
@@ -259,7 +258,23 @@ Useful variables:
         else:
             if not hasattr(ScriptEditor, 'gui'):
                 ScriptEditor.gui = ScriptEditor()
+            elif ScriptEditor.gui.isVisible():
+                return
             QtWidgets.QMainWindow.show(ScriptEditor.gui)
+
+            ui = ScriptEditor.gui
+            geom = ui.geometry()
+            geom = (geom.x(), geom.y(), geom.width(), geom.height())
+            settings = {'geometry': geom, 'sizes': ui.splitter.sizes()}
+            if 'script_editor_settings' in g.settings:
+                settings.update(g.settings['script_editor_settings'])
+            ui.setGeometry(*settings['geometry'])
+            ui.splitter.setSizes(settings['sizes'])
+
+    def closeEvent(self, ev):
+        geom = self.geometry()
+        geom = (geom.x(), geom.y(), geom.width(), geom.height())
+        g.settings['script_editor_settings'] = {'geometry': geom, 'sizes': self.splitter.sizes()}
 
     @staticmethod
     def close():

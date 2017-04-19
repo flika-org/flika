@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>711</width>
-    <height>436</height>
+    <width>889</width>
+    <height>494</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,7 +15,16 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
-    <property name="margin">
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
      <number>0</number>
     </property>
     <property name="spacing">
@@ -23,8 +32,11 @@
     </property>
     <item row="0" column="0">
      <widget class="QSplitter" name="splitter">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
+      <property name="styleSheet">
+       <string notr="true">QSplitter::handle { border-left: 1px solid lightgray; border-right: 1px solid lightgray; margin: 50px 0px 50px 5px; }</string>
+      </property>
+      <property name="handleWidth">
+       <number>4</number>
       </property>
       <property name="childrenCollapsible">
        <bool>false</bool>
@@ -36,6 +48,12 @@
         </property>
         <item>
          <widget class="QTabWidget" name="scriptTabs">
+          <property name="minimumSize">
+           <size>
+            <width>250</width>
+            <height>0</height>
+           </size>
+          </property>
           <property name="tabShape">
            <enum>QTabWidget::Triangular</enum>
           </property>
@@ -58,6 +76,19 @@
           <property name="spacing">
            <number>0</number>
           </property>
+          <item>
+           <spacer name="horizontalSpacer">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
           <item>
            <widget class="QPushButton" name="saveButton">
             <property name="text">
@@ -100,7 +131,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>711</width>
+     <width>889</width>
      <height>21</height>
     </rect>
    </property>
