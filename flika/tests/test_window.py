@@ -335,7 +335,7 @@ class Test_Line_3D(ROI_Line):
 	img = np.random.random([10, 20, 20])
 class Test_Line_4D(ROI_Line):
 	img = np.random.random([10, 20, 20, 3])
-"""
+
 
 
 
@@ -357,4 +357,3 @@ class TestTracefig():
 		t = open('tempROI.txt').read()
 		assert t == 'rectangle\n3 2\n4 5\n'
 		os.remove('tempROI.txt')
-"""
