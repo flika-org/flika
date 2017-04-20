@@ -49,7 +49,7 @@ class Settings(MutableMapping): #http://stackoverflow.com/questions/3387691/pyth
                         'rect_width': 5,
                         'rect_height': 5,
                         'show_all_points': False,
-                        'default_rect_on_click': False}
+                        'default_roi_on_click': False}
 
     def __init__(self):
         self.settings_file = os.path.join(expanduser("~"), '.FLIKA', 'settings.json' )

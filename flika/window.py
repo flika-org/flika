@@ -469,23 +469,8 @@ class Window(QtWidgets.QWidget):
             if mm == 'point':
                 self.addPoint()
             elif mm == 'rectangle' and g.settings['default_roi_on_click']:
-                    self.currentROI = ROI_Drawing(self, self.x - g.settings['rect_width']/2, self.y - g.settings['rect_height']/2, mm)
-                    self.currentROI.extend(self.x + g.settings['rect_width']/2, self.y + g.settings['rect_height']/2)
-                    self.currentROI.drawFinished()
-            elif mm == 'freehand' and g.settings['default_roi_on_click']:
-                # Before using this script to get the outlines of cells from a raw movie of fluorescence, you need to do some processing.
-                # Get a good image of cells by averaging the movie using the zproject() function inside flika.
-                # Then threshold the image and use a combination of binary dilation and binary erosion to clean it up (all functions inside flika)
-                if not (np.all(self.image >= 0) and np.all(self.image <= 1)):
-                    return
-
-
-                thresholded_image = np.squeeze(self.image[self.currentIndex] if self.image.ndim == 3 else self.image)
-                labelled=measure.label(thresholded_image)
-
-                outline_coords = measure.find_contours(labelled == labelled[int(self.x)][int(self.y)], 0.5)
-                outline_coords = sorted(outline_coords, key=lambda a: -len(a))[0]
-                new_roi = makeROI("freehand", outline_coords)
+                pts = [pg.Point(self.x - g.settings['rect_width']/2, self.y - g.settings['rect_height']/2), pg.Point(g.settings['rect_width'], g.settings['rect_height'])]
+                self.currentROI = makeROI("rectangle", pts)
             else:
                 self.menu.exec_(ev.screenPos().toQPoint())
         elif self.creatingROI:
