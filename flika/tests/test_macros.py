@@ -15,7 +15,7 @@ class TestPluginManager():
 		local = set(plugin_list.keys())
 		plugins = set(PluginManager.plugins.keys())
 
-		assert (local & plugins) == plugins, "Local plugin list not loaded correctly"
+		assert (local & plugins) == local, "Local plugin list not loaded correctly"
 
 	def test_install_plugin(self):
 		load_local_plugins()

@@ -9,6 +9,7 @@ import pytest
 from ..roi import makeROI
 import pyqtgraph as pg
 from qtpy import QtGui
+from qtpy.QtWidgets import qApp
 im = np.random.random([120, 90, 90])
 	
 class TestWindow():
@@ -86,7 +87,7 @@ class ROITest():
 		assert np.array_equal(mask1, mask2), "Mask differs on creation. %s != %s" % (mask1, mask2)
 		assert np.array_equal(self.roi.pts, other.pts), "pts differs on creation. %s != %s" % (self.roi.pts, self.POINTS)
 		assert np.array_equal(self.roi.getPoints(), other.getPoints()), "getPoints differs on creation. %s != %s" % (self.roi.getPoints(), other.getPoints())
-
+	
 	def test_copy(self):
 		self.roi.copy()
 		roi1 = self.win1.paste()
@@ -183,6 +184,19 @@ class ROITest():
 
 		assert self.roi.pen.color().name() == color.name(), "Color not changed. %s != %s" % (self.roi.pen.color().name(), color.name())
 		self.roi.unplot()
+	
+	
+	def test_translate_multiple(self):
+		translates = [[5, 0], [0, 5], [-5, 0], [0, -5]]
+		for i in range(100):
+			tr = translates[i % len(translates)]
+			self.roi.translate(pg.Point(*tr))
+			self.checkChanged()
+			self.checkChangeFinished()
+			time.sleep(.1)
+			qApp.processEvents()
+
+
 
 class ROI_Rectangle(ROITest):
 	TYPE = "rectangle"
@@ -321,7 +335,7 @@ class Test_Line_3D(ROI_Line):
 	img = np.random.random([10, 20, 20])
 class Test_Line_4D(ROI_Line):
 	img = np.random.random([10, 20, 20, 3])
-
+"""
 
 
 
@@ -343,3 +357,4 @@ class TestTracefig():
 		t = open('tempROI.txt').read()
 		assert t == 'rectangle\n3 2\n4 5\n'
 		os.remove('tempROI.txt')
+"""

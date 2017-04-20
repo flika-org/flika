@@ -53,8 +53,12 @@ class Window(QtWidgets.QWidget):
                 g.settings['window_settings']['coords'] = geometry.getRect()
         else:
             geometry = g.currentWindow.geometry()
-            geometry.setX(geometry.x()+10)
-            geometry.setY(geometry.y() + 10)
+            screenGeom = QtWidgets.QDesktopWidget().screenGeometry()
+            maxX = screenGeom.width() - geometry.width()
+            maxY = screenGeom.height() - geometry.height()
+            newX = (geometry.x() + 10) % maxX
+            newY = (geometry.y() + 10) % maxY
+            geometry = QtCore.QRect(newX, newY, geometry.width(), geometry.height())
 
         self.resizeEvent = self.onResize
         self.moveEvent = self.onMove
