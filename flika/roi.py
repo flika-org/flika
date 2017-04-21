@@ -630,7 +630,7 @@ class ROI_freehand(ROI_Base, pg.ROI):
     def draw_from_points(self, pts, finish=False):
         self.blockSignals(True)
         self.setPos(*np.min(pts, 0), False)
-        self.setSize(*np.ptp(pts, 0), False)
+        self.setSize(np.ptp(pts, 0), False)
         self._untranslated_pts = np.subtract(pts, self.pos())
         self.pts = pts
         
