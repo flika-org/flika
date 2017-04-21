@@ -16,8 +16,6 @@ Example:
 
 Todo:
     * Correct ROI line handles to be at center of pixel
-    * Optimize ROI freehand to not extend PolylineROI
-
 """
 
 from qtpy import QtGui, QtCore, QtWidgets
@@ -600,11 +598,10 @@ class ROI_rectangle(ROI_Base, pg.ROI):
             return None
         return Window(newtif,self.window.name+' Cropped',metadata=self.window.metadata)
 
-
-class ROI_freehand(ROI_Base, pg.PolyLineROI):
+class ROI_freehand(ROI_Base, pg.ROI):
     """ROI freehand class for selecting a polygon from the original image.
 
-    Extends from :class:`ROI_Base <flika.roi.ROI_Base>` and pyqtgraph.PolyLineROI. Workaround sets Handle opacities to 0
+    Extends from :class:`ROI_Base <flika.roi.ROI_Base>` and pyqtgraph.ROI.
     """
     kind = 'freehand'
     plotSignal = QtCore.Signal()
@@ -612,66 +609,49 @@ class ROI_freehand(ROI_Base, pg.PolyLineROI):
         roiArgs = self.INITIAL_ARGS.copy()
         roiArgs.update(kargs)
         roiArgs['closed'] = True
-        pg.PolyLineROI.__init__(self, pts, **roiArgs)
+        pg.ROI.__init__(self, np.min(pts, 0), np.ptp(np.array(pts), 0), translateSnap=(1, 1), **kargs)
         ROI_Base.__init__(self, window, pts)
+        self._untranslated_pts = np.subtract(self.pts, self.pos())
         self._untranslated_mask = None
+        self.getMask()
+
+    def shape(self):
+        p = QtGui.QPainterPath()
+        p.moveTo(*self._untranslated_pts[0])
+        for i in range(len(self._untranslated_pts)):
+            p.lineTo(*self._untranslated_pts[i])
+        p.lineTo(*self._untranslated_pts[0])
+        return p
+
+    def paint(self, painter, *args):
+        painter.setPen(self.currentPen)
+        painter.drawPolygon(*[pg.Point(a, b) for a, b in self._untranslated_pts])
 
     def draw_from_points(self, pts, finish=False):
-        return
-        #self.blockSignals(True)
-        #self.setPoints([pg.Point(p) for p in pts], closed=True)
-        #self.blockSignals(False)
+        self.blockSignals(True)
+        self.setPos(*np.min(pts, 0), False)
+        self.setSize(*np.ptp(pts, 0), False)
+        self._untranslated_pts = np.subtract(pts, self.pos())
+        self.pts = pts
+        
+        self.sigRegionChanged.emit(self)
+        if finish:
+            self.sigRegionChangeFinished.emit(self)
+        self.blockSignals(False)
 
-    def setMouseHover(self, hover):
-        for seg in self.segments:
-            seg.setPen(QtGui.QColor(255, 0, 0) if hover else self.currentPen)
-
-    def translate(self, pos, y=None, *args, **kargs):
-        if y is None:
-            pos = pg.Point(pos)
-        else:
-            # avoid ambiguity where update is provided as a positional argument
-            if isinstance(y, bool):
-                raise TypeError("Positional arguments to setPos() must be numerical.")
-            pos = pg.Point(pos, y)
-
-
-        pos = self.getSnapPosition(pos) 
-        pg.PolyLineROI.translate(self, pos, *args, **kargs)
-        for roi in self.linkedROIs:
-            roi.blockSignals(True)
-            roi.setPos(roi.state['pos'] + pos)
-            roi.pts = roi.getPoints()
-            roi.blockSignals(False)
+    def contextMenuEnabled(self):
+        return True
 
     def getPoints(self):
-        return np.array([h.pos() + self.state['pos'] for h in self.getHandles()], dtype=int)
-
-    def removeSegment(self, seg):
-        for handle in seg.handles[:]:
-            seg.removeHandle(handle['item'])
-        self.segments.remove(seg)
-        self.scene().removeItem(seg)
-
-    def addSegment(self, h1, h2, index=None):
-        seg = pg.LineSegmentROI(handles=(h1, h2), pen=self.pen, parent=self, movable=False)
-        if index is None:
-            self.segments.append(seg)
-        else:
-            self.segments.insert(index, seg)
-        seg.setAcceptedMouseButtons(QtCore.Qt.LeftButton)
-        seg.setZValue(self.zValue()+1)
-        seg.setMouseHover = self.setMouseHover
-        for h in seg.handles:
-            h['item'].setAcceptedMouseButtons(h['item'].acceptedMouseButtons() | QtCore.Qt.LeftButton) ## have these handles take left clicks too, so that handles cannot be added on top of other handles
-            h['item'].setOpacity(0)
+        x, y = self.state['pos']
+        return np.add(self._untranslated_pts, [x, y])
 
     def getMask(self):
         if self._untranslated_mask is not None:
             xx = self._untranslated_mask[0] + int(self.state['pos'][0])
             yy = self._untranslated_mask[1] + int(self.state['pos'][1])
         else:
-            x, y = np.transpose(self.pts)
+            x, y = np.transpose(self._untranslated_pts)
             mask=np.zeros(self.window.imageDimensions())
             xx,yy=polygon(x,y,shape=mask.shape)
             self._untranslated_mask = xx, yy
@@ -680,7 +660,6 @@ class ROI_freehand(ROI_Base, pg.PolyLineROI):
         xx = xx[idx_to_keep]
         yy = yy[idx_to_keep]
         return xx, yy
-
 
 class ROI_rect_line(ROI_Base, QtWidgets.QGraphicsObject):
     """Collection of linked line segments with adjustable width.
