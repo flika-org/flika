@@ -178,6 +178,7 @@ Useful variables:
 
     @staticmethod
     def add_recent_file(filename):
+        filename = os.path.abspath(filename)
         if not os.path.exists(filename):
             return
         if filename in g.settings['recent_scripts']:

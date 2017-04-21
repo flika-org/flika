@@ -199,7 +199,6 @@ def open_file(filename=None, from_gui=False):
             if filename is None:
                 g.alert('No filename selected')
                 return None
-    append_recent_file(filename)  # make first in recent file menu
     g.m.statusBar().showMessage('Loading {}'.format(os.path.basename(filename)))
     t = time.time()
     metadata = dict()
@@ -294,6 +293,8 @@ def open_file(filename=None, from_gui=False):
             g.settings['recent_files'].remove(filename)
         # make_recent_menu()
         return
+        
+    append_recent_file(filename)  # make first in recent file menu
     g.m.statusBar().showMessage('{} successfully loaded ({} s)'.format(os.path.basename(filename), time.time() - t))
     g.settings['filename'] = filename
     commands = ["open_file('{}')".format(filename)]
@@ -365,6 +366,7 @@ def get_permutation_tuple(src, dst):
     return result
 
 def append_recent_file(fname):
+    fname = os.path.abspath(fname)
     if fname in g.settings['recent_files']:
         g.settings['recent_files'].remove(fname)
     if os.path.exists(fname):
