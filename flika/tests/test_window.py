@@ -40,7 +40,15 @@ class ROITest():
 	MASK=[]
 
 	def setup_method(self):
-		self.win1 = Window(self.img)
+		for i in range(3):
+			try:
+				self.win1 = Window(self.img)
+				break
+			except RuntimeError:
+				pass
+		if not hasattr(self, 'win1'):
+			raise Exception("Unable to create Window due to RuntimeError")
+
 		self.changed = False
 		self.changeFinished = False
 		self.roi = makeROI(self.TYPE, self.POINTS, window=self.win1)
@@ -68,9 +76,13 @@ class ROITest():
 		#if self.roi is not None:
 		#	self.roi.delete()
 		#assert self.roi not in self.win1.rois, "ROI deleted but still in window.rois"
+		for roi in self.win1.rois:
+			roi.delete()
 		self.win1.close()
 		from .conftest import fa
 		fa().clear()
+
+
 
 	def check_placement(self, mask=None, points=None):
 		if mask is None:
@@ -87,7 +99,7 @@ class ROITest():
 		assert np.array_equal(mask1, mask2), "Mask differs on creation. %s != %s" % (mask1, mask2)
 		assert np.array_equal(self.roi.pts, other.pts), "pts differs on creation. %s != %s" % (self.roi.pts, self.POINTS)
 		assert np.array_equal(self.roi.getPoints(), other.getPoints()), "getPoints differs on creation. %s != %s" % (self.roi.getPoints(), other.getPoints())
-	
+
 	def test_copy(self):
 		self.roi.copy()
 		roi1 = self.win1.paste()
@@ -188,14 +200,41 @@ class ROITest():
 	
 	def test_translate_multiple(self):
 		translates = [[5, 0], [0, 5], [-5, 0], [0, -5]]
-		for i in range(100):
+		self.roi.copy()
+		w2 = Window(self.img)
+		roi2 = w2.paste()
+		roi2.colorSelected(QtGui.QColor(0, 255, 130))
+		self.roi.plot()
+		roi2.plot()
+		for i in range(20 * len(translates)):
 			tr = translates[i % len(translates)]
-			self.roi.translate(pg.Point(*tr))
+			self.roi.translate(*tr)
 			self.checkChanged()
 			self.checkChangeFinished()
-			time.sleep(.1)
+			#time.sleep(.02)
 			qApp.processEvents()
+	
+	def test_resize_multiple(self):
+		if len(self.roi.getHandles()) == 0:
+			return
+		translates = [[2, 0], [0, 2], [-2, 0], [0, -2]]
+		self.roi.copy()
+		w2 = Window(self.img)
+		roi2 = w2.paste()
+		roi2.colorSelected(QtGui.QColor(0, 255, 130))
+		self.roi.plot()
+		roi2.plot()
 
+		for h in self.roi.getHandles():
+			pos = h.viewPos()
+			for i in range(4 * len(translates)):
+				tr = translates[i % len(translates)]
+				self.roi.movePoint(h, [pos.x() + tr[0], pos.y() + tr[1]])
+				self.checkChanged()
+				self.checkChangeFinished()
+				self.check_similar(roi2)
+				#time.sleep(.02)
+				qApp.processEvents()
 
 
 class ROI_Rectangle(ROITest):
@@ -257,22 +296,31 @@ class ROI_Freehand(ROITest):
 	POINTS = [3, 2], [5, 6], [2, 4]
 	MASK = [[3, 3, 3, 4, 4], [2, 3, 4, 4, 5]]
 
+	def test_translate_multiple(self):
+		pass
+
 
 class ROI_Rect_Line(ROITest):
 	TYPE="rect_line"
 	POINTS = [[3, 2], [5, 4], [4, 8]]
 	MASK = [[3, 4, 5, 5, 5, 4, 4, 4], [2, 3, 4, 4, 5, 6, 7, 8]]
 
+	
 	def test_extend(self):
-		self.roi.extend(6, 8)
+		self.roi.extend(9, 2)
 
 		self.checkChanged()
 		self.checkChangeFinished()
 
+		self.roi.removeSegment(len(self.roi.lines)-1)
+	
 	def test_plot_translate(self):
 		pass
 
 	def test_translate(self):
+		pass
+
+	def test_translate_multiple(self):
 		pass
 
 	def test_kymograph(self):
@@ -308,6 +356,7 @@ class ROI_Rect_Line(ROITest):
 		w2.close()
 		self.win1.setAsCurrentWindow()
 
+
 class Test_Rectangle_2D(ROI_Rectangle):
 	img = np.random.random([20, 20])
 class Test_Rectangle_3D(ROI_Rectangle):
@@ -329,11 +378,11 @@ class Test_Freehand_3D(ROI_Freehand):
 class Test_Freehand_4D(ROI_Freehand):
 	img = np.random.random([10, 20, 20, 3])
 
-class Test_Line_2D(ROI_Line):
+class Test_Rect_Line_2D(ROI_Rect_Line):
 	img = np.random.random([20, 20])
-class Test_Line_3D(ROI_Line):
+class Test_Rect_Line_3D(ROI_Rect_Line):
 	img = np.random.random([10, 20, 20])
-class Test_Line_4D(ROI_Line):
+class Test_Rect_Line_4D(ROI_Rect_Line):
 	img = np.random.random([10, 20, 20, 3])
 
 
