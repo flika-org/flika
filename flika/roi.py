@@ -54,6 +54,7 @@ class ROI_Drawing(pg.GraphicsObject):
     def cancel(self):
         g.currentWindow.imageview.removeItem(self)
         g.currentWindow.currentROI = None
+        self.deleteLater()
 
     def extend(self, x, y):
         new_pt = pg.Point(round(x), round(y))
@@ -281,7 +282,8 @@ class ROI_Base():
             pass
         if self.traceWindow != None:
             self.traceWindow.removeROI(self)
-            self.traceWindow = None
+        
+        self.traceWindow = None
 
     def copy(self):
         """Store this ROI in the clipboard
@@ -691,10 +693,30 @@ class ROI_rect_line(ROI_Base, QtWidgets.QGraphicsObject):
         self.lines = []
         if len(pts) < 2:
             raise Exception("Must start with at least 2 points")
+        self.extendHandle = None
+            
         self.addSegment(pts[1], connectTo=pts[0])
         for p in pts[2:]:
             self.addSegment(p)
-        self.extendHandle = None
+        
+
+    def getHandles(self):
+        handles = []
+        for line in self.lines:
+            handles.append(line.getHandles()[0])
+        handles.append(self.lines[-1].getHandles()[1])
+        return handles
+
+    def movePoint(self, handle, *args, **kargs):
+        if isinstance(handle, int):
+            handle = self.getHandles()[handle]
+        kargs['finish'] = False
+        self.blockSignals(True)
+        for line in handle.rois:
+            line.movePoint(handle, *args, **kargs)
+        self.blockSignals(False)
+        self.sigRegionChanged.emit(self)
+        self.sigRegionChangeFinished.emit(self)
 
     def delete(self):
         ROI_Base.delete(self)
@@ -724,7 +746,7 @@ class ROI_rect_line(ROI_Base, QtWidgets.QGraphicsObject):
                 region = np.average(region, 1)
         elif self.window.image.ndim == 2:
             region = self.getArrayRegion(self.window.imageview.image, self.window.imageview.getImageItem(), (0, 1))
-            region = np.average(region)
+            region = [np.average(region)]
 
         if bounds:
             region = region[bounds[0]:bounds[1]]
@@ -785,22 +807,35 @@ class ROI_rect_line(ROI_Base, QtWidgets.QGraphicsObject):
             ind = len(self.lines)
 
         def dragEvent(handle, ev):
+            pos = self.window.imageview.view.mapToView(ev.scenePos())
             if ev.button() == QtCore.Qt.RightButton:
+                edgeHandles = self.getHandles()
+                edgeHandles = edgeHandles[0], edgeHandles[-1]
+                if self.extendHandle is None and handle not in edgeHandles:
+                    return
+
                 if len(handle.rois) == 1 and ev.isStart():
-                    pos = self.window.imageview.view.mapToView(ev.scenePos())
                     _, self.extendHandle = self.addSegment(pos, connectTo=handle)
                 elif ev.isFinish():
                     self.extendFinished()
                 else:
-                    pos = self.window.imageview.view.mapToView(ev.scenePos())
-                    self.extend(pos.x(), pos.y(), finish=False)
+                    self.extend(round(pos.x()), round(pos.y()), finish=False)
+            else:
+                for roi in handle.rois:
+                    roi.movePoint(handle, [round(pos.x()), round(pos.y())])
+                return
             Handle.mouseDragEvent(handle, ev)
             ev.accept()
 
         if connectTo is None:
             connectTo = self.lines[-1].getHandles()[1]
+
         ## create new ROI
-        newRoi = pg.ROI((0,0), [1, self.width], parent=self, pen=self.pen, **self.roiArgs)
+        if len(self.lines) > 0:
+            newRoi = pg.ROI((0,0), [1, self.width], parent=self, pen=self.pen, **self.roiArgs)
+        else:
+            newRoi = pg.ROI((0,0), [1, self.width], pen=self.pen, **self.roiArgs)
+            newRoi.setParentItem(self)
 
         if len(self.lines) == 0 or ind > 0: # add handles in order
             ## Add first SR handle
@@ -841,7 +876,7 @@ class ROI_rect_line(ROI_Base, QtWidgets.QGraphicsObject):
         self.sigRegionChanged.emit(self)
         return newRoi, h2
 
-    def removeSegment(self, segment=None): 
+    def removeSegment(self, segment=None, finish=True): 
         """Remove a segment from the ROI"""
         if segment is None:
             segment = self.removeLinkAction.data()
@@ -850,6 +885,9 @@ class ROI_rect_line(ROI_Base, QtWidgets.QGraphicsObject):
         elif isinstance(segment, int):
             segment = self.lines[segment]
         
+        segment.sigRegionChangeFinished.disconnect()
+        segment.sigRegionChanged.disconnect()
+
         for h in segment.getHandles():
             if len(h.rois) == 2 and h.parentItem() == segment:
                 otherROI = [line for line in h.rois if line != segment][0]
@@ -859,18 +897,24 @@ class ROI_rect_line(ROI_Base, QtWidgets.QGraphicsObject):
         if segment in self.lines:
             self.lines.remove(segment)
 
-        self.scene().removeItem(segment)
-        segment.sigRegionChangeFinished.disconnect()
+        segment.scene().removeItem(segment)
         if len(self.lines) == 0:
             self.delete()
-        else:
-            self.sigRegionChanged.emit(self)
-
+        
+        
     def extend(self, x, y, finish=True):
-        #point = self.lines[0].getSnapPosition([x, y]) # use arbitrary line to get snapped point
+        self.blockSignals(True)
         point = pg.Point(x, y)
+
         if self.extendHandle is not None:
-            self.extendHandle.movePoint(self.window.imageview.getImageItem().mapToScene(point), finish=False)
+            for roi in self.lines:
+                if self.extendHandle in roi.getHandles():
+                    roi.movePoint(self.extendHandle, point, finish=False)
+            #self.extendHandle.movePoint(self.window.imageview.getImageItem().mapToScene(point), finish=False)
+        else:
+            self.addSegment((x, y))
+        self.blockSignals(False)
+
         self.sigRegionChanged.emit(self)
         if finish:
             self.sigRegionChangeFinished.emit(self)
@@ -1020,6 +1064,7 @@ def makeROI(kind, pts, window=None, color=None, **kargs):
         if window is None:
             g.alert('ERROR: In order to make and ROI a window needs to be selected')
             return None
+
     if kind == 'freehand':
         roi = ROI_freehand(window, pts, **kargs)
     elif kind == 'rectangle':
