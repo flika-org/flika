@@ -24,8 +24,19 @@ class ImageView(pg.ImageView):
         self.ui.normLUTbtn.setText("LUT norm")
         self.ui.gridLayout.addWidget(self.ui.normLUTbtn, 1, 1, 1, 1)
 
+        self.ui.roiPlot.setMaximumHeight(40)
+
     def roiClicked(self):
-        pass
+        if self.hasTimeAxis():
+            mn = self.tVals.min()
+            mx = self.tVals.max()
+            self.ui.roiPlot.setXRange(mn, mx, padding=0.01)
+            self.timeLine.show()
+            self.timeLine.setBounds([mn, mx])
+            self.ui.roiPlot.show()
+        else:
+            self.timeLine.hide()
+            self.ui.roiPlot.hide()
 
 class Window(QtWidgets.QWidget):
     """
