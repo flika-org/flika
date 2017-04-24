@@ -8,7 +8,7 @@ from skimage.filters import threshold_adaptive
 from qtpy import QtCore, QtGui, QtWidgets
 from .. import global_vars as g
 from .BaseProcess import BaseProcess, SliderLabel, WindowSelector,  MissingWindowError, CheckBox, ComboBox
-from ..roi import makeROI, ROI_Drawing
+from ..roi import makeROI, ROI_freehand
 
 
 __all__ = ['threshold','remove_small_blobs','adaptive_threshold','logically_combine','binary_dilation','binary_erosion', 'generate_rois', 'canny_edge_detector']
@@ -452,6 +452,7 @@ class Generate_ROIs(BaseProcess):
     def __init__(self):
         super().__init__()
         self.ROIs = []
+
     def gui(self):
         self.gui_reset()
         self.previewing = False
@@ -459,6 +460,7 @@ class Generate_ROIs(BaseProcess):
         level=SliderLabel(2)
         level.setRange(0,1)
         level.setValue(.5)
+        self.window = g.currentWindow
         minDensity=QtWidgets.QSpinBox()
         minDensity.setRange(4, 1000)
         self.items.append({'name':'level','string':'Contour Level','object':level})
@@ -469,7 +471,7 @@ class Generate_ROIs(BaseProcess):
 
     def removeROIs(self):
         for roi in self.ROIs:
-            roi.cancel()
+            roi.delete()
         self.ROIs = []
 
     def __call__(self, level, minDensity, keepSourceWindow=False):
@@ -477,21 +479,19 @@ class Generate_ROIs(BaseProcess):
         if self.tif.dtype == np.float16:
             g.alert("Adaptive Threshold does not support float16 type arrays")
             return
-        for roi in self.ROIs:
-            roi.cancel()
-        self.ROIs = []
+        self.removeROIs()
 
-        im = g.currentWindow.image if g.currentWindow.image.ndim == 2 else g.currentWindow.image[g.currentWindow.currentIndex]
+        im = self.window.image if self.window.image.ndim == 2 else self.window.image[self.window.currentIndex]
         im = scipy.ndimage.morphology.binary_closing(im)
         if np.any(im < 0) or np.any(im > 1):
             raise Exception("The current image is not a binary image. Threshold first")
 
         thresholded_image = np.squeeze(im)
-        labelled=measure.label(thresholded_image)
+        labeled=measure.label(thresholded_image)
         ROIs = []
-        for i in range(1, np.max(labelled)+1):
-            if np.sum(labelled == i) >= minDensity:
-                im = scipy.ndimage.morphology.binary_dilation(scipy.ndimage.morphology.binary_closing(labelled == i))
+        for i in range(1, np.max(labeled)+1):
+            if np.sum(labeled == i) >= minDensity:
+                im = labeled #scipy.ndimage.morphology.binary_dilation(scipy.ndimage.morphology.binary_closing(labeled == i))
                 outline_coords = measure.find_contours(im, level)
                 if len(outline_coords) == 0:
                     continue
@@ -504,7 +504,7 @@ class Generate_ROIs(BaseProcess):
             self.toPreview = True
             return
         self.previewing = True
-        im = g.currentWindow.image if g.currentWindow.image.ndim == 2 else g.currentWindow.image[g.currentWindow.currentIndex]
+        im = self.window.image if self.window.image.ndim == 2 else self.window.image[self.window.currentIndex]
         im = scipy.ndimage.morphology.binary_closing(im)
         if np.any(im < 0) or np.any(im > 1):
             raise Exception("The current image is not a binary image. Threshold first")
@@ -512,24 +512,20 @@ class Generate_ROIs(BaseProcess):
         level = self.getValue('level')
         minDensity = self.getValue('minDensity')
         thresholded_image = np.squeeze(im)
-        labelled=measure.label(thresholded_image)
-        for roi in self.ROIs:
-            roi.cancel()
-        self.ROIs = []
+        labeled=measure.label(thresholded_image)
+        self.removeROIs()
 
-        for i in range(1, np.max(labelled)+1):
+        for i in range(1, np.max(labeled)+1):
             QtWidgets.qApp.processEvents()
-            if np.sum(labelled == i) >= minDensity:
-                im = scipy.ndimage.morphology.binary_dilation(scipy.ndimage.morphology.binary_closing(labelled == i))
+            if np.sum(labeled == i) >= minDensity:
+                im = labeled #scipy.ndimage.morphology.binary_dilation(scipy.ndimage.morphology.binary_closing(labeled == i))
                 outline_coords = measure.find_contours(im, level)
                 if len(outline_coords) == 0:
                     continue
                 outline_coords = outline_coords[0]
-                self.ROIs.append(ROI_Drawing(g.currentWindow, outline_coords[0][0], outline_coords[0][1], 'freehand'))
-                for p in outline_coords[1:]:
-                    self.ROIs[-1].extend(p[0], p[1])
-                    QtWidgets.qApp.processEvents()
-
+                self.ROIs.append(ROI_freehand(self.window, outline_coords))
+                self.window.imageview.view.addItem(self.ROIs[-1])
+                
         self.previewing = False
         if self.toPreview:
             self.toPreview = False

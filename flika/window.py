@@ -478,7 +478,7 @@ class Window(QtWidgets.QWidget):
             else:
                 self.menu.exec_(ev.screenPos().toQPoint())
         elif self.creatingROI:
-            self.currentROI.cancel()
+            self.currentROI.delete()
             self.creatingROI = None
 
     def save_rois(self, filename=None):
@@ -543,21 +543,40 @@ class Window(QtWidgets.QWidget):
                     self.x = pt.x()  # This sets x and y to the button down position, not the current position.
                     self.y = pt.y()
                     self.creatingROI = True
-                    self.currentROI = ROI_Drawing(self, self.x, self.y, mm)
+                    pt = [round(self.x), round(self.y)]
+                    
+                    #try:
+                    if mm == 'rectangle':
+                        self.currentROI = ROI_rectangle(self, pt, [0, 0])
+                    elif mm == 'freehand':
+                        self.currentROI = ROI_freehand(self, [pt])
+                    elif mm == 'line':
+                        self.currentROI = ROI_line(self, [pt, pt])
+                    elif mm == 'rect_line':
+                        self.currentROI = ROI_rect_line(self, [pt, [round(self.x)+1, round(self.y)]])
+                    #except RuntimeError as e:
+                    #    print(e)
+                    #    print("ROI creation error")
+                    #    self.currentROI = None
+                    #    self.creatingROI = False
+                    #    return
+
+                    self.currentROI._drawing = True
+                    self.imageview.view.addItem(self.currentROI)
                 if ev.isFinish():
                     if self.creatingROI:   
                         if ev._buttons | QtCore.Qt.RightButton != ev._buttons:
-                            self.currentROI = self.currentROI.drawFinished()
+                            self.currentROI.drawFinished()
                             self.creatingROI = False
                         else:
-                            self.currentROI.cancel()
+                            self.currentROI.delete()
                             self.creatingROI = False
                     else:
                         for r in self.currentROIs:
                             r.finish_translate()
                 else:  # If we are in the middle of the drag between starting and finishing.
                     if self.creatingROI:
-                        self.currentROI.extend(self.x, self.y)
+                        self.currentROI.extend(round(self.x), round(self.y))
 
     def updateTimeStampLabel(self,frame):
         label = self.timeStampLabel
