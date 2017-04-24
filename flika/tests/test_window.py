@@ -233,7 +233,7 @@ class ROITest():
 				self.checkChanged()
 				self.checkChangeFinished()
 				self.check_similar(roi2)
-				#time.sleep(.02)
+				time.sleep(.02)
 				qApp.processEvents()
 
 
