@@ -10,6 +10,33 @@ from .roi import *
 from .utils.misc import save_file_gui
 pg.setConfigOptions(useWeave=False)
 
+class ImageView(pg.ImageView):
+    def __init__(self, *args, **kargs):
+        pg.ImageView.__init__(self, *args, **kargs)
+        self.view.removeItem(self.roi)
+        self.roi.deleteLater()
+        self.view.removeItem(self.normRoi)
+        self.normRoi.deleteLater()
+        self.ui.menuBtn.setParent(None)
+        self.ui.roiBtn.setParent(None) # gets rid of 'roi' button that comes with ImageView
+        self.ui.normLUTbtn = QtWidgets.QPushButton(self.ui.layoutWidget)
+        self.ui.normLUTbtn.setObjectName("LUT norm")
+        self.ui.normLUTbtn.setText("LUT norm")
+        self.ui.gridLayout.addWidget(self.ui.normLUTbtn, 1, 1, 1, 1)
+
+        self.ui.roiPlot.setMaximumHeight(40)
+
+    def roiClicked(self):
+        if self.hasTimeAxis():
+            mn = self.tVals.min()
+            mx = self.tVals.max()
+            self.ui.roiPlot.setXRange(mn, mx, padding=0.01)
+            self.timeLine.show()
+            self.timeLine.setBounds([mn, mx])
+            self.ui.roiPlot.show()
+        else:
+            self.timeLine.hide()
+            self.ui.roiPlot.hide()
 
 class Window(QtWidgets.QWidget):
     """
@@ -66,15 +93,9 @@ class Window(QtWidgets.QWidget):
         self.filename = filename #: str: The filename (including full path) of file this window's image orinated from.
         self.setAsCurrentWindow()
         self.setWindowTitle(name)
-        self.imageview = pg.ImageView(self)
+        self.imageview = ImageView(self)
         self.imageview.setMouseTracking(True)
         self.imageview.installEventFilter(self)
-        self.imageview.ui.menuBtn.setParent(None)
-        self.imageview.ui.roiBtn.setParent(None) # gets rid of 'roi' button that comes with ImageView
-        self.imageview.ui.normLUTbtn = QtWidgets.QPushButton(self.imageview.ui.layoutWidget)
-        self.imageview.ui.normLUTbtn.setObjectName("LUT norm")
-        self.imageview.ui.normLUTbtn.setText("LUT norm")
-        self.imageview.ui.gridLayout.addWidget(self.imageview.ui.normLUTbtn, 1, 1, 1, 1)
         self.imageview.ui.normLUTbtn.pressed.connect(self.normLUT)
         rp = self.imageview.ui.roiPlot.getPlotItem()
         self.linkMenu = QtWidgets.QMenu("Link frame")
@@ -571,9 +592,6 @@ class Window(QtWidgets.QWidget):
                         else:
                             self.currentROI.delete()
                             self.creatingROI = False
-                    else:
-                        for r in self.currentROIs:
-                            r.finish_translate()
                 else:  # If we are in the middle of the drag between starting and finishing.
                     if self.creatingROI:
                         self.currentROI.extend(round(self.x), round(self.y))
