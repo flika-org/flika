@@ -5,7 +5,7 @@ from .. import global_vars as g
 from .BaseProcess import BaseProcess, CheckBox, ComboBox
 from ..window import Window
 
-__all__ = ['subtract','multiply','power','ratio','absolute_value','subtract_trace','divide_trace']
+__all__ = ['subtract','multiply','divide','power','ratio','absolute_value','subtract_trace','divide_trace']
 
 
 def upgrade_dtype(dtype):
@@ -159,6 +159,47 @@ class Multiply(BaseProcess):
         else:
             g.currentWindow.reset()
 multiply=Multiply()
+
+
+class Divide(BaseProcess):
+    """ divide(value, keepSourceWindow=False)
+    This takes a value and divides it to the current window's image.
+
+    Parameters:
+        | value (float) -- The number you are dividing by.
+    Returns:
+        newWindow
+    """
+
+    def __init__(self):
+        super().__init__()
+
+    def gui(self):
+        self.gui_reset()
+        value = QtWidgets.QDoubleSpinBox()
+        value.setRange(-2 ** 64, 2 ** 64)
+        self.items.append({'name': 'value', 'string': 'Value', 'object': value})
+        self.items.append({'name': 'preview', 'string': 'Preview', 'object': CheckBox()})
+        super().gui()
+
+    def __call__(self, value, keepSourceWindow=False):
+        self.start(keepSourceWindow)
+        self.newtif = self.tif / value
+        self.newname = self.oldname + ' - Multiplied ' + str(value)
+        return self.end()
+
+    def preview(self):
+        value = self.getValue('value')
+        preview = self.getValue('preview')
+        if preview:
+            testimage = np.copy(g.currentWindow.image[g.currentWindow.currentIndex])
+            testimage = testimage / value
+            g.currentWindow.imageview.setImage(testimage, autoLevels=False)
+        else:
+            g.currentWindow.reset()
+
+
+divide = Divide()
 
 class Power(BaseProcess):
     """ power(value, keepSourceWindow=False)

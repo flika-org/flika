@@ -60,6 +60,7 @@ def setup_menus():
     addAction(binaryMenu, "Generate ROIs", generate_rois.gui)
 
     addAction(mathMenu, "Multiply", multiply.gui)
+    addAction(mathMenu, "Divide", divide.gui)
     addAction(mathMenu, "Subtract", subtract.gui)
     addAction(mathMenu, "Power", power.gui)
     addAction(mathMenu, "Ratio By Baseline", ratio.gui)
