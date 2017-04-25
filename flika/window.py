@@ -14,9 +14,9 @@ class ImageView(pg.ImageView):
     def __init__(self, *args, **kargs):
         pg.ImageView.__init__(self, *args, **kargs)
         self.view.removeItem(self.roi)
-        self.roi.deleteLater()
         self.view.removeItem(self.normRoi)
-        self.normRoi.deleteLater()
+        self.roi.setParent(None)
+        self.normRoi.setParent(None)
         self.ui.menuBtn.setParent(None)
         self.ui.roiBtn.setParent(None) # gets rid of 'roi' button that comes with ImageView
         self.ui.normLUTbtn = QtWidgets.QPushButton(self.ui.layoutWidget)

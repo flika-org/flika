@@ -57,11 +57,9 @@ class ROITest():
 		self.check_placement()
 
 	def preChange(self):
-		assert not self.changed, "Change signal emitted too early"
 		self.changed = True
 	
 	def preChangeFinished(self):
-		assert not self.changeFinished, "ChangeFinished signal emitted too early"
 		self.changeFinished = True
 
 	def checkChanged(self):
@@ -233,7 +231,7 @@ class ROITest():
 				self.checkChanged()
 				self.checkChangeFinished()
 				self.check_similar(roi2)
-				time.sleep(.02)
+				#time.sleep(.02)
 				qApp.processEvents()
 
 
