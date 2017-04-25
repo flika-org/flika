@@ -49,27 +49,26 @@ class ROITest():
 		if not hasattr(self, 'win1'):
 			raise Exception("Unable to create Window due to RuntimeError")
 
+
+		self.roi = makeROI(self.TYPE, self.POINTS, window=self.win1)
 		self.changed = False
 		self.changeFinished = False
-		self.roi = makeROI(self.TYPE, self.POINTS, window=self.win1)
 		self.roi.sigRegionChanged.connect(self.preChange)
 		self.roi.sigRegionChangeFinished.connect(self.preChangeFinished)
 		self.check_placement()
 
 	def preChange(self):
-		assert not self.changed, "Change signal emitted too early"
 		self.changed = True
 	
 	def preChangeFinished(self):
-		assert not self.changeFinished, "ChangeFinished signal emitted too early"
 		self.changeFinished = True
 
 	def checkChanged(self):
-		assert self.changed, "Change signal was not sent"
+		assert self.changed
 		self.changed = False
 	
 	def checkChangeFinished(self):
-		assert self.changeFinished, "ChangeFinished signal was not sent"
+		assert self.changeFinished
 		self.changeFinished = False
 	
 	def teardown_method(self, func):
@@ -89,9 +88,9 @@ class ROITest():
 			mask = self.MASK
 		if points is None:
 			points = self.POINTS
-		assert np.array_equal(self.roi.getMask(), mask), "Mask differs on creation. %s != %s" % (self.roi.getMask(), self.MASK)
-		assert np.array_equal(self.roi.pts, points), "pts differs on creation. %s != %s" % (self.roi.pts, self.POINTS)
-		assert np.array_equal(self.roi.getPoints(), points), "getPoints differs on creation. %s != %s" % (self.roi.getPoints(), self.POINTS)
+		assert np.array_equal(self.roi.getMask(), mask)#, "Mask differs on creation. %s != %s" % (self.roi.getMask(), self.MASK)
+		assert np.array_equal(self.roi.pts, points)#, "pts differs on creation. %s != %s" % (self.roi.pts, self.POINTS)
+		assert np.array_equal(self.roi.getPoints(), points)#, "getPoints differs on creation. %s != %s" % (self.roi.getPoints(), self.POINTS)
 
 	def check_similar(self, other):
 		mask1 = self.roi.getMask()
@@ -233,7 +232,7 @@ class ROITest():
 				self.checkChanged()
 				self.checkChangeFinished()
 				self.check_similar(roi2)
-				time.sleep(.02)
+				#time.sleep(.02)
 				qApp.processEvents()
 
 
@@ -313,6 +312,9 @@ class ROI_Rect_Line(ROITest):
 		self.checkChangeFinished()
 
 		self.roi.removeSegment(len(self.roi.lines)-1)
+
+		self.checkChanged()
+		self.checkChangeFinished()
 	
 	def test_plot_translate(self):
 		pass
@@ -325,13 +327,19 @@ class ROI_Rect_Line(ROITest):
 
 	def test_kymograph(self):
 		self.roi.update_kymograph()
+
 		if self.roi.kymograph is None and self.win1.image.ndim != 3:
 			return
 		kymo = self.roi.kymograph
 		assert kymo.image.shape[1] == self.win1.image.shape[0]
 		
+		self.changed = False
+		self.changeFinished = False
+
 		self.roi.setWidth(3)
 		assert kymo.image.shape[1] == self.win1.image.shape[0]
+		self.checkChanged()
+		self.checkChangeFinished()
 
 		kymo.close()
 		self.win1.setAsCurrentWindow()

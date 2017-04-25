@@ -780,7 +780,7 @@ class ROI_rect_line(ROI_Base, QtWidgets.QGraphicsObject):
         
         return np.concatenate(rgns, axis=axes[0])
         
-    def addSegment(self, pos=(0, 0), connectTo=None):
+    def addSegment(self, pos=(0, 0), connectTo=None, finish=True):
         """
         Add a new segment to the ROI connecting from the previous endpoint to *pos*.
         (pos is specified in the parent coordinate system of the MultiRectROI)
@@ -824,10 +824,10 @@ class ROI_rect_line(ROI_Base, QtWidgets.QGraphicsObject):
             ## Add first SR handle
             if isinstance(connectTo, Handle):
                 h = newRoi.addScaleRotateHandle([0, 0.5], [1, 0.5], item=connectTo)
-                newRoi.movePoint(connectTo, connectTo.scenePos(), coords='scene')
+                newRoi.movePoint(connectTo, connectTo.scenePos(), coords='scene', finish=False)
             else:
                 h = newRoi.addScaleRotateHandle([0, 0.5], [1, 0.5])
-                newRoi.movePoint(h, connectTo, coords='scene')
+                newRoi.movePoint(h, connectTo, coords='scene', finish=False)
             h.mouseDragEvent = lambda ev: dragEvent(h, ev)
 
             ## add second SR handle
@@ -841,10 +841,10 @@ class ROI_rect_line(ROI_Base, QtWidgets.QGraphicsObject):
 
             if isinstance(connectTo, Handle):
                 h = newRoi.addScaleRotateHandle([0, 0.5], [1, 0.5], item=connectTo)
-                newRoi.movePoint(connectTo, connectTo.scenePos(), coords='scene')
+                newRoi.movePoint(connectTo, connectTo.scenePos(), coords='scene', finish=False)
             else:
                 h = newRoi.addScaleRotateHandle([0, 0.5], [1, 0.5])
-                newRoi.movePoint(h, connectTo, coords='scene')
+                newRoi.movePoint(h, connectTo, coords='scene', finish=False)
             h.mouseDragEvent = lambda ev: dragEvent(h, ev)
 
 
@@ -857,6 +857,7 @@ class ROI_rect_line(ROI_Base, QtWidgets.QGraphicsObject):
         newRoi.sigRegionChanged.connect(lambda a: self.sigRegionChanged.emit(self))
         newRoi.sigRegionChangeFinished.connect( lambda a: self.sigRegionChangeFinished.emit(self))
         self.sigRegionChanged.emit(self)
+        self.sigRegionChangeFinished.emit(self)
         return newRoi, h2
 
     def removeSegment(self, segment=None, finish=True): 
@@ -883,6 +884,10 @@ class ROI_rect_line(ROI_Base, QtWidgets.QGraphicsObject):
         segment.scene().removeItem(segment)
         if len(self.lines) == 0:
             self.delete()
+
+        self.sigRegionChanged.emit(self)
+        if finish:
+            self.sigRegionChangeFinished.emit(self)
         
         
     def extend(self, x, y, finish=True):
