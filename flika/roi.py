@@ -66,6 +66,10 @@ class ROI_Base():
         self.makeMenu()
         self.setPen(pg.mkPen(QtGui.QColor(g.settings['roi_color']) if g.settings['roi_color'] != 'random' else random_color()))
 
+    def mouseClickEvent(self, ev):
+        self.window.currentROI = self
+        super().mouseClickEvent(ev)
+
     def resetSignals(self):
         try:
             self.sigRegionChanged.disconnect()
@@ -505,6 +509,7 @@ class ROI_rectangle(ROI_Base, pg.ROI):
         self.setPos(pts[0], finish=False)
         self.setSize(pts[1], finish=False)
         self.pts = np.array(pts)
+        self.sigRegionChanged.emit(self)
         if finish:
             self.sigRegionChangeFinished.emit(self)
 
@@ -530,33 +535,25 @@ class ROI_rectangle(ROI_Base, pg.ROI):
         x1, y1 = int(p1.x()), int(p1.y())
         x2, y2 = int(p2.x()), int(p2.y())
 
+        if x1<0: x1=0
+        if y1<0: y1=0
+
         tif=self.window.image
-        if tif.ndim==3:
-            mt,mx,my=tif.shape
-            if x1<0: x1=0
-            if y1<0: y1=0
-            if x2>=mx: x2=mx-1
-            if y2>=my: y2=my-1
-            newtif=tif[:,x1:x2,y1:y2]
-        elif tif.ndim==2:
-            mx,my=tif.shape
-            if x1<0: x1=0
-            if y1<0: y1=0
-            if x2>=mx: x2=mx-1
-            if y2>=my: y2=my-1
-            mx,my=tif.shape
-            newtif=tif[x1:x2,y1:y2]
-        elif tif.ndim==4:
-            mt,mx,my,mc=tif.shape
-            if x1<0: x1=0
-            if y1<0: y1=0
+        #if self.window.imageview.hasTimeAxis():
+        if self.window.mt > 1:
+            mt, mx, my = tif.shape[:3]
             if x2>=mx: x2=mx-1
             if y2>=my: y2=my-1
             newtif=tif[:,x1:x2,y1:y2]
         else:
-            g.alert("Image dimensions not understood")
-            return None
-        return Window(newtif,self.window.name+' Cropped',metadata=self.window.metadata)
+            mx, my = tif.shape[:2]
+            if x2>=mx: x2=mx-1
+            if y2>=my: y2=my-1
+            newtif=tif[x1:x2,y1:y2]
+
+        w =  Window(np.zeros([5, 5]),self.window.name+' Cropped',metadata=self.window.metadata)
+        w.imageview.setImage(newtif, axes=self.window.imageview.axes)
+        return w
 
 class ROI_freehand(ROI_Base, pg.ROI):
     """ROI freehand class for selecting a polygon from the original image.

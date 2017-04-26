@@ -142,7 +142,7 @@ def save_movie(rate, filename=None):
         exporter = pg.exporters.ImageExporter.ImageExporter(win.imageview.view)
 
     nFrames = len(A)
-    tmpdir = os.path.join(os.path.dirname(g.settings.config_file), 'tmp')
+    tmpdir = os.path.join(os.path.dirname(g.settings.settings_file), 'tmp')
     if os.path.isdir(tmpdir):
         shutil.rmtree(tmpdir)
     os.mkdir(tmpdir)

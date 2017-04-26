@@ -13,10 +13,11 @@ pg.setConfigOptions(useWeave=False)
 class ImageView(pg.ImageView):
     def __init__(self, *args, **kargs):
         pg.ImageView.__init__(self, *args, **kargs)
+        self.view.unregister()
         self.view.removeItem(self.roi)
-        self.roi.deleteLater()
         self.view.removeItem(self.normRoi)
-        self.normRoi.deleteLater()
+        self.roi.setParent(None)
+        self.normRoi.setParent(None)
         self.ui.menuBtn.setParent(None)
         self.ui.roiBtn.setParent(None) # gets rid of 'roi' button that comes with ImageView
         self.ui.normLUTbtn = QtWidgets.QPushButton(self.ui.layoutWidget)
@@ -26,17 +27,26 @@ class ImageView(pg.ImageView):
 
         self.ui.roiPlot.setMaximumHeight(40)
 
+    def hasTimeAxis(self):
+        return 't' in self.axes and not (self.axes['t'] is None or self.image.shape[self.axes['t']] == 1)
+
     def roiClicked(self):
+        showRoiPlot = False
         if self.hasTimeAxis():
+            showRoiPlot = True
             mn = self.tVals.min()
-            mx = self.tVals.max()
+            mx = self.tVals.max() + .01
             self.ui.roiPlot.setXRange(mn, mx, padding=0.01)
             self.timeLine.show()
             self.timeLine.setBounds([mn, mx])
             self.ui.roiPlot.show()
+            if not self.ui.roiBtn.isChecked():
+                self.ui.splitter.setSizes([self.height()-35, 35])
         else:
             self.timeLine.hide()
-            self.ui.roiPlot.hide()
+            #self.ui.roiPlot.hide()
+            
+        self.ui.roiPlot.setVisible(showRoiPlot)
 
 class Window(QtWidgets.QWidget):
     """
