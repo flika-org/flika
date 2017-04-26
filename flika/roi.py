@@ -803,8 +803,6 @@ class ROI_rect_line(ROI_Base, QtWidgets.QGraphicsObject):
                 else:
                     self.extend(round(pos.x()), round(pos.y()), finish=False)
             else:
-                print(handle.rois)
-                print([round(pos.x()), round(pos.y())])
                 for roi in handle.rois:
                     roi.movePoint(handle, [round(pos.x()), round(pos.y())])
                 return
@@ -1076,10 +1074,11 @@ def makeROI(kind, pts, window=None, color=None, **kargs):
     else:
         pen = QtGui.QPen(color)
     pen.setWidth(0)
-
-    roi.drawFinished()
     roi.setPen(pen)
     window.imageview.view.addItem(roi)
+
+    roi.drawFinished()
+    
     return roi
 
 def open_rois(filename=None):
