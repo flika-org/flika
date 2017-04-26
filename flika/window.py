@@ -13,6 +13,7 @@ pg.setConfigOptions(useWeave=False)
 class ImageView(pg.ImageView):
     def __init__(self, *args, **kargs):
         pg.ImageView.__init__(self, *args, **kargs)
+        self.view.unregister()
         self.view.removeItem(self.roi)
         self.view.removeItem(self.normRoi)
         self.roi.setParent(None)

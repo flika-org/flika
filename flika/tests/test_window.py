@@ -34,6 +34,12 @@ class TestWindow():
 		win2.close()
 		assert len(self.win1.linkedWindows) == 0, "Closed window is not unlinked"
 
+	def test_timeline(self):
+		self.win1.imageview.setImage(im[0])
+		assert self.win1.imageview.ui.roiPlot.isVisible() == False
+		self.win1.imageview.setImage(im)
+		assert self.win1.imageview.ui.roiPlot.isVisible() == True
+
 class ROITest():
 	TYPE=None
 	POINTS=[]
@@ -79,6 +85,8 @@ class ROITest():
 		self.win1.close()
 		from .conftest import fa
 		fa().clear()
+		pg.ViewBox.AllViews.clear()
+		pg.ViewBox.NamedViews.clear()
 
 
 
@@ -210,12 +218,15 @@ class ROITest():
 			self.checkChanged()
 			self.checkChangeFinished()
 			#time.sleep(.02)
-			qApp.processEvents()
+			#qApp.processEvents()
+
+		w2.close()
+		self.roi.draw_from_points(self.POINTS)
 	
 	def test_resize_multiple(self):
 		if len(self.roi.getHandles()) == 0:
 			return
-		translates = [[2, 0], [0, 2], [-2, 0], [0, -2]]
+		translates = [[1, 0], [0, 1], [-1, 0], [0, -1]]
 		self.roi.copy()
 		w2 = Window(self.img)
 		roi2 = w2.paste()
@@ -224,6 +235,7 @@ class ROITest():
 		roi2.plot()
 
 		for h in self.roi.getHandles():
+			h._updateView()
 			pos = h.viewPos()
 			for i in range(4 * len(translates)):
 				tr = translates[i % len(translates)]
@@ -232,33 +244,36 @@ class ROITest():
 				self.checkChangeFinished()
 				self.check_similar(roi2)
 				#time.sleep(.02)
-				qApp.processEvents()
+				#qApp.processEvents()
 
+		w2.close()
+		self.roi.draw_from_points(self.POINTS)
 
 class ROI_Rectangle(ROITest):
 	TYPE = "rectangle"
-	POINTS = [[3, 2], [5, 2]]
-	MASK = [[3, 4, 5, 6, 7, 3, 4, 5, 6, 7], [2, 2, 2, 2, 2, 3, 3, 3, 3, 3]]
+	POINTS = [[3, 2], [2, 5]]
+	MASK = [[3, 4, 3, 4, 3, 4, 3, 4, 3, 4], [2, 2, 3, 3, 4, 4, 5, 5, 6, 6]]
 
 	def test_crop(self):
 		w2 = self.roi.crop()
 		bound = self.roi.boundingRect()
+		mask = self.roi.getMask()
+		w, h = np.ptp(mask, 1) + [1, 1]
 
-		xdim = 1 if self.win1.image.ndim > 2 else 0
-		ydim = xdim+1
-
-		assert w2.image.shape[xdim] == bound.width() and w2.image.shape[ydim] == bound.height(), "Croppped image different size (%s, %s) != (%s, %s)" % (bound.width(), bound.height(), w2.image.shape[xdim], w2.image.shape[ydim])
+		assert w == bound.width() and h == bound.height(), "Croppped image different size (%s, %s) != (%s, %s)" % (bound.width(), bound.height(), w, h)
 		w2.close()
 
 	def test_resize(self):
-		self.roi.scale([1.2, 1])
+		self.roi.scale([1, 1.2])
 
 		self.checkChanged()
 		self.checkChangeFinished()
 		
-		points = [self.POINTS[0], [6, 2]]
-		mask = [[3, 4, 5, 6, 7, 8, 3, 4, 5, 6, 7, 8], [2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3]]
+		points = [self.POINTS[0], [2, 6]]
+		mask = [[3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4], [2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7]]
 		self.check_placement(points=points, mask=mask)
+
+		self.roi.draw_from_points(self.POINTS)
 
 class ROI_Line(ROITest):
 	TYPE="line"
