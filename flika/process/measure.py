@@ -156,9 +156,9 @@ class Measure(BaseProcess):
         filename = g.settings['filename']
         directory = os.path.dirname(filename)
         if filename is not None:
-            filename = getSaveFileName(g.m, 'Save Measurements', directory, '*.txt')
+            filename = save_file_gui('Save Measurements', directory, '*.txt')
         else:
-            filename = getSaveFileName(g.m, 'Save Measurements', '*.txt')
+            filename = save_file_gui('Save Measurements', None, '*.txt')
         filename = str(filename)
         if filename == '':
             return False
