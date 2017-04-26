@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from glob import glob
 import os, sys, difflib, zipfile, time, shutil, traceback
-import importlib.util
 from os.path import expanduser
 from qtpy import QtGui, QtWidgets, QtCore
 from urllib.request import urlopen
@@ -13,6 +12,7 @@ import threading
 import pip, tempfile
 from xml.etree import ElementTree
 import platform
+from importlib import reload
 
 from .. import global_vars as g
 from ..utils.misc import load_ui
@@ -87,12 +87,12 @@ def str2func(plugin_name, file_location, function):
     imports plugin_name.path and gets the function from that imported object
     to be run when an action is clicked
     '''
-    __import__(plugin_name)
 
     plugin_dir = "plugins.{}.{}".format(plugin_name, file_location)
     levels = function.split('.')
     try:
-        module = __import__(plugin_dir, fromlist=[levels[0]]).__dict__[levels[0]]
+        module = __import__(plugin_dir, fromlist=[levels[0]])
+        module = reload(module).__dict__[levels[0]]
     except:
         raise PluginImportError("Failed to import %s from module %s.\n%s" % (levels[0], plugin_dir, traceback.format_exc()))
         return None
@@ -138,10 +138,6 @@ class Plugin():
         self.info_url = info_url
         if info_url:
             self.update_info()
-
-    def reload(self):
-        self.menu = QtWidgets.QMenu(self.name)
-        build_submenu(self.directory, self.menu, self.menu_layout)
 
     def lastModified(self):
         return os.path.getmtime(os.path.join(get_plugin_directory(), self.directory))
@@ -273,6 +269,7 @@ class PluginManager(QtWidgets.QMainWindow):
         self.searchBox.textChanged.connect(self.showPlugins)
         self.searchButton.clicked.connect(lambda f: self.showPlugins(search_str=str(self.searchBox.text())))
         self.descriptionLabel.setOpenExternalLinks(True)
+        self.reloadButton.clicked.connect(self.reload_local_plugins)
         
         self.refreshButton.pressed.connect(self.refresh_online_plugins)
         def updatePlugin(a):
@@ -357,6 +354,24 @@ class PluginManager(QtWidgets.QMainWindow):
             if os.path.isdir(path) and os.path.exists(os.path.join(path, 'info.xml')):
                 paths.append(path)
         return paths
+
+    @staticmethod
+    def reload_local_plugins():
+        for path in PluginManager.local_plugin_paths():
+            p = Plugin.fromLocal(path)
+            p.installed = True
+            PluginManager.plugin_list[p.name] = p
+
+    @staticmethod
+    def load_local_plugins():
+        PluginManager.plugins = {n: Plugin(n) for n in plugin_list}
+        for pluginPath in PluginManager.local_plugin_paths():
+            try:
+                p = Plugin.fromLocal(pluginPath)
+                p.installed = True
+                PluginManager.plugins[p.name] = p
+            except Exception as e:
+                g.alert("Could not load {}.\n\t{}".format(pluginPath, traceback.format_exc()), title="Plugin Load Error")
 
     def clearList(self):
         while self.pluginList.count() > 0:
@@ -483,13 +498,3 @@ Then try installing the plugin again.""".format(pl, v, arch))
         PluginManager.gui.statusBar.showMessage('Successfully installed {} and it\'s dependencies'.format(plugin.name))
         PluginManager.gui.pluginSelected(plugin.listWidget)
         plugin.installed = True
-
-def load_local_plugins():
-    PluginManager.plugins = {n: Plugin(n) for n in plugin_list}
-    for pluginPath in PluginManager.local_plugin_paths():
-        try:
-            p = Plugin.fromLocal(pluginPath)
-            p.installed = True
-            PluginManager.plugins[p.name] = p
-        except Exception as e:
-            g.alert("Could not load {}.\n\t{}".format(pluginPath, traceback.format_exc()), title="Plugin Load Error")

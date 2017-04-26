@@ -8,7 +8,7 @@ from ..process import setup_menus
 from ..app.settings_editor import SettingsEditor, rectSettings, pointSettings
 from ..process.file_ import *
 from .. import global_vars as g
-from .plugin_manager import PluginManager, load_local_plugins
+from .plugin_manager import PluginManager
 from .script_editor import ScriptEditor
 from ..utils.misc import load_ui, send_error_report, send_user_stats
 from ..images import image_path
@@ -196,7 +196,7 @@ class FlikaApplication(QtWidgets.QMainWindow):
         self.statusBar().setSizeGripEnabled(False)
         self.setCurrentWindowSignal = SetCurrentWindowSignal(self)
         self.setAcceptDrops(True)
-        load_local_plugins()
+        PluginManager.load_local_plugins()
 
     def start(self):
         self.show()
@@ -283,7 +283,6 @@ class FlikaApplication(QtWidgets.QMainWindow):
 
         installedPlugins = [plugin for plugin in PluginManager.plugins.values() if plugin.installed]
         for plugin in sorted(installedPlugins, key=lambda a: -a.lastModified()):
-            plugin.reload()
             if isinstance(plugin.menu, QtWidgets.QMenu):
                 self.pluginMenu.addMenu(plugin.menu)
 
