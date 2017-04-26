@@ -6,6 +6,7 @@ from qtpy import QtWidgets, QtCore, QtGui
 from .. import global_vars as g
 from .BaseProcess import BaseProcess
 from ..utils.misc import save_file_gui
+from ..roi import ROI_Base
 
 __all__ = ['measure']
 
@@ -42,7 +43,6 @@ class Measure(BaseProcess):
         self.items.append({'name':'newcol','string':'','object':newcol})
         super().gui()
         self.fig = None
-        self.overwrite = False
         self.ui.accepted.disconnect()
         self.ui.closeSignal.connect(self.close)
         self.ui.rejected.connect(self.close)
@@ -63,16 +63,16 @@ class Measure(BaseProcess):
         except:
             pass
 
-    def pointclicked(self,evt, window=None, overwrite=False):
+    def pointclicked(self,evt, window=None):
         if evt.button() != 1:
             return
         if self.ON is False:
             return
-        pos=evt.pos()
-        if self.overwrite:
-            self.overwrite = overwrite
-            return
-        elif window != None:
+        pos = evt.pos()
+        if isinstance(evt.currentItem, (ROI_Base, pg.ROI)):
+            pos = evt.currentItem.mapToScene(pos)
+
+        if window != None:
             if window != self.fig:
                 self.clear()
                 self.fig = window
@@ -92,10 +92,9 @@ class Measure(BaseProcess):
                 self.pathitem=QtWidgets.QGraphicsPathItem(self.viewbox)
                 self.pathitem.setPen(QtGui.QPen(QtCore.Qt.red, 0))
                 self.viewbox.addItem(self.pathitem,ignoreBounds=True)
-            mousePoint = self.viewbox.mapSceneToView(pos) if not overwrite else pos
+            mousePoint = self.viewbox.mapSceneToView(pos)
             pos = np.array([mousePoint.x(),mousePoint.y()])
-
-        self.overwrite = overwrite
+        
         self.update(pos)
 
     def update(self, point):
@@ -156,9 +155,9 @@ class Measure(BaseProcess):
         filename = g.settings['filename']
         directory = os.path.dirname(filename)
         if filename is not None:
-            filename = getSaveFileName(g.m, 'Save Measurements', directory, '*.txt')
+            filename = save_file_gui('Save Measurements', directory, '*.txt')
         else:
-            filename = getSaveFileName(g.m, 'Save Measurements', '*.txt')
+            filename = save_file_gui('Save Measurements', None, '*.txt')
         filename = str(filename)
         if filename == '':
             return False
