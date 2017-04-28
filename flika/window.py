@@ -93,8 +93,8 @@ class Window(QtWidgets.QWidget):
         else:
             geometry = g.currentWindow.geometry()
             screenGeom = QtWidgets.QDesktopWidget().screenGeometry()
-            maxX = screenGeom.width() - geometry.width()
-            maxY = screenGeom.height() - geometry.height()
+            maxX = (screenGeom.width() - geometry.width()) or 1
+            maxY = (screenGeom.height() - geometry.height()) or 1
             newX = (geometry.x() + 10) % maxX
             newY = (geometry.y() + 10) % maxY
             geometry = QtCore.QRect(newX, newY, geometry.width(), geometry.height())
