@@ -26,6 +26,8 @@ class ImageView(pg.ImageView):
         self.ui.gridLayout.addWidget(self.ui.normLUTbtn, 1, 1, 1, 1)
 
         self.ui.roiPlot.setMaximumHeight(40)
+        self.ui.roiPlot.getPlotItem().getViewBox().setMouseEnabled(False)
+        self.ui.roiPlot.getPlotItem().hideButtons()
 
     def hasTimeAxis(self):
         return 't' in self.axes and not (self.axes['t'] is None or self.image.shape[self.axes['t']] == 1)
