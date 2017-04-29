@@ -476,8 +476,13 @@ class Concatenate_stacks(BaseProcess):
             MissingWindowError("You cannot execute '{}' without selecting a window first.".format(self.__name__)))
         A = window1.image
         B = window2.image
-        self.newtif = np.concatenate((A,B),0)
-
+        try:
+            self.newtif = np.concatenate((A, B), 0)
+        except ValueError:
+            if len(A.shape) == 2 and len(B.shape) == 3:
+                self.newtif = np.concatenate((np.expand_dims(A, 0), B), 0)
+            elif len(A.shape) == 3 and len(B.shape) == 2:
+                self.newtif = np.concatenate((A, np.expand_dims(B, 0)), 0)
         self.oldwindow = window1
         self.oldname = window1.name
         self.newname = self.oldname + ' - {}'.format('concatenated')

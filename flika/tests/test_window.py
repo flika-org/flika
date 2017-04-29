@@ -9,6 +9,7 @@ import pytest
 from ..roi import makeROI
 import pyqtgraph as pg
 from qtpy import QtGui
+from qtpy.QtWidgets import qApp
 im = np.random.random([120, 90, 90])
 	
 class TestWindow():
@@ -33,13 +34,27 @@ class TestWindow():
 		win2.close()
 		assert len(self.win1.linkedWindows) == 0, "Closed window is not unlinked"
 
+	def test_timeline(self):
+		self.win1.imageview.setImage(im[0])
+		assert self.win1.imageview.ui.roiPlot.isVisible() == False
+		self.win1.imageview.setImage(im)
+		assert self.win1.imageview.ui.roiPlot.isVisible() == True
+
 class ROITest():
 	TYPE=None
 	POINTS=[]
 	MASK=[]
 
 	def setup_method(self):
-		self.win1 = Window(self.img)
+		for i in range(3):
+			try:
+				self.win1 = Window(self.img)
+				break
+			except RuntimeError:
+				pass
+		if not hasattr(self, 'win1'):
+			raise Exception("Unable to create Window due to RuntimeError")
+
 		self.changed = False
 		self.changeFinished = False
 		self.roi = makeROI(self.TYPE, self.POINTS, window=self.win1)
@@ -48,11 +63,9 @@ class ROITest():
 		self.check_placement()
 
 	def preChange(self):
-		assert not self.changed, "Change signal emitted too early"
 		self.changed = True
 	
 	def preChangeFinished(self):
-		assert not self.changeFinished, "ChangeFinished signal emitted too early"
 		self.changeFinished = True
 
 	def checkChanged(self):
@@ -67,9 +80,15 @@ class ROITest():
 		#if self.roi is not None:
 		#	self.roi.delete()
 		#assert self.roi not in self.win1.rois, "ROI deleted but still in window.rois"
+		for roi in self.win1.rois:
+			roi.delete()
 		self.win1.close()
 		from .conftest import fa
 		fa().clear()
+		pg.ViewBox.AllViews.clear()
+		pg.ViewBox.NamedViews.clear()
+
+
 
 	def check_placement(self, mask=None, points=None):
 		if mask is None:
@@ -109,7 +128,7 @@ class ROITest():
 
 	def test_export_import(self):
 		s = str(self.roi)
-		self.roi.window.exportROIs("test.txt")
+		self.roi.window.save_rois("test.txt")
 		from ..roi import open_rois
 		rois = open_rois('test.txt')
 		assert len(rois) == 1, "Import ROI failure"
@@ -183,31 +202,78 @@ class ROITest():
 
 		assert self.roi.pen.color().name() == color.name(), "Color not changed. %s != %s" % (self.roi.pen.color().name(), color.name())
 		self.roi.unplot()
+	
+	
+	def test_translate_multiple(self):
+		translates = [[5, 0], [0, 5], [-5, 0], [0, -5]]
+		self.roi.copy()
+		w2 = Window(self.img)
+		roi2 = w2.paste()
+		roi2.colorSelected(QtGui.QColor(0, 255, 130))
+		self.roi.plot()
+		roi2.plot()
+		for i in range(20 * len(translates)):
+			tr = translates[i % len(translates)]
+			self.roi.translate(*tr)
+			self.checkChanged()
+			self.checkChangeFinished()
+			#time.sleep(.02)
+			#qApp.processEvents()
+
+		w2.close()
+		self.roi.draw_from_points(self.POINTS)
+	
+	def test_resize_multiple(self):
+		if len(self.roi.getHandles()) == 0:
+			return
+		translates = [[1, 0], [0, 1], [-1, 0], [0, -1]]
+		self.roi.copy()
+		w2 = Window(self.img)
+		roi2 = w2.paste()
+		roi2.colorSelected(QtGui.QColor(0, 255, 130))
+		self.roi.plot()
+		roi2.plot()
+
+		for h in self.roi.getHandles():
+			h._updateView()
+			pos = h.viewPos()
+			for i in range(4 * len(translates)):
+				tr = translates[i % len(translates)]
+				self.roi.movePoint(h, [pos.x() + tr[0], pos.y() + tr[1]])
+				self.checkChanged()
+				self.checkChangeFinished()
+				self.check_similar(roi2)
+				#time.sleep(.02)
+				#qApp.processEvents()
+
+		w2.close()
+		self.roi.draw_from_points(self.POINTS)
 
 class ROI_Rectangle(ROITest):
 	TYPE = "rectangle"
-	POINTS = [[3, 2], [5, 2]]
-	MASK = [[3, 4, 5, 6, 7, 3, 4, 5, 6, 7], [2, 2, 2, 2, 2, 3, 3, 3, 3, 3]]
+	POINTS = [[3, 2], [2, 5]]
+	MASK = [[3, 4, 3, 4, 3, 4, 3, 4, 3, 4], [2, 2, 3, 3, 4, 4, 5, 5, 6, 6]]
 
 	def test_crop(self):
 		w2 = self.roi.crop()
 		bound = self.roi.boundingRect()
+		mask = self.roi.getMask()
+		w, h = np.ptp(mask, 1) + [1, 1]
 
-		xdim = 1 if self.win1.image.ndim > 2 else 0
-		ydim = xdim+1
-
-		assert w2.image.shape[xdim] == bound.width() and w2.image.shape[ydim] == bound.height(), "Croppped image different size (%s, %s) != (%s, %s)" % (bound.width(), bound.height(), w2.image.shape[xdim], w2.image.shape[ydim])
+		assert w == bound.width() and h == bound.height(), "Croppped image different size (%s, %s) != (%s, %s)" % (bound.width(), bound.height(), w, h)
 		w2.close()
 
 	def test_resize(self):
-		self.roi.scale([1.2, 1])
+		self.roi.scale([1, 1.2])
 
 		self.checkChanged()
 		self.checkChangeFinished()
 		
-		points = [self.POINTS[0], [6, 2]]
-		mask = [[3, 4, 5, 6, 7, 8, 3, 4, 5, 6, 7, 8], [2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3]]
+		points = [self.POINTS[0], [2, 6]]
+		mask = [[3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4], [2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7]]
 		self.check_placement(points=points, mask=mask)
+
+		self.roi.draw_from_points(self.POINTS)
 
 class ROI_Line(ROITest):
 	TYPE="line"
@@ -243,22 +309,31 @@ class ROI_Freehand(ROITest):
 	POINTS = [3, 2], [5, 6], [2, 4]
 	MASK = [[3, 3, 3, 4, 4], [2, 3, 4, 4, 5]]
 
+	def test_translate_multiple(self):
+		pass
+
 
 class ROI_Rect_Line(ROITest):
 	TYPE="rect_line"
 	POINTS = [[3, 2], [5, 4], [4, 8]]
 	MASK = [[3, 4, 5, 5, 5, 4, 4, 4], [2, 3, 4, 4, 5, 6, 7, 8]]
 
+	
 	def test_extend(self):
-		self.roi.extend(6, 8)
+		self.roi.extend(9, 2)
 
 		self.checkChanged()
 		self.checkChangeFinished()
 
+		self.roi.removeSegment(len(self.roi.lines)-1)
+	
 	def test_plot_translate(self):
 		pass
 
 	def test_translate(self):
+		pass
+
+	def test_translate_multiple(self):
 		pass
 
 	def test_kymograph(self):
@@ -294,6 +369,7 @@ class ROI_Rect_Line(ROITest):
 		w2.close()
 		self.win1.setAsCurrentWindow()
 
+
 class Test_Rectangle_2D(ROI_Rectangle):
 	img = np.random.random([20, 20])
 class Test_Rectangle_3D(ROI_Rectangle):
@@ -315,11 +391,11 @@ class Test_Freehand_3D(ROI_Freehand):
 class Test_Freehand_4D(ROI_Freehand):
 	img = np.random.random([10, 20, 20, 3])
 
-class Test_Line_2D(ROI_Line):
+class Test_Rect_Line_2D(ROI_Rect_Line):
 	img = np.random.random([20, 20])
-class Test_Line_3D(ROI_Line):
+class Test_Rect_Line_3D(ROI_Rect_Line):
 	img = np.random.random([10, 20, 20])
-class Test_Line_4D(ROI_Line):
+class Test_Rect_Line_4D(ROI_Rect_Line):
 	img = np.random.random([10, 20, 20, 3])
 
 
@@ -339,7 +415,7 @@ class TestTracefig():
 		assert self.w1.currentIndex == 20, "trace indexChanged"
 
 	def test_export(self):
-		self.rect.window.exportROIs('tempROI.txt')
+		self.rect.window.save_rois('tempROI.txt')
 		t = open('tempROI.txt').read()
 		assert t == 'rectangle\n3 2\n4 5\n'
 		os.remove('tempROI.txt')

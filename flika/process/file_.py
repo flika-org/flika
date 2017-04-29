@@ -142,7 +142,7 @@ def save_movie(rate, filename=None):
         exporter = pg.exporters.ImageExporter.ImageExporter(win.imageview.view)
 
     nFrames = len(A)
-    tmpdir = os.path.join(os.path.dirname(g.settings.config_file), 'tmp')
+    tmpdir = os.path.join(os.path.dirname(g.settings.settings_file), 'tmp')
     if os.path.isdir(tmpdir):
         shutil.rmtree(tmpdir)
     os.mkdir(tmpdir)
@@ -199,7 +199,6 @@ def open_file(filename=None, from_gui=False):
             if filename is None:
                 g.alert('No filename selected')
                 return None
-    append_recent_file(filename)  # make first in recent file menu
     g.m.statusBar().showMessage('Loading {}'.format(os.path.basename(filename)))
     t = time.time()
     metadata = dict()
@@ -213,25 +212,54 @@ def open_file(filename=None, from_gui=False):
         metadata = get_metadata_tiff(Tiff)
         A = Tiff.asarray()
         Tiff.close()
-        axes = [tifffile.AXES_LABELS[ax] for ax in Tiff.pages[0].axes]
-        # print("Original Axes = {}".format(axes)) #sample means RBGA, plane means frame, width means X, height means Y
-        if Tiff.is_rgb:
-            if A.ndim == 3:  # still color image.  [X, Y, RBGA]
-                A = np.transpose(A, (1, 0, 2))
-            elif A.ndim == 4:  # movie in color.  [T, X, Y, RGBA]
-                A = np.transpose(A, (0, 2, 1, 3))
-        else:
-            if A.ndim == 2:  # black and white still image [X,Y]
-                A = np.transpose(A, (1, 0))
-            elif A.ndim == 3:  # black and white movie [T,X,Y]
-                A = np.transpose(A, (0, 2, 1))  # This keeps the x and y the same as in FIJI.
-            elif A.ndim == 4:
-                if axes[3] == 'sample' and A.shape[3] == 1:
-                    A = np.squeeze(A)  # this gets rid of the meaningless 4th dimention in .stk files
-                    A = np.transpose(A, (0, 2, 1))
+        axes = [tifffile.AXES_LABELS[ax] for ax in Tiff.series[0].axes]
+        # print("Original Axes = {}".format(Tiff.series[0].axes)) #sample means RBGA, plane means frame, width means X, height means Y
+        try:
+            assert len(axes) == len(A.shape)
+        except AssertionError:
+            msg = 'Tiff could not be loaded because the number of axes in the array does not match the number of axes found by tifffile.py\n'
+            msg += "Shape of array: {}\n".format(A.shape)
+            msg += "Axes found by tifffile.py: {}\n".format(axes)
+            g.alert(msg)
+            return None
+        if set(axes) == set(['height', 'width']):  # still image in black and white.
+            target_axes = ['width', 'height']
+        elif set(axes) == set(['height', 'width', 'channel']):  # still image in color.
+            target_axes = ['width', 'height', 'channel']
+            metadata['is_rgb'] = True
+        elif set(axes) == set(['height', 'width', 'sample']):  # still image in color.
+            target_axes = ['width', 'height', 'sample']
+            metadata['is_rgb'] = True
+        elif set(axes) == set(['height', 'width', 'series']):  # movie in black and white
+            target_axes = ['series', 'width', 'height']
+        elif set(axes) == set(['height', 'width', 'time']):  # movie in black and white
+            target_axes = ['time', 'width', 'height']
+        elif set(axes) == set(['height', 'width', 'depth']):  # movie in black and white
+            target_axes = ['depth', 'width', 'height']
+        elif set(axes) == set(['channel', 'time', 'height', 'width']):  # movie in color
+            target_axes = ['time', 'width', 'height', 'channel']
+            metadata['is_rgb'] = True
+        elif set(axes) == set(['sample', 'time', 'height', 'width']):  # movie in color
+            target_axes = ['time', 'width', 'height', 'sample']
+            metadata['is_rgb'] = True
+        perm = get_permutation_tuple(axes, target_axes)
+        A = np.transpose(A, perm)
+        if target_axes[-1] in ['channel', 'sample', 'series'] and A.shape[-1] == 2:
+            B = np.zeros(A.shape[:-1])
+            B = np.expand_dims(B, len(B.shape))
+            A = np.append(A, B, len(A.shape)-1) # add a column of zeros to the last dimension.
+
+
+        #if A.ndim == 4 and axes[3] == 'sample' and A.shape[3] == 1:
+        #    A = np.squeeze(A)  # this gets rid of the meaningless 4th dimention in .stk files
+
+
     elif ext == '.nd2':
-        nd2 = nd2reader.Nd2(filename)
-        mt, mx, my = len(nd2), nd2.width, nd2.height
+        nd2 = nd2reader.ND2Reader(filename)
+        axes = nd2.axes
+        mx = nd2.metadata['width']
+        my = nd2.metadata['height']
+        mt = nd2.metadata['num_frames']
         A = np.zeros((mt, mx, my))
         percent = 0
         for frame in range(mt):
@@ -240,7 +268,7 @@ def open_file(filename=None, from_gui=False):
                 percent = int(100 * float(frame) / mt)
                 g.m.statusBar().showMessage('Loading file {}%'.format(percent))
                 QtWidgets.qApp.processEvents()
-        metadata = get_metadata_nd2(nd2)
+        metadata = nd2.metadata
     elif ext == '.py':
         ScriptEditor.importScript(filename)
         return
@@ -265,6 +293,8 @@ def open_file(filename=None, from_gui=False):
             g.settings['recent_files'].remove(filename)
         # make_recent_menu()
         return
+        
+    append_recent_file(filename)  # make first in recent file menu
     g.m.statusBar().showMessage('{} successfully loaded ({} s)'.format(os.path.basename(filename), time.time() - t))
     g.settings['filename'] = filename
     commands = ["open_file('{}')".format(filename)]
@@ -317,9 +347,26 @@ def open_points(filename=None):
 ########################################################################################################################
 ######################                INTERNAL HELPER FUNCTIONS                              ###########################
 ########################################################################################################################
+def get_permutation_tuple(src, dst):
+    """
 
+    Parameters
+    ----------
+    src (list): The original ordering of the axes in the tiff.
+    dst (list): The desired ordering of the axes in the tiff.
+
+    Returns
+    -------
+    result (tuple): The required permutation so the axes are ordered as desired.
+    """
+    result = []
+    for i in dst:
+        result.append(src.index(i))
+    result = tuple(result)
+    return result
 
 def append_recent_file(fname):
+    fname = os.path.abspath(fname)
     if fname in g.settings['recent_files']:
         g.settings['recent_files'].remove(fname)
     if os.path.exists(fname):
@@ -355,17 +402,6 @@ def get_metadata_tiff(Tiff):
     metadata['is_rgb'] = Tiff[0].is_rgb
     return metadata
 
-
-def get_metadata_nd2(nd2):
-    metadata = dict()
-    metadata['channels'] = nd2.channels
-    metadata['date'] = nd2.date
-    metadata['fields_of_view'] = nd2.fields_of_view
-    metadata['frames'] = nd2.frames
-    metadata['height'] = nd2.height
-    metadata['width'] = nd2.width
-    metadata['z_levels'] = nd2.z_levels
-    return metadata
 
 
 def txt2dict(metadata):

@@ -36,8 +36,8 @@ class SettingsEditor(BaseDialog):
         roi_color.setEnabled(g.settings['roi_color'] != 'random')
         roi_color.color=g.settings['roi_color'] if g.settings['roi_color'] != 'random' else '#ffff00'
 
-        default_rect = QtWidgets.QCheckBox()
-        default_rect.setChecked(g.settings['default_rect_on_click'])
+        default_roi = QtWidgets.QCheckBox()
+        default_roi.setChecked(g.settings['default_roi_on_click'])
         
         items = []
         items.append({'name': 'random_color_check', 'string': 'Randomly color ROIs', 'object': random_color_check})
@@ -48,7 +48,7 @@ class SettingsEditor(BaseDialog):
         items.append({'name': 'multiprocessing', 'string': 'Multiprocessing On', 'object': multiprocessing})
         items.append({'name': 'nCores', 'string': 'Number of cores to use when multiprocessing', 'object': nCores})
         items.append({'name': 'debug_mode', 'string': 'Debug Mode', 'object': debug_check})
-        items.append({'name': 'default_rect_on_click', 'string': 'Enable default ROI on right click', 'object': default_rect})
+        items.append({'name': 'default_roi_on_click', 'string': 'Enable default ROI on right click', 'object': default_roi})
         
         def update():
             g.settings['internal_data_type'] = str(dataDrop.currentText())
@@ -61,6 +61,7 @@ class SettingsEditor(BaseDialog):
                 roi_color.color = "#ffff00"
             g.settings['roi_color'] = roi_color.value() if not random_color_check.isChecked() else "random"
             roi_color.setEnabled(g.settings['roi_color'] != 'random')
+            g.settings['default_roi_on_click'] = default_roi.isChecked()
             
 
         super(SettingsEditor, self).__init__(items, 'flika settings', '')
@@ -136,10 +137,10 @@ def rectSettings(rectButton):
     default rect width
     """
     rect_width = QtWidgets.QSpinBox()
-    rect_width.setRange(1,50)
+    rect_width.setRange(1,500)
     rect_width.setValue(g.settings['rect_width'])
     rect_height = QtWidgets.QSpinBox()
-    rect_height.setRange(1,50)
+    rect_height.setRange(1,500)
     rect_height.setValue(g.settings['rect_height'])
 
     items = []

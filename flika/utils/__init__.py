@@ -1,4 +1,2 @@
+"""Module for general utilities and standalone methods that don't globally import from anywhere in flika
 """
-General utilities, cannot import from anywhere else in flika, and can only import standard library or external dependencies.
-"""
-

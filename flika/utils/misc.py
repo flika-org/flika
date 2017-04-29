@@ -2,15 +2,14 @@ import os
 import random
 import numpy as np
 import platform
+import json
 import requests
 import time
-from uuid import getnode
 from qtpy import uic, QtGui, QtWidgets
-__all__ = ['nonpartial', 'setConsoleVisible', 'load_ui', 'random_color', 'save_file_gui', 'open_file_gui']
+__all__ = ['nonpartial', 'setConsoleVisible', 'load_ui', 'random_color', 'save_file_gui', 'open_file_gui', 'get_location']
 
 def nonpartial(func, *args, **kwargs):
-    """
-    Like functools.partial, this returns a function which, when called, calls
+    """Like functools.partial, this returns a function which, when called, calls
     ``func(*args, **kwargs)``.
 
     Unlike functools.partial, extra arguments passed to the returned function
@@ -22,6 +21,13 @@ def nonpartial(func, *args, **kwargs):
     return result
 
 def setConsoleVisible(v):
+    """ Set visibility of the console when running flika. This only works on windows systems
+    when running flika as a standalone process and may be removed soon.
+
+    Args:
+        v (bool): True to show console, False to hide
+
+    """
     if platform.system() == 'Windows':
         from ctypes import windll
         GetConsoleWindow = windll.kernel32.GetConsoleWindow
@@ -32,6 +38,11 @@ def setConsoleVisible(v):
         print('Displaying the console on non-windows systems not yet supported')
 
 def random_color():
+    """ Generate an QColor that is bright enough to see on a black and white background
+    
+    Returns:
+        QtGui.QColor: randomly generated color object
+    """ 
     colors = [(165,42,42), (178,34,34), (220,20,60), (255,0,0), (255,99,71), (255,127,80), (205,92,92), (240,128,128), (233,150,122), 
     (250,128,114), (255,160,122), (255,69,0), (255,140,0), (255,165,0), (255,215,0), (184,134,11), (218,165,32), (238,232,170), (240,230,140),
     (128,128,0), (255,255,0), (154,205,50), (85,107,47), (107,142,35), (124,252,0), (127,255,0), (173,255,47), (34,139,34), (0,255,0),
@@ -48,21 +59,14 @@ def random_color():
     return QtGui.QColor(*colors[ind])
 
 def load_ui(path, parent=None, directory=None):
-    """
-    Load a .ui file
+    """Load a .ui file
 
-    Parameters
-    ----------
-    path : str
-        Name of ui file to load
+    Args:
+        path (str): Name of ui file to load
+        parent (QtCore.QObject): Object to use as the parent of this widget
 
-    parent : QObject
-        Object to use as the parent of this widget
-
-    Returns
-    -------
-    w : QtWidgets.QWidget
-        The new widget
+    Returns:
+        QtWidgets.QWidget: The widget created from the specified ui file
     """
 
     if directory is not None:
@@ -77,19 +81,16 @@ def load_ui(path, parent=None, directory=None):
     return uic.loadUi(full_path, parent)
 
 def save_file_gui(prompt="Save file", directory=None, filetypes=''):
-    ''' File dialog for saving a new file, isolated to handle tuple/string return value
-    Parameters
-    ----------
-    prompt : str
-        string to display at the top of the window
-    directory : str
-        initial directory to save the file to
-    filetypes: str
-        argument for filtering file types separated by ;; (*.png) or (Images *.png);;(Other *.*)
-    Returns
-    -------
-    str: the file path selected, or empty string if none
-    '''
+    """ File dialog for saving a new file, isolated to handle tuple/string return value
+    
+    Args:
+        prompt (str): string to display at the top of the window
+        directory (str): initial directory to save the file to
+        filetypes (str): argument for filtering file types separated by ;; (*.png) or (Images *.png);;(Other *.*)
+    
+    Returns:
+        str: the file path selected, or empty string if canceled
+    """
     from .. import global_vars as g
     if directory is None or directory == '':
         filename = g.settings['filename']
@@ -113,28 +114,25 @@ def save_file_gui(prompt="Save file", directory=None, filetypes=''):
 
 
 def open_file_gui(prompt="Open File", directory=None, filetypes=''):
-    ''' File dialog for opening an existing file, isolated to handle tuple/string return value
-    Parameters
-    ----------
-    prompt : str
-        string to display at the top of the window
-    directory : str
-        initial directory to open
-    filetypes: str
-        argument for filtering file types separated by ;; (*.png) or (Images *.png);;(Other *.*)
-    Returns
-    -------
-    str: the file (path+file+extension) selected, or None
-    '''
+    """ File dialog for opening an existing file, isolated to handle tuple/string return value
+    
+    Args:
+        prompt (str): string to display at the top of the window
+        directory (str): initial directory to open
+        filetypes (str): argument for filtering file types separated by ;; (*.png) or (Images *.png);;(Other *.*)
+    
+    Returns:
+        str: the file (path+file+extension) selected, or None
+    """
     from .. import global_vars as g
-
+    filename = None
     if directory is None:
         filename = g.settings['filename']
         try:
             directory = os.path.dirname(filename)
         except:
             directory = None
-    if directory is None:
+    if directory is None or filename is None:
         filename = QtWidgets.QFileDialog.getOpenFileName(g.m, prompt, '', filetypes)
     else:
         filename = QtWidgets.QFileDialog.getOpenFileName(g.m, prompt, filename, filetypes)
@@ -149,19 +147,59 @@ def open_file_gui(prompt="Open File", directory=None, filetypes=''):
         return str(filename)
 
 def send_error_report(email, report):
-    address = getnode()
-    timezone = time.tzname
-    gmt = time.strftime('%c', time.gmtime())
-    kargs = {'address': address, 'email': email, 'report': report, 'timezone': timezone, 'gmt': gmt}
-    r = requests.post("http://flikarest.pythonanywhere.com/reports/submit", data=kargs)
+    """Log error reports to the flikarest.pythonanywhere REST API to be stored in a SQL database
+
+    Parameters:
+        email (str): Email of the user, optionally entered for response
+        report (str): The complete error that occurred
+
+    Returns:
+        Request Response if the API was reached, or None if connection failed. Use response.status==200 to check success
+
+    """
+    from .. import global_vars as g
+    address = g.settings['user_information']['UUID']
+    location = g.settings['user_information']['location']
+
+    kargs = {'address': address, 'email': email, 'report': report, 'location': location}
+    try:
+        r = requests.post("http://flikarest.pythonanywhere.com/reports/submit", data=kargs)
+    except requests.exceptions.ConnectionError:
+        return None
     return r
 
 def send_user_stats():
-    timezone = time.tzname[0]
-    gmt = time.strftime('%c', time.gmtime())
-    address = getnode()
-    kargs = {'address': address, 'timezone': timezone, 'gmt': gmt}
-    r = requests.post("http://flikarest.pythonanywhere.com/user_stats/log_user", data=kargs)
-    if r.status_code != 200:
-        pass
+    """Log user information to the flikarest.pythonanywhere REST API to be stored in a SQL database
+
+    Currently uses the get_node to get a UUID for the machine, and the IP address location API to get a rough 
+    'city, region, country' location, which are only retrieved once and stored in global settings.
+
+    Returns:
+        Request Response if the API was reached, or None if connection failed. Use response.status==200 to check success
+
+    """
+    from .. import global_vars as g
+    address = g.settings['user_information']['UUID']
+    location = g.settings['user_information']['location']
+
+    kargs = {'address': address, 'location': location}
+    try:
+        r = requests.post("http://flikarest.pythonanywhere.com/user_stats/log_user", data=kargs)
+    except requests.exceptions.ConnectionError:
+        return None
     return r
+
+def get_location():
+    """Call to a location REST API that uses the current IP address to get a string representation of the geolocation
+
+    Returns:
+        str: the 'city, region, country' location of the current IP address. Or None if the connection fails
+    """
+    send_url = 'http://freegeoip.net/json'
+    try:
+        r = requests.get(send_url)
+    except (requests.exceptions.ConnectionError, Exception):
+        return None
+    j = json.loads(r.text)
+    location = "{}, {}, {}".format(j['city'], j['region_name'], j['country_name'])
+    return location

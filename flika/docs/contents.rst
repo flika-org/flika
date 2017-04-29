@@ -9,6 +9,7 @@ Full flika documentation
    :maxdepth: 2
 
    getting-started
+   starting_flika
    example/index
    plugins
    writing_plugins

@@ -17,25 +17,14 @@ from ..logger import logger
 from ..version import __version__
 from ..update_flika import checkUpdates
 
-def addMenuItem(menu, label, item):
-    if type(item) == QtWidgets.QMenu:
-        menu.addMenu(item)
-    elif type(item) == QtWidgets.QAction:
-        menu.addAction(item)
-    elif type(item) == type(menu):
-        if len(item) == 0:
-            return
-        submenu = menu.addMenu(label)
-        for itemName, itemMenu in item:
-            addMenuItem(submenu, itemName, itemMenu)
-    else:
-        action = menu.addAction(label)
-        action.triggered.connect(item)
-
 def status_pixmap(attention=False):
-    """
-    A small icon to grab attention
-    :param attention: If True, return attention-grabbing pixmap
+    """A small icon to grab attention
+
+    Args:
+        attention (bool): pixmap is red if True, gray if otherwise
+
+    Returns:
+        QtGui.QPixmap: attention icon to display
     """
     color = QtCore.Qt.red if attention else QtCore.Qt.lightGray
 
@@ -46,8 +35,7 @@ def status_pixmap(attention=False):
     return pm
 
 class ClickableLabel(QtWidgets.QLabel):
-    """
-    A QtGui.QLabel you can click on to generate events
+    """A QtGui.QLabel you can click on to generate events
     """
 
     clicked = QtCore.Signal()
@@ -78,9 +66,7 @@ class XStream(QtCore.QObject):
         return XStream._stderr
 
 class Logger(QtWidgets.QWidget):
-
-    """
-    A window to display error messages
+    """A window to display error messages
     """
 
     def __init__(self, parent=None):
@@ -118,14 +104,12 @@ class Logger(QtWidgets.QWidget):
 
     @property
     def status_light(self):
-        """
-        The icon representing the status of the log
+        """The icon representing the status of the log
         """
         return self._status
 
     def write(self, message):
-        """
-        Interface for sys.excepthook
+        """Interface for sys.excepthook
         """
         logger.info(message)
         print(message, end='')
@@ -133,21 +117,19 @@ class Logger(QtWidgets.QWidget):
         self._status.setPixmap(status_pixmap(attention=True))
 
     def flush(self):
-        """
-        Interface for sys.excepthook
+        """Interface for sys.excepthook
         """
         pass
 
     def _send_report(self):
-        """
-        Send the contents of the log as a bug report
+        """Send the contents of the log as a bug report
         """
         text = self._text.document().toPlainText()
         email = QtWidgets.QInputDialog.getText(self, "Response email", "Enter your email if you would like us to contact you about this bug.")
         if isinstance(email, tuple) and len(email) == 2:
             email = email[0]
-        response = send_error_report(email, text)
-        if response.status_code != 200:
+        response = send_error_report(email=email, report=text)
+        if response is None or response.status_code != 200:
             g.alert("Failed to send error report. Response {}:\n{}".format((response.status_code, response._content)))
         else:
             if email != '':
@@ -156,32 +138,31 @@ class Logger(QtWidgets.QWidget):
                 g.alert("Bug report sent. Thank you!")
 
     def _clear(self):
-        """
-        Erase the log
+        """Erase the log
         """
         self._text.setText('')
         self._status.setPixmap(status_pixmap(attention=False))
         self.close()
 
     def _show(self):
-        """
-        Show the log
+        """Show the log
         """
         self.show()
         self.raise_()
 
     def keyPressEvent(self, event):
-        """
-        Hide window on escape key
+        """Hide window on escape key
         """
         if event.key() == QtCore.Qt.Key_Escape:
             self.hide()
 
 
 class FlikaApplication(QtWidgets.QMainWindow):
+    """The main window of flika, stored as g.m
+    """
     def __init__(self):
         print('Launching flika')
-        self.app = get_qapp()
+        self.app = get_qapp(image_path('favicon.png'))
         super(FlikaApplication, self).__init__()
         self.app.setQuitOnLastWindowClosed(True)
         setup_menus()
@@ -197,9 +178,6 @@ class FlikaApplication(QtWidgets.QMainWindow):
         self.currentTrace = g.currentTrace
         self.clipboard = g.clipboard
         self.setWindowSize()
-        flika_icon = QtGui.QIcon(image_path('favicon.png'))
-        self.setWindowIcon(flika_icon)
-        self.app.setWindowIcon(flika_icon)
         if platform.system() == 'Windows':
             myappid = 'flika-org.flika.' + str(__version__)
             ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
@@ -306,7 +284,8 @@ class FlikaApplication(QtWidgets.QMainWindow):
         installedPlugins = [plugin for plugin in PluginManager.plugins.values() if plugin.installed]
         for plugin in sorted(installedPlugins, key=lambda a: -a.lastModified()):
             plugin.reload()
-            addMenuItem(self.pluginMenu, plugin.name, plugin.menu)
+            if isinstance(plugin.menu, QtWidgets.QMenu):
+                self.pluginMenu.addMenu(plugin.menu)
 
     def _make_recents(self):
         self.recentFileMenu.clear()
@@ -342,6 +321,8 @@ class FlikaApplication(QtWidgets.QMainWindow):
             event.ignore()
 
     def clear(self):
+        """Close all dialogs, trace windows, and windows
+        """
         while g.dialogs:
             g.dialogs.pop(0).close()
         while g.traceWindows:
@@ -350,13 +331,13 @@ class FlikaApplication(QtWidgets.QMainWindow):
             g.windows.pop(0).close()
 
     def closeEvent(self, event):
+        """Close all widgets and exit flika
+        """
         print('Closing flika')
         event.accept()
-        for win in g.dialogs[:] + g.traceWindows[:] + g.windows[:]:
-            win.close()
-
         ScriptEditor.close()
         PluginManager.close()
+        self.clear()
         g.settings.save()
         if g.m == self:
             g.m = None

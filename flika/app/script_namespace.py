@@ -25,4 +25,5 @@ def getnamespace():
     d['pg'] = pg
     d['plot'] = pg.plot
     d['Window'] = window.Window
+    d['open_rois'] = open_rois
     return d

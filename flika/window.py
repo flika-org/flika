@@ -10,12 +10,59 @@ from .roi import *
 from .utils.misc import save_file_gui
 pg.setConfigOptions(useWeave=False)
 
+class ImageView(pg.ImageView):
+    def __init__(self, *args, **kargs):
+        pg.ImageView.__init__(self, *args, **kargs)
+        self.view.unregister()
+        self.view.removeItem(self.roi)
+        self.view.removeItem(self.normRoi)
+        self.roi.setParent(None)
+        self.normRoi.setParent(None)
+        self.ui.menuBtn.setParent(None)
+        self.ui.roiBtn.setParent(None) # gets rid of 'roi' button that comes with ImageView
+        self.ui.normLUTbtn = QtWidgets.QPushButton(self.ui.layoutWidget)
+        self.ui.normLUTbtn.setObjectName("LUT norm")
+        self.ui.normLUTbtn.setText("LUT norm")
+        self.ui.gridLayout.addWidget(self.ui.normLUTbtn, 1, 1, 1, 1)
+
+        self.ui.roiPlot.setMaximumHeight(40)
+        self.ui.roiPlot.getPlotItem().getViewBox().setMouseEnabled(False)
+        self.ui.roiPlot.getPlotItem().hideButtons()
+
+    def hasTimeAxis(self):
+        return 't' in self.axes and not (self.axes['t'] is None or self.image.shape[self.axes['t']] == 1)
+
+    def roiClicked(self):
+        showRoiPlot = False
+        if self.hasTimeAxis():
+            showRoiPlot = True
+            mn = self.tVals.min()
+            mx = self.tVals.max() + .01
+            self.ui.roiPlot.setXRange(mn, mx, padding=0.01)
+            self.timeLine.show()
+            self.timeLine.setBounds([mn, mx])
+            self.ui.roiPlot.show()
+            if not self.ui.roiBtn.isChecked():
+                self.ui.splitter.setSizes([self.height()-35, 35])
+        else:
+            self.timeLine.hide()
+            #self.ui.roiPlot.hide()
+            
+        self.ui.roiPlot.setVisible(showRoiPlot)
 
 class Window(QtWidgets.QWidget):
     """
     Window objects are the central objects in flika. Almost all functions in the 
     :mod:`process <flika.process>` module are performed on Window objects and 
     output Window objects. 
+
+    Args:
+        tif (numpy.array): The image the window will store and display
+        name (str): The name of the window.
+        filename (str): The filename (including full path) of file this window's image orinated from.
+        commands (list of str): a list of the commands used to create this window, starting with loading the file.
+        metadata (dict): dict: a dictionary containing the original file's metadata.
+
 
     """
     closeSignal = QtCore.Signal()
@@ -26,8 +73,8 @@ class Window(QtWidgets.QWidget):
 
     def __init__(self, tif, name='flika', filename='', commands=[], metadata=dict()):
         QtWidgets.QWidget.__init__(self)
-        self.commands = commands  # commands is a list of the commands used to create this window, starting with loading the file.
-        self.metadata = metadata
+        self.commands = commands  #: list of str: a list of the commands used to create this window, starting with loading the file.
+        self.metadata = metadata  #: dict: a dictionary containing the original file's metadata.
         if 'is_rgb' not in metadata.keys():
             metadata['is_rgb'] = tif.ndim == 4
         if g.currentWindow is None:
@@ -45,38 +92,38 @@ class Window(QtWidgets.QWidget):
                 g.settings['window_settings']['coords'] = geometry.getRect()
         else:
             geometry = g.currentWindow.geometry()
-            geometry.setX(geometry.x()+10)
-            geometry.setY(geometry.y() + 10)
+            screenGeom = QtWidgets.QDesktopWidget().screenGeometry()
+            maxX = (screenGeom.width() - geometry.width()) or 1
+            maxY = (screenGeom.height() - geometry.height()) or 1
+            newX = (geometry.x() + 10) % maxX
+            newY = (geometry.y() + 10) % maxY
+            geometry = QtCore.QRect(newX, newY, geometry.width(), geometry.height())
 
         self.resizeEvent = self.onResize
         self.moveEvent = self.onMove
-        self.name = name
-        self.filename = filename
+        self.name = name #: str: The name of the window.
+        self.filename = filename #: str: The filename (including full path) of file this window's image orinated from.
         self.setAsCurrentWindow()
         self.setWindowTitle(name)
-        self.imageview = pg.ImageView(self)
+        self.imageview = ImageView(self)
         self.imageview.setMouseTracking(True)
         self.imageview.installEventFilter(self)
-        self.imageview.ui.menuBtn.setParent(None)
-        self.imageview.ui.roiBtn.setParent(None) # gets rid of 'roi' button that comes with ImageView
-        self.imageview.ui.normLUTbtn = QtWidgets.QPushButton(self.imageview.ui.layoutWidget)
-        self.imageview.ui.normLUTbtn.setObjectName("LUT norm")
-        self.imageview.ui.normLUTbtn.setText("LUT norm")
-        self.imageview.ui.gridLayout.addWidget(self.imageview.ui.normLUTbtn, 1, 1, 1, 1)
         self.imageview.ui.normLUTbtn.pressed.connect(self.normLUT)
         rp = self.imageview.ui.roiPlot.getPlotItem()
         self.linkMenu = QtWidgets.QMenu("Link frame")
         rp.ctrlMenu = self.linkMenu
         self.linkMenu.aboutToShow.connect(self.make_link_menu)
-
-        if np.any(np.isinf(tif)):
-            tif[np.isinf(tif)] = 0
-            g.alert('Some array values were inf. Setting those values to 0')
+        try:
+            if np.any(np.isinf(tif)):
+                tif[np.isinf(tif)] = 0
+                g.alert('Some array values were inf. Setting those values to 0')
+        except MemoryError:
+            pass
 
         self.imageview.setImage(tif)
-        self.image = tif
+        self.image = tif #: numpy array: The image stored in and displayed by this window. This can be 2D, 3D, 2D with color channels, or 3D with color channels. 
         self.volume = None  # When attaching a 4D array to this Window object, where self.image is a 3D slice of this volume, attach it here. This will remain None for all 3D Windows
-        self.nDims = len(np.shape(self.image))
+        self.nDims = len(np.shape(self.image))  #: int: The number of dimensions of the stored image. 
         dimensions_txt = ""
         mx = 0
         my = 0
@@ -96,11 +143,11 @@ class Window(QtWidgets.QWidget):
             mt = 1
             mx, my = tif.shape
             dimensions_txt = "{}x{} pixels; ".format(mx, my)
-        self.mx = mx
-        self.my = my
-        self.mt = mt
-        dtype = self.image.dtype
-        dimensions_txt += 'dtype=' + str(dtype)
+        self.mx = mx  #: int: The number of pixels wide the image is in the x (left to right) dimension.
+        self.my = my  #: int: The number of pixels heigh the image is in the y (up to down) dimension.
+        self.mt = mt  #: int: The number of frames in the image stack.
+        self.dtype = self.image.dtype  #: dtype: The datatype of the stored image, e.g. ``uint8``.
+        dimensions_txt += 'dtype=' + str(self.dtype)
         if 'timestamps' in self.metadata:
             ts = self.metadata['timestamps']
             self.framerate = (ts[-1] - ts[0]) / len(ts)
@@ -117,8 +164,8 @@ class Window(QtWidgets.QWidget):
         self.imageview.scene.sigMouseMoved.connect(self.mouseMoved)
         self.imageview.view.mouseDragEvent = self.mouseDragEvent
         self.imageview.view.mouseClickEvent = self.mouseClickEvent
-        self.rois = []
-        self.currentROI = None
+        self.rois = []  #: list of ROIs: a list of all the :class:`ROIs <flika.roi.ROI_Base>` inside this window. 
+        self.currentROI = None  #: :class:`ROI <flika.roi.ROI_Base>`: When an ROI is clicked, it becomes the currentROI of that window and can be accessed via this variable.
         self.creatingROI = False
         pointSize = g.settings['point_size']
         pointColor = QtGui.QColor(g.settings['point_color'])
@@ -129,11 +176,12 @@ class Window(QtWidgets.QWidget):
         self.pasteAct = QtWidgets.QAction("&Paste", self, triggered=self.paste)
         if g.settings['show_windows']:
             self.show()
+            self.raise_()
             QtWidgets.qApp.processEvents()
         self.sigTimeChanged.connect(self.showFrame)
         if self not in g.windows:
             g.windows.append(self)
-        self.closed=False
+        self.closed = False  #: bool: True if the window has been closed, False otherwise. 
 
         from .process.measure import measure
         self.measure = measure
@@ -150,6 +198,11 @@ class Window(QtWidgets.QWidget):
         g.settings['window_settings']['coords'] = self.geometry().getRect()
 
     def save(self, filename):
+        """
+        Args:
+            filename (str): The filename, including the full path, where this (.tif) file will be saved. 
+
+        """
         from .process.file_ import save_file
         old_curr_win = g.currentWindow
         self.setAsCurrentWindow()
@@ -176,12 +229,24 @@ class Window(QtWidgets.QWidget):
                 self.imageview.setLevels(-.01, 1.01)  # set levels from slightly below 0 to 1
     
     def link(self, win):
+        """
+        Linking a window to another means when the current index of one changes, the index of the other will automatically change.
+
+        Args:
+            win (flika.window.Window): The window that will be linked with this one
+        """
         if win not in self.linkedWindows:
             self.sigTimeChanged.connect(win.imageview.setCurrentIndex)
             self.linkedWindows.add(win)
             win.link(self)
 
     def unlink(self, win):
+        """
+        This unlinks a window from this one.
+
+        Args:
+            win (flika.window.Window): The window that will be unlinked from this one
+        """
         if win in self.linkedWindows:
             self.linkedWindows.remove(win)
             self.sigTimeChanged.disconnect(win.imageview.setCurrentIndex)
@@ -214,11 +279,17 @@ class Window(QtWidgets.QWidget):
                 self.scatterPlot.setPoints(pos=self.scatterPoints[t], size=pointSizes, brush=brushes)
             self.sigTimeChanged.emit(t)
 
-    def setIndex(self,index):
+    def setIndex(self, index):
+        """
+        This sets the index (frame) of this window. 
+
+        Args:
+            index (int): The index of the image this window will display
+        """
         if hasattr(self, 'image') and self.image.ndim > 2 and 0 <= index < len(self.image):
             self.imageview.setCurrentIndex(index)
 
-    def showFrame(self,index):
+    def showFrame(self, index):
         if index>=0 and index<self.mt:
             msg = 'frame {}'.format(index)
             if 'timestamps' in self.metadata and self.metadata['timestamp_units']=='ms':
@@ -238,10 +309,13 @@ class Window(QtWidgets.QWidget):
                     mminutes = seconds - hours * 3600
                     minutes = int(np.floor(mminutes / 60))
                     seconds = mminutes - minutes * 60
-                    '; {} h {} m {:.4f} s'.format(hours, minutes, seconds)
+                    msg += '; {} h {} m {:.4f} s'.format(hours, minutes, seconds)
             g.m.statusBar().showMessage(msg)
 
     def setName(self,name):
+        """
+        set the name of this window.
+        """
         name = str(name)
         self.name = name
         self.setWindowTitle(name)
@@ -314,7 +388,7 @@ class Window(QtWidgets.QWidget):
 
     def paste(self):
         """ This function pastes an ROI from one window into another.
-        The ROIs will be linked so that when you translate one of them, the other one also moves.
+        The ROIs will be linked so that when you alter one of them, the other will be altered in the same way.
         """
         def pasteROI(roi):
             if roi in self.rois:
@@ -337,6 +411,9 @@ class Window(QtWidgets.QWidget):
         self.setAsCurrentWindow()
 
     def setAsCurrentWindow(self):
+        """This function sets this window as the current window. There is only one current window. All operations are performed on the
+        current window. The current window can be accessed from the variable ``g.currentWindow``. 
+        """
         if g.currentWindow is not None:
             g.currentWindow.setStyleSheet("border:1px solid rgb(0, 0, 0); ")
             g.currentWindow.lostFocusSignal.emit()
@@ -367,6 +444,10 @@ class Window(QtWidgets.QWidget):
             self.scatterPlot.setPoints(pos=self.scatterPoints[t], size=pointSizes, brush=brushes)
 
     def getScatterPts(self):
+        """
+        Returns:
+            numpy array: an Nx3 array of scatter points, where N is the number of points. Col0 is frame, Col1 is x, Col2 is y. 
+        """
         p_out=[]
         p_in=self.scatterPoints
         for t in np.arange(len(p_in)):
@@ -386,7 +467,7 @@ class Window(QtWidgets.QWidget):
         plotAllAct = QtWidgets.QAction('&Plot All ROIs', self.menu, triggered=self.plotAllROIs )
         copyAll = QtWidgets.QAction("Copy All ROIs", self.menu, triggered = lambda a: setattr(g, 'clipboard', self.rois))
         removeAll = QtWidgets.QAction("Remove All ROIs", self.menu, triggered = self.removeAllROIs)
-        saveAll = QtWidgets.QAction("&Save All ROIs",self, triggered=self.exportROIs)
+        saveAll = QtWidgets.QAction("&Save All ROIs",self, triggered=self.save_rois)
 
         self.menu.addAction(pasteAct)
         self.menu.addAction(plotAllAct)
@@ -425,30 +506,20 @@ class Window(QtWidgets.QWidget):
             if mm == 'point':
                 self.addPoint()
             elif mm == 'rectangle' and g.settings['default_roi_on_click']:
-                    self.currentROI = ROI_Drawing(self, self.x - g.settings['rect_width']/2, self.y - g.settings['rect_height']/2, mm)
-                    self.currentROI.extend(self.x + g.settings['rect_width']/2, self.y + g.settings['rect_height']/2)
-                    self.currentROI.drawFinished()
-            elif mm == 'freehand' and g.settings['default_roi_on_click']:
-                # Before using this script to get the outlines of cells from a raw movie of fluorescence, you need to do some processing.
-                # Get a good image of cells by averaging the movie using the zproject() function inside flika.
-                # Then threshold the image and use a combination of binary dilation and binary erosion to clean it up (all functions inside flika)
-                if not (np.all(self.image >= 0) and np.all(self.image <= 1)):
-                    return
-
-
-                thresholded_image = np.squeeze(self.image[self.currentIndex] if self.image.ndim == 3 else self.image)
-                labelled=measure.label(thresholded_image)
-
-                outline_coords = measure.find_contours(labelled == labelled[int(self.x)][int(self.y)], 0.5)
-                outline_coords = sorted(outline_coords, key=lambda a: -len(a))[0]
-                new_roi = makeROI("freehand", outline_coords)
+                pts = [pg.Point(self.x - g.settings['rect_width']/2, self.y - g.settings['rect_height']/2), pg.Point(g.settings['rect_width'], g.settings['rect_height'])]
+                self.currentROI = makeROI("rectangle", pts)
             else:
                 self.menu.exec_(ev.screenPos().toQPoint())
         elif self.creatingROI:
             self.currentROI.cancel()
             self.creatingROI = None
 
-    def exportROIs(self, filename=None):
+    def save_rois(self, filename=None):
+        """
+        Args:
+            filename (str): The filename, including the full path, where the ROI file will be saved. 
+
+        """
         if not isinstance(filename, str):
             if filename is not None and os.path.isfile(filename):
                 filename = os.path.splitext(g.settings['filename'])[0]
@@ -457,7 +528,7 @@ class Window(QtWidgets.QWidget):
                 filename = save_file_gui('Save ROI', '', '*.txt')
 
         if filename != '' and isinstance(filename, str):
-            reprs = [roi.str() for roi in self.rois]
+            reprs = [roi._str() for roi in self.rois]
             reprs = '\n'.join(reprs)
             open(filename, 'w').write(reprs)
         else:
@@ -514,9 +585,6 @@ class Window(QtWidgets.QWidget):
                         else:
                             self.currentROI.cancel()
                             self.creatingROI = False
-                    else:
-                        for r in self.currentROIs:
-                            r.finish_translate()
                 else:  # If we are in the middle of the drag between starting and finishing.
                     if self.creatingROI:
                         self.currentROI.extend(self.x, self.y)

@@ -10,8 +10,7 @@ from .. import global_vars as g
 from .. import window
 from ..utils.misc import save_file_gui
 
-__all__ = []
-
+__all__ = ['MissingWindowError', 'WindowSelector', 'FileSelector', 'ColorSelector', 'SliderLabel', 'SliderLabelOdd', 'CheckBox', 'ComboBox', 'BaseDialog', 'BaseProcess', 'BaseProcess_noPriorWindow']
         
 class MissingWindowError(Exception):
     def __init__(self, value):
@@ -56,6 +55,7 @@ class WindowSelector(QtWidgets.QWidget):
         self.button.setChecked(False)
         self.label.setText('...'+os.path.split(self.window.name)[-1][-20:])
         self.valueChanged.emit()
+        self.parent().raise_()
     def value(self):
         return self.window
     def setValue(self, window):
@@ -299,6 +299,10 @@ def convert_to_string(item):
 
 
 class BaseProcess(object):
+    """Subclass BaseProcess when writing your own process. Why would you want to use BaseProcess? 
+
+
+    """
     def __init__(self):
         self.noPriorWindow = False
         self.__name__=self.__class__.__name__.lower()
@@ -349,6 +353,7 @@ class BaseProcess(object):
         self.proxy= pg.SignalProxy(self.ui.changeSignal,rateLimit=60, slot=self.preview)
         if g.currentWindow is not None:
             self.ui.rejected.connect(g.currentWindow.reset)
+        self.ui.closeSignal.connect(self.ui.rejected.emit)
         self.ui.accepted.connect(self.call_from_gui)
         self.ui.show()
         g.dialogs.append(self.ui)

@@ -1,17 +1,36 @@
 # -*- coding: utf-8 -*-
+"""
+If flika is loaded using::
+
+    from flika import *
+
+then all of the variables inside global_vars can be accessed as ``g.*``. For instance, to access the 
+image inside current window, simply run::
+
+    I = g.currentWindow.image
+
+
+
+"""
 import os
 from multiprocessing import cpu_count
 from os.path import expanduser
 from qtpy import QtWidgets, QtGui, QtCore
 from collections.abc import MutableMapping
 import json
+from uuid import getnode
 from .logger import logger
+from .utils.misc import get_location
 
-__all__ = ['m', 'Settings', 'menus', 'alert']
+__all__ = ['m', 'Settings', 'menus', 'alert', 'windows', 'traceWindows', 'currentWindow', 'currentTrace', 'clipboard']
 
 class Settings(MutableMapping): #http://stackoverflow.com/questions/3387691/python-how-to-perfectly-override-a-dict
     """
-    This is an awesome thing...
+    All of flika's settings are stored in this object, which is designed to act like a dictionary. When any value in
+    this object is changed, this object is converted to json and saved in ``~/.FLIKA/settings.json``. When flika is
+    restarted, this settings object is populated with values from this file. Settings can be accessed using 
+    `g.settings`. 
+
 
     """
     initial_settings = {'filename': None, 
@@ -30,7 +49,7 @@ class Settings(MutableMapping): #http://stackoverflow.com/questions/3387691/pyth
                         'rect_width': 5,
                         'rect_height': 5,
                         'show_all_points': False,
-                        'default_rect_on_click': False}
+                        'default_roi_on_click': False}
 
     def __init__(self):
         self.settings_file = os.path.join(expanduser("~"), '.FLIKA', 'settings.json' )
@@ -61,14 +80,14 @@ class Settings(MutableMapping): #http://stackoverflow.com/questions/3387691/pyth
         return item in self.d
 
     def save(self):
-        """ Save settings file. """
+        """ Save settings file. The file is stored in ``~/.FLIKA/settings.json`` """
         if not os.path.exists(os.path.dirname(self.settings_file)):
             os.makedirs(os.path.dirname(self.settings_file))
         with open(self.settings_file, 'w') as fp:
             json.dump(self.d, fp, indent=4)
 
     def load(self):
-        """ Load settings file. """
+        """ Load settings file. The file is stored in ``~/.FLIKA/settings.json`` """
         if not os.path.exists(self.settings_file):
             print('No settings file found. Creating settings file.')
             self.save()
@@ -83,8 +102,18 @@ class Settings(MutableMapping): #http://stackoverflow.com/questions/3387691/pyth
             print(msg)
             self.save()
         self.d['mousemode'] = 'rectangle'  # don't change initial mousemode
+        self._load_user_information()
 
-    def setmousemode(self,mode):
+    def _load_user_information(self):
+        if 'user_information' not in self.d:
+            self.d['user_information'] = {}
+        if 'UUID' not in self.d['user_information'] or self.d['user_information']['UUID'] is None:
+            self.d['user_information']['UUID'] = getnode()
+        if 'location' not in self.d['user_information'] or self.d['user_information']['location'] is None:
+            self.d['user_information']['location'] = get_location()
+
+
+    def setmousemode(self, mode):
         self['mousemode']=mode
 
     def setMultipleTraceWindows(self, f):
@@ -120,6 +149,9 @@ class SetCurrentWindowSignal(QtWidgets.QWidget):
 
 
 def alert(msg, title="flika - Alert"):
+    """Creates a popup that alerts the user.
+    """
+
     print('\nAlert: ' + msg)
     msgbx = QtWidgets.QMessageBox(m)
     msgbx.setIcon(QtWidgets.QMessageBox.Information)
@@ -135,13 +167,13 @@ def alert(msg, title="flika - Alert"):
 
 
 settings = Settings()
-m = None  # will be main window
+m = None  #: The main window.
 menus = []
-windows = []
-traceWindows = []
+windows = [] #: list of :class:`windows<flika.window.Window>`: All of the windows that have been created and have not yet been closed.
+traceWindows = [] #: list of :class:`TraceFigs<flika.tracefig.TraceFig>`: All of the TraceFigs that are open.
 dialogs = []
-currentWindow = None
-currentTrace = None
+currentWindow = None #: :class:`window <flika.window.Window>`: The window that is currently selected
+currentTrace = None #: :class:`tracefigs<flika.tracefig.TraceFig>`: The tracefig that is currently selected
 clipboard = None
 
 
