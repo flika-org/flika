@@ -353,6 +353,7 @@ class BaseProcess(object):
         self.proxy= pg.SignalProxy(self.ui.changeSignal,rateLimit=60, slot=self.preview)
         if g.currentWindow is not None:
             self.ui.rejected.connect(g.currentWindow.reset)
+        self.ui.closeSignal.connect(self.ui.rejected.emit)
         self.ui.accepted.connect(self.call_from_gui)
         self.ui.show()
         g.dialogs.append(self.ui)

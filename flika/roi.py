@@ -595,6 +595,7 @@ class ROI_rectangle(ROI_Base, pg.ROI):
 
         w =  Window(np.zeros([5, 5]),self.window.name+' Cropped',metadata=self.window.metadata)
         w.imageview.setImage(newtif, axes=self.window.imageview.axes)
+        w.image = newtif
         return w
 
 class ROI_freehand(ROI_Base, pg.ROI):
