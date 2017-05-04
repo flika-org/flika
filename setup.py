@@ -55,6 +55,7 @@ install_requires = [
       'pandas>=0.14',
       'matplotlib>=1.4',
       'pyqtgraph>=0.9',
+      'PyQt5>=5.8.0',
       'qtpy>=1.1',
       'setuptools>=1.0',
       'scikit-image',
