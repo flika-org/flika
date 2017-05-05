@@ -58,7 +58,7 @@ class Editor(QtWidgets.QPlainTextEdit):
         return True
 
     def save(self):
-        if self.scriptfile == '':
+        if not self.scriptfile:
             return self.save_as()
         f = open(self.scriptfile, 'w')
         command=qstr2str(self.toPlainText())
