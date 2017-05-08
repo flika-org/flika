@@ -265,7 +265,7 @@ class BaseDialog(QtWidgets.QDialog):
             else:
                 settings = g.settings['baseprocesses'][name]
             for item in self.items:
-                if item['name'] in settings:
+                if item['name'] in settings and not isinstance(item['object'], WindowSelector):
                     item['object'].setValue(settings[item['name']])
 
     def connectToChangeSignal(self):
