@@ -6,6 +6,7 @@ import numpy as np
 from skimage import measure
 from .tracefig import TraceFig
 from . import global_vars as g
+from .process.measure import measure
 from .roi import *
 from .utils.misc import save_file_gui
 pg.setConfigOptions(useWeave=False)
@@ -73,10 +74,42 @@ class Window(QtWidgets.QWidget):
 
     def __init__(self, tif, name='flika', filename='', commands=[], metadata=dict()):
         QtWidgets.QWidget.__init__(self)
+        self.name = name  #: str: The name of the window.
+        self.filename = filename  #: str: The filename (including full path) of file this window's image orinated from.
         self.commands = commands  #: list of str: a list of the commands used to create this window, starting with loading the file.
         self.metadata = metadata  #: dict: a dictionary containing the original file's metadata.
-        if 'is_rgb' not in metadata.keys():
-            metadata['is_rgb'] = tif.ndim == 4
+        self.volume = None  # When attaching a 4D array to this Window object, where self.image is a 3D slice of this volume, attach it here. This will remain None for all 3D Windows
+        self.scatterPlot = None
+        self.closed = False  #: bool: True if the window has been closed, False otherwise.
+        self.mx = 0  #: int: The number of pixels wide the image is in the x (left to right) dimension.
+        self.my = 0  #: int: The number of pixels heigh the image is in the y (up to down) dimension.
+        self.mt = 0  #: int: The number of frames in the image stack.
+        self.image = tif
+        self.dtype = tif.dtype  #: dtype: The datatype of the stored image, e.g. ``uint8``.
+        self.top_left_label = None
+        self.rois = []  #: list of ROIs: a list of all the :class:`ROIs <flika.roi.ROI_Base>` inside this window.
+        self.currentROI = None  #: :class:`ROI <flika.roi.ROI_Base>`: When an ROI is clicked, it becomes the currentROI of that window and can be accessed via this variable.
+        self.creatingROI = False
+        self.imageview = None
+        self.currentIndex = 0
+        self.linkedWindows = set()
+        self.measure = measure
+        self.resizeEvent = self.onResize
+        self.moveEvent = self.onMove
+        self.pasteAct = QtWidgets.QAction("&Paste", self, triggered=self.paste)
+        self.sigTimeChanged.connect(self.showFrame)
+        self._check_for_infinities(tif)
+        self._init_dimensions(tif)
+        self._init_imageview(tif)
+        self.setWindowTitle(name)
+        self.normLUT(tif)
+        self._init_scatterplot()
+        self._init_menu()
+        self._init_geometry()
+        self.setAsCurrentWindow()
+
+    def _init_geometry(self):
+        assert g.currentWindow != self  # self.setAsCurrentWindow() must be called after this function
         if g.currentWindow is None:
             if 'window_settings' not in g.settings:
                 g.settings['window_settings'] = dict()
@@ -98,13 +131,24 @@ class Window(QtWidgets.QWidget):
             newX = (geometry.x() + 10) % maxX
             newY = (geometry.y() + 10) % maxY
             geometry = QtCore.QRect(newX, newY, geometry.width(), geometry.height())
+        self.setGeometry(geometry)
+        self.layout = QtWidgets.QVBoxLayout(self)
+        self.layout.addWidget(self.imageview)
+        self.layout.setContentsMargins(0, 0, 0, 0)
+        if g.settings['show_windows']:
+            self.show()
+            self.raise_()
+            QtWidgets.qApp.processEvents()
 
-        self.resizeEvent = self.onResize
-        self.moveEvent = self.onMove
-        self.name = name #: str: The name of the window.
-        self.filename = filename #: str: The filename (including full path) of file this window's image orinated from.
-        self.setAsCurrentWindow()
-        self.setWindowTitle(name)
+    def _check_for_infinities(self, tif):
+        try:
+            if np.any(np.isinf(tif)):
+                tif[np.isinf(tif)] = 0
+                g.alert('Some array values were inf. Setting those values to 0')
+        except MemoryError:
+            pass
+
+    def _init_imageview(self, tif):
         self.imageview = ImageView(self)
         self.imageview.setMouseTracking(True)
         self.imageview.installEventFilter(self)
@@ -113,83 +157,76 @@ class Window(QtWidgets.QWidget):
         self.linkMenu = QtWidgets.QMenu("Link frame")
         rp.ctrlMenu = self.linkMenu
         self.linkMenu.aboutToShow.connect(self.make_link_menu)
-        try:
-            if np.any(np.isinf(tif)):
-                tif[np.isinf(tif)] = 0
-                g.alert('Some array values were inf. Setting those values to 0')
-        except MemoryError:
-            pass
-
         self.imageview.setImage(tif)
-        self.image = tif #: numpy array: The image stored in and displayed by this window. This can be 2D, 3D, 2D with color channels, or 3D with color channels. 
-        self.volume = None  # When attaching a 4D array to this Window object, where self.image is a 3D slice of this volume, attach it here. This will remain None for all 3D Windows
-        self.nDims = len(np.shape(self.image))  #: int: The number of dimensions of the stored image. 
+        def clicked(evt):
+            self.measure.pointclicked(evt, window=self)
+        self.imageview.scene.sigMouseClicked.connect(clicked)
+        self.imageview.timeLine.sigPositionChanged.connect(self.updateindex)
+        self.currentIndex = self.imageview.currentIndex
+        self.imageview.scene.sigMouseMoved.connect(self.mouseMoved)
+        self.imageview.view.mouseDragEvent = self.mouseDragEvent
+        self.imageview.view.mouseClickEvent = self.mouseClickEvent
+        assert self.top_left_label is not None
+        self.imageview.ui.graphicsView.addItem(self.top_left_label)
+
+    def _init_dimensions(self, tif):
+        if 'is_rgb' not in self.metadata.keys():
+            self.metadata['is_rgb'] = tif.ndim == 4
+        self.nDims = len(np.shape(tif))  #: int: The number of dimensions of the stored image.
         dimensions_txt = ""
-        mx = 0
-        my = 0
-        mt = 0
         if self.nDims == 3:
-            if metadata['is_rgb']:
-                mx, my, mc = tif.shape
-                mt = 1
-                dimensions_txt = "{}x{} pixels; {} colors; ".format(mx,my,mc)
+            if self.metadata['is_rgb']:
+                self.mx, self.my, mc = tif.shape
+                self.mt = 1
+                dimensions_txt = "{}x{} pixels; {} colors; ".format(self.mx, self.my, mc)
             else:
-                mt, mx, my = tif.shape
-                dimensions_txt = "{} frames; {}x{} pixels; ".format(mt, mx, my)
+                self.mt, self.mx, self.my = tif.shape
+                dimensions_txt = "{} frames; {}x{} pixels; ".format(self.mt, self.mx, self.my)
         elif self.nDims == 4:
-            mt, mx ,my, mc = tif.shape
-            dimensions_txt = "{} frames; {}x{} pixels; {} colors; ".format(mt, mx, my, mc)
+            self.mt, self.mx ,self.my, mc = tif.shape
+            dimensions_txt = "{} frames; {}x{} pixels; {} colors; ".format(self.mt, self.mx, self.my, mc)
         elif self.nDims == 2:
-            mt = 1
-            mx, my = tif.shape
-            dimensions_txt = "{}x{} pixels; ".format(mx, my)
-        self.mx = mx  #: int: The number of pixels wide the image is in the x (left to right) dimension.
-        self.my = my  #: int: The number of pixels heigh the image is in the y (up to down) dimension.
-        self.mt = mt  #: int: The number of frames in the image stack.
-        self.dtype = self.image.dtype  #: dtype: The datatype of the stored image, e.g. ``uint8``.
+            self.mt = 1
+            self.mx, self.my = tif.shape
+            dimensions_txt = "{}x{} pixels; ".format(self.mx, self.my)
         dimensions_txt += 'dtype=' + str(self.dtype)
         if 'timestamps' in self.metadata:
             ts = self.metadata['timestamps']
             self.framerate = (ts[-1] - ts[0]) / len(ts)
             dimensions_txt += '; {:.4f} {}/frame'.format(self.framerate, self.metadata['timestamp_units'])
+
+        if self.top_left_label is not None and self.imageview is not None and self.top_left_label in self.imageview.ui.graphicsView.items():
+            self.imageview.ui.graphicsView.removeItem(self.top_left_label)
         self.top_left_label = pg.LabelItem(dimensions_txt, justify='right')
-        self.imageview.ui.graphicsView.addItem(self.top_left_label)
-        self.imageview.timeLine.sigPositionChanged.connect(self.updateindex)
-        self.currentIndex = self.imageview.currentIndex
-        self.normLUT()
-        self.layout = QtWidgets.QVBoxLayout(self)
-        self.layout.addWidget(self.imageview)
-        self.layout.setContentsMargins(0, 0, 0, 0)
-        self.setGeometry(geometry)
-        self.imageview.scene.sigMouseMoved.connect(self.mouseMoved)
-        self.imageview.view.mouseDragEvent = self.mouseDragEvent
-        self.imageview.view.mouseClickEvent = self.mouseClickEvent
-        self.rois = []  #: list of ROIs: a list of all the :class:`ROIs <flika.roi.ROI_Base>` inside this window. 
-        self.currentROI = None  #: :class:`ROI <flika.roi.ROI_Base>`: When an ROI is clicked, it becomes the currentROI of that window and can be accessed via this variable.
-        self.creatingROI = False
+
+    def _init_scatterplot(self):
+        if self.scatterPlot in self.imageview.ui.graphicsView.items():
+            self.imageview.ui.graphicsView.removeItem(self.scatterPlot)
         pointSize = g.settings['point_size']
         pointColor = QtGui.QColor(g.settings['point_color'])
         self.scatterPlot = pg.ScatterPlotItem(size=pointSize, pen=pg.mkPen([0, 0, 0, 255]), brush=pg.mkBrush(*pointColor.getRgb()))  #this is the plot that all the red points will be drawn on
-        self.scatterPoints = [[] for _ in np.arange(mt)]
+        self.scatterPoints = [[] for _ in np.arange(self.mt)]
         self.scatterPlot.sigClicked.connect(self.clickedScatter)
         self.imageview.addItem(self.scatterPlot)
-        self.pasteAct = QtWidgets.QAction("&Paste", self, triggered=self.paste)
-        if g.settings['show_windows']:
-            self.show()
-            self.raise_()
-            QtWidgets.qApp.processEvents()
-        self.sigTimeChanged.connect(self.showFrame)
-        if self not in g.windows:
-            g.windows.append(self)
-        self.closed = False  #: bool: True if the window has been closed, False otherwise. 
 
-        from .process.measure import measure
-        self.measure = measure
-        def clicked(evt):
-            self.measure.pointclicked(evt, window=self)
-        self.imageview.scene.sigMouseClicked.connect(clicked)
-        self.linkedWindows = set()
-        self.makeMenu()
+    def _init_menu(self):
+        self.menu = QtWidgets.QMenu(self)
+
+        def updateMenu():
+            from .roi import ROI_Base
+            pasteAct.setEnabled(isinstance(g.clipboard, (list, ROI_Base)))
+
+        pasteAct = QtWidgets.QAction("&Paste", self, triggered=self.paste)
+        plotAllAct = QtWidgets.QAction('&Plot All ROIs', self.menu, triggered=self.plotAllROIs )
+        copyAll = QtWidgets.QAction("Copy All ROIs", self.menu, triggered = lambda a: setattr(g, 'clipboard', self.rois))
+        removeAll = QtWidgets.QAction("Remove All ROIs", self.menu, triggered = self.removeAllROIs)
+        saveAll = QtWidgets.QAction("&Save All ROIs",self, triggered=self.save_rois)
+        self.menu.addAction(pasteAct)
+        self.menu.addAction(plotAllAct)
+        self.menu.addAction(copyAll)
+        self.menu.addAction(saveAll)
+        self.menu.addAction(removeAll)
+        self.menu.aboutToShow.connect(updateMenu)
 
     def onResize(self, event):
         g.settings['window_settings']['coords'] = self.geometry().getRect()
@@ -209,23 +246,23 @@ class Window(QtWidgets.QWidget):
         save_file(filename)
         old_curr_win.setAsCurrentWindow()
 
-    def normLUT(self):
-        if self.nDims ==2:
+    def normLUT(self, tif):
+        if self.nDims == 2:
             # if the image is binary (either all 0s or 0s and 1s)
-            if np.min(self.image) == 0 and (np.max(self.image) == 0 or np.max(self.image) == 1):
+            if np.min(tif) == 0 and (np.max(tif) == 0 or np.max(tif) == 1):
                 self.imageview.setLevels(-.01, 1.01)  # set levels from slightly below 0 to 1
         if self.nDims == 3 and not self.metadata['is_rgb']:
-            if np.all(self.image[self.currentIndex] == 0):  # if the current frame is all zeros
-                r = (np.min(self.image), np.max(self.image))  # set the levels to be just above and below the min and max of the entire tif
+            if np.all(tif[self.currentIndex] == 0):  # if the current frame is all zeros
+                r = (np.min(tif), np.max(tif))  # set the levels to be just above and below the min and max of the entire tif
                 r = (r[0] - (r[1] - r[0]) / 100, r[1] + (r[1] - r[0]) / 100)
                 self.imageview.setLevels(r[0], r[1])
             else:
-                r = (np.min(self.image[self.currentIndex]),
-                     np.max(self.image[self.currentIndex]))  # set the levels to be just above and below the min and max of the first frame
+                r = (np.min(tif[self.currentIndex]),
+                     np.max(tif[self.currentIndex]))  # set the levels to be just above and below the min and max of the first frame
                 r = (r[0] - (r[1] - r[0]) / 100, r[1] + (r[1] - r[0]) / 100)
                 self.imageview.setLevels(r[0], r[1])
         elif self.nDims == 4 and not self.metadata['is_rgb']:
-            if np.min(self.image) == 0 and (np.max(self.image) == 0 or np.max(self.image) == 1):  # if the image is binary (either all 0s or 0s and 1s)
+            if np.min(tif) == 0 and (np.max(tif) == 0 or np.max(tif) == 1):  # if the image is binary (either all 0s or 0s and 1s)
                 self.imageview.setLevels(-.01, 1.01)  # set levels from slightly below 0 to 1
     
     def link(self, win):
@@ -356,7 +393,7 @@ class Window(QtWidgets.QWidget):
         nDims = len(tif.shape)
         if nDims == 4:  # If this is an RGB image stack  #[t, x, y, colors]
             tif = np.mean(tif,3)
-            mx, my = tif[0,:,:].shape
+            mx, my = tif[0, :, :].shape
         elif nDims == 3:
             if self.metadata['is_rgb']:  # [x, y, colors]
                 tif = np.mean(tif,2)
@@ -414,11 +451,14 @@ class Window(QtWidgets.QWidget):
         """This function sets this window as the current window. There is only one current window. All operations are performed on the
         current window. The current window can be accessed from the variable ``g.currentWindow``. 
         """
+
         if g.currentWindow is not None:
             g.currentWindow.setStyleSheet("border:1px solid rgb(0, 0, 0); ")
             g.currentWindow.lostFocusSignal.emit()
-        g.currentWindow=self
+        g.currentWindow = self
         g.m.currentWindow = g.currentWindow
+        if self not in g.windows:
+            g.windows.append(self)
         g.m.setWindowTitle("flika - {}".format(self.name))
         self.setStyleSheet("border:1px solid rgb(0, 255, 0); ")
         g.m.setCurrentWindowSignal.sig.emit()
@@ -455,26 +495,6 @@ class Window(QtWidgets.QWidget):
                 p_out.append(np.array([t,p[0],p[1]]))
         p_out=np.array(p_out)
         return p_out
-        
-    def makeMenu(self):
-        self.menu = QtWidgets.QMenu(self)
-
-        def updateMenu():
-            from .roi import ROI_Base
-            pasteAct.setEnabled(isinstance(g.clipboard, (list, ROI_Base)))
-
-        pasteAct = QtWidgets.QAction("&Paste", self, triggered=self.paste)
-        plotAllAct = QtWidgets.QAction('&Plot All ROIs', self.menu, triggered=self.plotAllROIs )
-        copyAll = QtWidgets.QAction("Copy All ROIs", self.menu, triggered = lambda a: setattr(g, 'clipboard', self.rois))
-        removeAll = QtWidgets.QAction("Remove All ROIs", self.menu, triggered = self.removeAllROIs)
-        saveAll = QtWidgets.QAction("&Save All ROIs",self, triggered=self.save_rois)
-
-        self.menu.addAction(pasteAct)
-        self.menu.addAction(plotAllAct)
-        self.menu.addAction(copyAll)
-        self.menu.addAction(saveAll)
-        self.menu.addAction(removeAll)
-        self.menu.aboutToShow.connect(updateMenu)
 
     def plotAllROIs(self):
         for roi in self.rois:
