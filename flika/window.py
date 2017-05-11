@@ -152,7 +152,7 @@ class Window(QtWidgets.QWidget):
         self.imageview = ImageView(self)
         self.imageview.setMouseTracking(True)
         self.imageview.installEventFilter(self)
-        self.imageview.ui.normLUTbtn.pressed.connect(self.normLUT)
+        self.imageview.ui.normLUTbtn.pressed.connect(lambda : self.normLUT(self.image))
         rp = self.imageview.ui.roiPlot.getPlotItem()
         self.linkMenu = QtWidgets.QMenu("Link frame")
         rp.ctrlMenu = self.linkMenu
