@@ -23,8 +23,9 @@ def convert2uint8(tif):
     return tif
     
 class Threshold(BaseProcess):
-    """threshold(value, darkBackground=False, keepSourceWindow=False)
-    Creates a boolean matrix by applying a threshold
+    """###threshold(value, darkBackground=False, keepSourceWindow=False)
+    
+Creates a boolean matrix by applying a threshold
     
     Parameters:
         | value (float) -- The threshold to be applied
@@ -34,58 +35,63 @@ class Threshold(BaseProcess):
     """
     def __init__(self):
         super().__init__()
+
     def gui(self):
         self.gui_reset()
-        valueSlider=SliderLabel(2)
+        valueSlider = SliderLabel(2)
         if g.currentWindow is not None:
             image=g.currentWindow.image
             valueSlider.setRange(np.min(image),np.max(image))
             valueSlider.setValue(np.mean(image))
         preview=CheckBox()
         preview.setChecked(True)
-        self.items.append({'name':'value','string':'Value','object':valueSlider})
-        self.items.append({'name':'darkBackground','string':'Dark Background','object': CheckBox()})
-        self.items.append({'name':'preview','string':'Preview','object':preview})
+        self.items.append({'name': 'value','string': 'Value','object': valueSlider})
+        self.items.append({'name': 'darkBackground', 'string':'Dark Background','object': CheckBox()})
+        self.items.append({'name': 'preview','string': 'Preview','object': preview})
         super().gui()
-    def __call__(self,value,darkBackground=False, keepSourceWindow=False):
+
+    def __call__(self, value, darkBackground=False, keepSourceWindow=False):
         self.start(keepSourceWindow)
         if self.oldwindow.nDims > 3:
             g.alert("You cannot run this function on an image of dimension greater than 3. If your window has color, convert to a grayscale image before running this function")
             return None
         if darkBackground:
-            newtif=self.tif<value
+            newtif = self.tif < value
         else:
-            newtif=self.tif>value
-        self.newtif=newtif.astype(np.uint8)
-        self.newname=self.oldname+' - Thresholded '+str(value)
+            newtif = self.tif > value
+        self.newtif = newtif.astype(np.uint8)
+        self.newname = self.oldname+' - Thresholded '+str(value)
         return self.end()
+
     def preview(self):
-        value=self.getValue('value')
-        preview=self.getValue('preview')
-        darkBackground=self.getValue('darkBackground')
-        nDim=len(g.currentWindow.image.shape)
-        if nDim > 3:
+        if g.currentWindow is None or g.currentWindow.closed:
+            return
+        win = g.currentWindow
+        value = self.getValue('value')
+        preview = self.getValue('preview')
+        darkBackground = self.getValue('darkBackground')
+        if win.nDims > 3:
             g.alert("You cannot run this function on an image of dimension greater than 3. If your window has color, convert to a grayscale image before running this function")
             return None
         if preview:
-            if nDim==3: # if the image is 3d
-                testimage=np.copy(g.currentWindow.image[g.currentWindow.currentIndex])
-            elif nDim==2:
-                testimage=np.copy(g.currentWindow.image)
+            if win.nDims == 3: # if the image is 3d
+                testimage = np.copy(win.image[win.currentIndex])
+            elif win.nDims == 2:
+                testimage = np.copy(win.image)
             if darkBackground:
-                testimage=testimage<value
+                testimage = testimage<value
             else:
-                testimage=testimage>value
-            g.currentWindow.imageview.setImage(testimage,autoLevels=False)
-            g.currentWindow.imageview.setLevels(-.1,1.1)
+                testimage = testimage>value
+            win.imageview.setImage(testimage, autoLevels=False)
+            win.imageview.setLevels(-.1,1.1)
         else:
-            g.currentWindow.reset()
-            if nDim==3:
-                image=g.currentWindow.image[g.currentWindow.currentIndex]
+            win.reset()
+            if win.nDims == 3:
+                image = win.image[win.currentIndex]
             else:
-                image=g.currentWindow.image
-            g.currentWindow.imageview.setLevels(np.min(image),np.max(image))
-threshold=Threshold()
+                image = win.image
+            win.imageview.setLevels(np.min(image), np.max(image))
+threshold = Threshold()
 
 class BlocksizeSlider(SliderLabel):
     def __init__(self,demicals=0):
@@ -104,8 +110,9 @@ class BlocksizeSlider(SliderLabel):
         self.label.setValue(value)
     
 class Adaptive_threshold(BaseProcess):
-    """adaptive_threshold(value, block_size, darkBackground=False, keepSourceWindow=False)
-    Creates a boolean matrix by applying an adaptive threshold using the scikit-image threshold_adaptive function
+    """###adaptive_threshold(value, block_size, darkBackground=False, keepSourceWindow=False)
+    
+Creates a boolean matrix by applying an adaptive threshold using the scikit-image threshold_adaptive function
     
     Parameters:
         | value (int) -- The threshold to be applied
@@ -123,8 +130,10 @@ class Adaptive_threshold(BaseProcess):
         valueSlider.setValue(0)
         block_size=BlocksizeSlider(0)
         if g.currentWindow is not None:
-            max_block=int(max([g.currentWindow.image.shape[-1],g.currentWindow.image.shape[-2]])/2)
-        block_size.setRange(3,max_block)
+            max_block = int(max([g.currentWindow.image.shape[-1],g.currentWindow.image.shape[-2]])/2)
+        else:
+            max_block = 100
+        block_size.setRange(3, max_block)
         preview = CheckBox(); preview.setChecked(True)
         self.items.append({'name': 'value', 'string': 'Value', 'object': valueSlider})
         self.items.append({'name': 'block_size', 'string':'Block Size', 'object':block_size})
@@ -155,37 +164,40 @@ class Adaptive_threshold(BaseProcess):
         return self.end()
 
     def preview(self):
+        if g.currentWindow is None or g.currentWindow.closed:
+            return
+        win = g.currentWindow
         value = self.getValue('value')
         block_size = self.getValue('block_size')
         preview = self.getValue('preview')
         darkBackground = self.getValue('darkBackground')
-        nDim = len(g.currentWindow.image.shape)
+        nDim = len(win.image.shape)
         if nDim > 3:
             g.alert("You cannot run this function on an image of dimension greater than 3. If your window has color, convert to a grayscale image before running this function")
             return None
         if preview:
             if nDim == 3: # if the image is 3d
-                testimage=np.copy(g.currentWindow.image[g.currentWindow.currentIndex])
+                testimage=np.copy(win.image[win.currentIndex])
             elif nDim == 2:
-                testimage=np.copy(g.currentWindow.image)
+                testimage=np.copy(win.image)
             testimage = threshold_adaptive(testimage, block_size, offset=value)
             if darkBackground:
                 testimage = np.logical_not(testimage)
             testimage = testimage.astype(np.uint8)
-            g.currentWindow.imageview.setImage(testimage, autoLevels=False)
-            g.currentWindow.imageview.setLevels(-.1, 1.1)
+            win.imageview.setImage(testimage, autoLevels=False)
+            win.imageview.setLevels(-.1, 1.1)
         else:
-            g.currentWindow.reset()
+            win.reset()
             if nDim == 3:
-                image = g.currentWindow.image[g.currentWindow.currentIndex]
+                image = win.image[win.currentIndex]
             else:
-                image = g.currentWindow.image
-            g.currentWindow.imageview.setLevels(np.min(image), np.max(image))
+                image = win.image
+            win.imageview.setLevels(np.min(image), np.max(image))
 adaptive_threshold=Adaptive_threshold()
 
 
 class Canny_edge_detector(BaseProcess):
-    """canny_edge_detector(sigma, keepSourceWindow=False)
+    """###canny_edge_detector(sigma, keepSourceWindow=False)
     
     Parameters:
         | sigma (float) -- 
@@ -222,31 +234,36 @@ class Canny_edge_detector(BaseProcess):
         self.newtif=newtif.astype(np.uint8)
         self.newname=self.oldname+' - Canny '
         return self.end()
+
     def preview(self):
-        sigma=self.getValue('sigma')
-        preview=self.getValue('preview')
-        nDim=len(g.currentWindow.image.shape)
+        if g.currentWindow is None or g.currentWindow.closed:
+            return
+        win = g.currentWindow
+        sigma = self.getValue('sigma')
+        preview = self.getValue('preview')
+        nDim = len(win.image.shape)
         if preview:
             if nDim==3: # if the image is 3d
-                testimage=np.copy(g.currentWindow.image[g.currentWindow.currentIndex])
+                testimage=np.copy(win.image[win.currentIndex])
             elif nDim==2:
-                testimage=np.copy(g.currentWindow.image)
+                testimage=np.copy(win.image)
             testimage=feature.canny(testimage,sigma)
-            g.currentWindow.imageview.setImage(testimage,autoLevels=False)
-            g.currentWindow.imageview.setLevels(-.1,1.1)
+            win.imageview.setImage(testimage,autoLevels=False)
+            win.imageview.setLevels(-.1,1.1)
         else:
-            g.currentWindow.reset()
+            win.reset()
             if nDim==3:
-                image=g.currentWindow.image[g.currentWindow.currentIndex]
+                image=win.image[win.currentIndex]
             else:
-                image=g.currentWindow.image
-            g.currentWindow.imageview.setLevels(np.min(image),np.max(image))
+                image=win.image
+            win.imageview.setLevels(np.min(image),np.max(image))
 canny_edge_detector=Canny_edge_detector()
 
 
 class Logically_combine(BaseProcess):
-    """ logically_combine(window1, window2,operator, keepSourceWindow=False)
-    Combines two windows according to the operator
+    """###logically_combine(window1, window2,operator, keepSourceWindow=False)
+
+Combines two windows according to the operator
     
     Parameters:
         | window1 (Window)
@@ -295,8 +312,9 @@ logically_combine=Logically_combine()
 
     
 class Remove_small_blobs(BaseProcess):
-    """remove_small_blobs(rank, value, keepSourceWindow=False)
-    Finds all contiguous 'True' pixels in rank dimensions.  Removes regions which have fewer than the specified pixels.
+    """###remove_small_blobs(rank, value, keepSourceWindow=False)
+
+Finds all contiguous 'True' pixels in rank dimensions.  Removes regions which have fewer than the specified pixels.
     
     Parameters:
         | rank  (int) -- The number of dimensions.  If rank==2, each frame is treated independently
@@ -346,8 +364,9 @@ remove_small_blobs = Remove_small_blobs()
 
 
 class Binary_Dilation(BaseProcess):
-    """binary_dilation(rank,connectivity,iterations, keepSourceWindow=False)
-    Performs a binary dilation on a binary image.  The 'False' pixels neighboring 'True' pixels become converted to 'True' pixels.
+    """###binary_dilation(rank,connectivity,iterations, keepSourceWindow=False)
+
+Performs a binary dilation on a binary image.  The 'False' pixels neighboring 'True' pixels become converted to 'True' pixels.
     
     Parameters:
         | rank (int) -- The number of dimensions to dilate. Can be either 2 or 3.  
@@ -393,14 +412,13 @@ binary_dilation=Binary_Dilation()
 
 
 class Binary_Erosion(BaseProcess):
-    """binary_erosion(rank,connectivity,iterations, keepSourceWindow=False)
-    Performs a binary erosion on a binary image.  The 'True' pixels neighboring 'False' pixels become converted to 'False' pixels.
+    """###binary_erosion(rank,connectivity,iterations, keepSourceWindow=False)
+
+Performs a binary erosion on a binary image.  The 'True' pixels neighboring 'False' pixels become converted to 'False' pixels.
     
     Parameters:
         | rank (int) -- The number of dimensions to erode. Can be either 2 or 3.  
-        | connectivity (int) -- `connectivity` determines the distance to erode.
-             `connectivity` may range from 1 (no diagonal elements are neighbors) 
-             to `rank` (all elements are neighbors).
+        | connectivity (int) -- `connectivity` determines the distance to erode. `connectivity` may range from 1 (no diagonal elements are neighbors) to `rank` (all elements are neighbors).
         | iterations (int) -- How many times to repeat the erosion
         | keepSourceWindow (bool) -- If this is False, a new Window is created with the result. Otherwise, the currentWindow is used
     Returns:
@@ -408,6 +426,7 @@ class Binary_Erosion(BaseProcess):
     """
     def __init__(self):
         super().__init__()
+
     def gui(self):
         self.gui_reset()
         rank=QtWidgets.QSpinBox()
@@ -421,27 +440,28 @@ class Binary_Erosion(BaseProcess):
         self.items.append({'name':'iterations','string':'Iterations','object':iterations})
 
         super().gui()
-    def __call__(self,rank,connectivity,iterations, keepSourceWindow=False):
+    def __call__(self, rank, connectivity, iterations, keepSourceWindow=False):
         self.start(keepSourceWindow)
         if self.tif.dtype == np.float16:
             g.alert("Binary Erosion does not work on float32 images. Change the data type to use this function.")
             return None
         if len(self.tif.shape)==3 and rank==2:
-            s=scipy.ndimage.generate_binary_structure(3,connectivity)
-            s[0]=False
-            s[2]=False
+            s = scipy.ndimage.generate_binary_structure(3, connectivity)
+            s[0] = False
+            s[2] = False
         else:
-            s=scipy.ndimage.generate_binary_structure(rank,connectivity)
-        self.newtif=scipy.ndimage.morphology.binary_erosion(self.tif,s,iterations)
-        self.newtif=self.newtif.astype(np.uint8)
-        self.newname=self.oldname+' - Dilated '
+            s = scipy.ndimage.generate_binary_structure(rank, connectivity)
+        self.newtif = scipy.ndimage.morphology.binary_erosion(self.tif, s, iterations)
+        self.newtif = self.newtif.astype(np.uint8)
+        self.newname = self.oldname+' - Dilated '
         return self.end()
 binary_erosion=Binary_Erosion()
 
 
 class Generate_ROIs(BaseProcess):
-    """generate_rois(level, keepSourceWindow=False)
-    Uses a binary image to create ROIs from positive clusters.
+    """###generate_rois(level, keepSourceWindow=False)
+
+Uses a binary image to create ROIs from positive clusters.
     
     Parameters:
         | level (float) - value in [0, 1] to use when finding contours
@@ -500,11 +520,14 @@ class Generate_ROIs(BaseProcess):
                 ROIs.append(new_roi)
 
     def preview(self):
+        if g.currentWindow is None or g.currentWindow.closed:
+            return
+        win = g.currentWindow
         if self.previewing:
             self.toPreview = True
             return
         self.previewing = True
-        im = g.currentWindow.image if g.currentWindow.image.ndim == 2 else g.currentWindow.image[g.currentWindow.currentIndex]
+        im = win.image if win.image.ndim == 2 else win.image[win.currentIndex]
         im = scipy.ndimage.morphology.binary_closing(im)
         if np.any(im < 0) or np.any(im > 1):
             raise Exception("The current image is not a binary image. Threshold first")
@@ -525,7 +548,7 @@ class Generate_ROIs(BaseProcess):
                 if len(outline_coords) == 0:
                     continue
                 outline_coords = outline_coords[0]
-                self.ROIs.append(ROI_Drawing(g.currentWindow, outline_coords[0][0], outline_coords[0][1], 'freehand'))
+                self.ROIs.append(ROI_Drawing(win, outline_coords[0][0], outline_coords[0][1], 'freehand'))
                 for p in outline_coords[1:]:
                     self.ROIs[-1].extend(p[0], p[1])
                     QtWidgets.qApp.processEvents()

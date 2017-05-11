@@ -5,6 +5,7 @@ from qtpy import QtCore, QtGui, QtWidgets
 import pyqtgraph as pg
 import sys
 import inspect
+import markdown
 
 from .. import global_vars as g
 from .. import window
@@ -235,21 +236,39 @@ class BaseDialog(QtWidgets.QDialog):
         self.setWindowTitle(title)
         self.formlayout = QtWidgets.QFormLayout()
         self.formlayout.setLabelAlignment(QtCore.Qt.AlignRight)
+        self.docstring = None
         self.items = items
         self.setupitems()
         self.connectToChangeSignal()
         self.bbox = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
         self.bbox.accepted.connect(self.accept)
         self.bbox.rejected.connect(self.reject)
-        self.docstring = QtWidgets.QLabel(docstring)
-        self.docstring.setWordWrap(True)
+        self._init_docstring(docstring)
         self.layout = QtWidgets.QVBoxLayout()
-        self.layout.addWidget(self.docstring)
+        if docstring is not None:
+            self.layout.addWidget(self.docstring)
         self.layout.addLayout(self.formlayout)
         self.layout.addWidget(self.bbox)
         self.setLayout(self.layout)
         self.changeSignal.connect(self.updateValues)
         self.updateValues()
+
+    def _init_docstring(self, docstring):
+        if docstring is None:
+            return None
+        self.docstring = QtWidgets.QTextBrowser()
+        self.docstring.setOpenExternalLinks(True)
+        css = """
+        p {
+            font-weight: 900;
+        }
+        """
+        print(docstring)
+        docstring = markdown.markdown(docstring)
+        print(docstring)
+        self.docstring.setHtml(docstring)
+        self.docstring.setStyleSheet(css)
+        self.docstring.setWordWrapMode(0)
 
     def setupitems(self):
         for item in self.items:
