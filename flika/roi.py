@@ -324,7 +324,6 @@ class ROI_Base():
         self.menu.addAction(remAct)
         self.menu.aboutToShow.connect(updateMenu)
 
-
     def delete(self):
         """Remove the ROI from its window, unlink all ROIs and delete the object"""
         self.unplot()
@@ -541,12 +540,12 @@ class ROI_rectangle(ROI_Base, pg.ROI):
 
     def getMask(self):
         x, y = self.state['pos']
-        w, h = self.state['size']
+        ww, hh = self.state['size']
 
         xmin = max(x, 0)
         ymin = max(y, 0)
-        xmax = min(x+w, self.window.mx)
-        ymax = min(y+h, self.window.my)
+        xmax = min(x+ww, self.window.mx)
+        ymax = min(y+hh, self.window.my)
 
         xx, yy = np.meshgrid(np.arange(xmin, xmax, dtype=int), np.arange(ymin, ymax, dtype=int))
 
@@ -593,7 +592,7 @@ class ROI_rectangle(ROI_Base, pg.ROI):
             if y2>=my: y2=my-1
             newtif=tif[x1:x2,y1:y2]
 
-        w =  Window(np.zeros([5, 5]),self.window.name+' Cropped',metadata=self.window.metadata)
+        w =  Window(newtif, self.window.name+' Cropped', metadata=self.window.metadata)
         w.imageview.setImage(newtif, axes=self.window.imageview.axes)
         w.image = newtif
         return w
