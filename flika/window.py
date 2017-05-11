@@ -125,9 +125,9 @@ class Window(QtWidgets.QWidget):
                 g.settings['window_settings']['coords'] = geometry.getRect()
         else:
             geometry = g.currentWindow.geometry()
-            screenGeom = QtWidgets.QDesktopWidget().screenGeometry()
-            maxX = (screenGeom.width() - geometry.width()) or 1
-            maxY = (screenGeom.height() - geometry.height()) or 1
+            desktopGeom = QtWidgets.QDesktopWidget().geometry()
+            maxX = (desktopGeom.width() - geometry.width()) or 1
+            maxY = (desktopGeom.height() - geometry.height()) or 1
             newX = (geometry.x() + 10) % maxX
             newY = (geometry.y() + 10) % maxY
             geometry = QtCore.QRect(newX, newY, geometry.width(), geometry.height())

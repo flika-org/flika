@@ -258,16 +258,10 @@ class BaseDialog(QtWidgets.QDialog):
             return None
         self.docstring = QtWidgets.QTextBrowser()
         self.docstring.setOpenExternalLinks(True)
-        css = """
-        p {
-            font-weight: 900;
-        }
-        """
-        print(docstring)
         docstring = markdown.markdown(docstring)
-        print(docstring)
         self.docstring.setHtml(docstring)
-        self.docstring.setStyleSheet(css)
+        #css = """ """
+        #self.docstring.setStyleSheet(css)
         self.docstring.setWordWrapMode(0)
 
     def setupitems(self):
