@@ -345,7 +345,8 @@ class BaseProcess(object):
             self.oldwindow.reset()
             return
         commands=self.oldwindow.commands[:]
-        commands.append(self.command)
+        if hasattr(self, 'command'):
+            commands.append(self.command)
         newWindow=window.Window(self.newtif,str(self.newname),self.oldwindow.filename,commands,self.oldwindow.metadata)
         if self.keepSourceWindow is False:
             self.oldwindow.close()

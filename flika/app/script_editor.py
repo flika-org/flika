@@ -27,7 +27,6 @@ class Editor(QtWidgets.QPlainTextEdit):
         self.scriptfile = ''
         if scriptfile != '':
             self.open_file(scriptfile)
-        self.installEventFilter(self)
         font = QtGui.QFont()
         font.setFamily("Courier")
         font.setStyleHint(QtGui.QFont.Monospace)
@@ -77,15 +76,6 @@ class Editor(QtWidgets.QPlainTextEdit):
         ScriptEditor.add_recent_file(self.scriptfile)
         ScriptEditor.gui.statusBar().showMessage('{} saved.'.format(os.path.basename(self.scriptfile)), MESSAGE_TIME)
         return True
-
-    def eventFilter(self, source, event):
-        if (event.type()==QtGui.QKeyEvent.KeyPress and event.key() == QtCore.Qt.Key_Tab):
-            event.accept()
-            self.insertPlainText('    ')
-            return True
-        else:
-            event.ignore()
-        return False
 
 class ScriptEditor(QtWidgets.QMainWindow):
     '''
