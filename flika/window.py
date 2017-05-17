@@ -135,7 +135,6 @@ class Window(QtWidgets.QWidget):
         if desktopGeom.x() < 0:
             newX += desktopGeom.x()
         
-        print(newX, newY)
         geometry = QtCore.QRect(newX, newY, geometry.width(), geometry.height())
         self.setGeometry(geometry)
         self.layout = QtWidgets.QVBoxLayout(self)
