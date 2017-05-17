@@ -64,7 +64,7 @@ class SettingsEditor(BaseDialog):
             g.settings['default_roi_on_click'] = default_roi.isChecked()
             
 
-        super(SettingsEditor, self).__init__(items, 'flika settings', '')
+        super(SettingsEditor, self).__init__(items, 'flika settings', None)
         self.accepted.connect(update)
         self.changeSignal.connect(update)
         g.dialogs.append(self)

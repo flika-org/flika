@@ -197,6 +197,7 @@ When using the Progress Bar, you need to write two functions:
     1) An outer function that takes an object like a numpy array, breaks it into blocks, and creates the ProgressBar object.
     2) An inner function that receives the chunks, performs the processing, and returns the results.
 
+If you are using a progress bar in a plugin, make sure to write it in its own python file, or the threads may crash. 
 The first function should look something like this:  
 '''
 def outer_func():
