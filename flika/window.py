@@ -125,12 +125,18 @@ class Window(QtWidgets.QWidget):
                 g.settings['window_settings']['coords'] = geometry.getRect()
         else:
             geometry = g.currentWindow.geometry()
-            desktopGeom = QtWidgets.QDesktopWidget().geometry()
-            maxX = (desktopGeom.width() - geometry.width()) or 1
-            maxY = (desktopGeom.height() - geometry.height()) or 1
-            newX = (geometry.x() + 10) % maxX
-            newY = (geometry.y() + 10) % maxY
-            geometry = QtCore.QRect(newX, newY, geometry.width(), geometry.height())
+
+        desktopGeom = QtWidgets.QDesktopWidget().geometry()
+
+        maxX = (desktopGeom.width() - geometry.width()) or 1
+        maxY = (desktopGeom.height() - geometry.height()) or 1
+        newX = (geometry.x() + 10) % maxX
+        newY = (geometry.y() + 10) % maxY
+        if desktopGeom.x() < 0:
+            newX += desktopGeom.x()
+        
+        print(newX, newY)
+        geometry = QtCore.QRect(newX, newY, geometry.width(), geometry.height())
         self.setGeometry(geometry)
         self.layout = QtWidgets.QVBoxLayout(self)
         self.layout.addWidget(self.imageview)
