@@ -4,7 +4,7 @@ import scipy
 import scipy.ndimage    
 from skimage import feature, measure
 from skimage.morphology import remove_small_objects
-from skimage.filters import threshold_adaptive
+from skimage.filters import threshold_local
 from qtpy import QtCore, QtGui, QtWidgets
 from .. import global_vars as g
 from .BaseProcess import BaseProcess, SliderLabel, WindowSelector,  MissingWindowError, CheckBox, ComboBox
@@ -112,7 +112,7 @@ class BlocksizeSlider(SliderLabel):
 class Adaptive_threshold(BaseProcess):
     """###adaptive_threshold(value, block_size, darkBackground=False, keepSourceWindow=False)
     
-Creates a boolean matrix by applying an adaptive threshold using the scikit-image threshold_adaptive function
+Creates a boolean matrix by applying an adaptive threshold using the scikit-image threshold_local function
     
     Parameters:
         | value (int) -- The threshold to be applied
@@ -145,15 +145,15 @@ Creates a boolean matrix by applying an adaptive threshold using the scikit-imag
     def __call__(self, value, block_size, darkBackground=False, keepSourceWindow=False):
         self.start(keepSourceWindow)
         if self.tif.dtype == np.float16:
-            g.alert("Adaptive Threshold does not support float16 type arrays")
+            g.alert("Local Threshold does not support float16 type arrays")
             return
         newtif = np.copy(self.tif)
 
         if self.oldwindow.nDims == 2:
-            newtif = threshold_adaptive(newtif, block_size, offset=value)
+            newtif = threshold_local(newtif, block_size, offset=value)
         elif self.oldwindow.nDims == 3:
             for i in np.arange(len(newtif)):
-                newtif[i] = threshold_adaptive(newtif[i], block_size, offset=value)
+                newtif[i] = threshold_local(newtif[i], block_size, offset=value)
         else:
             g.alert("You cannot run this function on an image of dimension greater than 3. If your window has color, convert to a grayscale image before running this function")
             return None
@@ -180,7 +180,7 @@ Creates a boolean matrix by applying an adaptive threshold using the scikit-imag
                 testimage=np.copy(win.image[win.currentIndex])
             elif nDim == 2:
                 testimage=np.copy(win.image)
-            testimage = threshold_adaptive(testimage, block_size, offset=value)
+            testimage = threshold_local(testimage, block_size, offset=value)
             if darkBackground:
                 testimage = np.logical_not(testimage)
             testimage = testimage.astype(np.uint8)
