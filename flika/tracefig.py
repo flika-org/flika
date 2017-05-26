@@ -68,6 +68,10 @@ class TraceFig(QtWidgets.QWidget):
         self.p1.plotItem.sigRangeChanged.connect(self.updateRegion)
         self.region.setRegion([0, 200])
 
+        self.timer = QtCore.QTimer()
+        self.timer.timeout.connect(self.p1.update)
+        self.timer.start()
+
         from .process.measure import measure
         self.measure=measure
         self.p1.scene().sigMouseClicked.connect(self.measure.pointclicked)

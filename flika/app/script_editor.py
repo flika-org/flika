@@ -27,7 +27,16 @@ class Editor(QtWidgets.QPlainTextEdit):
         self.scriptfile = ''
         if scriptfile != '':
             self.open_file(scriptfile)
-        self.installEventFilter(self)
+        font = QtGui.QFont()
+        font.setFamily("Courier")
+        font.setStyleHint(QtGui.QFont.Monospace)
+        font.setFixedPitch(True)
+        font.setPointSize(ScriptEditor.POINT_SIZE)
+
+        self.setFont(font)
+
+        metrics = QtGui.QFontMetrics(font)
+        self.setTabStopWidth(4 * metrics.width(' '))
 
     @staticmethod
     def fromWindow(window):
@@ -58,7 +67,7 @@ class Editor(QtWidgets.QPlainTextEdit):
         return True
 
     def save(self):
-        if self.scriptfile == '':
+        if not self.scriptfile:
             return self.save_as()
         f = open(self.scriptfile, 'w')
         command=qstr2str(self.toPlainText())
@@ -68,19 +77,11 @@ class Editor(QtWidgets.QPlainTextEdit):
         ScriptEditor.gui.statusBar().showMessage('{} saved.'.format(os.path.basename(self.scriptfile)), MESSAGE_TIME)
         return True
 
-    def eventFilter(self, source, event):
-        if (event.type()==QtGui.QKeyEvent.KeyPress and event.key() == QtCore.Qt.Key_Tab):
-            event.accept()
-            self.insertPlainText('    ')
-            return True
-        else:
-            event.ignore()
-        return False
-
 class ScriptEditor(QtWidgets.QMainWindow):
     '''
     QMainWindow for editing and running user scripts. Comprised of a tabbed text editor and console.
     '''
+    POINT_SIZE = 8
     def __init__(self, parent=None, ):
         super(ScriptEditor, self).__init__(parent)
         load_ui('ipythonWidget.ui', self, directory=os.path.dirname(__file__))
@@ -114,6 +115,7 @@ Useful variables:
         #self.installEventFilter(self.eventeater)
         self.scriptTabs.tabCloseRequested.connect(self.closeTab)
         self.setWindowTitle('Script Editor')
+
         
     def resetNamespace(self):
         self.terminal.shell.reset()
@@ -122,11 +124,27 @@ Useful variables:
 
     def changeFontSize(self):
         val, ok = QtWidgets.QInputDialog.getInt(self, "Change Font Size", "Font Size", \
-            value=ScriptEditor.gui.centralWidget().font().pointSize(), min = 8, max = 30, step = 1)
+            value=ScriptEditor.POINT_SIZE, min = 6, max = 50, step = 1)
         if ok:
-            font = ScriptEditor.gui.centralWidget().font()
-            font.setPointSize(val)
-            ScriptEditor.gui.centralWidget().setFont(font)
+            self.setFontSize(val)
+
+    def setFontSize(self, val):
+        ScriptEditor.POINT_SIZE = val
+
+        font = self.scriptTabs.font()
+        font.setPointSize(val)
+        self.scriptTabs.setFont(font)
+
+        f = self.terminal._control.font()
+        f.setPointSize(val)
+        self.terminal._control.setFont(f)
+
+        for ch in self.scriptTabs.children():
+            if isinstance(ch, QtWidgets.QStackedWidget):
+                for i in range(ch.count()):
+                    f = ch.widget(i).font()
+                    f.setPointSize(val)
+                    ch.widget(i).setFont(f)
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls():
@@ -216,6 +234,7 @@ Useful variables:
         self.scriptTabs.insertTab(0, editor, os.path.basename(name))
         self.scriptTabs.setCurrentIndex(0)
         self.setUpdatesEnabled(True)
+
         return editor
 
     def keyPressEvent(self, ev):

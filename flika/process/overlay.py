@@ -30,7 +30,7 @@ class Time_Stamp(BaseProcess):
             framerate.setValue(g.settings['framerate'])
         framerate.setRange(0,1000000)
         framerate.setDecimals(10)
-        show=QtWidgets.QCheckBox(); show.setChecked(True)
+        show = CheckBox(); show.setChecked(True)
         self.items.append({'name':'framerate','string':'Frame Rate (Hz)','object':framerate})
         self.items.append({'name':'show','string':'Show','object':show})
         super().gui()

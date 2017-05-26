@@ -146,8 +146,8 @@ class Multiply(BaseProcess):
         super().gui()
     def __call__(self,value,keepSourceWindow=False):
         self.start(keepSourceWindow)
-        self.newtif=self.tif*value
-        self.newname=self.oldname+' - Multiplied '+str(value)
+        self.newtif = self.tif*value
+        self.newname = self.oldname+' - Multiplied by '+str(value)
         return self.end()
     def preview(self):
         value=self.getValue('value')
@@ -185,7 +185,7 @@ class Divide(BaseProcess):
     def __call__(self, value, keepSourceWindow=False):
         self.start(keepSourceWindow)
         self.newtif = self.tif / value
-        self.newname = self.oldname + ' - Multiplied ' + str(value)
+        self.newname = self.oldname + ' - Divided by ' + str(value)
         return self.end()
 
     def preview(self):

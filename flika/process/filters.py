@@ -8,7 +8,7 @@ from .. import global_vars as g
 from .BaseProcess import BaseProcess, SliderLabel, SliderLabelOdd, CheckBox
 from .progress_bar import ProgressBar
 
-__all__ = ['gaussian_blur','mean_filter','median_filter','butterworth_filter','boxcar_differential_filter','wavelet_filter','difference_filter', 'fourier_filter', 'bilateral_filter']
+__all__ = ['gaussian_blur', 'difference_of_gaussians', 'mean_filter','median_filter','butterworth_filter','boxcar_differential_filter','wavelet_filter','difference_filter', 'fourier_filter', 'bilateral_filter']
 ###############################################################################
 ##################   SPATIAL FILTERS       ####################################
 ###############################################################################
@@ -80,8 +80,76 @@ class Gaussian_blur(BaseProcess):
         else:
             g.currentWindow.reset()
 gaussian_blur=Gaussian_blur()
-    
-    
+
+
+class Difference_of_Gaussians(BaseProcess):
+    """ gaussian_blur(sigma1, sigma2, keepSourceWindow=False)
+
+    This subtracts one gaussian blurred image from another to spatially bandpass filter.
+
+    Args:
+        sigma1 (float): The width of the first gaussian
+        sigma2 (float): The width of the first gaussian
+
+    Returns:
+        flika.window.Window
+
+    """
+
+    def __init__(self):
+        super().__init__()
+        assert 'gaussian' in skimage.filters.__dict__  # Make sure your version of skimage is >= 0.12.3
+
+    def gui(self):
+        self.gui_reset()
+        sigma1 = SliderLabel(2)
+        sigma1.setRange(0, 100)
+        sigma1.setValue(1)
+        sigma2 = SliderLabel(2)
+        sigma2.setRange(0, 100)
+        sigma2.setValue(2)
+        preview = CheckBox()
+        preview.setChecked(True)
+        self.items.append({'name': 'sigma1', 'string': 'Sigma 1 (pixels)', 'object': sigma1})
+        self.items.append({'name': 'sigma2', 'string': 'Sigma 2 (pixels)', 'object': sigma2})
+        self.items.append({'name': 'preview', 'string': 'Preview', 'object': preview})
+        super().gui()
+        self.preview()
+
+    def __call__(self, sigma1, sigma2, keepSourceWindow=False):
+        self.start(keepSourceWindow)
+        if sigma1 > 0 and sigma2 > 0:
+            self.newtif = np.zeros(self.tif.shape)
+            if len(self.tif.shape) == 3:
+                for i in np.arange(len(self.newtif)):
+                    self.newtif[i] = skimage.filters.gaussian(self.tif[i].astype(np.float64), sigma1, mode='nearest') -\
+                                     skimage.filters.gaussian(self.tif[i].astype(np.float64), sigma2, mode='nearest')
+            elif len(self.tif.shape) == 2:
+                self.newtif = skimage.filters.gaussian(self.tif.astype(np.float64), sigma1, mode='nearest') - \
+                              skimage.filters.gaussian(self.tif.astype(np.float64), sigma2, mode='nearest')
+            self.newtif = self.newtif.astype(g.settings['internal_data_type'])
+        else:
+            self.newtif = self.tif
+        self.newname = self.oldname + ' - Difference of Gaussians ({} {})'.format(sigma1, sigma2)
+        return self.end()
+
+    def preview(self):
+        sigma1 = self.getValue('sigma1')
+        sigma2 = self.getValue('sigma2')
+        preview = self.getValue('preview')
+        if preview:
+            if len(g.currentWindow.image.shape) == 3:
+                testimage = g.currentWindow.image[g.currentWindow.currentIndex].astype(np.float64)
+            elif len(g.currentWindow.image.shape) == 2:
+                testimage = g.currentWindow.image.astype(np.float64)
+            if sigma1 > 0 and sigma2 > 0:
+                testimage = skimage.filters.gaussian(testimage, sigma1, mode='nearest') - skimage.filters.gaussian(testimage, sigma2, mode='nearest')
+            g.currentWindow.imageview.setImage(testimage, autoLevels=False)
+        else:
+            g.currentWindow.reset()
+
+
+difference_of_gaussians = Difference_of_Gaussians()
 ###############################################################################
 ##################   TEMPORAL FILTERS       ###################################
 ###############################################################################

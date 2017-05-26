@@ -259,7 +259,7 @@ def open_file(filename=None, from_gui=False):
         axes = nd2.axes
         mx = nd2.metadata['width']
         my = nd2.metadata['height']
-        mt = nd2.metadata['num_frames']
+        mt = nd2.metadata['total_images_per_channel']
         A = np.zeros((mt, mx, my))
         percent = 0
         for frame in range(mt):

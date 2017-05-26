@@ -69,6 +69,7 @@ def setup_menus():
     addAction(mathMenu, "Divide Trace", divide_trace.gui)
 
     addAction(filtersMenu, "Gaussian Blur", gaussian_blur.gui)
+    addAction(filtersMenu, "Difference of Gaussians", difference_of_gaussians.gui)
     filtersMenu.addSeparator()
     addAction(filtersMenu, "Butterworth Filter", butterworth_filter.gui)
     addAction(filtersMenu, "Mean Filter", mean_filter.gui)
