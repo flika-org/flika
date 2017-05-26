@@ -367,9 +367,14 @@ mean_filter=Mean_filter()
 
 def varfilt(trace, nFrames):
     result = np.zeros_like(trace)
-    for i in np.arange(len(trace)):
+    mt = len(trace)
+    for i in np.arange(mt):
         i0 = int(i-nFrames/2)
         i1 = int(i+nFrames/2)
+        if i0 < 0:
+            i0 = 0
+        if i1 > len(trace):
+            i1 = len(trace)
         result[i] = np.var(trace[i0:i1])
     return result
 
