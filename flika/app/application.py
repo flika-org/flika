@@ -283,7 +283,6 @@ class FlikaApplication(QtWidgets.QMainWindow):
 
         installedPlugins = [plugin for plugin in PluginManager.plugins.values() if plugin.installed]
         for plugin in sorted(installedPlugins, key=lambda a: -a.lastModified()):
-            plugin.reload()
             if isinstance(plugin.menu, QtWidgets.QMenu):
                 self.pluginMenu.addMenu(plugin.menu)
 

@@ -139,10 +139,6 @@ class Plugin():
         if info_url:
             self.update_info()
 
-    def reload(self):
-        self.menu = QtWidgets.QMenu(self.name)
-        build_submenu(self.directory, self.menu, self.menu_layout)
-
     def lastModified(self):
         return os.path.getmtime(os.path.join(get_plugin_directory(), self.directory))
 

@@ -45,8 +45,9 @@ class Generate_Random_Image(BaseProcess_noPriorWindow):
 generate_random_image = Generate_Random_Image()
 
 class Deinterleave(BaseProcess):
-    """ deinterleave(nChannels, keepSourceWindow=False)
-    This deinterleaves a stack into nChannels
+    """###deinterleave(nChannels, keepSourceWindow=False)
+
+This deinterleaves a stack into nChannels
     
     Parameters:
         | nChannels (int) -- The number of channels to deinterleave.
@@ -82,8 +83,9 @@ class Deinterleave(BaseProcess):
 deinterleave=Deinterleave()
 
 class Pixel_binning(BaseProcess):
-    """ pixel_binning(nPixels, keepSourceWindow=False)
-    This bins the pixels to reduce the file size
+    """###pixel_binning(nPixels, keepSourceWindow=False)
+
+This bins the pixels to reduce the file size
     
     Parameters:
         | nPixels (int) -- The number of pixels to bin.  Example: a value of 2 will reduce file size from 256x256->128x128.
@@ -144,8 +146,9 @@ class Pixel_binning(BaseProcess):
 pixel_binning=Pixel_binning()
 
 class Frame_binning(BaseProcess):
-    """ frame_binning(nFrames, keepSourceWindow=False)
-    This bins the pixels to reduce the file size
+    """###frame_binning(nFrames, keepSourceWindow=False)
+
+This bins the pixels to reduce the file size
     
     Parameters:
         | nFrames (int) -- The number of frames to bin.  Example: a value of 2 will reduce number of frames from 1000 to 500.
@@ -177,8 +180,9 @@ frame_binning=Frame_binning()
 
 import skimage.transform
 class Resize(BaseProcess):
-    """ resize(factor, keepSourceWindow=False)
-    Performs interpolation to up-size images
+    """###resize(factor, keepSourceWindow=False)
+
+Performs interpolation to up-size images
     
     Parameters:
         | factor (int) -- The factor to scale the images by.  Example: a value of 2 will double the number of pixels wide the images are.
@@ -224,8 +228,9 @@ resize = Resize()
 
 
 class Trim(BaseProcess):
-    """ trim(firstFrame, lastFrame, increment=1, delete=False, keepSourceWindow=False)
-    This creates a new stack from the frames between the firstFrame and the lastFrame
+    """###trim(firstFrame, lastFrame, increment=1, delete=False, keepSourceWindow=False)
+
+This creates a new stack from the frames between the firstFrame and the lastFrame
     
     Parameters:
         | firstFrame (int) -- The index of the first frame in the stack to be kept.
@@ -281,8 +286,9 @@ trim=Trim()
 
 
 class ZProject(BaseProcess):
-    """ zproject(firstFrame,lastFrame,projection_type,keepSourceWindow=False)
-    This creates a new stack from the frames between the firstFrame and the lastFrame
+    """###zproject(firstFrame, lastFrame, projection_type, keepSourceWindow=False)
+
+This creates a new stack from the frames between the firstFrame and the lastFrame
     
     Parameters:
         | firstFrame (int) -- The index of the first frame in the stack to be kept.
@@ -346,8 +352,9 @@ class ZProject(BaseProcess):
 zproject=ZProject()
 
 class Image_calculator(BaseProcess):
-    """ image_calculator(window1,window2,operation,keepSourceWindow=False)
-    This creates a new stack by combining two windows in an operation
+    """###image_calculator(window1,window2,operation,keepSourceWindow=False)
+
+This creates a new stack by combining two windows in an operation
     
     Parameters:
         | window1 (Window) -- The first window 
@@ -447,8 +454,9 @@ image_calculator=Image_calculator()
 
 
 class Concatenate_stacks(BaseProcess):
-    """ concatenate_stacks(window1,window2,keepSourceWindow=False)
-    This creates a new stack by concatenating two stacks
+    """###concatenate_stacks(window1,window2,keepSourceWindow=False)
+
+This creates a new stack by concatenating two stacks
 
     Parameters:
         | window1 (Window) -- The first window
@@ -499,8 +507,9 @@ class Concatenate_stacks(BaseProcess):
 concatenate_stacks = Concatenate_stacks()
 
 class Change_datatype(BaseProcess):
-    """ change_datatype(datatype, keepSourceWindow=False)
-    This bins the pixels to reduce the file size
+    """###change_datatype(datatype, keepSourceWindow=False)
+
+This bins the pixels to reduce the file size
 
     Parameters:
         | datatype (string)

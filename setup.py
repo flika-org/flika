@@ -65,7 +65,8 @@ install_requires = [
       'qtconsole',
       'pyopengl',
       'requests',
-      'nd2reader']
+      'nd2reader',
+      'markdown']
 
 if sys.platform == 'win32':
     install_requires += ['winshell', 'pypiwin32']
@@ -92,6 +93,7 @@ setup(name='flika',
           'Programming Language :: Python :: 3.4',
           'Programming Language :: Python :: 3.5',
           'Programming Language :: Python :: 3.6',
+          'Programming Language :: Python :: 3.7',
           'Topic :: Scientific/Engineering :: Visualization',
           ],
       packages=find_packages(),

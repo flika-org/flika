@@ -485,6 +485,7 @@ class ROI_line(ROI_Base, pg.LineSegmentROI):
 
     def deleteKymograph(self):
         self.kymograph.closeSignal.disconnect(self.deleteKymograph)
+        self.sigRegionChanged.disconnect(self.update_kymograph)
         self.kymograph=None
 
 class ROI_rectangle(ROI_Base, pg.ROI):
@@ -1041,6 +1042,7 @@ class ROI_rect_line(ROI_Base, QtWidgets.QGraphicsObject):
 
     def deleteKymograph(self):
         self.kymographproxy.disconnect()
+        self.sigRegionChanged.disconnect(self.update_kymograph)
         self.kymograph.closeSignal.disconnect(self.deleteKymograph)
         self.kymograph=None
 

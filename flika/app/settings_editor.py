@@ -64,7 +64,7 @@ class SettingsEditor(BaseDialog):
             g.settings['default_roi_on_click'] = default_roi.isChecked()
             
 
-        super(SettingsEditor, self).__init__(items, 'flika settings', '')
+        super(SettingsEditor, self).__init__(items, 'flika settings', None)
         self.accepted.connect(update)
         self.changeSignal.connect(update)
         g.dialogs.append(self)
@@ -89,10 +89,12 @@ def pointSettings(pointButton):
     point_color.color=g.settings['point_color']
     point_color.label.setText(point_color.color)
     point_size = QtWidgets.QSpinBox()
-    point_size.setRange(1,50)
+    point_size.setRange(1, 50)
     point_size.setValue(g.settings['point_size'])
     show_all_points = QtWidgets.QCheckBox()
     show_all_points.setChecked(g.settings['show_all_points'])
+    delete_all_points = QtWidgets.QCheckBox()
+    delete_all_points.setChecked(False)
     
     update_current_points_check = QtWidgets.QCheckBox()
     update_current_points_check.setChecked(False)
@@ -102,6 +104,8 @@ def pointSettings(pointButton):
     items.append({'name': 'point_size', 'string': 'Default Point Size', 'object': point_size})
     items.append({'name': 'show_all_points', 'string': 'Show points from all frames', 'object': show_all_points})
     items.append({'name': 'update_current_points_check', 'string': 'Update already plotted points', 'object': update_current_points_check})
+    items.append({'name': 'delete_all_points', 'string': 'Delete all points', 'object': delete_all_points})
+
     def update():
         win = g.currentWindow
         g.settings['point_color'] = point_color.value()
@@ -125,9 +129,18 @@ def pointSettings(pointButton):
                 win.scatterPlot.setPoints(pos=pts, size=pointSizes, brush=brushes)
             else:
                 win.updateindex()
+
+    def update_final():
+        win = g.currentWindow
+        if win is not None and delete_all_points.isChecked():
+            for t in np.arange(win.mt):
+                win.scatterPoints[t] = []
+            win.updateindex()
+        update()
+
     dialog = BaseDialog(items, 'Points Settings', '')
     g.dialogs.append(dialog) 
-    dialog.accepted.connect(update)
+    dialog.accepted.connect(update_final)
     dialog.changeSignal.connect(update)
     dialog.show()
 
