@@ -8,7 +8,7 @@ from .. import global_vars as g
 from .BaseProcess import BaseProcess, SliderLabel, SliderLabelOdd, CheckBox
 from .progress_bar import ProgressBar
 
-__all__ = ['gaussian_blur', 'difference_of_gaussians', 'mean_filter','median_filter','butterworth_filter','boxcar_differential_filter','wavelet_filter','difference_filter', 'fourier_filter', 'bilateral_filter']
+__all__ = ['gaussian_blur', 'difference_of_gaussians', 'mean_filter', 'variance_filter', 'median_filter','butterworth_filter','boxcar_differential_filter','wavelet_filter','difference_filter', 'fourier_filter', 'bilateral_filter']
 ###############################################################################
 ##################   SPATIAL FILTERS       ####################################
 ###############################################################################
@@ -365,6 +365,77 @@ class Mean_filter(BaseProcess):
                 self.roi.redraw_trace()
 mean_filter=Mean_filter()
 
+def varfilt(trace, nFrames):
+    result = np.zeros_like(trace)
+    for i in np.arange(len(trace)):
+        i0 = int(i-nFrames/2)
+        i1 = int(i+nFrames/2)
+        result[i] = np.var(trace[i0:i1])
+    return result
+
+class Variance_filter(BaseProcess):
+    """ variance_filter(nFrames, keepSourceWindow=False)
+    This filters a stack in time.
+
+    Parameters:
+        | nFrames (int) -- Number of frames to take teh variance of
+    Returns:
+        newWindow
+    """
+
+    def __init__(self):
+        super().__init__()
+
+    def gui(self):
+        self.gui_reset()
+        nFrames = SliderLabel(0)
+        nFrames.setRange(1, 100)
+        preview = CheckBox()
+        preview.setChecked(True)
+        self.items.append({'name': 'nFrames', 'string': 'nFrames', 'object': nFrames})
+        self.items.append({'name': 'preview', 'string': 'Preview', 'object': preview})
+        super().gui()
+        self.roi = g.currentWindow.currentROI
+        if self.roi is not None:
+            self.ui.rejected.connect(self.roi.redraw_trace)
+            self.ui.accepted.connect(self.roi.redraw_trace)
+        else:
+            preview.setChecked(False)
+            preview.setEnabled(False)
+
+    def __call__(self, nFrames, keepSourceWindow=False):
+        self.start(keepSourceWindow)
+        if self.tif.dtype == np.float16:
+            g.alert("Variance filter does not support float16 type arrays")
+            return
+        if self.tif.ndim != 3:
+            g.alert("Variance filter only supports 3-dimensional movies.")
+            return
+        self.newtif = np.zeros(self.tif.shape)
+        _, mx, my = self.tif.shape
+        for i in np.arange(my):
+            for j in np.arange(mx):
+                self.newtif[:, i, j] = varfilt(self.tif[:, i, j], nFrames)
+        self.newname = self.oldname + ' - Variance Filtered'
+        return self.end()
+
+    def preview(self):
+        nFrames = self.getValue('nFrames')
+        preview = self.getValue('preview')
+        if self.roi is not None:
+            if preview:
+                if nFrames == 1:
+                    self.roi.redraw_trace()  # redraw roi without filter
+                else:
+                    trace = self.roi.getTrace()
+                    trace = varfilt(trace, nFrames)
+                    roi_index = g.currentTrace.get_roi_index(self.roi)
+                    g.currentTrace.update_trace_full(roi_index, trace)  # update_trace_partial may speed it up
+            else:
+                self.roi.redraw_trace()
+
+
+variance_filter = Variance_filter()
 
 from scipy.signal import medfilt
 class Median_filter(BaseProcess):
@@ -405,7 +476,7 @@ class Median_filter(BaseProcess):
             return
         mx=self.tif.shape[2]
         my=self.tif.shape[1]
-        self.newtif=np.zeros(self.tif.shape)
+        self.newtif = np.zeros(self.tif.shape)
         for i in np.arange(my):
             for j in np.arange(mx):
                 self.newtif[:, i, j]=medfilt(self.tif[:, i, j], kernel_size=nFrames)      

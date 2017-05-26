@@ -73,6 +73,7 @@ def setup_menus():
     filtersMenu.addSeparator()
     addAction(filtersMenu, "Butterworth Filter", butterworth_filter.gui)
     addAction(filtersMenu, "Mean Filter", mean_filter.gui)
+    addAction(filtersMenu, "Variance Filter", variance_filter.gui)
     addAction(filtersMenu, "Median Filter", median_filter.gui)
     addAction(filtersMenu, "Fourier Filter", fourier_filter.gui)
     addAction(filtersMenu, "Difference Filter", difference_filter.gui)
