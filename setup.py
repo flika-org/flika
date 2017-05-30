@@ -72,11 +72,6 @@ extras_require = {
     ':sys_platform == "win32"': ['winshell', 'pypiwin32']
 }
 
-if sys.platform == 'win32':
-    install_requires += ['winshell', 'pypiwin32']
-
-
-
 setup(name='flika',
       version=__version__,
       cmdclass=cmdclass,
