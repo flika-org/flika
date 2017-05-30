@@ -68,6 +68,10 @@ install_requires = [
       'nd2reader',
       'markdown']
 
+extras_require = {
+    ':sys_platform == "win32"': ['winshell', 'pypiwin32']
+}
+
 if sys.platform == 'win32':
     install_requires += ['winshell', 'pypiwin32']
 
@@ -83,6 +87,7 @@ setup(name='flika',
       url='http://flika-org.github.io',
       setup_requires=setup_requires,
       install_requires=install_requires,
+      extras_require=extras_require,
       license='MIT',
       classifiers=[
           'Intended Audience :: Science/Research',
