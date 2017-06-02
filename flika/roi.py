@@ -696,7 +696,6 @@ class ROI_rect_line(ROI_Base, QtWidgets.QGraphicsObject):
         self.addSegment(pts[1], connectTo=pts[0])
         for p in pts[2:]:
             self.addSegment(p)
-        
 
     def getHandles(self):
         handles = []
@@ -900,7 +899,6 @@ class ROI_rect_line(ROI_Base, QtWidgets.QGraphicsObject):
         if len(self.lines) == 0:
             self.delete()
         
-        
     def extend(self, x, y, finish=True):
         self.blockSignals(True)
         point = pg.Point(x, y)
@@ -1022,8 +1020,8 @@ class ROI_rect_line(ROI_Base, QtWidgets.QGraphicsObject):
             newWidth (int): new width of all segments
         """
         s = True
-        if newWidth == None:
-            newWidth, s = QtWidgets.QInputDialog.getInt(None, "Enter a width value", 'Float Value', value = self.width)
+        if newWidth is None:
+            newWidth, s = QtWidgets.QInputDialog.getInt(None, "Enter a width value", 'Float Value', value=self.width)
         if not s or s == 0:
             return
         for l in self.lines:
@@ -1127,3 +1125,5 @@ def open_rois(filename=None):
             pts.append(tuple(int(float(i)) for i in text_line.split()))
 
     return rois
+
+

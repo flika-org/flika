@@ -432,7 +432,10 @@ class Window(QtWidgets.QWidget):
         def pasteROI(roi):
             if roi in self.rois:
                 return None
-            self.currentROI=makeROI(roi.kind,roi.pts,self)
+            if roi.kind == 'rect_line':
+                self.currentROI = makeROI(roi.kind, roi.pts, self, width=roi.width)
+            else:
+                self.currentROI = makeROI(roi.kind, roi.pts, self)
             if roi in roi.window.rois:
                 self.currentROI.link(roi)
             return self.currentROI
