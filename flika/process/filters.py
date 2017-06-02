@@ -70,15 +70,15 @@ class Gaussian_blur(BaseProcess):
         sigma=self.getValue('sigma')
         preview=self.getValue('preview')
         if preview:
-            if len(g.currentWindow.image.shape)==3:
-                testimage=g.currentWindow.image[g.currentWindow.currentIndex].astype(np.float64)
-            elif len(g.currentWindow.image.shape)==2:
-                testimage=g.currentWindow.image.astype(np.float64)
+            if len(g.win.image.shape)==3:
+                testimage=g.win.image[g.win.currentIndex].astype(np.float64)
+            elif len(g.win.image.shape)==2:
+                testimage=g.win.image.astype(np.float64)
             if sigma>0:
                 testimage=skimage.filters.gaussian(testimage,sigma, mode=mode)
-            g.currentWindow.imageview.setImage(testimage,autoLevels=False)            
+            g.win.imageview.setImage(testimage,autoLevels=False)
         else:
-            g.currentWindow.reset()
+            g.win.reset()
 gaussian_blur=Gaussian_blur()
 
 
@@ -138,15 +138,15 @@ class Difference_of_Gaussians(BaseProcess):
         sigma2 = self.getValue('sigma2')
         preview = self.getValue('preview')
         if preview:
-            if len(g.currentWindow.image.shape) == 3:
-                testimage = g.currentWindow.image[g.currentWindow.currentIndex].astype(np.float64)
-            elif len(g.currentWindow.image.shape) == 2:
-                testimage = g.currentWindow.image.astype(np.float64)
+            if len(g.win.image.shape) == 3:
+                testimage = g.win.image[g.win.currentIndex].astype(np.float64)
+            elif len(g.win.image.shape) == 2:
+                testimage = g.win.image.astype(np.float64)
             if sigma1 > 0 and sigma2 > 0:
                 testimage = skimage.filters.gaussian(testimage, sigma1, mode='nearest') - skimage.filters.gaussian(testimage, sigma2, mode='nearest')
-            g.currentWindow.imageview.setImage(testimage, autoLevels=False)
+            g.win.imageview.setImage(testimage, autoLevels=False)
         else:
-            g.currentWindow.reset()
+            g.win.reset()
 
 
 difference_of_gaussians = Difference_of_Gaussians()
@@ -189,7 +189,7 @@ class Butterworth_filter(BaseProcess):
         self.items.append({'name':'high','string':'High Cutoff Frequency','object':high})
         self.items.append({'name':'preview','string':'Preview','object':preview})        
         super().gui()
-        self.roi=g.currentWindow.currentROI
+        self.roi=g.win.currentROI
         if self.roi is not None:
             self.ui.rejected.connect(self.roi.redraw_trace)
             self.ui.accepted.connect(self.roi.redraw_trace)
@@ -205,7 +205,7 @@ class Butterworth_filter(BaseProcess):
             g.alert("Butterworth filter only works on 3-dimensional movies.")
             return
         if g.settings['multiprocessing']:
-            self.newtif=butterworth_filter_multi(filter_order,low,high,g.currentWindow.image)
+            self.newtif=butterworth_filter_multi(filter_order,low,high,g.win.image)
         else:
             self.newtif=np.zeros(self.tif.shape,dtype=g.settings.d['internal_data_type'])
             mt,mx,my=self.tif.shape
@@ -330,7 +330,7 @@ class Mean_filter(BaseProcess):
         self.items.append({'name':'nFrames','string':'nFrames','object':nFrames})
         self.items.append({'name':'preview','string':'Preview','object':preview})        
         super().gui()
-        self.roi=g.currentWindow.currentROI
+        self.roi=g.win.currentROI
         if self.roi is not None:
             self.ui.rejected.connect(self.roi.redraw_trace)
             self.ui.accepted.connect(self.roi.redraw_trace)
@@ -400,7 +400,7 @@ class Variance_filter(BaseProcess):
         self.items.append({'name': 'nFrames', 'string': 'nFrames', 'object': nFrames})
         self.items.append({'name': 'preview', 'string': 'Preview', 'object': preview})
         super().gui()
-        self.roi = g.currentWindow.currentROI
+        self.roi = g.win.currentROI
         if self.roi is not None:
             self.ui.rejected.connect(self.roi.redraw_trace)
             self.ui.accepted.connect(self.roi.redraw_trace)
@@ -463,7 +463,7 @@ class Median_filter(BaseProcess):
         self.items.append({'name':'nFrames','string':'nFrames','object':nFrames})
         self.items.append({'name':'preview','string':'Preview','object':preview})        
         super().gui()
-        self.roi=g.currentWindow.currentROI
+        self.roi=g.win.currentROI
         if self.roi is not None:
             self.ui.rejected.connect(self.roi.redraw_trace)
             self.ui.accepted.connect(self.roi.redraw_trace)
@@ -546,7 +546,7 @@ class Fourier_filter(BaseProcess):
         self.items.append({'name':'loglogPreview','string':'Plot frequency spectrum on log log axes','object':loglogPreview})    
         self.items.append({'name':'preview','string':'Preview','object':preview})        
         super().gui()
-        self.roi=g.currentWindow.currentROI
+        self.roi=g.win.currentROI
         if self.roi is not None:
             self.ui.rejected.connect(self.roi.redraw_trace)
             self.ui.accepted.connect(self.roi.redraw_trace)
@@ -687,7 +687,7 @@ class Boxcar_differential_filter(BaseProcess):
         self.items.append({'name':'preview','string':'Preview','object':preview})  
         if super().gui()==False:
             return False
-        self.roi=g.currentWindow.currentROI
+        self.roi=g.win.currentROI
         if self.roi is not None:
             self.ui.rejected.connect(self.roi.redraw_trace)
             self.ui.accepted.connect(self.roi.redraw_trace)
@@ -752,7 +752,7 @@ class Wavelet_filter(BaseProcess):
         self.items.append({'name':'high','string':'High Frequency Threshold','object':high})
         self.items.append({'name':'preview','string':'Preview','object':preview})  
         super().gui()
-        self.roi=g.currentWindow.currentROI
+        self.roi=g.win.currentROI
         if self.roi is not None:
             self.ui.rejected.connect(self.roi.redraw_trace)
             self.ui.accepted.connect(self.roi.redraw_trace)
@@ -842,7 +842,7 @@ class Bilateral_filter(BaseProcess):
         self.items.append({'name':'maxiter','string':'Maximum Iterations','object':maxiter})  
         self.items.append({'name':'preview','string':'Preview','object':preview})  
         super().gui()
-        self.roi=g.currentWindow.currentROI
+        self.roi=g.win.currentROI
         if self.roi is not None:
             self.ui.rejected.connect(self.roi.redraw_trace)
             self.ui.accepted.connect(self.roi.redraw_trace)
@@ -857,7 +857,7 @@ class Bilateral_filter(BaseProcess):
             g.alert("Bilateral filter requires 3-dimensional image.")
             return
         if g.settings['multiprocessing']:
-            self.newtif=bilateral_filter_multi(soft,beta,width,stoptol,maxiter,g.currentWindow.image)
+            self.newtif=bilateral_filter_multi(soft,beta,width,stoptol,maxiter,g.win.image)
         else:
             self.newtif=np.zeros(self.tif.shape)
             mt,mx,my=self.tif.shape

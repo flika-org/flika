@@ -25,7 +25,7 @@ class Test_File():
 		g.m._make_recents()
 		if len(g.m.recentFileMenu.actions()) > 0:
 			g.m.recentFileMenu.actions()[0].trigger()
-			g.currentWindow.close()
+			g.win.close()
 
 	def test_save_as(self):
 		w = Window(im)

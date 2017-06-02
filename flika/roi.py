@@ -52,8 +52,8 @@ class ROI_Drawing(pg.GraphicsObject):
         self.color = QtGui.QColor(g.settings['roi_color']) if g.settings['roi_color'] != 'random' else random_color()
 
     def cancel(self):
-        g.currentWindow.imageview.removeItem(self)
-        g.currentWindow.currentROI = None
+        g.win.imageview.removeItem(self)
+        g.win.currentROI = None
         self.deleteLater()
 
     def extend(self, x, y):
@@ -476,7 +476,7 @@ class ROI_line(ROI_Base, pg.LineSegmentROI):
     
     def createKymograph(self,mn):
         from .window import Window
-        oldwindow=g.currentWindow
+        oldwindow = g.win
         name=oldwindow.name+' - Kymograph'
         self.kymograph=Window(mn,name,metadata=self.window.metadata)
         self.sigRegionChanged.connect(self.update_kymograph)
@@ -1033,7 +1033,7 @@ class ROI_rect_line(ROI_Base, QtWidgets.QGraphicsObject):
 
     def createKymograph(self,mn):
         from .window import Window
-        oldwindow=g.currentWindow
+        oldwindow=g.win
         name=oldwindow.name+' - Kymograph'
         self.kymograph=Window(mn,name,metadata=self.window.metadata)
         self.kymographproxy = pg.SignalProxy(self.sigRegionChanged, rateLimit=1, slot=self.update_kymograph) #This will only update 3 Hz
@@ -1060,7 +1060,7 @@ def makeROI(kind, pts, window=None, color=None, **kargs):
         ROI Object extending ROI_Base
     """
     if window is None:
-        window = g.currentWindow
+        window = g.win
         if window is None:
             g.alert('ERROR: In order to make and ROI a window needs to be selected')
             return None

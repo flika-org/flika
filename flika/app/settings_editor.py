@@ -107,7 +107,7 @@ def pointSettings(pointButton):
     items.append({'name': 'delete_all_points', 'string': 'Delete all points', 'object': delete_all_points})
 
     def update():
-        win = g.currentWindow
+        win = g.win
         g.settings['point_color'] = point_color.value()
         g.settings['point_size'] = point_size.value()
         g.settings['show_all_points'] = show_all_points.isChecked()
@@ -131,7 +131,7 @@ def pointSettings(pointButton):
                 win.updateindex()
 
     def update_final():
-        win = g.currentWindow
+        win = g.win
         if win is not None and delete_all_points.isChecked():
             for t in np.arange(win.mt):
                 win.scatterPoints[t] = []
@@ -161,7 +161,7 @@ def rectSettings(rectButton):
     items.append({'name': 'rect_height', 'string': 'Default Rectangle Height', 'object': rect_height})
     
     def update():
-        win = g.currentWindow
+        win = g.win
         g.settings['rect_width'] = rect_width.value()
         g.settings['rect_height'] = rect_height.value()
         

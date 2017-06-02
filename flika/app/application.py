@@ -174,7 +174,7 @@ class FlikaApplication(QtWidgets.QMainWindow):
         self.windows = g.windows
         self.traceWindows = g.traceWindows
         self.dialogs = g.dialogs
-        self.currentWindow = g.currentWindow
+        self.currentWindow = g.win
         self.currentTrace = g.currentTrace
         self.clipboard = g.clipboard
         self.setWindowSize()

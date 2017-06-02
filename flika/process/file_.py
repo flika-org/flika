@@ -50,10 +50,10 @@ def save_file(filename=None):
         directory = os.path.normpath(os.path.dirname(g.settings['filename']))
         filename = os.path.join(directory, filename)
     g.m.statusBar().showMessage('Saving {}'.format(os.path.basename(filename)))
-    A = g.currentWindow.image
+    A = g.win.image
     if A.dtype == np.bool:
         A = A.astype(np.uint8)
-    metadata = g.currentWindow.metadata
+    metadata = g.win.metadata
     try:
         metadata = json.dumps(metadata, default=JSONhandler)
     except TypeError as e:
@@ -77,7 +77,7 @@ def save_points(filename=None):
             return None
     g.m.statusBar().showMessage('Saving Points in {}'.format(os.path.basename(filename)))
     p_out = []
-    p_in = g.currentWindow.scatterPoints
+    p_in = g.win.scatterPoints
     for t in np.arange(len(p_in)):
         for p in p_in[t]:
             p_out.append(np.array([t, p[0], p[1]]))
@@ -133,7 +133,7 @@ def save_movie(rate, filename=None):
     if filename is None:
         return None
 
-    win = g.currentWindow
+    win = g.win
     A = win.image
     if len(A.shape) < 3:
         g.alert('Movie not the right shape for saving.')
@@ -305,7 +305,7 @@ def open_file(filename=None, from_gui=False):
 
         
 def open_points(filename=None):
-    if g.currentWindow is None:
+    if g.win is None:
         g.alert('Points cannot be loaded if no window is selected. Open a file and click on a window.')
         return None
     if filename is None:
@@ -329,17 +329,17 @@ def open_points(filename=None):
     if nCols == 3:
         for pt in pts:
             t = int(pt[0])
-            if g.currentWindow.mt == 1:
+            if g.win.mt == 1:
                 t = 0
-            g.currentWindow.scatterPoints[t].append([pt[1],pt[2], pointColor, pointSize])
-        t = g.currentWindow.currentIndex
-        g.currentWindow.scatterPlot.setPoints(pos=g.currentWindow.scatterPoints[t])
+            g.win.scatterPoints[t].append([pt[1],pt[2], pointColor, pointSize])
+        t = g.win.currentIndex
+        g.win.scatterPlot.setPoints(pos=g.win.scatterPoints[t])
     elif nCols == 2:
         t = 0
         for pt in pts:
-            g.currentWindow.scatterPoints[t].append([pt[0], pt[1], pointColor, pointSize])
-        t = g.currentWindow.currentIndex
-        g.currentWindow.scatterPlot.setPoints(pos=g.currentWindow.scatterPoints[t])
+            g.win.scatterPoints[t].append([pt[0], pt[1], pointColor, pointSize])
+        t = g.win.currentIndex
+        g.win.scatterPlot.setPoints(pos=g.win.scatterPoints[t])
     g.m.statusBar().showMessage('Successfully loaded {}'.format(os.path.basename(filename)))
 
     
@@ -451,8 +451,8 @@ def close(windows=None):
     elif isinstance(windows,Window):
         windows.close()
     elif windows is None:
-        if g.currentWindow is not None:
-            g.currentWindow.close()
+        if g.win is not None:
+            g.win.close()
 
 
 ########################################################################################################################
@@ -462,7 +462,7 @@ def close(windows=None):
 
 def save_roi_traces(filename):
     g.m.statusBar().showMessage('Saving traces to {}'.format(os.path.basename(filename)))
-    to_save = [roi.getTrace() for roi in g.currentWindow.rois]
+    to_save = [roi.getTrace() for roi in g.win.rois]
     np.savetxt(filename, np.transpose(to_save), header='\t'.join(['ROI %d' % i for i in range(len(to_save))]), fmt='%.4f', delimiter='\t', comments='')
     g.settings['filename'] = filename
     g.m.statusBar().showMessage('Successfully saved traces to {}'.format(os.path.basename(filename)))
@@ -513,10 +513,10 @@ def save_current_frame(filename):
         directory=os.path.normpath(os.path.dirname(g.settings['filename']))
         filename=os.path.join(directory,filename)
     g.m.statusBar().showMessage('Saving {}'.format(os.path.basename(filename)))
-    A=np.average(g.currentWindow.image, 0)#.astype(g.settings['internal_data_type'])
-    metadata=json.dumps(g.currentWindow.metadata)
+    A=np.average(g.win.image, 0)#.astype(g.settings['internal_data_type'])
+    metadata=json.dumps(g.win.metadata)
     if len(A.shape)==3:
-        A = A[g.currentWindow.currentIndex]
+        A = A[g.win.currentIndex]
         A=np.transpose(A,(0,2,1)) # This keeps the x and the y the same as in FIJI
     elif len(A.shape)==2:
         A=np.transpose(A,(1,0))

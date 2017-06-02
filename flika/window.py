@@ -109,8 +109,8 @@ class Window(QtWidgets.QWidget):
         self.setAsCurrentWindow()
 
     def _init_geometry(self):
-        assert g.currentWindow != self  # self.setAsCurrentWindow() must be called after this function
-        if g.currentWindow is None:
+        assert g.win != self  # self.setAsCurrentWindow() must be called after this function
+        if g.win is None:
             if 'window_settings' not in g.settings:
                 g.settings['window_settings'] = dict()
             if 'coords' in g.settings['window_settings']:
@@ -124,7 +124,7 @@ class Window(QtWidgets.QWidget):
                 geometry = QtCore.QRect(x, y, width, height)
                 g.settings['window_settings']['coords'] = geometry.getRect()
         else:
-            geometry = g.currentWindow.geometry()
+            geometry = g.win.geometry()
 
         desktopGeom = QtWidgets.QDesktopWidget().screenGeometry()
         maxX = (desktopGeom.width() - geometry.width()) or 1
@@ -243,7 +243,7 @@ class Window(QtWidgets.QWidget):
 
         """
         from .process.file_ import save_file
-        old_curr_win = g.currentWindow
+        old_curr_win = g.win
         self.setAsCurrentWindow()
         save_file(filename)
         old_curr_win.setAsCurrentWindow()
@@ -380,8 +380,8 @@ class Window(QtWidgets.QWidget):
             self.imageview.setImage(np.zeros((2,2))) #clear the memory
             self.imageview.close()
             del self.imageview
-            if g.currentWindow==self:
-                g.currentWindow=None
+            if g.win==self:
+                g.win=None
             if self in g.windows:
                 g.windows.remove(self)
             self.closed=True
@@ -451,14 +451,15 @@ class Window(QtWidgets.QWidget):
 
     def setAsCurrentWindow(self):
         """This function sets this window as the current window. There is only one current window. All operations are performed on the
-        current window. The current window can be accessed from the variable ``g.currentWindow``. 
+        current window. The current window can be accessed from the variable ``g.win``. 
         """
 
-        if g.currentWindow is not None:
-            g.currentWindow.setStyleSheet("border:1px solid rgb(0, 0, 0); ")
-            g.currentWindow.lostFocusSignal.emit()
-        g.currentWindow = self
-        g.m.currentWindow = g.currentWindow
+        if g.win is not None:
+            g.win.setStyleSheet("border:1px solid rgb(0, 0, 0); ")
+            g.win.lostFocusSignal.emit()
+        g.win = self
+        g.m.currentWindow = g.win
+        g.currentWindow = g.win
         if self not in g.windows:
             g.windows.append(self)
         g.m.setWindowTitle("flika - {}".format(self.name))

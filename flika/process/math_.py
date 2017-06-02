@@ -44,9 +44,9 @@ class Subtract(BaseProcess):
     def gui(self):
         self.gui_reset()
         value=QtWidgets.QDoubleSpinBox()
-        if g.currentWindow is not None:
-            value.setRange(-1 * np.max(g.currentWindow.image),np.max(g.currentWindow.image)) # -np.max sometimes returns abnormal large value
-            value.setValue(np.min(g.currentWindow.image))
+        if g.win is not None:
+            value.setRange(-1 * np.max(g.win.image),np.max(g.win.image)) # -np.max sometimes returns abnormal large value
+            value.setValue(np.min(g.win.image))
         self.items.append({'name':'value','string':'Value','object':value})
         self.items.append({'name':'preview','string':'Preview','object':CheckBox()})
         super().gui()
@@ -67,11 +67,11 @@ class Subtract(BaseProcess):
         value=self.getValue('value')
         preview=self.getValue('preview')
         if preview:
-            testimage=np.copy(g.currentWindow.image[g.currentWindow.currentIndex])
+            testimage=np.copy(g.win.image[g.win.currentIndex])
             testimage=testimage-value
-            g.currentWindow.imageview.setImage(testimage,autoLevels=False)
+            g.win.imageview.setImage(testimage,autoLevels=False)
         else:
-            g.currentWindow.reset()
+            g.win.reset()
 subtract=Subtract()
 
 class Subtract_trace(BaseProcess):
@@ -153,11 +153,11 @@ class Multiply(BaseProcess):
         value=self.getValue('value')
         preview=self.getValue('preview')
         if preview:
-            testimage=np.copy(g.currentWindow.image[g.currentWindow.currentIndex])
+            testimage=np.copy(g.win.image[g.win.currentIndex])
             testimage=testimage*value
-            g.currentWindow.imageview.setImage(testimage,autoLevels=False)
+            g.win.imageview.setImage(testimage,autoLevels=False)
         else:
-            g.currentWindow.reset()
+            g.win.reset()
 multiply=Multiply()
 
 
@@ -192,11 +192,11 @@ class Divide(BaseProcess):
         value = self.getValue('value')
         preview = self.getValue('preview')
         if preview:
-            testimage = np.copy(g.currentWindow.image[g.currentWindow.currentIndex])
+            testimage = np.copy(g.win.image[g.win.currentIndex])
             testimage = testimage / value
-            g.currentWindow.imageview.setImage(testimage, autoLevels=False)
+            g.win.imageview.setImage(testimage, autoLevels=False)
         else:
-            g.currentWindow.reset()
+            g.win.reset()
 
 
 divide = Divide()
@@ -215,7 +215,7 @@ class Power(BaseProcess):
     def gui(self):
         self.gui_reset()
         value=QtWidgets.QDoubleSpinBox()
-        if g.currentWindow is not None:
+        if g.win is not None:
             value.setRange(-100,100)
             value.setValue(1)
         self.items.append({'name':'value','string':'Value','object':value})
@@ -230,11 +230,11 @@ class Power(BaseProcess):
         value=self.getValue('value')
         preview=self.getValue('preview')
         if preview:
-            testimage=np.copy(g.currentWindow.image[g.currentWindow.currentIndex])
+            testimage=np.copy(g.win.image[g.win.currentIndex])
             testimage=testimage**value
-            g.currentWindow.imageview.setImage(testimage,autoLevels=False)
+            g.win.imageview.setImage(testimage,autoLevels=False)
         else:
-            g.currentWindow.reset()
+            g.win.reset()
 power=Power()
     
 class Ratio(BaseProcess):
@@ -253,8 +253,8 @@ class Ratio(BaseProcess):
     def gui(self):
         self.gui_reset()
         nFrames=1
-        if g.currentWindow is not None:
-            nFrames=g.currentWindow.image.shape[0]
+        if g.win is not None:
+            nFrames=g.win.image.shape[0]
         first_frame=QtWidgets.QSpinBox()
         first_frame.setMaximum(nFrames)
         self.items.append({'name':'first_frame','string':'First Frame','object':first_frame})

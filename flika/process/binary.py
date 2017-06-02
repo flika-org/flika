@@ -43,8 +43,8 @@ Creates a boolean matrix by applying a threshold
     def gui(self):
         self.gui_reset()
         valueSlider = SliderLabel(2)
-        if g.currentWindow is not None:
-            image=g.currentWindow.image
+        if g.win is not None:
+            image=g.win.image
             valueSlider.setRange(np.min(image),np.max(image))
             valueSlider.setValue(np.mean(image))
         preview=CheckBox()
@@ -68,9 +68,9 @@ Creates a boolean matrix by applying a threshold
         return self.end()
 
     def preview(self):
-        if g.currentWindow is None or g.currentWindow.closed:
+        if g.win is None or g.win.closed:
             return
-        win = g.currentWindow
+        win = g.win
         value = self.getValue('value')
         preview = self.getValue('preview')
         darkBackground = self.getValue('darkBackground')
@@ -133,8 +133,8 @@ Creates a boolean matrix by applying an adaptive threshold using the scikit-imag
         valueSlider.setRange(-20,20)
         valueSlider.setValue(0)
         block_size=BlocksizeSlider(0)
-        if g.currentWindow is not None:
-            max_block = int(max([g.currentWindow.image.shape[-1],g.currentWindow.image.shape[-2]])/2)
+        if g.win is not None:
+            max_block = int(max([g.win.image.shape[-1],g.win.image.shape[-2]])/2)
         else:
             max_block = 100
         block_size.setRange(3, max_block)
@@ -168,9 +168,9 @@ Creates a boolean matrix by applying an adaptive threshold using the scikit-imag
         return self.end()
 
     def preview(self):
-        if g.currentWindow is None or g.currentWindow.closed:
+        if g.win is None or g.win.closed:
             return
-        win = g.currentWindow
+        win = g.win
         value = self.getValue('value')
         block_size = self.getValue('block_size')
         preview = self.getValue('preview')
@@ -213,7 +213,7 @@ class Canny_edge_detector(BaseProcess):
     def gui(self):
         self.gui_reset()
         sigma=SliderLabel(2)
-        if g.currentWindow is not None:
+        if g.win is not None:
             sigma.setRange(0,1000)
             sigma.setValue(1)
         preview=CheckBox(); preview.setChecked(True)
@@ -240,9 +240,9 @@ class Canny_edge_detector(BaseProcess):
         return self.end()
 
     def preview(self):
-        if g.currentWindow is None or g.currentWindow.closed:
+        if g.win is None or g.win.closed:
             return
-        win = g.currentWindow
+        win = g.win
         sigma = self.getValue('sigma')
         preview = self.getValue('preview')
         nDim = len(win.image.shape)
@@ -505,7 +505,7 @@ Uses a binary image to create ROIs from positive clusters.
             roi.cancel()
         self.ROIs = []
 
-        im = g.currentWindow.image if g.currentWindow.image.ndim == 2 else g.currentWindow.image[g.currentWindow.currentIndex]
+        im = g.win.image if g.win.image.ndim == 2 else g.win.image[g.win.currentIndex]
         im = scipy.ndimage.morphology.binary_closing(im)
         if np.any(im < 0) or np.any(im > 1):
             raise Exception("The current image is not a binary image. Threshold first")
@@ -524,9 +524,9 @@ Uses a binary image to create ROIs from positive clusters.
                 ROIs.append(new_roi)
 
     def preview(self):
-        if g.currentWindow is None or g.currentWindow.closed:
+        if g.win is None or g.win.closed:
             return
-        win = g.currentWindow
+        win = g.win
         if self.previewing:
             self.toPreview = True
             return
