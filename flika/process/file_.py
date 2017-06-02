@@ -51,6 +51,8 @@ def save_file(filename=None):
         filename = os.path.join(directory, filename)
     g.m.statusBar().showMessage('Saving {}'.format(os.path.basename(filename)))
     A = g.currentWindow.image
+    if A.dtype == np.bool:
+        A = A.astype(np.uint8)
     metadata = g.currentWindow.metadata
     try:
         metadata = json.dumps(metadata, default=JSONhandler)
@@ -421,7 +423,7 @@ def txt2dict(metadata):
 
 
 def JSONhandler(obj):
-    if isinstance(obj,datetime.datetime):
+    if isinstance(obj, datetime.datetime):
         return obj.isoformat()
     else:
         json.JSONEncoder().default(obj)

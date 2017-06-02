@@ -130,7 +130,7 @@ class Window(QtWidgets.QWidget):
         maxX = (desktopGeom.width() - geometry.width()) or 1
         maxY = (desktopGeom.height() - geometry.height()) or 1
         newX = (geometry.x() + 10) % maxX
-        newY = (geometry.y() + 10) % maxY
+        newY = ((geometry.y() + 10) % maxY) or 30
         
         geometry = QtCore.QRect(newX, newY, geometry.width(), geometry.height())
         self.setGeometry(geometry)
@@ -572,13 +572,12 @@ class Window(QtWidgets.QWidget):
         self.x = point.x()
         self.y = point.y()
         image=self.imageview.getImageItem().image
-        if self.x < 0 or self.y < 0 or self.x >= image.shape[0] or self.y>=image.shape[1]:
+        if self.x < 0 or self.y < 0 or self.x >= image.shape[0] or self.y >= image.shape[1]:
             pass# if we are outside the image
         else:
             z=self.imageview.currentIndex
             value=image[int(self.x),int(self.y)]
             g.m.statusBar().showMessage('x={}, y={}, z={}, value={}'.format(int(self.x),int(self.y),z,value))
-        
 
     def mouseDragEvent(self, ev):
         modifiers = QtWidgets.QApplication.keyboardModifiers()
