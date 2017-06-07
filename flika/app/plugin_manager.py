@@ -105,6 +105,8 @@ def str2func(plugin_name, file_location, function):
     return module
 
 def build_submenu(module_name, parent_menu, layout_dict):
+    if len(layout_dict) == 0:
+        g.alert("Error building submenu for the plugin '{}'. No items found in 'menu_layout' in the info.xml file.".format(module_name))
     for key, value in layout_dict.items():
         if type(value) != list:
             value = [value]
@@ -164,8 +166,11 @@ class Plugin():
             p.dependencies = [d['@name'] for d in deps] if isinstance(deps, list) else [deps['@name']]
 
         p.menu_layout = info.pop('menu_layout')
-        p.menu = QtWidgets.QMenu(p.name)
-        build_submenu(p.directory, p.menu, p.menu_layout)
+        if len(p.menu_layout) > 0:
+            p.menu = QtWidgets.QMenu(p.name)
+            build_submenu(p.directory, p.menu, p.menu_layout)
+        else:
+            p.menu = None
         
         p.listWidget = QtWidgets.QListWidgetItem(p.name)
         p.listWidget.setIcon(QtGui.QIcon(image_path('check.png')))
@@ -482,10 +487,17 @@ Then try installing the plugin again.""".format(pl, v, arch))
 
 def load_local_plugins():
     PluginManager.plugins = {n: Plugin(n) for n in plugin_list}
+    installed_plugins = {}
     for pluginPath in PluginManager.local_plugin_paths():
         try:
             p = Plugin.fromLocal(pluginPath)
-            p.installed = True
-            PluginManager.plugins[p.name] = p
+            if p.name not in PluginManager.plugins.keys() or p.name not in installed_plugins.keys():
+                p.installed = True
+                PluginManager.plugins[p.name] = p
+                installed_plugins[p.name] = p
+            else:
+                g.alert('Could not load the plugin {}. There is already a plugin with this same name. Change the plugin name in the info.xml file'.format(p.name))
         except Exception as e:
             g.alert("Could not load {}.\n\t{}".format(pluginPath, traceback.format_exc()), title="Plugin Load Error")
+
+# from flika.app.plugin_manager import *
