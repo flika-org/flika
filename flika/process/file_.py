@@ -323,11 +323,9 @@ def open_file(filename=None, from_gui=False):
 
 def open_tiff(filename, metadata):
     try:
-        print('opening file: "{}"'.format(filename))
         Tiff = tifffile.TiffFile(str(filename))
     except Exception as s:
         g.alert("Unable to open {}. {}".format(filename, s))
-        print("aweifhaowiehf")
         return None
     metadata = get_metadata_tiff(Tiff)
     A = Tiff.asarray()
