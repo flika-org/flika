@@ -7,7 +7,7 @@ If flika is loaded using::
 then all of the variables inside global_vars can be accessed as ``g.*``. For instance, to access the 
 image inside current window, simply run::
 
-    I = g.currentWindow.image
+    I = g.win.image
 
 
 
@@ -22,7 +22,7 @@ from uuid import getnode
 from .logger import logger
 from .utils.misc import get_location
 
-__all__ = ['m', 'Settings', 'menus', 'alert', 'windows', 'traceWindows', 'currentWindow', 'currentTrace', 'clipboard']
+__all__ = ['m', 'Settings', 'menus', 'alert', 'windows', 'traceWindows', 'currentWindow', 'win', 'currentTrace', 'clipboard']
 
 class Settings(MutableMapping): #http://stackoverflow.com/questions/3387691/python-how-to-perfectly-override-a-dict
     """
@@ -173,6 +173,7 @@ windows = [] #: list of :class:`windows<flika.window.Window>`: All of the window
 traceWindows = [] #: list of :class:`TraceFigs<flika.tracefig.TraceFig>`: All of the TraceFigs that are open.
 dialogs = []
 currentWindow = None #: :class:`window <flika.window.Window>`: The window that is currently selected
+win = None #: :class:`window <flika.window.Window>`: The window that is currently selected
 currentTrace = None #: :class:`tracefigs<flika.tracefig.TraceFig>`: The tracefig that is currently selected
 clipboard = None
 

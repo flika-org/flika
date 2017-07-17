@@ -10,7 +10,7 @@ from ..tracefig import TraceFig
 __all__ = ['deinterleave','trim','zproject','image_calculator', 'pixel_binning', 'frame_binning', 'resize', 'concatenate_stacks', 'duplicate', 'generate_random_image', 'change_datatype']
 
 def duplicate():
-    old = g.currentWindow
+    old = g.win
     if old is None:
         g.alert('Select a window before trying to duplicate it.')
     else:
@@ -246,7 +246,7 @@ This creates a new stack from the frames between the firstFrame and the lastFram
     def get_init_settings_dict(self):
         s = dict()
         s['firstFrame'] = 0
-        s['lastFrame'] = g.currentWindow.image.shape[0]
+        s['lastFrame'] = g.win.image.shape[0]
         s['increment'] = 1
         s['delete'] = False
         return s
@@ -254,8 +254,8 @@ This creates a new stack from the frames between the firstFrame and the lastFram
     def gui(self):
         self.gui_reset()
         nFrames=1
-        if g.currentWindow is not None:
-            nFrames=g.currentWindow.image.shape[0]
+        if g.win is not None:
+            nFrames=g.win.image.shape[0]
         firstFrame=QtWidgets.QSpinBox()
         firstFrame.setMaximum(nFrames-1)
         lastFrame=QtWidgets.QSpinBox()
@@ -306,11 +306,11 @@ This creates a new stack from the frames between the firstFrame and the lastFram
     def gui(self):
         self.gui_reset()
         nFrames=1
-        if g.currentWindow and len(g.currentWindow.image.shape) != 3:
+        if g.win and len(g.win.image.shape) != 3:
             g.alert('zproject only works on 3 dimensional windows')
             return False
-        if g.currentWindow is not None:
-            nFrames=g.currentWindow.image.shape[0]
+        if g.win is not None:
+            nFrames=g.win.image.shape[0]
         firstFrame=QtWidgets.QSpinBox()
         firstFrame.setMaximum(nFrames)
         self.items.append({'name':'firstFrame','string':'First Frame','object':firstFrame})

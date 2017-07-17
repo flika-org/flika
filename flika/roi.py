@@ -52,8 +52,8 @@ class ROI_Drawing(pg.GraphicsObject):
         self.color = QtGui.QColor(g.settings['roi_color']) if g.settings['roi_color'] != 'random' else random_color()
 
     def cancel(self):
-        g.currentWindow.imageview.removeItem(self)
-        g.currentWindow.currentROI = None
+        g.win.imageview.removeItem(self)
+        g.win.currentROI = None
         self.deleteLater()
 
     def extend(self, x, y):
@@ -476,7 +476,7 @@ class ROI_line(ROI_Base, pg.LineSegmentROI):
     
     def createKymograph(self,mn):
         from .window import Window
-        oldwindow=g.currentWindow
+        oldwindow = g.win
         name=oldwindow.name+' - Kymograph'
         self.kymograph=Window(mn,name,metadata=self.window.metadata)
         self.sigRegionChanged.connect(self.update_kymograph)
@@ -696,7 +696,6 @@ class ROI_rect_line(ROI_Base, QtWidgets.QGraphicsObject):
         self.addSegment(pts[1], connectTo=pts[0])
         for p in pts[2:]:
             self.addSegment(p)
-        
 
     def getHandles(self):
         handles = []
@@ -900,7 +899,6 @@ class ROI_rect_line(ROI_Base, QtWidgets.QGraphicsObject):
         if len(self.lines) == 0:
             self.delete()
         
-        
     def extend(self, x, y, finish=True):
         self.blockSignals(True)
         point = pg.Point(x, y)
@@ -1022,8 +1020,8 @@ class ROI_rect_line(ROI_Base, QtWidgets.QGraphicsObject):
             newWidth (int): new width of all segments
         """
         s = True
-        if newWidth == None:
-            newWidth, s = QtWidgets.QInputDialog.getInt(None, "Enter a width value", 'Float Value', value = self.width)
+        if newWidth is None:
+            newWidth, s = QtWidgets.QInputDialog.getInt(None, "Enter a width value", 'Float Value', value=self.width)
         if not s or s == 0:
             return
         for l in self.lines:
@@ -1033,7 +1031,7 @@ class ROI_rect_line(ROI_Base, QtWidgets.QGraphicsObject):
 
     def createKymograph(self,mn):
         from .window import Window
-        oldwindow=g.currentWindow
+        oldwindow=g.win
         name=oldwindow.name+' - Kymograph'
         self.kymograph=Window(mn,name,metadata=self.window.metadata)
         self.kymographproxy = pg.SignalProxy(self.sigRegionChanged, rateLimit=1, slot=self.update_kymograph) #This will only update 3 Hz
@@ -1060,7 +1058,7 @@ def makeROI(kind, pts, window=None, color=None, **kargs):
         ROI Object extending ROI_Base
     """
     if window is None:
-        window = g.currentWindow
+        window = g.win
         if window is None:
             g.alert('ERROR: In order to make and ROI a window needs to be selected')
             return None
@@ -1127,3 +1125,5 @@ def open_rois(filename=None):
             pts.append(tuple(int(float(i)) for i in text_line.split()))
 
     return rois
+
+

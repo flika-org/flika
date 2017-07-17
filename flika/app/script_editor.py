@@ -89,8 +89,8 @@ class ScriptEditor(QtWidgets.QMainWindow):
     scipy and numpy (np)
 Useful variables:
     g.m.windows - list of windows.
-    g.currentWindow - the selected window
-    g.currentWindow.rois -list of rois in that window
+    g.win - the selected window
+    g.win.rois -list of rois in that window
     - roi.getTrace() gets an roi trace as an array
     clear() to clear the console 
     reset() to reset all global and local variables """
@@ -106,7 +106,7 @@ Useful variables:
         self.runSelectedButton.clicked.connect(self.runSelected)
         self.actionNew_Script.triggered.connect(lambda f: self.addEditor())
         self.actionFrom_File.triggered.connect(lambda f: ScriptEditor.importScript())
-        self.actionFrom_Window.triggered.connect(lambda : self.addEditor(Editor.fromWindow(g.currentWindow)))
+        self.actionFrom_Window.triggered.connect(lambda : self.addEditor(Editor.fromWindow(g.win)))
         self.actionSave_Script.triggered.connect(self.saveCurrentScript)
         self.menuRecentScripts.aboutToShow.connect(self.open_scripts)
         self.actionChangeFontSize.triggered.connect(self.changeFontSize)

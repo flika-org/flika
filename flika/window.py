@@ -109,8 +109,8 @@ class Window(QtWidgets.QWidget):
         self.setAsCurrentWindow()
 
     def _init_geometry(self):
-        assert g.currentWindow != self  # self.setAsCurrentWindow() must be called after this function
-        if g.currentWindow is None:
+        assert g.win != self  # self.setAsCurrentWindow() must be called after this function
+        if g.win is None:
             if 'window_settings' not in g.settings:
                 g.settings['window_settings'] = dict()
             if 'coords' in g.settings['window_settings']:
@@ -124,13 +124,13 @@ class Window(QtWidgets.QWidget):
                 geometry = QtCore.QRect(x, y, width, height)
                 g.settings['window_settings']['coords'] = geometry.getRect()
         else:
-            geometry = g.currentWindow.geometry()
+            geometry = g.win.geometry()
 
         desktopGeom = QtWidgets.QDesktopWidget().screenGeometry()
         maxX = (desktopGeom.width() - geometry.width()) or 1
         maxY = (desktopGeom.height() - geometry.height()) or 1
         newX = (geometry.x() + 10) % maxX
-        newY = (geometry.y() + 10) % maxY
+        newY = ((geometry.y() + 10) % maxY) or 30
         
         geometry = QtCore.QRect(newX, newY, geometry.width(), geometry.height())
         self.setGeometry(geometry)
@@ -154,7 +154,7 @@ class Window(QtWidgets.QWidget):
         self.imageview = ImageView(self)
         self.imageview.setMouseTracking(True)
         self.imageview.installEventFilter(self)
-        self.imageview.ui.normLUTbtn.pressed.connect(lambda : self.normLUT(self.image))
+        self.imageview.ui.normLUTbtn.pressed.connect(lambda: self.normLUT(self.image))
         rp = self.imageview.ui.roiPlot.getPlotItem()
         self.linkMenu = QtWidgets.QMenu("Link frame")
         rp.ctrlMenu = self.linkMenu
@@ -243,7 +243,7 @@ class Window(QtWidgets.QWidget):
 
         """
         from .process.file_ import save_file
-        old_curr_win = g.currentWindow
+        old_curr_win = g.win
         self.setAsCurrentWindow()
         save_file(filename)
         old_curr_win.setAsCurrentWindow()
@@ -380,8 +380,8 @@ class Window(QtWidgets.QWidget):
             self.imageview.setImage(np.zeros((2,2))) #clear the memory
             self.imageview.close()
             del self.imageview
-            if g.currentWindow==self:
-                g.currentWindow=None
+            if g.win==self:
+                g.win=None
             if self in g.windows:
                 g.windows.remove(self)
             self.closed=True
@@ -432,7 +432,10 @@ class Window(QtWidgets.QWidget):
         def pasteROI(roi):
             if roi in self.rois:
                 return None
-            self.currentROI=makeROI(roi.kind,roi.pts,self)
+            if roi.kind == 'rect_line':
+                self.currentROI = makeROI(roi.kind, roi.pts, self, width=roi.width)
+            else:
+                self.currentROI = makeROI(roi.kind, roi.pts, self)
             if roi in roi.window.rois:
                 self.currentROI.link(roi)
             return self.currentROI
@@ -451,14 +454,15 @@ class Window(QtWidgets.QWidget):
 
     def setAsCurrentWindow(self):
         """This function sets this window as the current window. There is only one current window. All operations are performed on the
-        current window. The current window can be accessed from the variable ``g.currentWindow``. 
+        current window. The current window can be accessed from the variable ``g.win``. 
         """
 
-        if g.currentWindow is not None:
-            g.currentWindow.setStyleSheet("border:1px solid rgb(0, 0, 0); ")
-            g.currentWindow.lostFocusSignal.emit()
-        g.currentWindow = self
-        g.m.currentWindow = g.currentWindow
+        if g.win is not None:
+            g.win.setStyleSheet("border:1px solid rgb(0, 0, 0); ")
+            g.win.lostFocusSignal.emit()
+        g.win = self
+        g.m.currentWindow = g.win
+        g.currentWindow = g.win
         if self not in g.windows:
             g.windows.append(self)
         g.m.setWindowTitle("flika - {}".format(self.name))
@@ -572,13 +576,12 @@ class Window(QtWidgets.QWidget):
         self.x = point.x()
         self.y = point.y()
         image=self.imageview.getImageItem().image
-        if self.x < 0 or self.y < 0 or self.x >= image.shape[0] or self.y>=image.shape[1]:
+        if self.x < 0 or self.y < 0 or self.x >= image.shape[0] or self.y >= image.shape[1]:
             pass# if we are outside the image
         else:
             z=self.imageview.currentIndex
             value=image[int(self.x),int(self.y)]
             g.m.statusBar().showMessage('x={}, y={}, z={}, value={}'.format(int(self.x),int(self.y),z,value))
-        
 
     def mouseDragEvent(self, ev):
         modifiers = QtWidgets.QApplication.keyboardModifiers()

@@ -25,14 +25,14 @@ class Set_value(BaseProcess):
     def gui(self):
         self.gui_reset()
         value=QtWidgets.QDoubleSpinBox()
-        if g.currentWindow is not None:
+        if g.win is not None:
             value.setRange(-2**64,2**64)
             value.setValue(0)
             firstFrame=QtWidgets.QSpinBox()
-            firstFrame.setRange(0,len(g.currentWindow.image)-1)
+            firstFrame.setRange(0,len(g.win.image)-1)
             lastFrame=QtWidgets.QSpinBox()
-            lastFrame.setRange(0,len(g.currentWindow.image)-1)
-            lastFrame.setValue(len(g.currentWindow.image)-1)
+            lastFrame.setRange(0,len(g.win.image)-1)
+            lastFrame.setValue(len(g.win.image)-1)
         self.items.append({'name': 'value',             'string': 'Value',                   'object': value})
         self.items.append({'name': 'firstFrame',        'string': 'First Frame',             'object': firstFrame})
         self.items.append({'name': 'lastFrame',         'string': 'Last Frame',              'object': lastFrame})
@@ -48,7 +48,7 @@ class Set_value(BaseProcess):
         elif nDim == 2:
             mx, my = self.tif.shape
         if restrictToROI:
-            roi=g.currentWindow.currentROI
+            roi=g.win.currentROI
             roi.pts=roi.getPoints()
             x=np.array([p[0] for p in roi.pts])
             y=np.array([p[1] for p in roi.pts])
@@ -64,7 +64,7 @@ class Set_value(BaseProcess):
                 for i in np.arange(firstFrame,lastFrame+1):
                     self.newtif[i][xx,yy]=value
         elif restrictToOutside:
-            roi=g.currentWindow.currentROI
+            roi=g.win.currentROI
             roi.pts = roi.getPoints()
             x=np.array([p[0] for p in roi.pts])
             y=np.array([p[1] for p in roi.pts])

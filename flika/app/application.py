@@ -174,7 +174,7 @@ class FlikaApplication(QtWidgets.QMainWindow):
         self.windows = g.windows
         self.traceWindows = g.traceWindows
         self.dialogs = g.dialogs
-        self.currentWindow = g.currentWindow
+        self.currentWindow = g.win
         self.currentTrace = g.currentTrace
         self.clipboard = g.clipboard
         self.setWindowSize()
@@ -218,7 +218,8 @@ class FlikaApplication(QtWidgets.QMainWindow):
     def _make_menu(self):
         fileMenu = self.menuBar().addMenu('File')
         openMenu = fileMenu.addMenu("Open")
-        openMenu.addAction("Open Image", open_file_from_gui)
+        openMenu.addAction("Open Image/Movie", open_file_from_gui)
+        openMenu.addAction("Open Image Sequence", open_image_sequence_from_gui)
         openMenu.addAction("Open ROIs", open_rois)
         openMenu.addAction("Open Points", open_points)
         self.recentFileMenu = fileMenu.addMenu('Recent Files')
