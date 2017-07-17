@@ -18,10 +18,11 @@ from ..version import __version__
 from ..update_flika import checkUpdates
 
 def status_pixmap(attention=False):
-    """A small icon to grab attention
+    """status_pixmap(attention=False)
+    A small icon to grab attention
 
     Args:
-        attention (bool): pixmap is red if True, gray if otherwise
+        | attention (bool): pixmap is red if True, gray if otherwise
 
     Returns:
         QtGui.QPixmap: attention icon to display
@@ -104,12 +105,16 @@ class Logger(QtWidgets.QWidget):
 
     @property
     def status_light(self):
-        """The icon representing the status of the log
+        """status_light(self)
+
+        Rturns:
+            The icon representing the status of the log
         """
         return self._status
 
     def write(self, message):
-        """Interface for sys.excepthook
+        """write(self, message)
+        Interface for sys.excepthook
         """
         logger.info(message)
         print(message, end='')
@@ -117,12 +122,14 @@ class Logger(QtWidgets.QWidget):
         self._status.setPixmap(status_pixmap(attention=True))
 
     def flush(self):
-        """Interface for sys.excepthook
+        """flush(self)
+        Interface for sys.excepthook
         """
         pass
 
     def _send_report(self):
-        """Send the contents of the log as a bug report
+        """_send_report(self)
+        Send the contents of the log as a bug report
         """
         text = self._text.document().toPlainText()
         email = QtWidgets.QInputDialog.getText(self, "Response email", "Enter your email if you would like us to contact you about this bug.")
@@ -138,20 +145,23 @@ class Logger(QtWidgets.QWidget):
                 g.alert("Bug report sent. Thank you!")
 
     def _clear(self):
-        """Erase the log
+        """_clear(self)
+        Erase the log
         """
         self._text.setText('')
         self._status.setPixmap(status_pixmap(attention=False))
         self.close()
 
     def _show(self):
-        """Show the log
+        """_show(self)
+        Show the log
         """
         self.show()
         self.raise_()
 
     def keyPressEvent(self, event):
-        """Hide window on escape key
+        """keyPressEvent(self, event)
+        Hide window on escape key
         """
         if event.key() == QtCore.Qt.Key_Escape:
             self.hide()
@@ -321,7 +331,8 @@ class FlikaApplication(QtWidgets.QMainWindow):
             event.ignore()
 
     def clear(self):
-        """Close all dialogs, trace windows, and windows
+        """clear(self)
+        Close all dialogs, trace windows, and windows
         """
         while g.dialogs:
             g.dialogs.pop(0).close()
@@ -331,7 +342,8 @@ class FlikaApplication(QtWidgets.QMainWindow):
             g.windows.pop(0).close()
 
     def closeEvent(self, event):
-        """Close all widgets and exit flika
+        """closeEvent(self, event)
+        Close all widgets and exit flika
         """
         print('Closing flika')
         event.accept()

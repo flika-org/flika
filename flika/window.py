@@ -237,9 +237,11 @@ class Window(QtWidgets.QWidget):
         g.settings['window_settings']['coords'] = self.geometry().getRect()
 
     def save(self, filename):
-        """
+        """save(self, filename)
+        Saves the current window to a specificed directory as a (.tif) file
+
         Args:
-            filename (str): The filename, including the full path, where this (.tif) file will be saved. 
+            | filename (str): The filename, including the full path, where this (.tif) file will be saved.
 
         """
         from .process.file_ import save_file
@@ -268,11 +270,11 @@ class Window(QtWidgets.QWidget):
                 self.imageview.setLevels(-.01, 1.01)  # set levels from slightly below 0 to 1
     
     def link(self, win):
-        """
+        """link(self, win)
         Linking a window to another means when the current index of one changes, the index of the other will automatically change.
 
         Args:
-            win (flika.window.Window): The window that will be linked with this one
+            | win (flika.window.Window): The window that will be linked with this one
         """
         if win not in self.linkedWindows:
             self.sigTimeChanged.connect(win.imageview.setCurrentIndex)
@@ -280,11 +282,11 @@ class Window(QtWidgets.QWidget):
             win.link(self)
 
     def unlink(self, win):
-        """
+        """unlink(self, win)
         This unlinks a window from this one.
 
         Args:
-            win (flika.window.Window): The window that will be unlinked from this one
+            | win (flika.window.Window): The window that will be unlinked from this one
         """
         if win in self.linkedWindows:
             self.linkedWindows.remove(win)
@@ -319,11 +321,11 @@ class Window(QtWidgets.QWidget):
             self.sigTimeChanged.emit(t)
 
     def setIndex(self, index):
-        """
+        """setIndex(self, index)
         This sets the index (frame) of this window. 
 
         Args:
-            index (int): The index of the image this window will display
+            | index (int): The index of the image this window will display
         """
         if hasattr(self, 'image') and self.image.ndim > 2 and 0 <= index < len(self.image):
             self.imageview.setCurrentIndex(index)
@@ -352,8 +354,11 @@ class Window(QtWidgets.QWidget):
             g.m.statusBar().showMessage(msg)
 
     def setName(self,name):
-        """
-        set the name of this window.
+        """setName(self,name)
+        Set the name of this window.
+
+        Args:
+            | name (str): the name for window to be set to
         """
         name = str(name)
         self.name = name
@@ -388,8 +393,10 @@ class Window(QtWidgets.QWidget):
             event.accept() # let the window close
 
     def imageArray(self):
-        """
-        returns image as a 3d array, correcting for color or 2d image
+        """imageArray(self)
+
+        Returns:
+             Image as a 3d array, correcting for color or 2d image
         """
         tif = self.image
         nDims = len(tif.shape)
@@ -426,8 +433,9 @@ class Window(QtWidgets.QWidget):
         self.imageview.resize(self.size())
 
     def paste(self):
-        """ This function pastes an ROI from one window into another.
-        The ROIs will be linked so that when you alter one of them, the other will be altered in the same way.
+        """ paste(self)
+        This function pastes a ROI from one window into another.
+        The ROIs will be automatically linked using the link() fucntion so that when you alter one of them, the other will be altered in the same way.
         """
         def pasteROI(roi):
             if roi in self.rois:
@@ -453,7 +461,8 @@ class Window(QtWidgets.QWidget):
         self.setAsCurrentWindow()
 
     def setAsCurrentWindow(self):
-        """This function sets this window as the current window. There is only one current window. All operations are performed on the
+        """setAsCurrentWindow(self)
+        This function sets this window as the current window. There is only one current window. All operations are performed on the
         current window. The current window can be accessed from the variable ``g.win``. 
         """
 
@@ -490,7 +499,8 @@ class Window(QtWidgets.QWidget):
             self.scatterPlot.setPoints(pos=self.scatterPoints[t], size=pointSizes, brush=brushes)
 
     def getScatterPts(self):
-        """
+        """getScatterPts(self)
+
         Returns:
             numpy array: an Nx3 array of scatter points, where N is the number of points. Col0 is frame, Col1 is x, Col2 is y. 
         """
@@ -526,6 +536,9 @@ class Window(QtWidgets.QWidget):
         self.scatterPlot.addPoints(pos=[[x, y]], size=pointSize, brush=pg.mkBrush(*pointColor.getRgb()))
 
     def mouseClickEvent(self,ev):
+        ''''mouseClickevent(self, ev)
+        Event handler for when the mouse is pressed in a flika window.
+        '''
         self.EEEE = ev
         if self.x is not None and self.y is not None and ev.button() == 2 and not self.creatingROI:
             mm = g.settings['mousemode']
@@ -541,7 +554,8 @@ class Window(QtWidgets.QWidget):
             self.creatingROI = None
 
     def save_rois(self, filename=None):
-        """
+        """save_rois(self, filename=None)
+
         Args:
             filename (str): The filename, including the full path, where the ROI file will be saved. 
 
@@ -571,6 +585,9 @@ class Window(QtWidgets.QWidget):
         self.keyPressSignal.emit(ev)
         
     def mouseMoved(self,point):
+        '''mouseMoved(self,point)
+        Event handler function for mouse movement.
+        '''
         point=self.imageview.getImageItem().mapFromScene(point)
         self.point = point
         self.x = point.x()

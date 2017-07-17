@@ -18,10 +18,11 @@ warnings.filterwarnings("ignore", category=np.VisibleDeprecationWarning)
 def parse_arguments(argv):
     ''' Parses command line arguments for valid flika args
 
-    :param argv: Arguments passed to program
+    Arguments:
+        argv: Arguments passed to program
 
-    *Returns*
-    A tuple of options, position arguments
+    Returns:
+        A tuple of options, position arguments
     '''
     usage = """usage: %prog [FILE FILE...]
 
@@ -62,14 +63,15 @@ def parse_arguments(argv):
     return parser.parse_args(argv)
 
 def verify(parser, argv):
-    """ Check for input errors
+    """verify(parser, argv)
+    Check for input errors
 
-    :param parser: OptionParser instance
-    :param argv: Argument list
-    :type argv: List of strings
+    Arguments:
+        parser: OptionParser instance
+        argv (list): Argument list
 
-    *Returns*
-    An error message, or None
+    Returns:
+        An error message in the event of an input error, or None
     """
     opts, args = parser.parse_args(argv)
     err_msg = None
@@ -95,12 +97,13 @@ def load_files(files):
         open_file(f)
 
 def start_flika(files=[]):
-    """Run a flika session and exit
+    """Run a flika session and exit, beginning the event loop
 
-    Parameters
-    ----------
-    files : list
-        An optional list of data files to load.
+    Parameters:
+        files (list): An optional list of data files to load.
+
+    Returns:
+        A flika application object with optional files loaded
  
     """
     fa = FlikaApplication()

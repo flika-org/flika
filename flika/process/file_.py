@@ -32,13 +32,11 @@ __all__ = ['save_file', 'save_points', 'save_movie_gui', 'open_file', 'open_file
 
 
 def save_file(filename=None):
-    """
+    """save_file(filename=None)
     Save the image in the currentWindow to a .tif file.
 
-    Parameters
-    ----------
-    filename : str
-        The image or movie will be saved here.
+    Parameters:
+        | filename (str): The image or movie will be saved here.
 
     """
     if filename is None or filename is False:
@@ -70,6 +68,13 @@ def save_file(filename=None):
     return filename
 
 def save_points(filename=None):
+    '''save_points(filename=None)
+    Saves the points in the current window to a text file
+
+    Parameters:
+        | filename (str) -- Addresss to save the points to, with .txt
+
+    '''
     if filename is None:
         filetypes = '*.txt'
         prompt = 'Save Points'
@@ -368,6 +373,17 @@ def open_tiff(filename, metadata):
     return [A, metadata]
 
 def open_points(filename=None):
+    '''open_points(filename=None)
+
+    Opens a specified text file and displays the points from that file into the currentWindow
+
+    Parameters:
+        | filename (str) -- Address of file to open. If no filename is provided, the last opened file is used.
+
+    Notes:
+        | Any existing points on a currentWindow will persist when another points file is opened and displayed
+
+    '''
     if g.win is None:
         g.alert('Points cannot be loaded if no window is selected. Open a file and click on a window.')
         return None
@@ -413,16 +429,14 @@ def open_points(filename=None):
 ######################                INTERNAL HELPER FUNCTIONS                              ###########################
 ########################################################################################################################
 def get_permutation_tuple(src, dst):
-    """
+    """get_permtation_tuple(src, dst)
 
-    Parameters
-    ----------
-    src (list): The original ordering of the axes in the tiff.
-    dst (list): The desired ordering of the axes in the tiff.
+    Parameters:
+        | src (list): The original ordering of the axes in the tiff.
+        | dst (list): The desired ordering of the axes in the tiff.
 
-    Returns
-    -------
-    result (tuple): The required permutation so the axes are ordered as desired.
+    Returns:
+        result (tuple): The required permutation so the axes are ordered as desired.
     """
     result = []
     for i in dst:
