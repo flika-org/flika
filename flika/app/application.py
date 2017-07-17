@@ -107,7 +107,7 @@ class Logger(QtWidgets.QWidget):
     def status_light(self):
         """status_light(self)
 
-        Rturns:
+        Returns:
             The icon representing the status of the log
         """
         return self._status
