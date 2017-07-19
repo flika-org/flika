@@ -101,25 +101,7 @@ def save_movie_gui():
     rateDialog.show()
 
 def save_rois( filename=None):
-    """save_rois(self, filename=None)
-
-    Args:
-        filename (str): The filename, including the full path, where the ROI file will be saved.
-
-    """
-    if not isinstance(filename, str):
-        if filename is not None and os.path.isfile(filename):
-            filename = os.path.splitext(g.settings['filename'])[0]
-            filename = save_file_gui('Save ROI', filename, '*.txt')
-        else:
-            filename = save_file_gui('Save ROI', '', '*.txt')
-
-    if filename != '' and isinstance(filename, str):
-        reprs = [roi._str() for roi in g.currentWindow.rois]
-        reprs = '\n'.join(reprs)
-        open(filename, 'w').write(reprs)
-    else:
-        g.m.statusBar().showMessage('No File Selected')
+    g.currentWindow.save_rois(filename)
 
 
 def save_movie(rate, filename=None):

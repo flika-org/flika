@@ -239,7 +239,7 @@ class FlikaApplication(QtWidgets.QMainWindow):
         saveMenu.addAction("Save Image", save_file)
         saveMenu.addAction("Save Movie (.mp4)", save_movie_gui)
         saveMenu.addAction("Save Points", save_points)
-        saveMenu.addAction("Save all ROIs", save_rois)
+        saveMenu.addAction("Save All ROIs", save_rois)
 
         fileMenu.addAction("Settings", SettingsEditor.show)
         fileMenu.addAction("&Quit", self.close)#app.quit)
