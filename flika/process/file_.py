@@ -23,7 +23,7 @@ from ..window import Window
 from ..utils.misc import open_file_gui, save_file_gui
 from ..utils.io import tifffile
 
-__all__ = ['save_file', 'save_points', 'save_movie_gui', 'open_file', 'open_file_from_gui', 'open_image_sequence_from_gui', 'open_points', 'close']
+__all__ = ['save_file', 'save_points', 'save_rois', 'save_movie_gui', 'open_file', 'open_file_from_gui', 'open_image_sequence_from_gui', 'open_points', 'close']
 
 ########################################################################################################################
 ######################                  SAVING FILES                                         ###########################
@@ -99,6 +99,27 @@ def save_movie_gui():
     rateDialog.accepted.connect(lambda: save_movie(rateSpin.value()))
     g.dialogs.append(rateDialog)
     rateDialog.show()
+
+def save_rois( filename=None):
+    """save_rois(self, filename=None)
+
+    Args:
+        filename (str): The filename, including the full path, where the ROI file will be saved.
+
+    """
+    if not isinstance(filename, str):
+        if filename is not None and os.path.isfile(filename):
+            filename = os.path.splitext(g.settings['filename'])[0]
+            filename = save_file_gui('Save ROI', filename, '*.txt')
+        else:
+            filename = save_file_gui('Save ROI', '', '*.txt')
+
+    if filename != '' and isinstance(filename, str):
+        reprs = [roi._str() for roi in g.currentWindow.rois]
+        reprs = '\n'.join(reprs)
+        open(filename, 'w').write(reprs)
+    else:
+        g.m.statusBar().showMessage('No File Selected')
 
 
 def save_movie(rate, filename=None):

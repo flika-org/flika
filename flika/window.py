@@ -222,11 +222,9 @@ class Window(QtWidgets.QWidget):
         plotAllAct = QtWidgets.QAction('&Plot All ROIs', self.menu, triggered=self.plotAllROIs )
         copyAll = QtWidgets.QAction("Copy All ROIs", self.menu, triggered = lambda a: setattr(g, 'clipboard', self.rois))
         removeAll = QtWidgets.QAction("Remove All ROIs", self.menu, triggered = self.removeAllROIs)
-        saveAll = QtWidgets.QAction("&Save All ROIs",self, triggered=self.save_rois)
         self.menu.addAction(pasteAct)
         self.menu.addAction(plotAllAct)
         self.menu.addAction(copyAll)
-        self.menu.addAction(saveAll)
         self.menu.addAction(removeAll)
         self.menu.aboutToShow.connect(updateMenu)
 
@@ -553,26 +551,6 @@ class Window(QtWidgets.QWidget):
             self.currentROI.cancel()
             self.creatingROI = None
 
-    def save_rois(self, filename=None):
-        """save_rois(self, filename=None)
-
-        Args:
-            filename (str): The filename, including the full path, where the ROI file will be saved. 
-
-        """
-        if not isinstance(filename, str):
-            if filename is not None and os.path.isfile(filename):
-                filename = os.path.splitext(g.settings['filename'])[0]
-                filename = save_file_gui('Save ROI', filename, '*.txt')
-            else:
-                filename = save_file_gui('Save ROI', '', '*.txt')
-
-        if filename != '' and isinstance(filename, str):
-            reprs = [roi._str() for roi in self.rois]
-            reprs = '\n'.join(reprs)
-            open(filename, 'w').write(reprs)
-        else:
-            g.m.statusBar().showMessage('No File Selected')
     
     def keyPressEvent(self, ev):
         if ev.key() == QtCore.Qt.Key_Delete:
