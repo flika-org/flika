@@ -312,12 +312,10 @@ def convert_to_string(item):
 
 
 class BaseProcess(object):
-    """Foundation for all flika processes.
-
-    Subclass BaseProcess when writing your own process.
+    """Foundation for all flika processes. Subclass BaseProcess when writing your own process.
 
     Attributes:
-        | items: list of significant values unique to each BaseProcess subclass
+        items: list of significant values unique to each BaseProcess subclass
 
 
     """

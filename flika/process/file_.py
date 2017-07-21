@@ -36,7 +36,7 @@ def save_file(filename=None):
     Save the image in the currentWindow to a .tif file.
 
     Parameters:
-        | filename (str): The image or movie will be saved here.
+        filename (str): The image or movie will be saved as  'filename'.tif.
 
     """
     if filename is None or filename is False:
@@ -68,13 +68,15 @@ def save_file(filename=None):
     return filename
 
 def save_points(filename=None):
-    '''save_points(filename=None)
+    """save_points(filename=None)
     Saves the points in the current window to a text file
 
     Parameters:
-        | filename (str) -- Addresss to save the points to, with .txt
+        filename (str): Address to save the points to, with .txt
 
-    '''
+
+    """
+
     if filename is None:
         filetypes = '*.txt'
         prompt = 'Save Points'
@@ -118,6 +120,7 @@ def save_movie(rate, filename=None):
         | -r: framerate
         | -i: input files.
         | %03d: The files have to be numbered 001.jpg, 002.jpg... etc.
+
     """
 
 
@@ -196,10 +199,11 @@ def open_image_sequence(filename=None, from_gui=False):
     Opens an image sequence (.tif, .png) into a newWindow.
 
     Parameters:
-        | filename (str) -- Address of the first of a series of files that will be stitched together into a movie.
+        filename (str) -- Address of the first of a series of files that will be stitched together into a movie.
                             If no filename is provided, the last opened file is used.
     Returns:
         newWindow
+
     """
     if filename is None:
         if from_gui:
@@ -250,9 +254,10 @@ def open_file(filename=None, from_gui=False):
     Opens an image or movie file (.tif, .stk, .nd2) into a newWindow.
 
     Parameters:
-        | filename (str) -- Address of file to open. If no filename is provided, the last opened file is used.
+        filename (str): Address of file to open. If no filename is provided, the last opened file is used.
     Returns:
         newWindow
+
     """
     if filename is None:
         if from_gui:
@@ -373,18 +378,18 @@ def open_tiff(filename, metadata):
         #    A = np.squeeze(A)  # this gets rid of the meaningless 4th dimention in .stk files
     return [A, metadata]
 
-def open_points(filename=None):
-    '''open_points(filename=None)
 
+def open_points(filename=None):
+    """open_points(filename=None)
     Opens a specified text file and displays the points from that file into the currentWindow
 
     Parameters:
-        | filename (str) -- Address of file to open. If no filename is provided, the last opened file is used.
+        filename (str): Address of file to open. If no filename is provided, the last opened file is used.
 
-    Notes:
-        | Any existing points on a currentWindow will persist when another points file is opened and displayed
+    Note:
+        Any existing points on a currentWindow will persist when another points file is opened and displayed
 
-    '''
+    """
     if g.win is None:
         g.alert('Points cannot be loaded if no window is selected. Open a file and click on a window.')
         return None
@@ -433,8 +438,8 @@ def get_permutation_tuple(src, dst):
     """get_permtation_tuple(src, dst)
 
     Parameters:
-        | src (list): The original ordering of the axes in the tiff.
-        | dst (list): The desired ordering of the axes in the tiff.
+        src (list): The original ordering of the axes in the tiff.
+        dst (list): The desired ordering of the axes in the tiff.
 
     Returns:
         result (tuple): The required permutation so the axes are ordered as desired.
@@ -508,15 +513,16 @@ def JSONhandler(obj):
 
 
 def close(windows=None):
-    '''
+    """close(window=None)
     Will close a window or a set of windows.
 
-    Values for windows:
-        | 'all' (str) -- closes all windows
-        | windows (list) - closes each window in the list
-        | (Window) - closes individual window
-        | (None) - closes current window
-    '''
+    Parameters:
+        'all' (str): closes all windows
+        windows (list): closes each window in the list
+        Window: closes individual window
+        (None): closes current window
+
+    """
     if isinstance(windows, str):
         if windows == 'all':
             windows = [window for window in g.windows]

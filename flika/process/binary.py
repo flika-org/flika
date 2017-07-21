@@ -32,8 +32,8 @@ class Threshold(BaseProcess):
 Creates a boolean matrix by applying a threshold
     
     Parameters:
-        | value (float) -- The threshold to be applied
-        | darkBackground (bool) -- If this is True, pixels below the threshold will be True
+        value (float) -- The threshold to be applied
+        darkBackground (bool) -- If this is True, pixels below the threshold will be True
     Returns:
         newWindow
     """
@@ -119,9 +119,9 @@ class Adaptive_threshold(BaseProcess):
 Creates a boolean matrix by applying an adaptive threshold using the scikit-image threshold_local function
     
     Parameters:
-        | value (int) -- The threshold to be applied
-        | block_size (int)  -- size of a pixel neighborhood that is used to calculate a threshold value for the pixel. Must be an odd number greater than 3.
-        | darkBackground (bool) -- If this is True, pixels below the threshold will be True
+        value (int) -- The threshold to be applied
+        block_size (int)  -- size of a pixel neighborhood that is used to calculate a threshold value for the pixel. Must be an odd number greater than 3.
+        darkBackground (bool) -- If this is True, pixels below the threshold will be True
     Returns:
         newWindow
     """
@@ -204,7 +204,7 @@ class Canny_edge_detector(BaseProcess):
     """###canny_edge_detector(sigma, keepSourceWindow=False)
     
     Parameters:
-        | sigma (float) -- 
+        sigma (float) --
     Returns:
         newWindow
     """
@@ -270,9 +270,10 @@ class Logically_combine(BaseProcess):
 Combines two windows according to the operator
     
     Parameters:
-        | window1 (Window)
-        | window2 (Window)
-        | operator (str)
+        window1 (Window)
+        window2 (Window)
+        operator (str)
+
     Returns:
         newWindow
     """
@@ -321,8 +322,8 @@ class Remove_small_blobs(BaseProcess):
 Finds all contiguous 'True' pixels in rank dimensions.  Removes regions which have fewer than the specified pixels.
     
     Parameters:
-        | rank  (int) -- The number of dimensions.  If rank==2, each frame is treated independently
-        | value (int) -- The size (in pixels) below which each contiguous region must be in order to be discarded.
+        rank  (int) -- The number of dimensions.  If rank==2, each frame is treated independently
+        value (int) -- The size (in pixels) below which each contiguous region must be in order to be discarded.
     Returns:
         newWindow
     """

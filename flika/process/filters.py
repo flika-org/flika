@@ -8,10 +8,12 @@ from .. import global_vars as g
 from .BaseProcess import BaseProcess, SliderLabel, SliderLabelOdd, CheckBox
 from .progress_bar import ProgressBar
 
-__all__ = ['gaussian_blur', 'difference_of_gaussians', 'mean_filter', 'variance_filter', 'median_filter','butterworth_filter','boxcar_differential_filter','wavelet_filter','difference_filter', 'fourier_filter', 'bilateral_filter']
+__all__ = ['gaussian_blur', 'difference_of_gaussians', 'mean_filter', 'variance_filter', 'median_filter', 'butterworth_filter', 'boxcar_differential_filter','wavelet_filter','difference_filter', 'fourier_filter', 'bilateral_filter']
 ###############################################################################
 ##################   SPATIAL FILTERS       ####################################
 ###############################################################################
+
+
 class Gaussian_blur(BaseProcess):
     """ gaussian_blur(sigma, norm_edges=False, keepSourceWindow=False)
 
@@ -28,6 +30,7 @@ class Gaussian_blur(BaseProcess):
     def __init__(self):
         super().__init__()
         assert 'gaussian' in skimage.filters.__dict__  # Make sure your version of skimage is >= 0.12.3
+
     def gui(self):
         self.gui_reset()
         sigma=SliderLabel(2)
@@ -79,7 +82,7 @@ class Gaussian_blur(BaseProcess):
             g.win.imageview.setImage(testimage,autoLevels=False)
         else:
             g.win.reset()
-gaussian_blur=Gaussian_blur()
+gaussian_blur = Gaussian_blur()
 
 
 class Difference_of_Gaussians(BaseProcess):
@@ -161,9 +164,9 @@ class Butterworth_filter(BaseProcess):
     This filters a stack in time.
     
     Parameters:
-        | filter_order (int) -- The order of the butterworth filter (higher->steeper).
-        | low (float) -- The low frequency cutoff.  Must be between 0 and 1 and must be below high.
-        | high (float) -- The high frequency cutoff.  Must be between 0 and 1 and must be above low.
+        filter_order (int): The order of the butterworth filter (higher->steeper).
+        low (float): The low frequency cutoff.  Must be between 0 and 1 and must be below high.
+        high (float): The high frequency cutoff.  Must be between 0 and 1 and must be above low.
     Returns:
         newWindow
     """
@@ -315,7 +318,7 @@ class Mean_filter(BaseProcess):
     This filters a stack in time.
     
     Parameters:
-        | nFrames (int) -- Number of frames to average
+        nFrames (int): Number of frames to average
     Returns:
         newWindow
     """
@@ -383,7 +386,7 @@ class Variance_filter(BaseProcess):
     This filters a stack in time.
 
     Parameters:
-        | nFrames (int) -- Number of frames to take teh variance of
+        nFrames (int): Number of frames to take teh variance of
     Returns:
         newWindow
     """
@@ -448,7 +451,7 @@ class Median_filter(BaseProcess):
     This filters a stack in time.
     
     Parameters:
-        | nFrames (int) -- Number of frames to average.  This must be an odd number
+        nFrames (int): Number of frames to average.  This must be an odd number
     Returns:
         newWindow
     """
@@ -516,10 +519,10 @@ class Fourier_filter(BaseProcess):
     I'm going to eventually plot the trace in the frequency domain inside this box so you can see where the power is.
 
     Parameters:
-        | frame_rate (int) -- Frame Rate in Hz
-        | low (float) -- Low cutoff frequency for the fourier filter
-        | high (float) -- High cutoff frequency for fourier filter
-        | loglogPreview (boolean) -- whether or not to plot frequency spectrum on log log axes
+        frame_rate (int): Frame Rate in Hz
+        low (float): Low cutoff frequency for the fourier filter
+        high (float): High cutoff frequency for fourier filter
+        loglogPreview (boolean): whether or not to plot frequency spectrum on log log axes
     """
     def __init__(self):
         super().__init__()
@@ -553,7 +556,8 @@ class Fourier_filter(BaseProcess):
         else:
             preview.setChecked(False)
             preview.setEnabled(False)
-            loglogPreview.setEnabled(False) 
+            loglogPreview.setEnabled(False)
+
     def __call__(self, frame_rate, low, high, loglogPreview, keepSourceWindow=False):
         self.start(keepSourceWindow)
         if self.tif.dtype == np.float16:
@@ -637,10 +641,7 @@ fourier_filter=Fourier_filter()
 class Difference_filter(BaseProcess):
     """ difference_filter(keepSourceWindow=False)
     subtracts each frame from the preceeding frame
-    
-    
-    Parameters:
-        | None
+
     Returns:
         newWindow
     """
@@ -665,8 +666,8 @@ class Boxcar_differential_filter(BaseProcess):
     Applies a Boxcar differential filter by comparing each frameat index I to the frames in range [I+minNframes, I+maxNframes]
 
     Parameters:
-        | minNframes (int) -- The starting point of your boxcar window.
-        | maxNframes (int) -- The ending point of your boxcar window.
+        minNframes (int): The starting point of your boxcar window.
+        maxNframes (int): The ending point of your boxcar window.
     Returns:
         newWindow
     """
@@ -731,8 +732,8 @@ class Wavelet_filter(BaseProcess):
     ***Warning!! This function is extremely slow.***
     
     Parameters:
-        | low (int) -- The starting point of your boxcar window.
-        | high (int) -- The ending point of your boxcar window.
+        low (int): The starting point of your boxcar window.
+        high (int): The ending point of your boxcar window.
     Returns:
         newWindow
     '''
@@ -806,11 +807,11 @@ class Bilateral_filter(BaseProcess):
     ''' bilateral_filter( keepSourceWindow=False)
     
     Parameters:
-        | soft (bool)  --     True for guassian, False for hard filter
-        | beta (float) --     beta of kernel
-        | width (float) --    width of kernel
-        | stoptol (float) --  tolerance for convergence
-        | maxiter (int)  --   maximum number of iterations
+        soft (bool): True for guassian, False for hard filter
+        beta (float): beta of kernel
+        width (float): width of kernel
+        stoptol (float): tolerance for convergence
+        maxiter (int): maximum number of iterations
     Returns:
         newWindow
     '''

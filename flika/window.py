@@ -239,7 +239,7 @@ class Window(QtWidgets.QWidget):
         Saves the current window to a specificed directory as a (.tif) file
 
         Args:
-            | filename (str): The filename, including the full path, where this (.tif) file will be saved.
+            filename (str): The filename, including the full path, where this (.tif) file will be saved.
 
         """
         from .process.file_ import save_file
@@ -272,7 +272,7 @@ class Window(QtWidgets.QWidget):
         Linking a window to another means when the current index of one changes, the index of the other will automatically change.
 
         Args:
-            | win (flika.window.Window): The window that will be linked with this one
+            win (flika.window.Window): The window that will be linked with this one
         """
         if win not in self.linkedWindows:
             self.sigTimeChanged.connect(win.imageview.setCurrentIndex)
@@ -284,7 +284,7 @@ class Window(QtWidgets.QWidget):
         This unlinks a window from this one.
 
         Args:
-            | win (flika.window.Window): The window that will be unlinked from this one
+            win (flika.window.Window): The window that will be unlinked from this one
         """
         if win in self.linkedWindows:
             self.linkedWindows.remove(win)
@@ -323,7 +323,7 @@ class Window(QtWidgets.QWidget):
         This sets the index (frame) of this window. 
 
         Args:
-            | index (int): The index of the image this window will display
+            index (int): The index of the image this window will display
         """
         if hasattr(self, 'image') and self.image.ndim > 2 and 0 <= index < len(self.image):
             self.imageview.setCurrentIndex(index)
@@ -356,7 +356,7 @@ class Window(QtWidgets.QWidget):
         Set the name of this window.
 
         Args:
-            | name (str): the name for window to be set to
+            name (str): the name for window to be set to
         """
         name = str(name)
         self.name = name

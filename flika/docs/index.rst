@@ -61,7 +61,7 @@ Supported through National Institutes of Health grants GM 100201 to `Ian Smith <
 
 Authors
 -------
-So far, code has been contributed by `Kyle Ellefsen <https://scitru.com/kyleellefsen>`_ and `Brett Settle <https://github.com/BrettJSettle>`_. If you would like to add your name to the list, see our guide for :ref:`contributing <contributing>`. 
+So far, code has been contributed by `Kyle Ellefsen <https://scitru.com/kyleellefsen>`_ , `Brett Settle <https://github.com/BrettJSettle>`_ and `Kevin Tarhan <https://github.com/KevinTarhan>`_. If you would like to add your name to the list, see our guide for :ref:`contributing <contributing>`.
 
 License
 -------

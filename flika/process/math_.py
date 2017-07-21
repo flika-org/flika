@@ -34,7 +34,7 @@ class Subtract(BaseProcess):
     This takes a value and subtracts it from the current window's image.
     
     Parameters:
-        | value (int) -- The number you are subtracting.
+        value (int): The number you are subtracting.
     Returns:
         newWindow
     """
@@ -77,9 +77,7 @@ subtract=Subtract()
 class Subtract_trace(BaseProcess):
     """ subtract_trace(keepSourceWindow=False)
     This takes the most recently plotted trace and subtracts it from each corresponding frame.
-    
-    Parameters:
-        | 
+
     Returns:
         newWindow
     """
@@ -103,9 +101,7 @@ subtract_trace=Subtract_trace()
 class Divide_trace(BaseProcess):
     """ divide_trace(keepSourceWindow=False)
     This takes the most recently plotted trace and divides each pixel in the current Window by its value.
-    
-    Parameters:
-        | 
+
     Returns:
         newWindow
     """
@@ -131,7 +127,7 @@ class Multiply(BaseProcess):
     This takes a value and multiplies it to the current window's image.
     
     Parameters:
-        | value (float) -- The number you are multiplying by.
+        value (float): The number you are multiplying by.
     Returns:
         newWindow
     """
@@ -166,7 +162,7 @@ class Divide(BaseProcess):
     This takes a value and divides it to the current window's image.
 
     Parameters:
-        | value (float) -- The number you are dividing by.
+        value (float): The number you are dividing by.
     Returns:
         newWindow
     """
@@ -206,7 +202,7 @@ class Power(BaseProcess):
     This raises the current window's image to the power of 'value'.
     
     Parameters:
-        | value (int) -- The exponent.
+        value (int): The exponent.
     Returns:
         newWindow
     """
@@ -242,9 +238,9 @@ class Ratio(BaseProcess):
     Takes a set of frames, combines them into a 2D array according to ratio_type, and divides the entire 3D array frame-by-frame by this array.
     
     Parameters:
-        | first_frame (int) -- The first frame in the set of frames to be combined
-        | nFrames (int) -- The number of frames to be combined.
-        | ratio_type (str) -- The method used to combine the frames.  Either 'standard deviation' or 'average'.
+        first_frame (int): The first frame in the set of frames to be combined
+        nFrames (int): The number of frames to be combined.
+        ratio_type (str): The method used to combine the frames.  Either 'standard deviation' or 'average'.
     Returns:
         newWindow
     """
@@ -302,9 +298,7 @@ ratio=Ratio()
 class Absolute_value(BaseProcess):
     """ absolute_value(keepSourceWindow=False)
     Takes the absolute value of a set of frames
-    
-    Parameters:
-        | None
+
     Returns:
         newWindow
     """

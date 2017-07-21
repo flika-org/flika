@@ -5,7 +5,7 @@ from .. import global_vars as g
 from ..window import Window
 from .BaseProcess import BaseProcess, WindowSelector, MissingWindowError, CheckBox
 
-__all__ = ['split_channels']
+__all__ = ['split_channels', 'Split_channels']
 
 
 class Split_channels(BaseProcess):
