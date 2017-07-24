@@ -10,13 +10,14 @@ __all__ = ['set_value']
 
 class Set_value(BaseProcess):
     """ set_value(value, firstFrame, lastFrame, restrictToROI=False, restrictToOutside=False, keepSourceWindow=False)
+
     This sets the value from firstFrame to lastFrame to value.
     
     Parameters:
-        | value (int) -- The desired value
-        | firstFrame (int) -- The first frame whos value you are setting
-        | lastFrame (int) -- The last frame whos value you are altering
-        | restrictToROI (bool) -- Whether or not only the current ROI will be effected.
+        value (int): The desired value
+        firstFrame (int): The first frame whos value you are setting
+        lastFrame (int): The last frame whos value you are altering
+        restrictToROI (bool): Whether or not only the current ROI will be effected.
     Returns:
         newWindow
     """

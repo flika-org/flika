@@ -27,13 +27,13 @@ def convert2uint8(tif):
     return tif
     
 class Threshold(BaseProcess):
-    """###threshold(value, darkBackground=False, keepSourceWindow=False)
-    
-Creates a boolean matrix by applying a threshold
+    """threshold(value, darkBackground=False, keepSourceWindow=False)
+
+    Creates a boolean matrix by applying a threshold
     
     Parameters:
-        value (float) -- The threshold to be applied
-        darkBackground (bool) -- If this is True, pixels below the threshold will be True
+        value (float): The threshold to be applied
+        darkBackground (bool): If this is True, pixels below the threshold will be True
     Returns:
         newWindow
     """
@@ -114,14 +114,15 @@ class BlocksizeSlider(SliderLabel):
         self.label.setValue(value)
     
 class Adaptive_threshold(BaseProcess):
-    """###adaptive_threshold(value, block_size, darkBackground=False, keepSourceWindow=False)
-    
-Creates a boolean matrix by applying an adaptive threshold using the scikit-image threshold_local function
+    """adaptive_threshold(value, block_size, darkBackground=False, keepSourceWindow=False)
+
+    Creates a boolean matrix by applying an adaptive threshold using the scikit-image threshold_local function
     
     Parameters:
-        value (int) -- The threshold to be applied
-        block_size (int)  -- size of a pixel neighborhood that is used to calculate a threshold value for the pixel. Must be an odd number greater than 3.
-        darkBackground (bool) -- If this is True, pixels below the threshold will be True
+        value (int): The threshold to be applied
+        block_size (int): size of a pixel neighborhood that is used to calculate a threshold value for the pixel. Must be an odd number greater than 3.
+        darkBackground (bool): If this is True, pixels below the threshold will be True
+
     Returns:
         newWindow
     """
@@ -201,10 +202,10 @@ adaptive_threshold=Adaptive_threshold()
 
 
 class Canny_edge_detector(BaseProcess):
-    """###canny_edge_detector(sigma, keepSourceWindow=False)
+    """canny_edge_detector(sigma, keepSourceWindow=False)
     
     Parameters:
-        sigma (float) --
+        sigma (float):
     Returns:
         newWindow
     """
@@ -265,9 +266,9 @@ canny_edge_detector=Canny_edge_detector()
 
 
 class Logically_combine(BaseProcess):
-    """###logically_combine(window1, window2,operator, keepSourceWindow=False)
+    """logically_combine(window1, window2,operator, keepSourceWindow=False)
 
-Combines two windows according to the operator
+    Combines two windows according to the operator
     
     Parameters:
         window1 (Window)
@@ -317,13 +318,14 @@ logically_combine=Logically_combine()
 
     
 class Remove_small_blobs(BaseProcess):
-    """###remove_small_blobs(rank, value, keepSourceWindow=False)
+    """remove_small_blobs(rank, value, keepSourceWindow=False)
 
-Finds all contiguous 'True' pixels in rank dimensions.  Removes regions which have fewer than the specified pixels.
+    Finds all contiguous 'True' pixels in rank dimensions.  Removes regions which have fewer than the specified pixels.
     
     Parameters:
-        rank  (int) -- The number of dimensions.  If rank==2, each frame is treated independently
-        value (int) -- The size (in pixels) below which each contiguous region must be in order to be discarded.
+        rank  (int): The number of dimensions.  If rank==2, each frame is treated independently
+        value (int): The size (in pixels) below which each contiguous region must be in order to be discarded.
+
     Returns:
         newWindow
     """
@@ -369,17 +371,18 @@ remove_small_blobs = Remove_small_blobs()
 
 
 class Binary_Dilation(BaseProcess):
-    """###binary_dilation(rank,connectivity,iterations, keepSourceWindow=False)
+    """binary_dilation(rank,connectivity,iterations, keepSourceWindow=False)
 
-Performs a binary dilation on a binary image.  The 'False' pixels neighboring 'True' pixels become converted to 'True' pixels.
-    
+    Performs a binary dilation on a binary image.  The 'False' pixels neighboring 'True' pixels become converted to 'True' pixels.
+
     Parameters:
-        | rank (int) -- The number of dimensions to dilate. Can be either 2 or 3.  
-        | connectivity (int) -- `connectivity` determines the distance to dilate.
+        rank (int): The number of dimensions to dilate. Can be either 2 or 3.
+        connectivity (int): `connectivity` determines the distance to dilate.
              `connectivity` may range from 1 (no diagonal elements are neighbors) 
              to `rank` (all elements are neighbors).
-        | iterations (int) -- How many times to repeat the dilation
-        | keepSourceWindow (bool) -- If this is False, a new Window is created with the result. Otherwise, the currentWindow is used
+        iterations (int): How many times to repeat the dilation
+        keepSourceWindow (bool): If this is False, a new Window is created with the result. Otherwise, the currentWindow is used
+
     Returns:
         newWindow
     """
@@ -417,15 +420,16 @@ binary_dilation=Binary_Dilation()
 
 
 class Binary_Erosion(BaseProcess):
-    """###binary_erosion(rank,connectivity,iterations, keepSourceWindow=False)
+    """binary_erosion(rank,connectivity,iterations, keepSourceWindow=False)
 
-Performs a binary erosion on a binary image.  The 'True' pixels neighboring 'False' pixels become converted to 'False' pixels.
+    Performs a binary erosion on a binary image.  The 'True' pixels neighboring 'False' pixels become converted to 'False' pixels.
     
     Parameters:
-        | rank (int) -- The number of dimensions to erode. Can be either 2 or 3.  
-        | connectivity (int) -- `connectivity` determines the distance to erode. `connectivity` may range from 1 (no diagonal elements are neighbors) to `rank` (all elements are neighbors).
-        | iterations (int) -- How many times to repeat the erosion
-        | keepSourceWindow (bool) -- If this is False, a new Window is created with the result. Otherwise, the currentWindow is used
+        rank (int): The number of dimensions to erode. Can be either 2 or 3.
+        connectivity (int): `connectivity` determines the distance to erode. `connectivity` may range from 1 (no diagonal elements are neighbors) to `rank` (all elements are neighbors).
+        iterations (int): How many times to repeat the erosion
+        keepSourceWindow (bool): If this is False, a new Window is created with the result. Otherwise, the currentWindow is used
+
     Returns:
         newWindow
     """
@@ -464,13 +468,13 @@ binary_erosion=Binary_Erosion()
 
 
 class Generate_ROIs(BaseProcess):
-    """###generate_rois(level, keepSourceWindow=False)
+    """generate_rois(level, keepSourceWindow=False)
 
-Uses a binary image to create ROIs from positive clusters.
+    Uses a binary image to create ROIs from positive clusters.
     
     Parameters:
-        | level (float) - value in [0, 1] to use when finding contours
-        | keepSourceWindow (bool) -- If this is False, a new Window is created with the result. Otherwise, the currentWindow is used
+        level (float): value in [0, 1] to use when finding contours
+        keepSourceWindow (bool): If this is False, a new Window is created with the result. Otherwise, the currentWindow is used
     Returns:
         newWindow
     """

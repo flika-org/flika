@@ -15,7 +15,8 @@ np.set_printoptions(suppress=True)
 np.set_printoptions(precision=3)
             
 class Measure(BaseProcess):
-    """
+    """Measure(BaseProcess)
+
     Click in the graph to select a point.
     Shift-Click in the graph to select the nearest data point
     
@@ -168,6 +169,9 @@ class Measure(BaseProcess):
         ''' This function saves out all the traces in the tracefig to a file specified by the argument 'filename'.
         The output file is a tab seperated ascii file where each column is a trace.  
         Traces are saved in the order they were added to the plot.
+
+        Parameters:
+            filename (str): name of file to save
         
         '''
         g.m.statusBar().showMessage('Saving {}'.format(os.path.basename(filename)))

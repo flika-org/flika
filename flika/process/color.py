@@ -10,6 +10,7 @@ __all__ = ['split_channels', 'Split_channels']
 
 class Split_channels(BaseProcess):
     """ split_channels(keepSourceWindow=False)
+
     This splits the color channels in a Window
 
     Returns:

@@ -312,7 +312,8 @@ def convert_to_string(item):
 
 
 class BaseProcess(object):
-    """Foundation for all flika processes. Subclass BaseProcess when writing your own process.
+    """BaseProcess(object)
+    Foundation for all flika processes. Subclass BaseProcess when writing your own process.
 
     Attributes:
         items: list of significant values unique to each BaseProcess subclass
@@ -335,9 +336,10 @@ class BaseProcess(object):
 
     def get_init_settings_dict(self):
         '''get_init_settings_dict(self)
+        Function for storing the intial settings of any BaseProcess into self.items
 
         Note:
-            | In most cases when writing a BaseProcess subclass, this function must be overloaded
+            In most cases when writing a BaseProcess subclass, this function must be overloaded
 
         Returns:
             An empty dictionary
@@ -423,8 +425,8 @@ class BaseProcess(object):
 
 
 class BaseProcess_noPriorWindow(BaseProcess):
-    ''''A BaseProcess subclass that has no prior window.
-    Some flika objects inherit this class.'''
+    """A BaseProcess subclass that has no prior window.
+    Some flika objects inherit this class."""
     def __init__(self):
         super().__init__()
         self.noPriorWindow = True

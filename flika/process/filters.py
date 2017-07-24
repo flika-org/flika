@@ -86,7 +86,7 @@ gaussian_blur = Gaussian_blur()
 
 
 class Difference_of_Gaussians(BaseProcess):
-    """ gaussian_blur(sigma1, sigma2, keepSourceWindow=False)
+    """gaussian_blur(sigma1, sigma2, keepSourceWindow=False)
 
     This subtracts one gaussian blurred image from another to spatially bandpass filter.
 
@@ -161,6 +161,7 @@ from scipy.signal import butter, filtfilt
 
 class Butterworth_filter(BaseProcess):
     """ butterworth_filter(filter_order, low, high, keepSourceWindow=False)
+
     This filters a stack in time.
     
     Parameters:
@@ -315,6 +316,7 @@ def butterworth_filter_multi_inner(q_results, q_progress, q_status, child_conn, 
 from scipy.ndimage.filters import convolve
 class Mean_filter(BaseProcess):
     """ mean_filter(nFrames, keepSourceWindow=False)
+
     This filters a stack in time.
     
     Parameters:
@@ -383,6 +385,7 @@ def varfilt(trace, nFrames):
 
 class Variance_filter(BaseProcess):
     """ variance_filter(nFrames, keepSourceWindow=False)
+
     This filters a stack in time.
 
     Parameters:
@@ -448,6 +451,7 @@ variance_filter = Variance_filter()
 from scipy.signal import medfilt
 class Median_filter(BaseProcess):
     """ median_filter(nFrames, keepSourceWindow=False)
+
     This filters a stack in time.
     
     Parameters:
@@ -516,6 +520,7 @@ median_filter=Median_filter()
 from scipy.fftpack import fft, ifft, fftfreq
 class Fourier_filter(BaseProcess):
     """ fourier_filter(frame_rate, low, high, loglogPreview, keepSourceWindow=False)
+
     I'm going to eventually plot the trace in the frequency domain inside this box so you can see where the power is.
 
     Parameters:
@@ -640,7 +645,8 @@ fourier_filter=Fourier_filter()
 
 class Difference_filter(BaseProcess):
     """ difference_filter(keepSourceWindow=False)
-    subtracts each frame from the preceeding frame
+
+    Subtracts each frame from the preceeding frame
 
     Returns:
         newWindow
@@ -663,6 +669,7 @@ difference_filter=Difference_filter()
     
 class Boxcar_differential_filter(BaseProcess):
     """ boxcar_differential_filter(minNframes, maxNframes, keepSourceWindow=False)
+
     Applies a Boxcar differential filter by comparing each frameat index I to the frames in range [I+minNframes, I+maxNframes]
 
     Parameters:
@@ -729,6 +736,7 @@ boxcar_differential_filter=Boxcar_differential_filter()
 from scipy import signal
 class Wavelet_filter(BaseProcess):
     ''' wavelet_filter(low, high, keepSourceWindow=False)
+
     ***Warning!! This function is extremely slow.***
     
     Parameters:

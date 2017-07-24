@@ -31,6 +31,7 @@ def upgrade_dtype(dtype):
 
 class Subtract(BaseProcess):
     """ subtract(value, keepSourceWindow=False)
+
     This takes a value and subtracts it from the current window's image.
     
     Parameters:
@@ -76,6 +77,7 @@ subtract=Subtract()
 
 class Subtract_trace(BaseProcess):
     """ subtract_trace(keepSourceWindow=False)
+
     This takes the most recently plotted trace and subtracts it from each corresponding frame.
 
     Returns:
@@ -100,6 +102,7 @@ subtract_trace=Subtract_trace()
 
 class Divide_trace(BaseProcess):
     """ divide_trace(keepSourceWindow=False)
+
     This takes the most recently plotted trace and divides each pixel in the current Window by its value.
 
     Returns:
@@ -124,6 +127,7 @@ divide_trace=Divide_trace()
     
 class Multiply(BaseProcess):
     """ multiply(value, keepSourceWindow=False)
+
     This takes a value and multiplies it to the current window's image.
     
     Parameters:
@@ -159,6 +163,7 @@ multiply=Multiply()
 
 class Divide(BaseProcess):
     """ divide(value, keepSourceWindow=False)
+
     This takes a value and divides it to the current window's image.
 
     Parameters:
@@ -199,6 +204,7 @@ divide = Divide()
 
 class Power(BaseProcess):
     """ power(value, keepSourceWindow=False)
+
     This raises the current window's image to the power of 'value'.
     
     Parameters:
@@ -235,6 +241,7 @@ power=Power()
     
 class Ratio(BaseProcess):
     """ ratio(first_frame,nFrames,ratio_type, keepSourceWindow=False)
+
     Takes a set of frames, combines them into a 2D array according to ratio_type, and divides the entire 3D array frame-by-frame by this array.
     
     Parameters:
@@ -297,6 +304,7 @@ ratio=Ratio()
 
 class Absolute_value(BaseProcess):
     """ absolute_value(keepSourceWindow=False)
+
     Takes the absolute value of a set of frames
 
     Returns:
