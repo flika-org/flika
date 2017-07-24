@@ -5,7 +5,7 @@ process
 
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    process/BaseProcess
    process/binary

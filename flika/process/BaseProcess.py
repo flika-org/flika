@@ -207,7 +207,7 @@ class SliderLabelOdd(SliderLabel):
 
 
 class CheckBox(QtWidgets.QCheckBox):
-    ''' I overwrote the QCheckBox class so that every graphical element has the method 'setValue'
+    '''Overwrote the QCheckBox class so that every graphical element has the method 'setValue'
     '''
     def __init__(self,parent=None):
         QtWidgets.QCheckBox.__init__(self,parent)
@@ -215,7 +215,7 @@ class CheckBox(QtWidgets.QCheckBox):
         self.setChecked(value)
 
 class ComboBox(QtWidgets.QComboBox):
-    ''' I overwrote the QComboBox class so that every graphical element has the method 'setValue'
+    '''Overwrote the QComboBox class so that every graphical element has the method 'setValue'
     '''
     def __init__(self, parent=None):
         QtWidgets.QComboBox.__init__(self, parent)
@@ -342,7 +342,7 @@ class BaseProcess(object):
             In most cases when writing a BaseProcess subclass, this function must be overloaded
 
         Returns:
-            An empty dictionary
+            A dictionary containing the initial settings and their values
 
                 '''
         return dict() #this function needs to be overwritten by every subclass

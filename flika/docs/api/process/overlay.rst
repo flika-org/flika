@@ -5,17 +5,17 @@ Module: process.overlay
 
 .. automodule:: flika.process.overlay
 
-Class: Time_Stamp
------------------
+Time_Stamp
+----------
 
 .. autoclass:: Time_Stamp
 
-Class: ShowCheckbox
--------------------
+ShowCheckbox
+------------
 
 .. autoclass:: ShowCheckbox
 
-Class: Scale_Bar
-----------------
+Scale_Bar
+---------
 
 .. autoclass:: Scale_Bar

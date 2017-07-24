@@ -159,7 +159,7 @@ def alert(msg, title="flika - Alert"):
 
     Arguments:
         msg (str): Alert message displayed to the user
-        title (str):
+        title (str): Title of the alert message popup
     """
 
     print('\nAlert: ' + msg)

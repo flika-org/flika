@@ -5,8 +5,8 @@ Module: process.color
 
 .. automodule:: flika.process.color
 
-Class: Split_channels
----------------------
+Split_channels
+--------------
 
 .. autoclass:: Split_channels
     :members:

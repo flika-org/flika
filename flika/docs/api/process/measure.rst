@@ -5,8 +5,8 @@ Module: process.measure
 
 .. automodule:: flika.process.measure
 
-Class: Meausre
---------------
+Meausre
+-------
 
 .. autoclass:: Measure
     :members: export

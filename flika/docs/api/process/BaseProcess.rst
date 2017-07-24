@@ -5,54 +5,54 @@ Module: process.BaseProcess
 
 .. automodule:: flika.process.BaseProcess
 
-Class: MissingWindowError
--------------------------
+MissingWindowError
+------------------
 
 .. autoclass:: MissingWindowError
 
-Class: WindowSelector
----------------------
+WindowSelector
+--------------
 
 .. autoclass:: WindowSelector
 
-Class: FileSelector
--------------------
+FileSelector
+------------
 
 .. autoclass:: FileSelector
 
-Class: ColorSelector
---------------------
+ColorSelector
+-------------
 
 .. autoclass:: ColorSelector
 
-Class: SliderLabelOdd
----------------------
+SliderLabelOdd
+--------------
 
 .. autoclass:: SliderLabelOdd
 
-Class: CheckBox
----------------
+CheckBox
+--------
 
 .. autoclass:: CheckBox
 
-Class: ComboBox
----------------
+ComboBox
+--------
 
 .. autoclass:: ComboBox
 
-Class: BaseDialog
------------------
+BaseDialog
+----------
 
 .. autoclass:: BaseDialog
 
-Class: BaseProcess
-------------------
+BaseProcess
+-----------
 
 .. autoclass:: BaseProcess
     :members:
 
-Class: BaseProcess_noPriorWindow
---------------------------------
+BaseProcess_noPriorWindow
+-------------------------
 
 .. autoclass:: BaseProcess_noPriorWindow
 

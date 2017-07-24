@@ -5,47 +5,47 @@ Module: process.stacks
 
 .. automodule:: flika.process.stacks
 
-Class: Deinterleave
--------------------
+Deinterleave
+------------
 
 .. autoclass:: Deinterleave
 
-Class: Pixel_binning
---------------------
+Pixel_binning
+-------------
 
 .. autoclass:: Pixel_binning
 
-Class: Frame_binning
---------------------
+Frame_binning
+-------------
 
 .. autoclass:: Frame_binning
 
-Class: Resize
--------------
+Resize
+------
 
 .. autoclass:: Resize
 
-Class: Trim
------------
+Trim
+-----
 
 .. autoclass:: Trim
 
-Class: ZProject
----------------
+ZProject
+--------
 
 .. autoclass:: ZProject
 
-Class: Image_calculator
------------------------
+Image_calculator
+----------------
 
 .. autoclass:: Image_calculator
 
-Class: Concatenate_stacks
--------------------------
+Concatenate_stacks
+------------------
 
 .. autoclass:: Concatenate_stacks
 
-Class: Change_datatype
-----------------------
+Change_datatype
+---------------
 
 .. autoclass:: Change_datatype

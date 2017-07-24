@@ -5,36 +5,36 @@ Module: process.binary
 
 .. automodule:: flika.process.binary
 
-Class: Threshold
-----------------
+Threshold
+---------
 .. autoclass:: Threshold
 
-Class: BlocksizeSlider
-----------------------
+BlocksizeSlider
+---------------
 
 .. autoclass:: BlocksizeSlider
 
-Class: Adapative_threshold
---------------------------
+Adapative_threshold
+-------------------
 
 .. autoclass:: Adaptive_threshold
 
-Class: Canny_edge_detector
---------------------------
+Canny_edge_detector
+-------------------
 
 .. autoclass:: Canny_edge_detector
 
-Class: Logically_combine
-------------------------
+Logically_combine
+-----------------
 
 .. autoclass:: Logically_combine
 
-Class: Remove_small_blobs
--------------------------
+Remove_small_blobs
+------------------
 
 .. autoclass:: Remove_small_blobs
 
-Class: Binary_Dilation
-----------------------
+Binary_Dilation
+---------------
 
 .. autoclass:: Binary_Dilation

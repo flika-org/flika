@@ -5,12 +5,12 @@ Module: process.progress_bar
 
 .. automodule:: flika.process.progress_bar
 
-Class: ProcessLauncher
-----------------------
+ProcessLauncher
+---------------
 
 .. autoclass:: ProcessLauncher
 
-Class: ProgessBar
------------------
+ProgessBar
+----------
 
 .. autoclass:: ProgressBar

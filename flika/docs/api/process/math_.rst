@@ -5,38 +5,38 @@ Module: process.math\_
 
 .. automodule:: flika.process.math_
 
-Class: Subtract
----------------
+Subtract
+--------
 
 .. autoclass:: Subtract
 
-Class: Subtract_trace
----------------------
+Subtract_trace
+--------------
 
 .. autoclass:: Subtract_trace
 
-Class: Divide_trace
--------------------
+Divide_trace
+------------
 
 .. autoclass:: Divide_trace
 
-Class: Multiply
----------------
+Multiply
+--------
 
 .. autoclass:: Multiply
 
-Class: Divide
--------------
+Divide
+------
 
 .. autoclass:: Divide
 
-Class: Power
-------------
+Power
+-----
 
 .. autoclass:: Power
 
-Class: Ratio
-------------
+Ratio
+-----
 
 .. autoclass:: Ratio
 
