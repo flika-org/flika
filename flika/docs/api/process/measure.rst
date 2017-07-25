@@ -1,7 +1,7 @@
 .. _measure:
 
-Module: process.measure
-=======================
+Submodule: measure
+==================
 
 .. automodule:: flika.process.measure
 

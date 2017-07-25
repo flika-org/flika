@@ -1,7 +1,7 @@
 .. _process:
 
-process
-=======
+Module: process
+===============
 
 
 .. toctree::

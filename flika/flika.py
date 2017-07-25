@@ -7,6 +7,7 @@ import numpy as np
 from .version import __version__
 from .logger import logger
 from .app.application import FlikaApplication
+import logging
 
 # for development purposes, add this if flika is not in your site-packages
 # sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
@@ -106,10 +107,14 @@ def start_flika(files=[]):
         A flika application object with optional files loaded
  
     """
+    logger.debug('Starting flika')
     fa = FlikaApplication()
+    logger.debug('Loading Files')
     load_files(files)
+    logger.debug('Loading files complete')
     fa.start()
     ipython_qt_event_loop_setup()
+    logger.debug('Start up complete.')
     return fa
 
 def exec_():

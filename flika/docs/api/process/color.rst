@@ -1,7 +1,7 @@
 .. _color:
 
-Module: process.color
-=====================
+Submodule: color
+================
 
 .. automodule:: flika.process.color
 

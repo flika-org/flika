@@ -22,7 +22,7 @@ def status_pixmap(attention=False):
     A small icon to grab attention
 
     Args:
-        | attention (bool): pixmap is red if True, gray if otherwise
+        attention (bool): pixmap is red if True, gray if otherwise
 
     Returns:
         QtGui.QPixmap: attention icon to display
@@ -172,9 +172,12 @@ class FlikaApplication(QtWidgets.QMainWindow):
     """
     def __init__(self):
         print('Launching flika')
+        logger.debug('self.app')
         self.app = get_qapp(image_path('favicon.png'))
+        logger.debug('self.app complete, Initializing Application')
         super(FlikaApplication, self).__init__()
         self.app.setQuitOnLastWindowClosed(True)
+        logger.debug('Application complete')
         setup_menus()
         
         load_ui('main.ui', self, directory=os.path.dirname(__file__))
@@ -209,9 +212,17 @@ class FlikaApplication(QtWidgets.QMainWindow):
         load_local_plugins()
 
     def start(self):
+        logger.debug('Starting Application')
+        logger.debug('Show')
         self.show()
+        logger.debug('Show complete')
+        logger.debug('raise_')
         self.raise_()
+        logger.debug('raise_ complete')
+        logger.debug('send_user_stats()')
         send_user_stats()
+        logger.debug('send_user_stats() complete')
+        logger.debug('Application start complete')
         #if 'PYCHARM_HOSTED' not in os.environ and 'SPYDER_SHELL_ID' not in os.environ:
         #    return self.app.exec_()
 
@@ -226,6 +237,7 @@ class FlikaApplication(QtWidgets.QMainWindow):
         self.move(0, 0)
 
     def _make_menu(self):
+        logger.debug('Creating Menu')
         fileMenu = self.menuBar().addMenu('File')
         openMenu = fileMenu.addMenu("Open")
         openMenu.addAction("Open Image/Movie", open_file_from_gui)
@@ -244,6 +256,7 @@ class FlikaApplication(QtWidgets.QMainWindow):
         fileMenu.addAction("Settings", SettingsEditor.show)
         fileMenu.addAction("&Quit", self.close)#app.quit)
 
+
         for menu in g.menus:
             self.menuBar().addMenu(menu)
 
@@ -257,6 +270,7 @@ class FlikaApplication(QtWidgets.QMainWindow):
         url = 'http://flika-org.github.io'
         helpMenu.addAction("Documentation", lambda: QtGui.QDesktopServices.openUrl(QtCore.QUrl(url)))
         helpMenu.addAction("Check For Updates", checkUpdates)
+        logger.debug('Menu complete')
 
     def __getattr__(self, item):
         if item in self.__dict__:
@@ -267,6 +281,7 @@ class FlikaApplication(QtWidgets.QMainWindow):
 
 
     def _make_tools(self):
+        logger.debug('Making tools')
         self.freehand.clicked.connect(lambda: g.settings.__setitem__('mousemode', 'freehand'))
         self.line.clicked.connect(lambda: g.settings.__setitem__('mousemode', 'line'))
         self.rect_line.clicked.connect(lambda: g.settings.__setitem__('mousemode', 'rect_line'))
@@ -278,8 +293,10 @@ class FlikaApplication(QtWidgets.QMainWindow):
         self.point.customContextMenuRequested.connect(pointSettings)
         self.rectangle.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.rectangle.customContextMenuRequested.connect(rectSettings)
+        logger.debug('Tools complete')
 
     def _make_script_menu(self):
+        logger.debug('Making script editor')
         self.scriptMenu.clear()
         self.scriptEditorAction = self.scriptMenu.addAction('Script Editor', ScriptEditor.show)
         self.scriptMenu.addSeparator()
@@ -287,11 +304,14 @@ class FlikaApplication(QtWidgets.QMainWindow):
             return lambda : ScriptEditor.importScript(script)
         for recent_script in g.settings['recent_scripts']:
             self.scriptMenu.addAction(recent_script, openScript(recent_script))
+        logger.debug('Script editor complete')
 
     def _make_plugin_menu(self):
+        logger.debug('Making Plugin Manager')
         self.pluginMenu.clear()
         self.pluginMenu.addAction('Plugin Manager', PluginManager.show)
         self.pluginMenu.addSeparator()
+        logger.debug('Plugin Manager complete')
 
         installedPlugins = [plugin for plugin in PluginManager.plugins.values() if plugin.installed]
         for plugin in sorted(installedPlugins, key=lambda a: -a.lastModified()):
@@ -299,6 +319,7 @@ class FlikaApplication(QtWidgets.QMainWindow):
                 self.pluginMenu.addMenu(plugin.menu)
 
     def _make_recents(self):
+        logger.debug('Making recent files')
         self.recentFileMenu.clear()
         g.settings['recent_files'] = [f for f in g.settings['recent_files'] if os.path.exists(f)]
         if len(g.settings['recent_files']) == 0:
@@ -309,6 +330,7 @@ class FlikaApplication(QtWidgets.QMainWindow):
             for name in g.settings['recent_files'][::-1]:
                 if isinstance(name, str) and os.path.exists(name):
                     self.recentFileMenu.addAction(name)
+        logger.debug('Recent files complete')
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls():

@@ -1,7 +1,7 @@
 .. _math_:
 
-Module: process.math\_
-======================
+Submodule: math\_
+=================
 
 .. automodule:: flika.process.math_
 

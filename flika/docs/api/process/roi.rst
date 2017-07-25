@@ -1,7 +1,7 @@
 .. _roi:
 
-Module: process.roi
-===================
+Submodule: roi
+==============
 
 .. automodule:: flika.process.roi
 

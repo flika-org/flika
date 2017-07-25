@@ -1,7 +1,7 @@
 .. _filters:
 
-Module: process.filters
-=======================
+Submodule: filters
+==================
 
 .. automodule:: flika.process.filters
 

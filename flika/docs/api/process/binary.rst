@@ -1,7 +1,7 @@
 .. _binary:
 
-Module: process.binary
-======================
+Submodule: binary
+=================
 
 .. automodule:: flika.process.binary
 

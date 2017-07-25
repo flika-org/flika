@@ -1,7 +1,7 @@
 .. _overlay:
 
-Module: process.overlay
-=======================
+Submodule: overlay
+==================
 
 .. automodule:: flika.process.overlay
 

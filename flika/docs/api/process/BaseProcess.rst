@@ -1,7 +1,7 @@
 .. _BaseProcess:
 
-Module: process.BaseProcess
-===========================
+Submodule: BaseProcess
+======================
 
 .. automodule:: flika.process.BaseProcess
 

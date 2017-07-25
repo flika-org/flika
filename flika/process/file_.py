@@ -111,15 +111,15 @@ def save_movie(rate, filename=None):
     Saves the currentWindow video as a .mp4 movie by joining .jpg frames together
 
     Parameters:
-        | rate (int) -- framerate
-        | filename (str) -- Address to save the movie to, with .mp4
+        rate (int): framerate
+        filename (str): Address to save the movie to, with .mp4
 
     Notes:
-        | Once you've exported all of the frames you wanted, open a command line and run the following:
-        |   ffmpeg -r 100 -i %03d.jpg output.mp4
-        | -r: framerate
-        | -i: input files.
-        | %03d: The files have to be numbered 001.jpg, 002.jpg... etc.
+        Once you've exported all of the frames you wanted, open a command line and run the following:
+        ffmpeg -r 100 -i %03d.jpg output.mp4
+        -r: framerate
+        -i: input files.
+        %03d: The files have to be numbered 001.jpg, 002.jpg... etc.
 
     """
 
@@ -199,7 +199,7 @@ def open_image_sequence(filename=None, from_gui=False):
     Opens an image sequence (.tif, .png) into a newWindow.
 
     Parameters:
-        filename (str) -- Address of the first of a series of files that will be stitched together into a movie.
+        filename (str): Address of the first of a series of files that will be stitched together into a movie.
                             If no filename is provided, the last opened file is used.
     Returns:
         newWindow

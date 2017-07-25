@@ -1,7 +1,7 @@
 .. _stacks:
 
-Module: process.stacks
-======================
+Submodule: stacks
+=================
 
 .. automodule:: flika.process.stacks
 
@@ -26,7 +26,7 @@ Resize
 .. autoclass:: Resize
 
 Trim
------
+----
 
 .. autoclass:: Trim
 

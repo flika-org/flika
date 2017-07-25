@@ -56,10 +56,9 @@ def in_process_console(console_class=RichIPythonWidget, **kwargs):
 
     This only works on IPython v 0.13 and above
 
-    Parameters
-    ----------
-    console_class : The class of the console widget to create
-    kwargs : Extra variables to put into the namespace
+    Parameters:
+        console_class : The class of the console widget to create
+        kwargs : Extra variables to put into the namespace
     """
 
     km = QtInProcessKernelManager()
@@ -85,10 +84,9 @@ def connected_console(console_class=RichIPythonWidget, **kwargs):
 
     This only works on IPython v1.0 and above
 
-    Parameters
-    ----------
-    console_class : The class of the console widget to create
-    kwargs : Extra variables to put into the namespace
+    Parameters:
+        console_class : The class of the console widget to create
+        kwargs : Extra variables to put into the namespace
     """
     shell = get_ipython()
     if shell is None:
@@ -151,7 +149,8 @@ def default_kernel_app():
 def default_manager(kernel):
     """ Return a configured QtKernelManager
 
-    :param kernel: An IPKernelApp instance
+    Parameters:
+         kernel: An IPKernelApp instance
     """
     connection_file = find_connection_file(kernel.connection_file)
     manager = QtKernelManager(connection_file=connection_file)
@@ -289,8 +288,9 @@ def _ipython_terminal_2(**kwargs):
 def _ipython_terminal_3(**kwargs):
     """Used for IPython v1.0 and beyond
 
-    :param kwargs: Keywords which are passed to Widget init,
-    and which are also passed to the current namespace
+    Parameters:
+         kwargs: Keywords which are passed to Widget init,
+        and which are also passed to the current namespace
     """
     # see IPython/docs/examples/frontends/inprocess_qtconsole.p
 
@@ -305,9 +305,9 @@ def ipython_terminal(banner='', **kwargs):
 
         Extra keywords will be added to the namespace of the shell
 
-        :param kwargs: Extra variables to be added to the namespace
+    Parameters:
+        kwargs (QWidget): Extra variables to be added to the namespace
 
-        :rtype: QWidget
     """
     Terminal.banner = '''flika version {}
 
