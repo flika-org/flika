@@ -272,18 +272,18 @@ def open_file(filename=None, from_gui=False):
                 g.alert('No filename selected')
                 return None
     print("Filename: {}".format(filename))
-    g.m.statusBar().showMessage('Loading {}'.format(os.path.basename(filename)))
+    g.m.statusBar().showMessage('Loading {}'.format(os.path.basename(str(filename))))
     t = time.time()
     metadata = dict()
-    ext = os.path.splitext(filename)[1]
+    ext = os.path.splitext(str(filename))[1]
     if ext in ['.tif', '.stk', '.tiff', '.ome']:
-        results = open_tiff(filename, metadata)
+        results = open_tiff(str(filename), metadata)
         if results is None:
             return None
         else:
             A, metadata = results
     elif ext == '.nd2':
-        nd2 = nd2reader.ND2Reader(filename)
+        nd2 = nd2reader.ND2Reader(str(filename))
         axes = nd2.axes
         mx = nd2.metadata['width']
         my = nd2.metadata['height']
@@ -322,11 +322,11 @@ def open_file(filename=None, from_gui=False):
         # make_recent_menu()
         return
         
-    append_recent_file(filename)  # make first in recent file menu
-    g.m.statusBar().showMessage('{} successfully loaded ({} s)'.format(os.path.basename(filename), time.time() - t))
-    g.settings['filename'] = filename
+    append_recent_file(str(filename))  # make first in recent file menu
+    g.m.statusBar().showMessage('{} successfully loaded ({} s)'.format(os.path.basename(str(filename)), time.time() - t))
+    g.settings['filename'] = str(filename)
     commands = ["open_file('{}')".format(filename)]
-    newWindow = Window(A, os.path.basename(filename), filename, commands, metadata)
+    newWindow = Window(A, os.path.basename(str(filename)), filename, commands, metadata)
     return newWindow
 
 def open_tiff(filename, metadata):
@@ -368,6 +368,10 @@ def open_tiff(filename, metadata):
     elif set(axes) == set(['sample', 'time', 'height', 'width']):  # movie in color
         target_axes = ['time', 'width', 'height', 'sample']
         metadata['is_rgb'] = True
+    elif set(axes) == set(['other', 'height', 'width']):
+        target_axes = ['other', 'height', 'width']
+        metadata['is_rgb'] = False
+
     perm = get_permutation_tuple(axes, target_axes)
     A = np.transpose(A, perm)
     if target_axes[-1] in ['channel', 'sample', 'series'] and A.shape[-1] == 2:
