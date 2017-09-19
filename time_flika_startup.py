@@ -56,15 +56,19 @@ def get_steps(lines, idx, parent_step=None):
             substeps, t_f, idx = get_steps(lines, idx+1, parent_step=step_name)
             steps.append(Step(step_name, t_f - t_i, substeps))
         if line.split(' - DEBUG - ')[1][:9] == 'Completed':
-            assert step_name == parent_step
+            try:
+                assert step_name == parent_step
+            except AssertionError:
+                print(AssertionError)
+                print("Step name: '{}', parent_step: '{}'".format(step_name, parent_step))
             t_f = datetime.datetime.strptime(line.split(' - DEBUG')[0], "%Y-%m-%d %H:%M:%S,%f")
             return steps, t_f, idx+1
     return steps
 
 if __name__ == '__main__':
-    #from flika import *
-    #start_flika()
-    #assert logger.level == DEBUG
+    from flika import *
+    start_flika()
+    assert logger.level == DEBUG
     steps = get_log_steps()
     for step in steps:
         print(step.repr_w_children())

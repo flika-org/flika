@@ -5,9 +5,7 @@ from qtpy import QtCore, QtGui, QtWidgets
 import pyqtgraph as pg
 import os, time
 import numpy as np
-from .tracefig import TraceFig
 from . import global_vars as g
-from .process.measure import measure
 from .roi import *
 from .utils.misc import save_file_gui
 
@@ -75,6 +73,7 @@ class Window(QtWidgets.QWidget):
     lostFocusSignal = QtCore.Signal()
 
     def __init__(self, tif, name='flika', filename='', commands=[], metadata=dict()):
+        from .process.measure import measure
         QtWidgets.QWidget.__init__(self)
         self.name = name  #: str: The name of the window.
         self.filename = filename  #: str: The filename (including full path) of file this window's image orinated from.

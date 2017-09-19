@@ -9,9 +9,7 @@ import contextlib
 import pathlib
 import tempfile
 from zipfile import ZipFile
-from pkg_resources import parse_version
 import shutil
-from distutils.sysconfig import get_python_lib
 from qtpy import QtWidgets, QtGui, QtCore
 from . import global_vars as g
 from .version import __version__ as installed_flika_version
@@ -22,6 +20,7 @@ __all__ = ['checkUpdates']
 
 
 def check_if_installed_via_pip():
+    from distutils.sysconfig import get_python_lib
     s_loc = pathlib.Path(get_python_lib())
     f_loc = pathlib.Path(__file__)
     assert f_loc.exists()
@@ -92,6 +91,7 @@ def checkUpdates():
     repository.
 
     """
+    from pkg_resources import parse_version
     installed_via_pip = check_if_installed_via_pip()
     if installed_via_pip:
         latest_version = get_pypi_version()

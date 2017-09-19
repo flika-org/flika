@@ -2,9 +2,8 @@ import os
 import random
 import numpy as np
 import platform
-import json
-import requests
 import time
+import json
 from qtpy import uic, QtGui, QtWidgets
 __all__ = ['nonpartial', 'setConsoleVisible', 'load_ui', 'random_color', 'save_file_gui', 'open_file_gui', 'get_location']
 
@@ -157,6 +156,7 @@ def send_error_report(email, report):
         Request Response if the API was reached, or None if connection failed. Use response.status==200 to check success
 
     """
+    import requests
     from .. import global_vars as g
     address = g.settings['user_information']['UUID']
     location = g.settings['user_information']['location']
@@ -178,6 +178,7 @@ def send_user_stats():
         Request Response if the API was reached, or None if connection failed. Use response.status==200 to check success
 
     """
+    import requests
     from .. import global_vars as g
     address = g.settings['user_information']['UUID']
     location = g.settings['user_information']['location']
@@ -195,6 +196,7 @@ def get_location():
     Returns:
         str: the 'city, region, country' location of the current IP address. Or None if the connection fails
     """
+    import requests
     send_url = 'http://freegeoip.net/json'
     try:
         r = requests.get(send_url)

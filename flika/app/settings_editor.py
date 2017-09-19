@@ -1,11 +1,11 @@
-# -*- coding: utf-8 -*-
+from ..logger import logger
+logger.debug("Started 'reading app/settings_editor.py'")
+
 import numpy as np
-import pyqtgraph as pg
-from pyqtgraph import ComboBox
 from qtpy import QtWidgets, QtGui
 from multiprocessing import cpu_count
 from ..utils.misc import setConsoleVisible
-from ..process.BaseProcess import BaseDialog, BaseProcess, ColorSelector
+from ..utils.BaseProcess import BaseDialog, BaseProcess, ColorSelector
 from .. import global_vars as g
 
 
@@ -16,6 +16,8 @@ data_types = ['uint8', 'uint16', 'uint32', 'uint64', 'int8', 'int16', 'int32', '
 class SettingsEditor(BaseDialog):
     gui = None
     def __init__(self):
+        from pyqtgraph import ComboBox
+
         old_dtype=g.settings['internal_data_type']
         dataDrop = ComboBox(items=data_types, default=old_dtype)
         showCheck = QtWidgets.QCheckBox()
@@ -107,6 +109,7 @@ def pointSettings(pointButton):
     items.append({'name': 'delete_all_points', 'string': 'Delete all points', 'object': delete_all_points})
 
     def update():
+        from pyqtgraph import mkBrush
         win = g.win
         g.settings['point_color'] = point_color.value()
         g.settings['point_size'] = point_size.value()
@@ -125,7 +128,7 @@ def pointSettings(pointButton):
                 for t in np.arange(win.mt):
                     pts.extend(win.scatterPoints[t])
                 pointSizes = [pt[3] for pt in pts]
-                brushes = [pg.mkBrush(*pt[2].getRgb()) for pt in pts]
+                brushes = [mkBrush(*pt[2].getRgb()) for pt in pts]
                 win.scatterPlot.setPoints(pos=pts, size=pointSizes, brush=brushes)
             else:
                 win.updateindex()
@@ -170,3 +173,5 @@ def rectSettings(rectButton):
     dialog.changeSignal.connect(update)
     g.dialogs.append(dialog)
     dialog.show()
+
+logger.debug("Completed 'reading app/settings_editor.py'")

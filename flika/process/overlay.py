@@ -5,7 +5,7 @@ import numpy as np
 import pyqtgraph as pg
 from qtpy import QtWidgets, QtCore, QtGui
 from .. import global_vars as g
-from .BaseProcess import BaseProcess, SliderLabel, WindowSelector,  MissingWindowError, CheckBox, ComboBox
+from ..utils.BaseProcess import BaseProcess, SliderLabel, WindowSelector,  MissingWindowError, CheckBox, ComboBox
 
 __all__ = ['time_stamp','background','scale_bar']
      

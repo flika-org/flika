@@ -5,7 +5,7 @@ import skimage.filters
 from qtpy import QtWidgets, QtGui, QtCore
 import time
 from .. import global_vars as g
-from .BaseProcess import BaseProcess, SliderLabel, SliderLabelOdd, CheckBox
+from ..utils.BaseProcess import BaseProcess, SliderLabel, SliderLabelOdd, CheckBox
 from .progress_bar import ProgressBar
 
 __all__ = ['gaussian_blur', 'difference_of_gaussians', 'mean_filter', 'variance_filter', 'median_filter', 'butterworth_filter', 'boxcar_differential_filter','wavelet_filter','difference_filter', 'fourier_filter', 'bilateral_filter']

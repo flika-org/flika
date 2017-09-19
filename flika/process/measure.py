@@ -6,7 +6,7 @@ import numpy as np
 import pyqtgraph as pg
 from qtpy import QtWidgets, QtCore, QtGui
 from .. import global_vars as g
-from .BaseProcess import BaseProcess
+from ..utils.BaseProcess import BaseProcess
 from ..utils.misc import save_file_gui
 
 from ..roi import ROI_Base

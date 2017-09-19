@@ -8,7 +8,7 @@ from skimage.morphology import remove_small_objects
 from distutils.version import StrictVersion
 from qtpy import QtCore, QtGui, QtWidgets
 from .. import global_vars as g
-from .BaseProcess import BaseProcess, SliderLabel, WindowSelector,  MissingWindowError, CheckBox, ComboBox
+from ..utils.BaseProcess import BaseProcess, SliderLabel, WindowSelector,  MissingWindowError, CheckBox, ComboBox
 from ..roi import makeROI, ROI_Drawing
 if StrictVersion(skimage.__version__) >= StrictVersion('0.13.0'):
     from skimage.filters import threshold_local

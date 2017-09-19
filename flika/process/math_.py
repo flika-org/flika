@@ -4,7 +4,7 @@ logger.debug("Started 'reading process/math_.py'")
 import numpy as np
 from qtpy import QtGui, QtWidgets, QtCore
 from .. import global_vars as g
-from .BaseProcess import BaseProcess, CheckBox, ComboBox
+from ..utils.BaseProcess import BaseProcess, CheckBox, ComboBox
 from ..window import Window
 
 __all__ = ['subtract','multiply','divide','power','ratio','absolute_value','subtract_trace','divide_trace']

@@ -5,9 +5,12 @@ import sys, os
 import platform
 import optparse
 import warnings
+logger.debug("Started 'reading flika.py, importing numpy'")
 import numpy as np
+logger.debug("Completed 'reading flika.py, importing numpy'")
 from .version import __version__
 from .app.application import FlikaApplication
+
 
 # for development purposes, add this if flika is not in your site-packages
 # sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))

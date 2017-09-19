@@ -26,7 +26,6 @@ import numpy as np
 from pyqtgraph.graphicsItems.ROI import Handle
 from . import global_vars as g
 from .utils.misc import random_color, open_file_gui, nonpartial
-from .tracefig import roiPlot
 class ROI_Drawing(pg.GraphicsObject):
     """Graphics Object for ROIs while initially being drawn. Extends pyqtrgaph.GraphicsObject
 
@@ -254,6 +253,7 @@ class ROI_Base():
         Returns:
             tracefig.TraceFig: the trace window that the ROI was plotted to
         """
+        from .tracefig import roiPlot
         self.traceWindow = roiPlot(self)
         if self.traceWindow == None:
             return

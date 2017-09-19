@@ -14,8 +14,7 @@ import re
 import pathlib
 
 from .. import global_vars as g
-from ..app.script_editor import ScriptEditor
-from .BaseProcess import BaseDialog
+from ..utils.BaseProcess import BaseDialog
 from ..window import Window
 from ..utils.misc import open_file_gui, save_file_gui
 from ..utils.io import tifffile
@@ -296,6 +295,7 @@ def open_file(filename=None, from_gui=False):
                 QtWidgets.qApp.processEvents()
         metadata = nd2.metadata
     elif ext == '.py':
+        from ..app.script_editor import ScriptEditor
         ScriptEditor.importScript(filename)
         return
     elif ext == '.whl':

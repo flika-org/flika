@@ -5,7 +5,7 @@ import numpy as np
 from qtpy import QtWidgets, QtCore, QtGui
 from .. import global_vars as g
 from ..window import Window
-from .BaseProcess import BaseProcess, WindowSelector, MissingWindowError, CheckBox
+from ..utils.BaseProcess import BaseProcess, WindowSelector, MissingWindowError, CheckBox
 
 __all__ = ['split_channels', 'Split_channels']
 

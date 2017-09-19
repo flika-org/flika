@@ -2,7 +2,6 @@
 from ..logger import logger
 logger.debug("Started 'reading app/plugin_manager.py'")
 
-
 from glob import glob
 import os, sys, difflib, zipfile, time, shutil, traceback
 from os.path import expanduser
@@ -10,7 +9,6 @@ from qtpy import QtGui, QtWidgets, QtCore
 from urllib.request import urlopen
 from urllib.error import HTTPError
 from urllib.parse import urljoin
-from pkg_resources import parse_version
 import threading
 import tempfile
 from xml.etree import ElementTree
@@ -260,6 +258,7 @@ class PluginManager(QtWidgets.QMainWindow):
             QtWidgets.QMainWindow.close(PluginManager.gui)
 
     def __init__(self):
+        from pkg_resources import parse_version
         super(PluginManager,self).__init__()
         load_ui("plugin_manager.ui", self, directory=os.path.dirname(__file__))
         try:

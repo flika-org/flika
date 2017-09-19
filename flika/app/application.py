@@ -4,20 +4,24 @@ logger.debug("Started 'reading app/application.py'")
 import sys, os, time
 import ctypes
 import platform
+logger.debug("Started 'reading app/application.py, importing qtpy'")
 from qtpy import QtCore, QtWidgets, QtGui
+logger.debug("Completed 'reading app/application.py, importing qtpy'")
+
 from ..utils.misc import nonpartial
 from ..utils.app import get_qapp
-from ..process import setup_menus
 from ..app.settings_editor import SettingsEditor, rectSettings, pointSettings
-from ..process.file_ import *
+
 from .. import global_vars as g
 from .plugin_manager import PluginManager, load_local_plugins
 from .script_editor import ScriptEditor
 from ..utils.misc import load_ui, send_error_report, send_user_stats
+
 from ..images import image_path
-from ..roi import open_rois
 from ..version import __version__
+
 from ..update_flika import checkUpdates
+
 
 def status_pixmap(attention=False):
     """status_pixmap(attention=False)
@@ -174,13 +178,15 @@ class FlikaApplication(QtWidgets.QMainWindow):
     """
     def __init__(self):
         logger.debug("Started 'creating app.application.FlikaApplication'")
+        from ..process.file_ import open_file, open_file_from_gui, open_image_sequence_from_gui, open_points, save_file, save_movie_gui, save_points, save_rois
+        from ..process import setup_menus
         print('Launching flika')
-        logger.debug("Started 'creating app.application.FlikaApplication111111'")
+        logger.debug("Started 'creating app.application.FlikaApplication.app'")
         self.app = get_qapp(image_path('favicon.png'))
+        logger.debug("Completed 'creating app.application.FlikaApplication.app'")
         super(FlikaApplication, self).__init__()
         self.app.setQuitOnLastWindowClosed(True)
         setup_menus()
-        logger.debug("Completed 'creating app.application.FlikaApplication111111'")
         logger.debug("Started 'loading main.ui'")
         load_ui('main.ui', self, directory=os.path.dirname(__file__))
         logger.debug("Completed 'loading main.ui'")
@@ -239,6 +245,8 @@ class FlikaApplication(QtWidgets.QMainWindow):
 
     def _make_menu(self):
         logger.debug("Started 'app.application.FlikaApplication._make_menu()'")
+        from ..roi import open_rois
+        from ..process.file_ import open_file, open_file_from_gui, open_image_sequence_from_gui, open_points, save_file, save_movie_gui, save_points, save_rois
         fileMenu = self.menuBar().addMenu('File')
         openMenu = fileMenu.addMenu("Open")
         openMenu.addAction("Open Image/Movie", open_file_from_gui)

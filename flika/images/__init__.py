@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import os
-import pkg_resources
 
 __all__ = ['image_path']
 
@@ -18,8 +17,7 @@ def image_path(image_name):
     path : str
       Full path to image
     """
-
-
+    import pkg_resources
     try:
         if pkg_resources.resource_exists('flika.images', image_name):
             return pkg_resources.resource_filename('flika.images', image_name)

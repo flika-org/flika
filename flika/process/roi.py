@@ -5,7 +5,7 @@ import numpy as np
 import skimage
 from qtpy import QtWidgets
 from .. import global_vars as g
-from .BaseProcess import BaseProcess, CheckBox
+from ..utils.BaseProcess import BaseProcess, CheckBox
 
 
 __all__ = ['set_value']

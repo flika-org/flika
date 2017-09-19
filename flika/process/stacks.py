@@ -7,7 +7,7 @@ import numpy as np
 from qtpy import QtWidgets
 from ..window import Window
 from .. import global_vars as g
-from .BaseProcess import BaseProcess, BaseProcess_noPriorWindow, WindowSelector, MissingWindowError, CheckBox, SliderLabel, ComboBox
+from ..utils.BaseProcess import BaseProcess, BaseProcess_noPriorWindow, WindowSelector, MissingWindowError, CheckBox, SliderLabel, ComboBox
 
 
 

@@ -5,13 +5,11 @@ logger.debug("Started 'reading process/BaseProcess.py'")
 import os.path
 import numpy as np
 from qtpy import QtCore, QtGui, QtWidgets
-import pyqtgraph as pg
 import sys
 import inspect
 import markdown
 
 from .. import global_vars as g
-from .. import window
 from ..utils.misc import save_file_gui
 
 __all__ = ['MissingWindowError', 'WindowSelector', 'FileSelector', 'ColorSelector', 'SliderLabel', 'SliderLabelOdd', 'CheckBox', 'ComboBox', 'BaseDialog', 'BaseProcess', 'BaseProcess_noPriorWindow']
@@ -364,6 +362,7 @@ class BaseProcess(object):
         self.oldname = self.oldwindow.name
 
     def end(self):
+        from .. import window
         if not hasattr(self, 'newtif') or self.newtif is None:
             self.oldwindow.reset()
             return
@@ -383,11 +382,12 @@ class BaseProcess(object):
         return newWindow
 
     def gui(self):
+        from pyqtgraph import SignalProxy
         self.ui=BaseDialog(self.items,self.__name__,self.__doc__, self)
         if hasattr(self, '__url__'):
             self.ui.bbox.addButton(QtWidgets.QDialogButtonBox.Help)
             self.ui.bbox.helpRequested.connect(lambda : QtWidgets.QDesktopServices.openUrl(QtCore.QUrl(self.__url__)))
-        self.proxy= pg.SignalProxy(self.ui.changeSignal,rateLimit=60, slot=self.preview)
+        self.proxy= SignalProxy(self.ui.changeSignal,rateLimit=60, slot=self.preview)
         if g.win is not None:
             self.ui.rejected.connect(g.win.reset)
         self.ui.closeSignal.connect(self.ui.rejected.emit)
@@ -400,6 +400,7 @@ class BaseProcess(object):
         self.items=[]
 
     def call_from_gui(self):
+        from .. import window
         varnames = [i for i in inspect.getargspec(self.__call__)[0] if i != 'self' and i != 'keepSourceWindow']
         try:
             args = [self.getValue(name) for name in varnames]
@@ -442,6 +443,7 @@ class BaseProcess_noPriorWindow(BaseProcess):
         g.m.statusBar().showMessage('Performing {}...'.format(self.__name__))
         
     def end(self):
+        from .. import window
         commands = [self.command]
         newWindow = window.Window(self.newtif,str(self.newname),commands=commands)
         if np.max(self.newtif) == 1 and np.min(self.newtif) == 0: #if the array is boolean
