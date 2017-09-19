@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
+from ..logger import logger
+logger.debug("Started 'reading process/stacks.py'")
+
+
 import numpy as np
 from qtpy import QtWidgets
 from ..window import Window
 from .. import global_vars as g
 from .BaseProcess import BaseProcess, BaseProcess_noPriorWindow, WindowSelector, MissingWindowError, CheckBox, SliderLabel, ComboBox
-from ..tracefig import TraceFig
+
 
 
 __all__ = ['deinterleave','trim','zproject','image_calculator', 'pixel_binning', 'frame_binning', 'resize', 'concatenate_stacks', 'duplicate', 'generate_random_image', 'change_datatype']
@@ -178,7 +182,7 @@ class Frame_binning(BaseProcess):
 frame_binning=Frame_binning()
 
 
-import skimage.transform
+
 class Resize(BaseProcess):
     """resize(factor, keepSourceWindow=False)
 
@@ -204,6 +208,7 @@ class Resize(BaseProcess):
         super().gui()
 
     def __call__(self,factor,keepSourceWindow=False):
+        import skimage.transform
         self.start(keepSourceWindow)
         if self.tif.dtype in (np.uint64, np.int64):
             g.alert("Resize fails on int64 and uint64 movie types, change the image type to resize.")
@@ -535,3 +540,5 @@ class Change_datatype(BaseProcess):
         return self.end()
 
 change_datatype = Change_datatype()
+
+logger.debug("Completed 'reading process/stacks.py'")

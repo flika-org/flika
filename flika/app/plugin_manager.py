@@ -1,16 +1,18 @@
 # -*- coding: utf-8 -*-
+from ..logger import logger
+logger.debug("Started 'reading app/plugin_manager.py'")
+
+
 from glob import glob
 import os, sys, difflib, zipfile, time, shutil, traceback
-import importlib.util
 from os.path import expanduser
 from qtpy import QtGui, QtWidgets, QtCore
 from urllib.request import urlopen
 from urllib.error import HTTPError
 from urllib.parse import urljoin
 from pkg_resources import parse_version
-import pkg_resources, os
 import threading
-import pip, tempfile
+import tempfile
 from xml.etree import ElementTree
 import platform
 
@@ -403,6 +405,7 @@ class PluginManager(QtWidgets.QMainWindow):
 
     @staticmethod
     def downloadPlugin(plugin):
+        import pip
         if isinstance(plugin, str):
             if plugin in PluginManager.plugins:
                 plugin = PluginManager.plugins[plugin]
@@ -486,6 +489,7 @@ Then try installing the plugin again.""".format(pl, v, arch))
         plugin.installed = True
 
 def load_local_plugins():
+    logger.debug("Started 'app.plugin_manager.load_local_plugins'")
     PluginManager.plugins = {n: Plugin(n) for n in plugin_list}
     installed_plugins = {}
     for pluginPath in PluginManager.local_plugin_paths():
@@ -499,5 +503,9 @@ def load_local_plugins():
                 g.alert('Could not load the plugin {}. There is already a plugin with this same name. Change the plugin name in the info.xml file'.format(p.name))
         except Exception as e:
             g.alert("Could not load {}.\n\t{}".format(pluginPath, traceback.format_exc()), title="Plugin Load Error")
+    logger.debug("Completed 'app.plugin_manager.load_local_plugins'")
 
 # from flika.app.plugin_manager import *
+
+
+logger.debug("Completed 'reading app/plugin_manager.py'")

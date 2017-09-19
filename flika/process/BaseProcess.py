@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+from ..logger import logger
+logger.debug("Started 'reading process/BaseProcess.py'")
+
 import os.path
 import numpy as np
 from qtpy import QtCore, QtGui, QtWidgets
@@ -474,7 +477,7 @@ class BaseProcess_noPriorWindow(BaseProcess):
 
 
 
-
+logger.debug("Completed 'reading process/BaseProcess.py'")
 
 
 

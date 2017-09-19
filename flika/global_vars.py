@@ -12,6 +12,8 @@ image inside current window, simply run::
 
 
 """
+from .logger import logger
+logger.debug("Started 'reading global_vars.py'")
 import os
 from multiprocessing import cpu_count
 from os.path import expanduser
@@ -19,7 +21,6 @@ from qtpy import QtWidgets, QtGui, QtCore
 from collections.abc import MutableMapping
 import json
 from uuid import getnode
-from .logger import logger
 from .utils.misc import get_location
 
 __all__ = ['m', 'Settings', 'menus', 'alert', 'windows', 'traceWindows', 'currentWindow', 'win', 'currentTrace', 'clipboard']
@@ -192,3 +193,4 @@ clipboard = None
 
 
 
+logger.debug("Completed 'reading global_vars.py'")

@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from ..logger import logger
+logger.debug("Started 'reading process/math_.py'")
 import numpy as np
 from qtpy import QtGui, QtWidgets, QtCore
 from .. import global_vars as g
@@ -324,3 +326,4 @@ class Absolute_value(BaseProcess):
 absolute_value=Absolute_value()
 
 
+logger.debug("Completed 'reading process/math_.py'")

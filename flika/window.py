@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
+from .logger import logger
+logger.debug("Started 'reading window.py'")
 from qtpy import QtCore, QtGui, QtWidgets
 import pyqtgraph as pg
 import os, time
 import numpy as np
-from skimage import measure
 from .tracefig import TraceFig
 from . import global_vars as g
 from .process.measure import measure
 from .roi import *
 from .utils.misc import save_file_gui
+
 pg.setConfigOptions(useWeave=False)
 
 class ImageView(pg.ImageView):
@@ -651,3 +653,4 @@ class Window(QtWidgets.QWidget):
             minutes = int(np.floor(mminutes/60))
             seconds = mminutes-minutes*60
             label.setHtml("<span style='font-size: 12pt;color:white;background-color:None;'>{}h {}m {:.3f} s</span>".format(hours,minutes,seconds))
+logger.debug("Completed 'reading window.py'")

@@ -3,7 +3,6 @@ import os, sys
 from urllib.request import urlopen
 from urllib.error import HTTPError
 import re
-import pip
 import sys
 from io import StringIO, BytesIO
 import contextlib
@@ -65,6 +64,7 @@ def path_walk(top, topdown=False, followlinks=False):
 
 
 def get_pypi_version():
+    import pip
     with capture() as out:
         pip.main(['search', 'flika'])
     stdout, stderr = out
@@ -112,6 +112,7 @@ def checkUpdates():
 
 
 def updateFlika():
+    import pip
     installed_via_pip = check_if_installed_via_pip()
     if installed_via_pip:
         with capture() as out:

@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from ..logger import logger
+logger.debug("Started 'reading process/measure.py'")
 import os
 import numpy as np
 import pyqtgraph as pg
@@ -6,8 +8,8 @@ from qtpy import QtWidgets, QtCore, QtGui
 from .. import global_vars as g
 from .BaseProcess import BaseProcess
 from ..utils.misc import save_file_gui
-from ..roi import ROI_Base
 
+from ..roi import ROI_Base
 __all__ = ['measure']
 
 
@@ -199,4 +201,4 @@ class Measure(BaseProcess):
         g.m.statusBar().showMessage('Successfully saved {}'.format(os.path.basename(filename)))
     
 measure = Measure()
-
+logger.debug("Completed 'reading process/measure.py'")

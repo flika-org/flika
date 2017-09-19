@@ -1,18 +1,15 @@
 # -*- coding: utf-8 -*-
+from ..logger import logger
+logger.debug("Started 'reading process/file_.py'")
 import pyqtgraph as pg
 import pyqtgraph.exporters
 import time
 import os.path
 import numpy as np
 from qtpy import uic, QtGui, QtCore, QtWidgets
-import codecs
 import shutil, subprocess
-import json
-import re
-import nd2reader
 import datetime
 import json
-import pip
 import re
 import pathlib
 
@@ -283,6 +280,7 @@ def open_file(filename=None, from_gui=False):
         else:
             A, metadata = results
     elif ext == '.nd2':
+        import nd2reader
         nd2 = nd2reader.ND2Reader(str(filename))
         axes = nd2.axes
         mx = nd2.metadata['width']
@@ -301,6 +299,7 @@ def open_file(filename=None, from_gui=False):
         ScriptEditor.importScript(filename)
         return
     elif ext == '.whl':
+        import pip
         # first, remove trailing (1) or (2)
         newfilename = re.sub(r' \([^)]*\)', '', filename)
         try:
@@ -625,3 +624,5 @@ def make_recent_menu():
             g.m.menuRecent_Files.addAction(QtWidgets.QAction(fname, g.m, triggered=openFun(fname)))
 
 """
+
+logger.debug("Completed 'reading process/file_.py'")

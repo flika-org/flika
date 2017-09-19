@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from ..logger import logger
+logger.debug("Started 'reading process/roi.py'")
 import numpy as np
 import skimage
 from qtpy import QtWidgets
@@ -90,3 +92,4 @@ class Set_value(BaseProcess):
         return self.end()
 set_value=Set_value()
 
+logger.debug("Completed 'reading process/roi.py'")

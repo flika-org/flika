@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
+from .logger import logger
+logger.debug("Started 'reading flika.py'")
 import sys, os
 import platform
 import optparse
 import warnings
 import numpy as np
 from .version import __version__
-from .logger import logger
 from .app.application import FlikaApplication
-import logging
 
 # for development purposes, add this if flika is not in your site-packages
 # sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
@@ -107,14 +107,12 @@ def start_flika(files=[]):
         A flika application object with optional files loaded
  
     """
-    logger.debug('Starting flika')
+    logger.debug("Started 'flika.start_flika()'")
     fa = FlikaApplication()
-    logger.debug('Loading Files')
     load_files(files)
-    logger.debug('Loading files complete')
     fa.start()
     ipython_qt_event_loop_setup()
-    logger.debug('Start up complete.')
+    logger.debug("Completed 'flika.start_flika()'")
     return fa
 
 def exec_():
@@ -141,7 +139,7 @@ def post_install():
 if __name__ == '__main__':
     start_flika(sys.argv[1:])
 
-
+logger.debug("Completed 'reading flika.py'")
 """
 def exec_(args=sys.argv):
     opt, args = parse_arguments(args[1:])

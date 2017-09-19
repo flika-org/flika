@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from ..logger import logger
+logger.debug("Started 'reading process/overlay.py'")
 import numpy as np
 import pyqtgraph as pg
 from qtpy import QtWidgets, QtCore, QtGui
@@ -288,7 +290,7 @@ scale_bar=Scale_Bar()
 
 
 
-
+logger.debug("Completed 'reading process/overlay.py'")
 
 
 

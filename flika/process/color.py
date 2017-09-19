@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from ..logger import logger
+logger.debug("Started 'reading process/color.py'")
 import numpy as np
 from qtpy import QtWidgets, QtCore, QtGui
 from .. import global_vars as g
@@ -43,3 +45,5 @@ class Split_channels(BaseProcess):
 
 
 split_channels = Split_channels()
+
+logger.debug("Completed 'reading process/color.py'")

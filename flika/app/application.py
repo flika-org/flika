@@ -1,3 +1,6 @@
+from ..logger import logger
+logger.debug("Started 'reading app/application.py'")
+
 import sys, os, time
 import ctypes
 import platform
@@ -13,7 +16,6 @@ from .script_editor import ScriptEditor
 from ..utils.misc import load_ui, send_error_report, send_user_stats
 from ..images import image_path
 from ..roi import open_rois
-from ..logger import logger
 from ..version import __version__
 from ..update_flika import checkUpdates
 
@@ -171,16 +173,17 @@ class FlikaApplication(QtWidgets.QMainWindow):
     """The main window of flika, stored as g.m
     """
     def __init__(self):
+        logger.debug("Started 'creating app.application.FlikaApplication'")
         print('Launching flika')
-        logger.debug('self.app')
+        logger.debug("Started 'creating app.application.FlikaApplication111111'")
         self.app = get_qapp(image_path('favicon.png'))
-        logger.debug('self.app complete, Initializing Application')
         super(FlikaApplication, self).__init__()
         self.app.setQuitOnLastWindowClosed(True)
-        logger.debug('Application complete')
         setup_menus()
-        
+        logger.debug("Completed 'creating app.application.FlikaApplication111111'")
+        logger.debug("Started 'loading main.ui'")
         load_ui('main.ui', self, directory=os.path.dirname(__file__))
+        logger.debug("Completed 'loading main.ui'")
 
         g.m = self
         # These are all added for backwards compatibility for plugins
@@ -210,19 +213,17 @@ class FlikaApplication(QtWidgets.QMainWindow):
         self.setCurrentWindowSignal = SetCurrentWindowSignal(self)
         self.setAcceptDrops(True)
         load_local_plugins()
+        logger.debug("Completed 'creating app.application.FlikaApplication'")
 
     def start(self):
-        logger.debug('Starting Application')
-        logger.debug('Show')
+        logger.debug("Started 'app.application.FlikaApplication.start()'")
         self.show()
-        logger.debug('Show complete')
-        logger.debug('raise_')
         self.raise_()
-        logger.debug('raise_ complete')
-        logger.debug('send_user_stats()')
+        QtWidgets.qApp.processEvents()
+        logger.debug("Started 'app.application.FlikaApplication.send_user_stats()'")
         send_user_stats()
-        logger.debug('send_user_stats() complete')
-        logger.debug('Application start complete')
+        logger.debug("Completed 'app.application.FlikaApplication.send_user_stats()'")
+        logger.debug("Completed 'app.application.FlikaApplication.start()'")
         #if 'PYCHARM_HOSTED' not in os.environ and 'SPYDER_SHELL_ID' not in os.environ:
         #    return self.app.exec_()
 
@@ -237,7 +238,7 @@ class FlikaApplication(QtWidgets.QMainWindow):
         self.move(0, 0)
 
     def _make_menu(self):
-        logger.debug('Creating Menu')
+        logger.debug("Started 'app.application.FlikaApplication._make_menu()'")
         fileMenu = self.menuBar().addMenu('File')
         openMenu = fileMenu.addMenu("Open")
         openMenu.addAction("Open Image/Movie", open_file_from_gui)
@@ -270,7 +271,7 @@ class FlikaApplication(QtWidgets.QMainWindow):
         url = 'http://flika-org.github.io'
         helpMenu.addAction("Documentation", lambda: QtGui.QDesktopServices.openUrl(QtCore.QUrl(url)))
         helpMenu.addAction("Check For Updates", checkUpdates)
-        logger.debug('Menu complete')
+        logger.debug("Completed 'app.application.FlikaApplication._make_menu()'")
 
     def __getattr__(self, item):
         if item in self.__dict__:
@@ -281,7 +282,6 @@ class FlikaApplication(QtWidgets.QMainWindow):
 
 
     def _make_tools(self):
-        logger.debug('Making tools')
         self.freehand.clicked.connect(lambda: g.settings.__setitem__('mousemode', 'freehand'))
         self.line.clicked.connect(lambda: g.settings.__setitem__('mousemode', 'line'))
         self.rect_line.clicked.connect(lambda: g.settings.__setitem__('mousemode', 'rect_line'))
@@ -293,7 +293,6 @@ class FlikaApplication(QtWidgets.QMainWindow):
         self.point.customContextMenuRequested.connect(pointSettings)
         self.rectangle.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.rectangle.customContextMenuRequested.connect(rectSettings)
-        logger.debug('Tools complete')
 
     def _make_script_menu(self):
         logger.debug('Making script editor')
@@ -383,3 +382,4 @@ class SetCurrentWindowSignal(QtWidgets.QWidget):
     def __init__(self,parent):
         super(SetCurrentWindowSignal, self).__init__(parent)
         self.hide()
+logger.debug("Completed 'reading app/application.py'")

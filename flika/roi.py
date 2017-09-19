@@ -17,18 +17,16 @@ Example:
 Todo:
     * Correct ROI line handles to be at center of pixel
 """
-
+from .logger import logger
+logger.debug("Started 'reading roi.py'")
+import os
 from qtpy import QtGui, QtCore, QtWidgets
 import pyqtgraph as pg
-from pyqtgraph.graphicsItems.ROI import Handle
-from skimage.draw import polygon, line
 import numpy as np
-import os
-from scipy.ndimage.interpolation import rotate
+from pyqtgraph.graphicsItems.ROI import Handle
 from . import global_vars as g
 from .utils.misc import random_color, open_file_gui, nonpartial
 from .tracefig import roiPlot
-
 class ROI_Drawing(pg.GraphicsObject):
     """Graphics Object for ROIs while initially being drawn. Extends pyqtrgaph.GraphicsObject
 
@@ -433,6 +431,7 @@ class ROI_line(ROI_Base, pg.LineSegmentROI):
             self.deleteKymograph()
 
     def getMask(self):
+        from skimage.draw import line
         x=np.array([p[0] for p in self.pts], dtype=int)
         y=np.array([p[1] for p in self.pts], dtype=int)
         xx, yy = line(x[0],y[0],x[1],y[1])
@@ -647,13 +646,14 @@ class ROI_freehand(ROI_Base, pg.ROI):
         return np.add(self._untranslated_pts, [x, y])
 
     def getMask(self):
+        from skimage.draw import polygon
         if self._untranslated_mask is not None:
             xx = self._untranslated_mask[0] + int(self.state['pos'][0])
             yy = self._untranslated_mask[1] + int(self.state['pos'][1])
         else:
             x, y = np.transpose(self._untranslated_pts)
             mask=np.zeros(self.window.imageDimensions())
-            xx,yy=polygon(x,y,shape=mask.shape)
+            xx, yy = polygon(x,y,shape=mask.shape)
             self._untranslated_mask = xx, yy
 
         idx_to_keep = np.logical_not( (xx>=self.window.mx) | (xx<0) | (yy>=self.window.my) | (yy<0))
@@ -940,6 +940,7 @@ class ROI_rect_line(ROI_Base, QtWidgets.QGraphicsObject):
             l.mouseHovering = False
 
     def getMask(self):
+
         xxs = []
         yys = []
         for i in range(len(self.pts)-1):
@@ -1125,5 +1126,4 @@ def open_rois(filename=None):
             pts.append(tuple(int(float(i)) for i in text_line.split()))
 
     return rois
-
-
+logger.debug("Completed 'reading roi.py'")
