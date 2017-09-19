@@ -18,7 +18,6 @@ def get_log_file():
     LOG_FILE = os.path.join(LOG_DIR, 'flikalog.{}.log'.format(log_idx))
     return LOG_FILE
 
-print('this is working')
 LOG_FILE = get_log_file()
 FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
 basicConfig(filename=LOG_FILE, format=FORMAT)
