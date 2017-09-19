@@ -1,6 +1,7 @@
 from logging import *
 import os, sys
-
+#LEVEL = DEBUG
+LEVEL = WARNING
 def get_log_file():
     LOG_DIR = os.path.join(os.path.expanduser("~"), '.FLIKA', 'log')
     MAX_LOG_IDX = 99
@@ -10,9 +11,11 @@ def get_log_file():
     if 'FLIKALOG.log' in existing_files: # This was the name of the log file before version 0.2.23
         try:
             os.remove(os.path.join(LOG_DIR, 'FLIKALOG.log'))
-        except:
+        except Exception:
+            print("Cannot remove FLIKALOG.log file")
             existing_files.remove('FLIKALOG.log')
-        existing_files = os.listdir(LOG_DIR)
+        else:
+            existing_files = os.listdir(LOG_DIR)
 
     try:
         existing_idxs = [int(f.split('.')[0]) for f in existing_files]
@@ -36,9 +39,9 @@ LOG_FILE = get_log_file()
 FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
 basicConfig(filename=LOG_FILE, format=FORMAT)
 logger = getLogger("flika")
-logger.setLevel(DEBUG)
+logger.setLevel(LEVEL)
 handler = StreamHandler()
-handler.setLevel(DEBUG)
+handler.setLevel(LEVEL)
 formatter = Formatter(FORMAT)
 handler.setFormatter(formatter)
 logger.addHandler(handler)
