@@ -383,7 +383,7 @@ class BaseProcess(object):
 
     def gui(self):
         from pyqtgraph import SignalProxy
-        self.ui=BaseDialog(self.items,self.__name__,self.__doc__, self)
+        self.ui = BaseDialog(self.items,self.__name__,self.__doc__, self)
         if hasattr(self, '__url__'):
             self.ui.bbox.addButton(QtWidgets.QDialogButtonBox.Help)
             self.ui.bbox.helpRequested.connect(lambda : QtWidgets.QDesktopServices.openUrl(QtCore.QUrl(self.__url__)))
@@ -392,6 +392,7 @@ class BaseProcess(object):
             self.ui.rejected.connect(g.win.reset)
         self.ui.closeSignal.connect(self.ui.rejected.emit)
         self.ui.accepted.connect(self.call_from_gui)
+        self.ui.resize(750, 450)
         self.ui.show()
         g.dialogs.append(self.ui)
         return True

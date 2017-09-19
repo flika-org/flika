@@ -80,8 +80,6 @@ def parse(x):
         return d
     return step(tree)
 
-class PluginImportError(Exception):
-    pass
 
 def str2func(plugin_name, file_location, function):
     '''
@@ -89,22 +87,14 @@ def str2func(plugin_name, file_location, function):
     imports plugin_name.path and gets the function from that imported object
     to be run when an action is clicked
     '''
-    logger.debug('Calling app.plugin_manager.str2func')
+    logger.debug("Started 'app.plugin_manager.str2func({}, {}, {})'".format(plugin_name, file_location, function))
     __import__(plugin_name)
-
     plugin_dir = "plugins.{}.{}".format(plugin_name, file_location)
     levels = function.split('.')
-    try:
-        module = __import__(plugin_dir, fromlist=[levels[0]]).__dict__[levels[0]]
-    except:
-        raise PluginImportError("Failed to import %s from module %s.\n%s" % (levels[0], plugin_dir, traceback.format_exc()))
-        return None
+    module = __import__(plugin_dir, fromlist=[levels[0]]).__dict__[levels[0]]
     for i in range(1, len(levels)):
-        try:
-            module = getattr(module, levels[i])
-        except:
-            raise PluginImportError("Failed to import %s from module %s. Check name and try again." % (levels[i], module)) # only alerts on python 3?
-            return None
+        module = getattr(module, levels[i])
+    logger.debug("Completed 'app.plugin_manager.str2func({}, {}, {})'".format(plugin_name, file_location, function))
     return module
 
 def build_submenu(module_name, parent_menu, layout_dict):
@@ -514,7 +504,11 @@ def load_local_plugins():
             else:
                 g.alert('Could not load the plugin {}. There is already a plugin with this same name. Change the plugin name in the info.xml file'.format(p.name))
         except Exception as e:
-            g.alert("Could not load {}.\n\t{}".format(pluginPath, traceback.format_exc()), title="Plugin Load Error")
+            msg = "Could not load plugin {}".format(pluginPath)
+            g.alert(msg)
+            logger.error(msg)
+            ex_type, ex, tb = sys.exc_info()
+            sys.excepthook(ex_type, ex, tb)
     logger.debug("Completed 'app.plugin_manager.load_local_plugins'")
 
 # from flika.app.plugin_manager import *

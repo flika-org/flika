@@ -7,16 +7,12 @@ def get_log_file():
     if not os.path.exists(LOG_DIR):
         os.makedirs(LOG_DIR)
     existing_files = os.listdir(LOG_DIR)
-    existing_files = [f for f in existing_files if 'flikalog.' in f]
-    if len(existing_files) == 0:
-        log_idx = 0
-    else:
-        log_idx = existing_files[-1].split('.')[1]
-        try:
-            log_idx = int(log_idx)
-        except ValueError:
-            log_idx = 0
-    LOG_FILE = os.path.join(LOG_DIR, 'flikalog.{}.log'.format(log_idx))
+    existing_idxs = [int(f.split('.')[0]) for f in existing_files]
+    log_idx = 0
+    while log_idx in existing_idxs:
+        log_idx += 1
+    log_idx -= 1
+    LOG_FILE = os.path.join(LOG_DIR, '{0:0>3}.log'.format(log_idx))
     return LOG_FILE
 
 def get_log_steps():

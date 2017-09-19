@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+from ..logger import logger
 import numpy as np
 import skimage
 import skimage.filters
@@ -32,6 +32,7 @@ class Gaussian_blur(BaseProcess):
         assert 'gaussian' in skimage.filters.__dict__  # Make sure your version of skimage is >= 0.12.3
 
     def gui(self):
+        logger.debug("Started 'running process.filters.gaussian_blur.gui()'")
         self.gui_reset()
         sigma=SliderLabel(2)
         sigma.setRange(0,100)
@@ -45,6 +46,7 @@ class Gaussian_blur(BaseProcess):
         self.items.append({'name': 'preview', 'string': 'Preview', 'object': preview})
         super().gui()
         self.preview()
+        logger.debug("Completed 'running process.filters.gaussian_blur.gui()'")
 
     def __call__(self, sigma, norm_edges=False, keepSourceWindow=False):
         self.start(keepSourceWindow)
@@ -65,8 +67,9 @@ class Gaussian_blur(BaseProcess):
         self.newname=self.oldname+' - Gaussian Blur sigma='+str(sigma)
         return self.end()
     def preview(self):
+        logger.debug("Started 'running process.filters.gaussian_blur.preview()'")
         norm_edges = self.getValue('norm_edges')
-        if norm_edges == True:
+        if norm_edges:
             mode = 'constant'
         else:
             mode = 'nearest'
@@ -82,6 +85,7 @@ class Gaussian_blur(BaseProcess):
             g.win.imageview.setImage(testimage,autoLevels=False)
         else:
             g.win.reset()
+        logger.debug("Completed 'running process.filters.gaussian_blur.preview()'")
 gaussian_blur = Gaussian_blur()
 
 
