@@ -13,7 +13,7 @@ from ..utils.misc import nonpartial
 from ..utils.app import get_qapp
 from ..app.settings_editor import SettingsEditor, rectSettings, pointSettings
 from .. import global_vars as g
-from .plugin_manager import PluginManager, load_local_plugins
+from .plugin_manager import PluginManager, Load_Local_Plugins_Thread
 from .script_editor import ScriptEditor
 from ..utils.misc import load_ui, send_error_report, Send_User_Stats_Thread
 from ..images import image_path
@@ -195,8 +195,17 @@ class FlikaApplication(QtWidgets.QMainWindow):
         self.statusBar().setSizeGripEnabled(False)
         self.setCurrentWindowSignal = SetCurrentWindowSignal(self)
         self.setAcceptDrops(True)
-        load_local_plugins()
+        self.load_local_plugins_thread = Load_Local_Plugins_Thread()
+        self.load_local_plugins_thread.start()
+        self.load_local_plugins_thread.plugins_done_sig.connect(self.plugins_done)
+        self.load_local_plugins_thread.error_loading.connect(g.alert)
         logger.debug("Completed 'creating app.application.FlikaApplication'")
+
+    def plugins_done(self, plugins):
+        for p in plugins.values():
+            if p.loaded:
+                p.bind_menu_and_methods()
+        PluginManager.plugins = plugins
 
     def start(self):
         logger.debug("Started 'app.application.FlikaApplication.start()'")

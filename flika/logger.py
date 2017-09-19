@@ -1,7 +1,11 @@
 from logging import *
 import os, sys
+
+
 #LEVEL = DEBUG
 LEVEL = WARNING
+
+
 def get_log_file():
     LOG_DIR = os.path.join(os.path.expanduser("~"), '.FLIKA', 'log')
     MAX_LOG_IDX = 99

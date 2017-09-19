@@ -58,9 +58,11 @@ def get_plugin_directory():
         sys.path.append(local_flika_directory)
     return plugin_directory
 
+plugin_dir = get_plugin_directory()
+
 
 def parse(x):
-    logger.debug('Calling app.plugin_manager.parse')
+    #logger.debug('Calling app.plugin_manager.parse')
     tree = ElementTree.fromstring(x)
     def step(item):
         d = {}
@@ -87,18 +89,25 @@ def str2func(plugin_name, file_location, function):
     imports plugin_name.path and gets the function from that imported object
     to be run when an action is clicked
     '''
-    logger.debug("Started 'app.plugin_manager.str2func({}, {}, {})'".format(plugin_name, file_location, function))
+    #logger.debug("Started 'app.plugin_manager.str2func({}, {}, {})'".format(plugin_name, file_location, function))
     __import__(plugin_name)
     plugin_dir = "plugins.{}.{}".format(plugin_name, file_location)
     levels = function.split('.')
     module = __import__(plugin_dir, fromlist=[levels[0]]).__dict__[levels[0]]
     for i in range(1, len(levels)):
         module = getattr(module, levels[i])
-    logger.debug("Completed 'app.plugin_manager.str2func({}, {}, {})'".format(plugin_name, file_location, function))
+    #logger.debug("Completed 'app.plugin_manager.str2func({}, {}, {})'".format(plugin_name, file_location, function))
     return module
 
+
+def fake_str2func(plugin_name, file_location, function):
+    def fake_fun():
+        print(str(function))
+        print('yay')
+    return fake_fun
+
 def build_submenu(module_name, parent_menu, layout_dict):
-    logger.debug('Calling app.plugin_manager.build_submenu')
+    #logger.debug('Calling app.plugin_manager.build_submenu')
     if len(layout_dict) == 0:
         g.alert("Error building submenu for the plugin '{}'. No items found in 'menu_layout' in the info.xml file.".format(module_name))
     for key, value in layout_dict.items():
@@ -117,7 +126,7 @@ def build_submenu(module_name, parent_menu, layout_dict):
 
 
 class Plugin():
-    def __init__(self, name, info_url=None):
+    def __init__(self, name=None, info_url=None):
         self.name = name
         self.directory = None
         self.url = None
@@ -136,42 +145,38 @@ class Plugin():
             self.update_info()
 
     def lastModified(self):
-        return os.path.getmtime(os.path.join(get_plugin_directory(), self.directory))
+        return os.path.getmtime(os.path.join(plugin_dir, self.directory))
 
-    @staticmethod
-    def fromLocal(path):
-        logger.debug('Calling app.plugin_manager.Plugin.fromLocal')
+    def fromLocal(self, path):
+        #logger.debug('Calling app.plugin_manager.Plugin.fromLocal')
         text = open(os.path.join(path, 'info.xml'), 'r').read()
         info = parse(text)
-        p = Plugin(info['@name'])
-        p.directory = info['directory']
-        p.version = info['version']
-        p.latest_version = p.version
-        p.author = info['author']
+        self.name = info['@name']
+        self.directory = info['directory']
+        self.version = info['version']
+        self.latest_version = self.version
+        self.author = info['author']
         try:
-            p.description = str(open(os.path.join(path, 'about.html'), 'r').read())
+            self.description = str(open(os.path.join(path, 'about.html'), 'r').read())
         except FileNotFoundError:
-            p.description = "No local description file found"
-
-        p.url = info['url'] if 'url' in info else None
-        p.documentation = info['documentation'] if 'documentation' in info else None
-
+            self.description = "No local description file found"
+        self.url = info['url'] if 'url' in info else None
+        self.documentation = info['documentation'] if 'documentation' in info else None
         if 'dependencies' in info and 'dependency' in info['dependencies']:
             deps = info['dependencies']['dependency']
-            p.dependencies = [d['@name'] for d in deps] if isinstance(deps, list) else [deps['@name']]
+            self.dependencies = [d['@name'] for d in deps] if isinstance(deps, list) else [deps['@name']]
+        self.menu_layout = info.pop('menu_layout')
+        self.listWidget = QtWidgets.QListWidgetItem(self.name)
+        self.listWidget.setIcon(QtGui.QIcon(image_path('check.png')))
+        self.loaded = True
 
-        p.menu_layout = info.pop('menu_layout')
-        if len(p.menu_layout) > 0:
-            p.menu = QtWidgets.QMenu(p.name)
-            build_submenu(p.directory, p.menu, p.menu_layout)
+    def bind_menu_and_methods(self):
+        if len(self.menu_layout) > 0:
+            self.menu = QtWidgets.QMenu(self.name)
+            build_submenu(self.directory, self.menu, self.menu_layout)
         else:
-            p.menu = None
-        
-        p.listWidget = QtWidgets.QListWidgetItem(p.name)
-        p.listWidget.setIcon(QtGui.QIcon(image_path('check.png')))
+            self.menu = None
 
-        p.loaded = True
-        return p
 
     def update_info(self):
         logger.debug('Calling app.plugin_manager.update_info')
@@ -219,7 +224,7 @@ class PluginManager(QtWidgets.QMainWindow):
         PluginManager.gui.showPlugins()
         #PluginManager.load_online_plugins()
         QtWidgets.QMainWindow.show(PluginManager.gui)
-        if not os.access(get_plugin_directory(), os.W_OK):
+        if not os.access(plugin_dir, os.W_OK):
             g.alert("Plugin folder write permission denied. Restart flika as administrator to enable plugin installation.")
 
         PluginManager.gui.showHelpScreen()
@@ -357,7 +362,7 @@ class PluginManager(QtWidgets.QMainWindow):
     @staticmethod
     def local_plugin_paths():
         paths = []
-        for path in glob(os.path.join(get_plugin_directory(), "*")):
+        for path in glob(os.path.join(plugin_dir, "*")):
             if os.path.isdir(path) and os.path.exists(os.path.join(path, 'info.xml')):
                 paths.append(path)
         return paths
@@ -390,11 +395,11 @@ class PluginManager(QtWidgets.QMainWindow):
     @staticmethod
     def removePlugin(plugin):
         PluginManager.gui.statusBar.showMessage("Uninstalling {}".format(plugin.name))
-        if os.path.isdir(os.path.join(get_plugin_directory(), plugin.directory, '.git')):
+        if os.path.isdir(os.path.join(plugin_dir, plugin.directory, '.git')):
             g.alert("This plugin's directory is managed by git. To remove, manually delete the directory")
             return False
         try:
-            shutil.rmtree(os.path.join(get_plugin_directory(), plugin.directory), ignore_errors=True)
+            shutil.rmtree(os.path.join(plugin_dir, plugin.directory), ignore_errors=True)
             plugin.version = ''
             plugin.menu = None
             plugin.listWidget.setIcon(QtGui.QIcon())
@@ -446,7 +451,7 @@ Then try installing the plugin again.""".format(pl, v, arch))
 
             return
 
-        if os.path.exists(os.path.join(get_plugin_directory(), plugin.directory)):
+        if os.path.exists(os.path.join(plugin_dir, plugin.directory)):
             g.alert("A folder with name {} already exists in the plugins directory. Please remove it to install this plugin!".format(plugin.directory))
             return
 
@@ -464,11 +469,11 @@ Then try installing the plugin again.""".format(pl, v, arch))
                 tf.seek(0)
                 with zipfile.ZipFile(tf) as z:
                     folder_name = os.path.dirname(z.namelist()[0])
-                    z.extractall(get_plugin_directory())
+                    z.extractall(plugin_dir)
 
             plugin = PluginManager.plugins[plugin.name]
-            directory = os.path.join(get_plugin_directory(), plugin.directory)
-            os.rename(os.path.join(get_plugin_directory(), folder_name), directory)
+            directory = os.path.join(plugin_dir, plugin.directory)
+            os.rename(os.path.join(plugin_dir, folder_name), directory)
         except (PermissionError, Exception) as e:
             if os.path.exists(folder_name):
                 shutil.rmtree(folder_name)
@@ -490,26 +495,40 @@ Then try installing the plugin again.""".format(pl, v, arch))
         PluginManager.gui.pluginSelected(plugin.listWidget)
         plugin.installed = True
 
-def load_local_plugins():
-    logger.debug("Started 'app.plugin_manager.load_local_plugins'")
-    PluginManager.plugins = {n: Plugin(n) for n in plugin_list}
-    installed_plugins = {}
-    for pluginPath in PluginManager.local_plugin_paths():
-        try:
-            p = Plugin.fromLocal(pluginPath)
-            if p.name not in PluginManager.plugins.keys() or p.name not in installed_plugins.keys():
-                p.installed = True
-                PluginManager.plugins[p.name] = p
-                installed_plugins[p.name] = p
-            else:
-                g.alert('Could not load the plugin {}. There is already a plugin with this same name. Change the plugin name in the info.xml file'.format(p.name))
-        except Exception as e:
-            msg = "Could not load plugin {}".format(pluginPath)
-            g.alert(msg)
-            logger.error(msg)
-            ex_type, ex, tb = sys.exc_info()
-            sys.excepthook(ex_type, ex, tb)
-    logger.debug("Completed 'app.plugin_manager.load_local_plugins'")
+
+class Load_Local_Plugins_Thread(QtCore.QThread):
+    plugins_done_sig = QtCore.Signal(dict)
+    error_loading = QtCore.Signal(str)
+    def __init__(self):
+        QtCore.QThread.__init__(self)
+
+    def __del__(self):
+        self.wait()
+
+    def run(self):
+        #logger.debug("Started 'app.plugin_manager.load_local_plugins'")
+        plugins = {n: Plugin(n) for n in plugin_list}
+        installed_plugins = {}
+        for pluginPath in PluginManager.local_plugin_paths():
+            p = Plugin()
+            p.fromLocal(pluginPath)
+            try:
+                p.bind_menu_and_methods()
+                if p.name not in plugins.keys() or p.name not in installed_plugins.keys():
+                    p.installed = True
+                    plugins[p.name] = p
+                    installed_plugins[p.name] = p
+                else:
+                    g.alert('Could not load the plugin {}. There is already a plugin with this same name. Change the plugin name in the info.xml file'.format(p.name))
+            except Exception as e:
+                msg = "Could not load plugin {}".format(pluginPath)
+                self.error_loading.emit(msg)
+                #g.alert(msg)
+                logger.error(msg)
+                ex_type, ex, tb = sys.exc_info()
+                sys.excepthook(ex_type, ex, tb)
+        self.plugins_done_sig.emit(plugins)
+        #logger.debug("Completed 'app.plugin_manager.load_local_plugins'")
 
 # from flika.app.plugin_manager import *
 
