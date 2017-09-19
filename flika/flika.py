@@ -111,6 +111,7 @@ def start_flika(files=[]):
  
     """
     logger.debug("Started 'flika.start_flika()'")
+    print('Starting flika')
     fa = FlikaApplication()
     load_files(files)
     fa.start()

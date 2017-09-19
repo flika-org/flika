@@ -180,7 +180,6 @@ class FlikaApplication(QtWidgets.QMainWindow):
         logger.debug("Started 'creating app.application.FlikaApplication'")
         from ..process.file_ import open_file, open_file_from_gui, open_image_sequence_from_gui, open_points, save_file, save_movie_gui, save_points, save_rois
         from ..process import setup_menus
-        print('Launching flika')
         logger.debug("Started 'creating app.application.FlikaApplication.app'")
         self.app = get_qapp(image_path('favicon.png'))
         logger.debug("Completed 'creating app.application.FlikaApplication.app'")

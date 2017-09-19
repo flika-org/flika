@@ -27,7 +27,7 @@ plugin_list = {
 }
 
 helpHTML = '''
-<h1 style="width:100%; text-align:center">Welcome the the flika Plugin Manager</h1>
+<h1 style="width:100%; text-align:center">Welcome to the flika Plugin Manager</h1>
 <p>Use the search bar to the left to find a specific plugin, or browse the list below it.</p>
 
 <div>
@@ -45,6 +45,7 @@ helpHTML = '''
 
 
 def get_plugin_directory():
+    logger.debug('Calling app.plugin_manager.get_plugin_directory')
     local_flika_directory = os.path.join(expanduser("~"), '.FLIKA')
     plugin_directory = os.path.join(expanduser("~"), '.FLIKA', 'plugins' )
     if not os.path.exists(plugin_directory):
@@ -59,6 +60,7 @@ def get_plugin_directory():
 
 
 def parse(x):
+    logger.debug('Calling app.plugin_manager.parse')
     tree = ElementTree.fromstring(x)
     def step(item):
         d = {}
@@ -87,6 +89,7 @@ def str2func(plugin_name, file_location, function):
     imports plugin_name.path and gets the function from that imported object
     to be run when an action is clicked
     '''
+    logger.debug('Calling app.plugin_manager.str2func')
     __import__(plugin_name)
 
     plugin_dir = "plugins.{}.{}".format(plugin_name, file_location)
@@ -105,6 +108,7 @@ def str2func(plugin_name, file_location, function):
     return module
 
 def build_submenu(module_name, parent_menu, layout_dict):
+    logger.debug('Calling app.plugin_manager.build_submenu')
     if len(layout_dict) == 0:
         g.alert("Error building submenu for the plugin '{}'. No items found in 'menu_layout' in the info.xml file.".format(module_name))
     for key, value in layout_dict.items():
@@ -146,6 +150,7 @@ class Plugin():
 
     @staticmethod
     def fromLocal(path):
+        logger.debug('Calling app.plugin_manager.Plugin.fromLocal')
         text = open(os.path.join(path, 'info.xml'), 'r').read()
         info = parse(text)
         p = Plugin(info['@name'])
@@ -179,6 +184,7 @@ class Plugin():
         return p
 
     def update_info(self):
+        logger.debug('Calling app.plugin_manager.update_info')
         if self.info_url is None:
             return False
         info_url = urljoin(self.info_url, 'info.xml')
@@ -217,6 +223,7 @@ class PluginManager(QtWidgets.QMainWindow):
     '''
     @staticmethod
     def show():
+        logger.debug('Calling app.plugin_manager.PluginManager.show')
         if not hasattr(PluginManager, 'gui'):
             PluginManager.gui = PluginManager()
         PluginManager.gui.showPlugins()
@@ -230,11 +237,13 @@ class PluginManager(QtWidgets.QMainWindow):
 
     @staticmethod
     def refresh_online_plugins():
+        logger.debug('Calling app.plugin_manager.PluginManager.refresh_online_plugins()')
         for p in plugin_list.keys():
             PluginManager.load_online_plugin(p)
 
     @staticmethod
     def load_online_plugin(p):
+        logger.debug('Calling app.plugin_manager.PluginManager.load_online_plugin()')
         if p not in plugin_list or PluginManager.loadThread is not None and PluginManager.loadThread.is_alive():
             return
         def loadThread():
@@ -258,7 +267,8 @@ class PluginManager(QtWidgets.QMainWindow):
             QtWidgets.QMainWindow.close(PluginManager.gui)
 
     def __init__(self):
-        from pkg_resources import parse_version
+        logger.debug('Calling app.plugin_manager.PluginManager.load_online_plugin()')
+
         super(PluginManager,self).__init__()
         load_ui("plugin_manager.ui", self, directory=os.path.dirname(__file__))
         try:
@@ -317,6 +327,8 @@ class PluginManager(QtWidgets.QMainWindow):
         PluginManager.downloadPlugin(plugin)
 
     def pluginSelected(self, item):
+        from pkg_resources import parse_version
+        logger.debug('Calling app.plugin_manager.PluginManager.pluginSelected()')
         if item is None:
             if self.pluginLabel.text():
                 self.pluginSelected(PluginManager.plugins[self.pluginLabel.text()].listWidget)
@@ -365,6 +377,7 @@ class PluginManager(QtWidgets.QMainWindow):
             self.pluginList.takeItem(0)
 
     def showPlugins(self, search_str=None):
+        from pkg_resources import parse_version
         self.clearList()
         if search_str == None or len(search_str) == 0:
             names = sorted(self.plugins.keys())
