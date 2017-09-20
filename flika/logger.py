@@ -12,6 +12,7 @@ def get_log_file():
     if not os.path.exists(LOG_DIR):
         os.makedirs(LOG_DIR)
     existing_files = os.listdir(LOG_DIR)
+    existing_files = [f for f in existing_files if os.path.splitext(f)[1] == '.log']
     if 'FLIKALOG.log' in existing_files: # This was the name of the log file before version 0.2.23
         try:
             os.remove(os.path.join(LOG_DIR, 'FLIKALOG.log'))
@@ -20,6 +21,7 @@ def get_log_file():
             existing_files.remove('FLIKALOG.log')
         else:
             existing_files = os.listdir(LOG_DIR)
+            existing_files = [f for f in existing_files if os.path.splitext(f)[1] == '.log']
 
     try:
         existing_idxs = [int(f.split('.')[0]) for f in existing_files]

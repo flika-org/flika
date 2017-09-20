@@ -7,6 +7,7 @@ def get_log_file():
     if not os.path.exists(LOG_DIR):
         os.makedirs(LOG_DIR)
     existing_files = os.listdir(LOG_DIR)
+    existing_files = [f for f in existing_files if os.path.splitext(f)[1] == '.log']
     existing_idxs = [int(f.split('.')[0]) for f in existing_files]
     log_idx = 0
     while log_idx in existing_idxs:
