@@ -333,6 +333,7 @@ class FlikaApplication(QtWidgets.QMainWindow):
             event.ignore()
 
     def dropEvent(self, event):
+        from ..process.file_ import open_file
         if event.mimeData().hasUrls():   # if file or link is dropped
             for url in event.mimeData().urls():
                 filename = url.toString()
