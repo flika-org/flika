@@ -272,6 +272,8 @@ class PluginManager(QtWidgets.QMainWindow):
             pass
         #self.pluginList.itemClicked.connect(self.pluginSelected)
         self.tutorialButton.clicked.connect(lambda : QtGui.QDesktopServices.openUrl(QtCore.QUrl("https://github.com/flika-org/flika_plugin_template")))
+        self.open_plugins_directory_button.clicked.connect(lambda: QtGui.QDesktopServices.openUrl(QtCore.QUrl("file:///" + os.path.expanduser('~/.FLIKA/plugins/'))))
+
         self.downloadButton.clicked.connect(self.downloadClicked)
         self.pluginList.currentItemChanged.connect(lambda new, old: self.pluginSelected(new))
         self.documentationButton.clicked.connect(self.documentationClicked)
