@@ -8,8 +8,48 @@ import numpy as np
 from . import global_vars as g
 from .roi import *
 from .utils.misc import save_file_gui
+from .utils.BaseProcess import WindowSelector, SliderLabel
 
 pg.setConfigOptions(useWeave=False)
+
+
+class Bg_im_dialog(QtWidgets.QDialog):
+    def __init__(self, parent=None):
+        QtWidgets.QDialog.__init__(self)
+        self.parent = parent
+        self.setWindowTitle("Select background image")
+        self.window_selector = WindowSelector()
+        self.window_selector.valueChanged.connect(self.bg_win_changed)
+        self.alpha_slider = SliderLabel(3)
+        self.alpha_slider.setRange(0,1)
+        self.alpha_slider.setValue(.5)
+        self.alpha_slider.valueChanged.connect(self.alpha_changed)
+        self.formlayout = QtWidgets.QFormLayout()
+        self.formlayout.setLabelAlignment(QtCore.Qt.AlignRight)
+        self.formlayout.addRow("Select window with background image", self.window_selector)
+        self.formlayout.addRow("Set background opacity", self.alpha_slider)
+        self.layout = QtWidgets.QVBoxLayout()
+        self.layout.addLayout(self.formlayout)
+        self.setLayout(self.layout)
+
+    def alpha_changed(self, value):
+        self.parent.bg_im.setOpacity(value)
+
+    def bg_win_changed(self):
+        if self.parent.bg_im is not None:
+            self.parent.imageview.view.removeItem(self.parent.bg_im)
+            self.bg_im = None
+        self.parent.bg_im = pg.ImageItem(self.window_selector.window.imageview.imageItem.image)
+        self.parent.bg_im.setOpacity(self.alpha_slider.value())
+        self.parent.imageview.view.addItem(self.parent.bg_im)
+
+
+    def closeEvent(self,ev):
+        if self.parent.bg_im is not None:
+            self.parent.imageview.view.removeItem(self.parent.bg_im)
+            self.bg_im = None
+
+
 
 class ImageView(pg.ImageView):
     def __init__(self, *args, **kargs):
@@ -25,6 +65,11 @@ class ImageView(pg.ImageView):
         self.ui.normLUTbtn.setObjectName("LUT norm")
         self.ui.normLUTbtn.setText("LUT norm")
         self.ui.gridLayout.addWidget(self.ui.normLUTbtn, 1, 1, 1, 1)
+
+        self.ui.bg_imbtn = QtWidgets.QPushButton(self.ui.layoutWidget)
+        self.ui.bg_imbtn.setObjectName("bg im")
+        self.ui.bg_imbtn.setText("bg im")
+        self.ui.gridLayout.addWidget(self.ui.bg_imbtn, 1, 2, 1, 1)
 
         self.ui.roiPlot.setMaximumHeight(40)
         self.ui.roiPlot.getPlotItem().getViewBox().setMouseEnabled(False)
@@ -92,6 +137,7 @@ class Window(QtWidgets.QWidget):
         self.currentROI = None  #: :class:`ROI <flika.roi.ROI_Base>`: When an ROI is clicked, it becomes the currentROI of that window and can be accessed via this variable.
         self.creatingROI = False
         self.imageview = None
+        self.bg_im = None
         self.currentIndex = 0
         self.linkedWindows = set()
         self.measure = measure
@@ -156,6 +202,7 @@ class Window(QtWidgets.QWidget):
         self.imageview.setMouseTracking(True)
         self.imageview.installEventFilter(self)
         self.imageview.ui.normLUTbtn.pressed.connect(lambda: self.normLUT(self.image))
+        self.imageview.ui.bg_imbtn.pressed.connect(self.set_bg_im)
         rp = self.imageview.ui.roiPlot.getPlotItem()
         self.linkMenu = QtWidgets.QMenu("Link frame")
         rp.ctrlMenu = self.linkMenu
@@ -254,6 +301,10 @@ class Window(QtWidgets.QWidget):
             # if the image is binary (either all 0s or 0s and 1s)
             if np.min(tif) == 0 and (np.max(tif) == 0 or np.max(tif) == 1):
                 self.imageview.setLevels(-.01, 1.01)  # set levels from slightly below 0 to 1
+            else:
+                r = (np.min(tif), np.max(tif))  # set the levels to be just above and below the min and max of the image
+                r = (r[0] - (r[1] - r[0]) / 100, r[1] + (r[1] - r[0]) / 100)
+                self.imageview.setLevels(r[0], r[1])
         if self.nDims == 3 and not self.metadata['is_rgb']:
             if np.all(tif[self.currentIndex] == 0):  # if the current frame is all zeros
                 r = (np.min(tif), np.max(tif))  # set the levels to be just above and below the min and max of the entire tif
@@ -267,7 +318,11 @@ class Window(QtWidgets.QWidget):
         elif self.nDims == 4 and not self.metadata['is_rgb']:
             if np.min(tif) == 0 and (np.max(tif) == 0 or np.max(tif) == 1):  # if the image is binary (either all 0s or 0s and 1s)
                 self.imageview.setLevels(-.01, 1.01)  # set levels from slightly below 0 to 1
-    
+
+    def set_bg_im(self):
+        self.bg_im_dialog = Bg_im_dialog(self)
+        self.bg_im_dialog.show()
+
     def link(self, win):
         """link(self, win)
         Linking a window to another means when the current index of one changes, the index of the other will automatically change.
