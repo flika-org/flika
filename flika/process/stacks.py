@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
+from ..logger import logger
+logger.debug("Started 'reading process/stacks.py'")
+
+
 import numpy as np
 from qtpy import QtWidgets
 from ..window import Window
 from .. import global_vars as g
-from .BaseProcess import BaseProcess, BaseProcess_noPriorWindow, WindowSelector, MissingWindowError, CheckBox, SliderLabel, ComboBox
-from ..tracefig import TraceFig
+from ..utils.BaseProcess import BaseProcess, BaseProcess_noPriorWindow, WindowSelector, MissingWindowError, CheckBox, SliderLabel, ComboBox
+
 
 
 __all__ = ['deinterleave','trim','zproject','image_calculator', 'pixel_binning', 'frame_binning', 'resize', 'concatenate_stacks', 'duplicate', 'generate_random_image', 'change_datatype']
@@ -45,12 +49,12 @@ class Generate_Random_Image(BaseProcess_noPriorWindow):
 generate_random_image = Generate_Random_Image()
 
 class Deinterleave(BaseProcess):
-    """###deinterleave(nChannels, keepSourceWindow=False)
+    """deinterleave(nChannels, keepSourceWindow=False)
 
-This deinterleaves a stack into nChannels
+    This deinterleaves a stack into nChannels
     
     Parameters:
-        | nChannels (int) -- The number of channels to deinterleave.
+        nChannels (int): The number of channels to deinterleave.
     Returns:
         newWindow
     """
@@ -83,12 +87,12 @@ This deinterleaves a stack into nChannels
 deinterleave=Deinterleave()
 
 class Pixel_binning(BaseProcess):
-    """###pixel_binning(nPixels, keepSourceWindow=False)
+    """pixel_binning(nPixels, keepSourceWindow=False)
 
-This bins the pixels to reduce the file size
+    This bins the pixels to reduce the file size
     
     Parameters:
-        | nPixels (int) -- The number of pixels to bin.  Example: a value of 2 will reduce file size from 256x256->128x128.
+        nPixels (int): The number of pixels to bin.  Example: a value of 2 will reduce file size from 256x256->128x128.
     Returns:
         newWindow
     """
@@ -146,12 +150,12 @@ This bins the pixels to reduce the file size
 pixel_binning=Pixel_binning()
 
 class Frame_binning(BaseProcess):
-    """###frame_binning(nFrames, keepSourceWindow=False)
+    """frame_binning(nFrames, keepSourceWindow=False)
 
-This bins the pixels to reduce the file size
+    This bins the pixels to reduce the file size
     
     Parameters:
-        | nFrames (int) -- The number of frames to bin.  Example: a value of 2 will reduce number of frames from 1000 to 500.
+        nFrames (int): The number of frames to bin.  Example: a value of 2 will reduce number of frames from 1000 to 500.
     Returns:
         newWindow
     """
@@ -178,14 +182,14 @@ This bins the pixels to reduce the file size
 frame_binning=Frame_binning()
 
 
-import skimage.transform
-class Resize(BaseProcess):
-    """###resize(factor, keepSourceWindow=False)
 
-Performs interpolation to up-size images
+class Resize(BaseProcess):
+    """resize(factor, keepSourceWindow=False)
+
+    Performs interpolation to up-size images
     
     Parameters:
-        | factor (int) -- The factor to scale the images by.  Example: a value of 2 will double the number of pixels wide the images are.
+        factor (int): The factor to scale the images by.  Example: a value of 2 will double the number of pixels wide the images are.
     Returns:
         newWindow
     """
@@ -204,6 +208,7 @@ Performs interpolation to up-size images
         super().gui()
 
     def __call__(self,factor,keepSourceWindow=False):
+        import skimage.transform
         self.start(keepSourceWindow)
         if self.tif.dtype in (np.uint64, np.int64):
             g.alert("Resize fails on int64 and uint64 movie types, change the image type to resize.")
@@ -228,15 +233,15 @@ resize = Resize()
 
 
 class Trim(BaseProcess):
-    """###trim(firstFrame, lastFrame, increment=1, delete=False, keepSourceWindow=False)
+    """trim(firstFrame, lastFrame, increment=1, delete=False, keepSourceWindow=False)
 
-This creates a new stack from the frames between the firstFrame and the lastFrame
+    This creates a new stack from the frames between the firstFrame and the lastFrame
     
     Parameters:
-        | firstFrame (int) -- The index of the first frame in the stack to be kept.
-        | lastFrame (int) -- The index of the last frame in the stack to be kept.
-        | increment (int) -- if increment equals i, then every ith frame is kept.
-        | delete (bool) -- if False, then the specified frames will be kept.  If True, they will be deleted.
+        firstFrame (int): The index of the first frame in the stack to be kept.
+        lastFrame (int): The index of the last frame in the stack to be kept.
+        increment (int): if increment equals i, then every ith frame is kept.
+        delete (bool): if False, then the specified frames will be kept.  If True, they will be deleted.
     Returns:
         newWindow
     """
@@ -286,14 +291,14 @@ trim=Trim()
 
 
 class ZProject(BaseProcess):
-    """###zproject(firstFrame, lastFrame, projection_type, keepSourceWindow=False)
+    """zproject(firstFrame, lastFrame, projection_type, keepSourceWindow=False)
 
-This creates a new stack from the frames between the firstFrame and the lastFrame
+    This creates a new stack from the frames between the firstFrame and the lastFrame
     
     Parameters:
-        | firstFrame (int) -- The index of the first frame in the stack to be kept.
-        | lastFrame (int) -- The index of the last frame in the stack to be kept.
-        | projection_type (str) -- Method used to combine the frames.
+        firstFrame (int): The index of the first frame in the stack to be kept.
+        lastFrame (int): The index of the last frame in the stack to be kept.
+        projection_type (str): Method used to combine the frames.
     Returns:
         newWindow
     """
@@ -354,12 +359,12 @@ zproject=ZProject()
 class Image_calculator(BaseProcess):
     """###image_calculator(window1,window2,operation,keepSourceWindow=False)
 
-This creates a new stack by combining two windows in an operation
+    This creates a new stack by combining two windows in an operation
     
     Parameters:
-        | window1 (Window) -- The first window 
-        | window2 (Window) -- The second window
-        | operation (str)  -- Method used to combine the frames.
+        window1 (Window): The first window
+        window2 (Window): The second window
+        operation (str): Method used to combine the frames.
     Returns:
         newWindow
     """
@@ -454,13 +459,13 @@ image_calculator=Image_calculator()
 
 
 class Concatenate_stacks(BaseProcess):
-    """###concatenate_stacks(window1,window2,keepSourceWindow=False)
+    """concatenate_stacks(window1,window2,keepSourceWindow=False)
 
-This creates a new stack by concatenating two stacks
+    This creates a new stack by concatenating two stacks
 
     Parameters:
-        | window1 (Window) -- The first window
-        | window2 (Window) -- The second window
+        window1 (Window): The first window
+        window2 (Window): The second window
     Returns:
         newWindow
     """
@@ -507,12 +512,12 @@ This creates a new stack by concatenating two stacks
 concatenate_stacks = Concatenate_stacks()
 
 class Change_datatype(BaseProcess):
-    """###change_datatype(datatype, keepSourceWindow=False)
+    """change_datatype(datatype, keepSourceWindow=False)
 
-This bins the pixels to reduce the file size
+    This bins the pixels to reduce the file size
 
     Parameters:
-        | datatype (string)
+        datatype (string)
     Returns:
         newWindow
     """
@@ -535,3 +540,5 @@ This bins the pixels to reduce the file size
         return self.end()
 
 change_datatype = Change_datatype()
+
+logger.debug("Completed 'reading process/stacks.py'")

@@ -1,17 +1,19 @@
-# -*- coding: utf-8 -*-
+from ..logger import logger
 import numpy as np
 import skimage
 import skimage.filters
 from qtpy import QtWidgets, QtGui, QtCore
 import time
 from .. import global_vars as g
-from .BaseProcess import BaseProcess, SliderLabel, SliderLabelOdd, CheckBox
+from ..utils.BaseProcess import BaseProcess, SliderLabel, SliderLabelOdd, CheckBox
 from .progress_bar import ProgressBar
 
-__all__ = ['gaussian_blur', 'difference_of_gaussians', 'mean_filter', 'variance_filter', 'median_filter','butterworth_filter','boxcar_differential_filter','wavelet_filter','difference_filter', 'fourier_filter', 'bilateral_filter']
+__all__ = ['gaussian_blur', 'difference_of_gaussians', 'mean_filter', 'variance_filter', 'median_filter', 'butterworth_filter', 'boxcar_differential_filter','wavelet_filter','difference_filter', 'fourier_filter', 'bilateral_filter']
 ###############################################################################
 ##################   SPATIAL FILTERS       ####################################
 ###############################################################################
+
+
 class Gaussian_blur(BaseProcess):
     """ gaussian_blur(sigma, norm_edges=False, keepSourceWindow=False)
 
@@ -28,7 +30,9 @@ class Gaussian_blur(BaseProcess):
     def __init__(self):
         super().__init__()
         assert 'gaussian' in skimage.filters.__dict__  # Make sure your version of skimage is >= 0.12.3
+
     def gui(self):
+        logger.debug("Started 'running process.filters.gaussian_blur.gui()'")
         self.gui_reset()
         sigma=SliderLabel(2)
         sigma.setRange(0,100)
@@ -42,6 +46,7 @@ class Gaussian_blur(BaseProcess):
         self.items.append({'name': 'preview', 'string': 'Preview', 'object': preview})
         super().gui()
         self.preview()
+        logger.debug("Completed 'running process.filters.gaussian_blur.gui()'")
 
     def __call__(self, sigma, norm_edges=False, keepSourceWindow=False):
         self.start(keepSourceWindow)
@@ -62,8 +67,9 @@ class Gaussian_blur(BaseProcess):
         self.newname=self.oldname+' - Gaussian Blur sigma='+str(sigma)
         return self.end()
     def preview(self):
+        logger.debug("Started 'running process.filters.gaussian_blur.preview()'")
         norm_edges = self.getValue('norm_edges')
-        if norm_edges == True:
+        if norm_edges:
             mode = 'constant'
         else:
             mode = 'nearest'
@@ -79,11 +85,12 @@ class Gaussian_blur(BaseProcess):
             g.win.imageview.setImage(testimage,autoLevels=False)
         else:
             g.win.reset()
-gaussian_blur=Gaussian_blur()
+        logger.debug("Completed 'running process.filters.gaussian_blur.preview()'")
+gaussian_blur = Gaussian_blur()
 
 
 class Difference_of_Gaussians(BaseProcess):
-    """ gaussian_blur(sigma1, sigma2, keepSourceWindow=False)
+    """gaussian_blur(sigma1, sigma2, keepSourceWindow=False)
 
     This subtracts one gaussian blurred image from another to spatially bandpass filter.
 
@@ -158,12 +165,13 @@ from scipy.signal import butter, filtfilt
 
 class Butterworth_filter(BaseProcess):
     """ butterworth_filter(filter_order, low, high, keepSourceWindow=False)
+
     This filters a stack in time.
     
     Parameters:
-        | filter_order (int) -- The order of the butterworth filter (higher->steeper).
-        | low (float) -- The low frequency cutoff.  Must be between 0 and 1 and must be below high.
-        | high (float) -- The high frequency cutoff.  Must be between 0 and 1 and must be above low.
+        filter_order (int): The order of the butterworth filter (higher->steeper).
+        low (float): The low frequency cutoff.  Must be between 0 and 1 and must be below high.
+        high (float): The high frequency cutoff.  Must be between 0 and 1 and must be above low.
     Returns:
         newWindow
     """
@@ -312,10 +320,11 @@ def butterworth_filter_multi_inner(q_results, q_progress, q_status, child_conn, 
 from scipy.ndimage.filters import convolve
 class Mean_filter(BaseProcess):
     """ mean_filter(nFrames, keepSourceWindow=False)
+
     This filters a stack in time.
     
     Parameters:
-        | nFrames (int) -- Number of frames to average
+        nFrames (int): Number of frames to average
     Returns:
         newWindow
     """
@@ -380,10 +389,11 @@ def varfilt(trace, nFrames):
 
 class Variance_filter(BaseProcess):
     """ variance_filter(nFrames, keepSourceWindow=False)
+
     This filters a stack in time.
 
     Parameters:
-        | nFrames (int) -- Number of frames to take teh variance of
+        nFrames (int): Number of frames to take teh variance of
     Returns:
         newWindow
     """
@@ -445,10 +455,11 @@ variance_filter = Variance_filter()
 from scipy.signal import medfilt
 class Median_filter(BaseProcess):
     """ median_filter(nFrames, keepSourceWindow=False)
+
     This filters a stack in time.
     
     Parameters:
-        | nFrames (int) -- Number of frames to average.  This must be an odd number
+        nFrames (int): Number of frames to average.  This must be an odd number
     Returns:
         newWindow
     """
@@ -513,13 +524,14 @@ median_filter=Median_filter()
 from scipy.fftpack import fft, ifft, fftfreq
 class Fourier_filter(BaseProcess):
     """ fourier_filter(frame_rate, low, high, loglogPreview, keepSourceWindow=False)
+
     I'm going to eventually plot the trace in the frequency domain inside this box so you can see where the power is.
 
     Parameters:
-        | frame_rate (int) -- Frame Rate in Hz
-        | low (float) -- Low cutoff frequency for the fourier filter
-        | high (float) -- High cutoff frequency for fourier filter
-        | loglogPreview (boolean) -- whether or not to plot frequency spectrum on log log axes
+        frame_rate (int): Frame Rate in Hz
+        low (float): Low cutoff frequency for the fourier filter
+        high (float): High cutoff frequency for fourier filter
+        loglogPreview (boolean): whether or not to plot frequency spectrum on log log axes
     """
     def __init__(self):
         super().__init__()
@@ -553,7 +565,8 @@ class Fourier_filter(BaseProcess):
         else:
             preview.setChecked(False)
             preview.setEnabled(False)
-            loglogPreview.setEnabled(False) 
+            loglogPreview.setEnabled(False)
+
     def __call__(self, frame_rate, low, high, loglogPreview, keepSourceWindow=False):
         self.start(keepSourceWindow)
         if self.tif.dtype == np.float16:
@@ -636,11 +649,9 @@ fourier_filter=Fourier_filter()
 
 class Difference_filter(BaseProcess):
     """ difference_filter(keepSourceWindow=False)
-    subtracts each frame from the preceeding frame
-    
-    
-    Parameters:
-        | None
+
+    Subtracts each frame from the preceeding frame
+
     Returns:
         newWindow
     """
@@ -662,11 +673,12 @@ difference_filter=Difference_filter()
     
 class Boxcar_differential_filter(BaseProcess):
     """ boxcar_differential_filter(minNframes, maxNframes, keepSourceWindow=False)
+
     Applies a Boxcar differential filter by comparing each frameat index I to the frames in range [I+minNframes, I+maxNframes]
 
     Parameters:
-        | minNframes (int) -- The starting point of your boxcar window.
-        | maxNframes (int) -- The ending point of your boxcar window.
+        minNframes (int): The starting point of your boxcar window.
+        maxNframes (int): The ending point of your boxcar window.
     Returns:
         newWindow
     """
@@ -728,11 +740,12 @@ boxcar_differential_filter=Boxcar_differential_filter()
 from scipy import signal
 class Wavelet_filter(BaseProcess):
     ''' wavelet_filter(low, high, keepSourceWindow=False)
+
     ***Warning!! This function is extremely slow.***
     
     Parameters:
-        | low (int) -- The starting point of your boxcar window.
-        | high (int) -- The ending point of your boxcar window.
+        low (int): The starting point of your boxcar window.
+        high (int): The ending point of your boxcar window.
     Returns:
         newWindow
     '''
@@ -806,11 +819,11 @@ class Bilateral_filter(BaseProcess):
     ''' bilateral_filter( keepSourceWindow=False)
     
     Parameters:
-        | soft (bool)  --     True for guassian, False for hard filter
-        | beta (float) --     beta of kernel
-        | width (float) --    width of kernel
-        | stoptol (float) --  tolerance for convergence
-        | maxiter (int)  --   maximum number of iterations
+        soft (bool): True for guassian, False for hard filter
+        beta (float): beta of kernel
+        width (float): width of kernel
+        stoptol (float): tolerance for convergence
+        maxiter (int): maximum number of iterations
     Returns:
         newWindow
     '''

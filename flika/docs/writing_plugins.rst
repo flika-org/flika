@@ -57,6 +57,7 @@ Sample Plugins
 ===============
 
 - `Sample plugin 1 <https://github.com/flika-org/sample_plugin_1>`_
+- `Sample plugin 2 <https://github.com/flika-org/sample_plugin_2>`_
 - More coming soon.
 
 If you'd like to contribute a sample plugin, please :ref:`contact us<contact>`. 

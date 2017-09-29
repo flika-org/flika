@@ -12,6 +12,8 @@ image inside current window, simply run::
 
 
 """
+from .logger import logger
+logger.debug("Started 'reading global_vars.py'")
 import os
 from multiprocessing import cpu_count
 from os.path import expanduser
@@ -19,7 +21,6 @@ from qtpy import QtWidgets, QtGui, QtCore
 from collections.abc import MutableMapping
 import json
 from uuid import getnode
-from .logger import logger
 from .utils.misc import get_location
 
 __all__ = ['m', 'Settings', 'menus', 'alert', 'windows', 'traceWindows', 'currentWindow', 'win', 'currentTrace', 'clipboard']
@@ -80,14 +81,16 @@ class Settings(MutableMapping): #http://stackoverflow.com/questions/3387691/pyth
         return item in self.d
 
     def save(self):
-        """ Save settings file. The file is stored in ``~/.FLIKA/settings.json`` """
+        """save(self)
+                 Save settings file. The file is stored in ``~/.FLIKA/settings.json`` """
         if not os.path.exists(os.path.dirname(self.settings_file)):
             os.makedirs(os.path.dirname(self.settings_file))
         with open(self.settings_file, 'w') as fp:
             json.dump(self.d, fp, indent=4)
 
     def load(self):
-        """ Load settings file. The file is stored in ``~/.FLIKA/settings.json`` """
+        """load(self)
+        Load settings file. The file is stored in ``~/.FLIKA/settings.json`` """
         if not os.path.exists(self.settings_file):
             print('No settings file found. Creating settings file.')
             self.save()
@@ -105,6 +108,9 @@ class Settings(MutableMapping): #http://stackoverflow.com/questions/3387691/pyth
         self._load_user_information()
 
     def _load_user_information(self):
+        '''_load_user_information(self)
+        Loads user information if present. If not, the new user information is stored in self.d
+        '''
         if 'user_information' not in self.d:
             self.d['user_information'] = {}
         if 'UUID' not in self.d['user_information'] or self.d['user_information']['UUID'] is None:
@@ -149,7 +155,12 @@ class SetCurrentWindowSignal(QtWidgets.QWidget):
 
 
 def alert(msg, title="flika - Alert"):
-    """Creates a popup that alerts the user.
+    """alert(msg, title="flika - Alert')
+    Creates a popup that alerts the user.
+
+    Arguments:
+        msg (str): Alert message displayed to the user
+        title (str): Title of the alert message popup
     """
 
     print('\nAlert: ' + msg)
@@ -182,3 +193,4 @@ clipboard = None
 
 
 
+logger.debug("Completed 'reading global_vars.py'")

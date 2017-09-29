@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
+from ..logger import logger
+logger.debug("Started 'reading app/script_editor.py'")
 from qtpy import QtGui, QtCore, QtWidgets, uic
 import os
 
 from .. import global_vars as g
-from .terminal import ipython_terminal
-from .script_namespace import getnamespace
 from .syntax import PythonHighlighter
 from ..utils.misc import save_file_gui, open_file_gui, load_ui
 
@@ -83,6 +83,8 @@ class ScriptEditor(QtWidgets.QMainWindow):
     '''
     POINT_SIZE = 8
     def __init__(self, parent=None, ):
+        from .terminal import ipython_terminal
+        from .script_namespace import getnamespace
         super(ScriptEditor, self).__init__(parent)
         load_ui('ipythonWidget.ui', self, directory=os.path.dirname(__file__))
         text = """Predefined Libraries:
@@ -306,4 +308,6 @@ if __name__ == '__main__':
     app = QtWidgets.QApplication([])
     ScriptEditor.show()
     app.exec_()
-    
+
+
+logger.debug("Completed 'reading app/script_editor.py'")

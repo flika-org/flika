@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
+from .logger import logger
+logger.debug("Started 'reading flika.py'")
 import sys, os
 import platform
 import optparse
 import warnings
+logger.debug("Started 'reading flika.py, importing numpy'")
 import numpy as np
+logger.debug("Completed 'reading flika.py, importing numpy'")
 from .version import __version__
-from .logger import logger
 from .app.application import FlikaApplication
+
 
 # for development purposes, add this if flika is not in your site-packages
 # sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
@@ -18,10 +22,11 @@ warnings.filterwarnings("ignore", category=np.VisibleDeprecationWarning)
 def parse_arguments(argv):
     ''' Parses command line arguments for valid flika args
 
-    :param argv: Arguments passed to program
+    Arguments:
+        argv: Arguments passed to program
 
-    *Returns*
-    A tuple of options, position arguments
+    Returns:
+        A tuple of options, position arguments
     '''
     usage = """usage: %prog [FILE FILE...]
 
@@ -62,14 +67,15 @@ def parse_arguments(argv):
     return parser.parse_args(argv)
 
 def verify(parser, argv):
-    """ Check for input errors
+    """verify(parser, argv)
+    Check for input errors
 
-    :param parser: OptionParser instance
-    :param argv: Argument list
-    :type argv: List of strings
+    Arguments:
+        parser: OptionParser instance
+        argv (list): Argument list
 
-    *Returns*
-    An error message, or None
+    Returns:
+        An error message in the event of an input error, or None
     """
     opts, args = parser.parse_args(argv)
     err_msg = None
@@ -95,18 +101,22 @@ def load_files(files):
         open_file(f)
 
 def start_flika(files=[]):
-    """Run a flika session and exit
+    """Run a flika session and exit, beginning the event loop
 
-    Parameters
-    ----------
-    files : list
-        An optional list of data files to load.
+    Parameters:
+        files (list): An optional list of data files to load.
+
+    Returns:
+        A flika application object with optional files loaded
  
     """
+    logger.debug("Started 'flika.start_flika()'")
+    print('Starting flika')
     fa = FlikaApplication()
     load_files(files)
     fa.start()
     ipython_qt_event_loop_setup()
+    logger.debug("Completed 'flika.start_flika()'")
     return fa
 
 def exec_():
@@ -133,7 +143,7 @@ def post_install():
 if __name__ == '__main__':
     start_flika(sys.argv[1:])
 
-
+logger.debug("Completed 'reading flika.py'")
 """
 def exec_(args=sys.argv):
     opt, args = parse_arguments(args[1:])

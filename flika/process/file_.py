@@ -1,29 +1,25 @@
 # -*- coding: utf-8 -*-
+from ..logger import logger
+logger.debug("Started 'reading process/file_.py'")
 import pyqtgraph as pg
 import pyqtgraph.exporters
 import time
 import os.path
 import numpy as np
 from qtpy import uic, QtGui, QtCore, QtWidgets
-import codecs
 import shutil, subprocess
-import json
-import re
-import nd2reader
 import datetime
 import json
-import pip
 import re
 import pathlib
 
 from .. import global_vars as g
-from ..app.script_editor import ScriptEditor
-from .BaseProcess import BaseDialog
+from ..utils.BaseProcess import BaseDialog
 from ..window import Window
 from ..utils.misc import open_file_gui, save_file_gui
 from ..utils.io import tifffile
 
-__all__ = ['save_file', 'save_points', 'save_movie_gui', 'open_file', 'open_file_from_gui', 'open_image_sequence_from_gui', 'open_points', 'close']
+__all__ = ['save_file', 'save_points', 'save_rois', 'save_movie_gui', 'open_file', 'open_file_from_gui', 'open_image_sequence_from_gui', 'open_points', 'close']
 
 ########################################################################################################################
 ######################                  SAVING FILES                                         ###########################
@@ -32,13 +28,11 @@ __all__ = ['save_file', 'save_points', 'save_movie_gui', 'open_file', 'open_file
 
 
 def save_file(filename=None):
-    """
+    """save_file(filename=None)
     Save the image in the currentWindow to a .tif file.
 
-    Parameters
-    ----------
-    filename : str
-        The image or movie will be saved here.
+    Parameters:
+        filename (str): The image or movie will be saved as  'filename'.tif.
 
     """
     if filename is None or filename is False:
@@ -70,6 +64,15 @@ def save_file(filename=None):
     return filename
 
 def save_points(filename=None):
+    """save_points(filename=None)
+    Saves the points in the current window to a text file
+
+    Parameters:
+        filename (str): Address to save the points to, with .txt
+
+
+    """
+
     if filename is None:
         filetypes = '*.txt'
         prompt = 'Save Points'
@@ -95,21 +98,25 @@ def save_movie_gui():
     g.dialogs.append(rateDialog)
     rateDialog.show()
 
+def save_rois( filename=None):
+    g.currentWindow.save_rois(filename)
+
 
 def save_movie(rate, filename=None):
     """save_movie(rate, filename)
     Saves the currentWindow video as a .mp4 movie by joining .jpg frames together
 
     Parameters:
-        | rate (int) -- framerate
-        | filename (str) -- Address to save the movie to, with .mp4
+        rate (int): framerate
+        filename (str): Address to save the movie to, with .mp4
 
     Notes:
-        | Once you've exported all of the frames you wanted, open a command line and run the following:
-        |   ffmpeg -r 100 -i %03d.jpg output.mp4
-        | -r: framerate
-        | -i: input files.
-        | %03d: The files have to be numbered 001.jpg, 002.jpg... etc.
+        Once you've exported all of the frames you wanted, open a command line and run the following:
+        ffmpeg -r 100 -i %03d.jpg output.mp4
+        -r: framerate
+        -i: input files.
+        %03d: The files have to be numbered 001.jpg, 002.jpg... etc.
+
     """
 
 
@@ -188,10 +195,11 @@ def open_image_sequence(filename=None, from_gui=False):
     Opens an image sequence (.tif, .png) into a newWindow.
 
     Parameters:
-        | filename (str) -- Address of the first of a series of files that will be stitched together into a movie.
+        filename (str): Address of the first of a series of files that will be stitched together into a movie.
                             If no filename is provided, the last opened file is used.
     Returns:
         newWindow
+
     """
     if filename is None:
         if from_gui:
@@ -242,9 +250,10 @@ def open_file(filename=None, from_gui=False):
     Opens an image or movie file (.tif, .stk, .nd2) into a newWindow.
 
     Parameters:
-        | filename (str) -- Address of file to open. If no filename is provided, the last opened file is used.
+        filename (str): Address of file to open. If no filename is provided, the last opened file is used.
     Returns:
         newWindow
+
     """
     if filename is None:
         if from_gui:
@@ -259,18 +268,19 @@ def open_file(filename=None, from_gui=False):
                 g.alert('No filename selected')
                 return None
     print("Filename: {}".format(filename))
-    g.m.statusBar().showMessage('Loading {}'.format(os.path.basename(filename)))
+    g.m.statusBar().showMessage('Loading {}'.format(os.path.basename(str(filename))))
     t = time.time()
     metadata = dict()
-    ext = os.path.splitext(filename)[1]
+    ext = os.path.splitext(str(filename))[1]
     if ext in ['.tif', '.stk', '.tiff', '.ome']:
-        results = open_tiff(filename, metadata)
+        results = open_tiff(str(filename), metadata)
         if results is None:
             return None
         else:
             A, metadata = results
     elif ext == '.nd2':
-        nd2 = nd2reader.ND2Reader(filename)
+        import nd2reader
+        nd2 = nd2reader.ND2Reader(str(filename))
         axes = nd2.axes
         mx = nd2.metadata['width']
         my = nd2.metadata['height']
@@ -285,9 +295,11 @@ def open_file(filename=None, from_gui=False):
                 QtWidgets.qApp.processEvents()
         metadata = nd2.metadata
     elif ext == '.py':
+        from ..app.script_editor import ScriptEditor
         ScriptEditor.importScript(filename)
         return
     elif ext == '.whl':
+        import pip
         # first, remove trailing (1) or (2)
         newfilename = re.sub(r' \([^)]*\)', '', filename)
         try:
@@ -309,20 +321,18 @@ def open_file(filename=None, from_gui=False):
         # make_recent_menu()
         return
         
-    append_recent_file(filename)  # make first in recent file menu
-    g.m.statusBar().showMessage('{} successfully loaded ({} s)'.format(os.path.basename(filename), time.time() - t))
-    g.settings['filename'] = filename
+    append_recent_file(str(filename))  # make first in recent file menu
+    g.m.statusBar().showMessage('{} successfully loaded ({} s)'.format(os.path.basename(str(filename)), time.time() - t))
+    g.settings['filename'] = str(filename)
     commands = ["open_file('{}')".format(filename)]
-    newWindow = Window(A, os.path.basename(filename), filename, commands, metadata)
+    newWindow = Window(A, os.path.basename(str(filename)), filename, commands, metadata)
     return newWindow
 
 def open_tiff(filename, metadata):
     try:
-        print('opening file: "{}"'.format(filename))
         Tiff = tifffile.TiffFile(str(filename))
     except Exception as s:
         g.alert("Unable to open {}. {}".format(filename, s))
-        print("aweifhaowiehf")
         return None
     metadata = get_metadata_tiff(Tiff)
     A = Tiff.asarray()
@@ -357,6 +367,10 @@ def open_tiff(filename, metadata):
     elif set(axes) == set(['sample', 'time', 'height', 'width']):  # movie in color
         target_axes = ['time', 'width', 'height', 'sample']
         metadata['is_rgb'] = True
+    elif set(axes) == set(['other', 'height', 'width']):
+        target_axes = ['other', 'height', 'width']
+        metadata['is_rgb'] = False
+
     perm = get_permutation_tuple(axes, target_axes)
     A = np.transpose(A, perm)
     if target_axes[-1] in ['channel', 'sample', 'series'] and A.shape[-1] == 2:
@@ -367,7 +381,18 @@ def open_tiff(filename, metadata):
         #    A = np.squeeze(A)  # this gets rid of the meaningless 4th dimention in .stk files
     return [A, metadata]
 
+
 def open_points(filename=None):
+    """open_points(filename=None)
+    Opens a specified text file and displays the points from that file into the currentWindow
+
+    Parameters:
+        filename (str): Address of file to open. If no filename is provided, the last opened file is used.
+
+    Note:
+        Any existing points on a currentWindow will persist when another points file is opened and displayed
+
+    """
     if g.win is None:
         g.alert('Points cannot be loaded if no window is selected. Open a file and click on a window.')
         return None
@@ -413,16 +438,14 @@ def open_points(filename=None):
 ######################                INTERNAL HELPER FUNCTIONS                              ###########################
 ########################################################################################################################
 def get_permutation_tuple(src, dst):
-    """
+    """get_permtation_tuple(src, dst)
 
-    Parameters
-    ----------
-    src (list): The original ordering of the axes in the tiff.
-    dst (list): The desired ordering of the axes in the tiff.
+    Parameters:
+        src (list): The original ordering of the axes in the tiff.
+        dst (list): The desired ordering of the axes in the tiff.
 
-    Returns
-    -------
-    result (tuple): The required permutation so the axes are ordered as desired.
+    Returns:
+        result (tuple): The required permutation so the axes are ordered as desired.
     """
     result = []
     for i in dst:
@@ -493,15 +516,16 @@ def JSONhandler(obj):
 
 
 def close(windows=None):
-    '''
+    """close(window=None)
     Will close a window or a set of windows.
 
-    Values for windows:
-        | 'all' (str) -- closes all windows
-        | windows (list) - closes each window in the list
-        | (Window) - closes individual window
-        | (None) - closes current window
-    '''
+    Parameters:
+        'all' (str): closes all windows
+        windows (list): closes each window in the list
+        Window: closes individual window
+        (None): closes current window
+
+    """
     if isinstance(windows, str):
         if windows == 'all':
             windows = [window for window in g.windows]
@@ -600,3 +624,5 @@ def make_recent_menu():
             g.m.menuRecent_Files.addAction(QtWidgets.QAction(fname, g.m, triggered=openFun(fname)))
 
 """
+
+logger.debug("Completed 'reading process/file_.py'")

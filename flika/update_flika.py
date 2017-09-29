@@ -3,16 +3,13 @@ import os, sys
 from urllib.request import urlopen
 from urllib.error import HTTPError
 import re
-import pip
 import sys
 from io import StringIO, BytesIO
 import contextlib
 import pathlib
 import tempfile
 from zipfile import ZipFile
-from pkg_resources import parse_version
 import shutil
-from distutils.sysconfig import get_python_lib
 from qtpy import QtWidgets, QtGui, QtCore
 from . import global_vars as g
 from .version import __version__ as installed_flika_version
@@ -23,6 +20,7 @@ __all__ = ['checkUpdates']
 
 
 def check_if_installed_via_pip():
+    from distutils.sysconfig import get_python_lib
     s_loc = pathlib.Path(get_python_lib())
     f_loc = pathlib.Path(__file__)
     assert f_loc.exists()
@@ -65,6 +63,7 @@ def path_walk(top, topdown=False, followlinks=False):
 
 
 def get_pypi_version():
+    import pip
     with capture() as out:
         pip.main(['search', 'flika'])
     stdout, stderr = out
@@ -92,6 +91,7 @@ def checkUpdates():
     repository.
 
     """
+    from pkg_resources import parse_version
     installed_via_pip = check_if_installed_via_pip()
     if installed_via_pip:
         latest_version = get_pypi_version()
@@ -112,6 +112,7 @@ def checkUpdates():
 
 
 def updateFlika():
+    import pip
     installed_via_pip = check_if_installed_via_pip()
     if installed_via_pip:
         with capture() as out:

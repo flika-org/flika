@@ -6,7 +6,7 @@ Full flika documentation
 ===========================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    getting-started
    similar_projects

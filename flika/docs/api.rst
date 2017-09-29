@@ -8,8 +8,9 @@ API Reference
    :maxdepth: 1
 
    api/flika
-   api/flikaflika
+   api/app
    api/process
+   api/flikaflika
    api/window
    api/roi
    api/tracefig

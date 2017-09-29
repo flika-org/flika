@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from .logger import logger
+logger.debug("Started 'reading tracefig.py'")
 import os
 import time
 import numpy as np
@@ -336,4 +338,4 @@ class InvalidTraceException(Exception):
     pass
 
 
-
+logger.debug("Completed 'reading tracefig.py'")

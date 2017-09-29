@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
+from ..logger import logger
+logger.debug("Started 'reading process/math_.py'")
 import numpy as np
 from qtpy import QtGui, QtWidgets, QtCore
 from .. import global_vars as g
-from .BaseProcess import BaseProcess, CheckBox, ComboBox
+from ..utils.BaseProcess import BaseProcess, CheckBox, ComboBox
 from ..window import Window
 
 __all__ = ['subtract','multiply','divide','power','ratio','absolute_value','subtract_trace','divide_trace']
@@ -31,10 +33,11 @@ def upgrade_dtype(dtype):
 
 class Subtract(BaseProcess):
     """ subtract(value, keepSourceWindow=False)
+
     This takes a value and subtracts it from the current window's image.
     
     Parameters:
-        | value (int) -- The number you are subtracting.
+        value (int): The number you are subtracting.
     Returns:
         newWindow
     """
@@ -76,10 +79,9 @@ subtract=Subtract()
 
 class Subtract_trace(BaseProcess):
     """ subtract_trace(keepSourceWindow=False)
+
     This takes the most recently plotted trace and subtracts it from each corresponding frame.
-    
-    Parameters:
-        | 
+
     Returns:
         newWindow
     """
@@ -102,10 +104,9 @@ subtract_trace=Subtract_trace()
 
 class Divide_trace(BaseProcess):
     """ divide_trace(keepSourceWindow=False)
+
     This takes the most recently plotted trace and divides each pixel in the current Window by its value.
-    
-    Parameters:
-        | 
+
     Returns:
         newWindow
     """
@@ -128,10 +129,11 @@ divide_trace=Divide_trace()
     
 class Multiply(BaseProcess):
     """ multiply(value, keepSourceWindow=False)
+
     This takes a value and multiplies it to the current window's image.
     
     Parameters:
-        | value (float) -- The number you are multiplying by.
+        value (float): The number you are multiplying by.
     Returns:
         newWindow
     """
@@ -163,10 +165,11 @@ multiply=Multiply()
 
 class Divide(BaseProcess):
     """ divide(value, keepSourceWindow=False)
+
     This takes a value and divides it to the current window's image.
 
     Parameters:
-        | value (float) -- The number you are dividing by.
+        value (float): The number you are dividing by.
     Returns:
         newWindow
     """
@@ -203,10 +206,11 @@ divide = Divide()
 
 class Power(BaseProcess):
     """ power(value, keepSourceWindow=False)
+
     This raises the current window's image to the power of 'value'.
     
     Parameters:
-        | value (int) -- The exponent.
+        value (int): The exponent.
     Returns:
         newWindow
     """
@@ -239,12 +243,13 @@ power=Power()
     
 class Ratio(BaseProcess):
     """ ratio(first_frame,nFrames,ratio_type, keepSourceWindow=False)
+
     Takes a set of frames, combines them into a 2D array according to ratio_type, and divides the entire 3D array frame-by-frame by this array.
     
     Parameters:
-        | first_frame (int) -- The first frame in the set of frames to be combined
-        | nFrames (int) -- The number of frames to be combined.
-        | ratio_type (str) -- The method used to combine the frames.  Either 'standard deviation' or 'average'.
+        first_frame (int): The first frame in the set of frames to be combined
+        nFrames (int): The number of frames to be combined.
+        ratio_type (str): The method used to combine the frames.  Either 'standard deviation' or 'average'.
     Returns:
         newWindow
     """
@@ -301,10 +306,9 @@ ratio=Ratio()
 
 class Absolute_value(BaseProcess):
     """ absolute_value(keepSourceWindow=False)
+
     Takes the absolute value of a set of frames
-    
-    Parameters:
-        | None
+
     Returns:
         newWindow
     """
@@ -322,3 +326,4 @@ class Absolute_value(BaseProcess):
 absolute_value=Absolute_value()
 
 
+logger.debug("Completed 'reading process/math_.py'")

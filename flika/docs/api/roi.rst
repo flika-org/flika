@@ -6,7 +6,7 @@ Module: roi
 .. automodule:: flika.roi
 
 Class: ROI_Base
-===============
+---------------
 
 .. autoclass:: flika.roi.ROI_Base
 .. automethod:: flika.roi.ROI_Base.getTrace
@@ -17,24 +17,24 @@ Class: ROI_Base
 .. automethod:: flika.roi.ROI_Base._str
 
 Class: ROI_line
-================
+---------------
 
 .. autoclass:: flika.roi.ROI_line
 
 Class: ROI_rectangle
-=====================
+--------------------
 
 .. autoclass:: flika.roi.ROI_rectangle
 .. automethod:: flika.roi.ROI_rectangle.crop
 
 Class: ROI_rect_line
-====================
+--------------------
 
 .. autoclass:: flika.roi.ROI_rect_line
 .. automethod:: flika.roi.ROI_rect_line.setWidth
 	
 Functions
-==========
+---------
 .. autofunction:: flika.roi.makeROI
 
 .. autofunction:: flika.roi.open_rois

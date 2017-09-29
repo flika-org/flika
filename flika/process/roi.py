@@ -1,22 +1,25 @@
 # -*- coding: utf-8 -*-
+from ..logger import logger
+logger.debug("Started 'reading process/roi.py'")
 import numpy as np
 import skimage
 from qtpy import QtWidgets
 from .. import global_vars as g
-from .BaseProcess import BaseProcess, CheckBox
+from ..utils.BaseProcess import BaseProcess, CheckBox
 
 
 __all__ = ['set_value']
 
 class Set_value(BaseProcess):
     """ set_value(value, firstFrame, lastFrame, restrictToROI=False, restrictToOutside=False, keepSourceWindow=False)
+
     This sets the value from firstFrame to lastFrame to value.
     
     Parameters:
-        | value (int) -- The desired value
-        | firstFrame (int) -- The first frame whos value you are setting
-        | lastFrame (int) -- The last frame whos value you are altering
-        | restrictToROI (bool) -- Whether or not only the current ROI will be effected.
+        value (int): The desired value
+        firstFrame (int): The first frame whos value you are setting
+        lastFrame (int): The last frame whos value you are altering
+        restrictToROI (bool): Whether or not only the current ROI will be effected.
     Returns:
         newWindow
     """
@@ -89,3 +92,4 @@ class Set_value(BaseProcess):
         return self.end()
 set_value=Set_value()
 
+logger.debug("Completed 'reading process/roi.py'")

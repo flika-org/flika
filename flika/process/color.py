@@ -1,15 +1,18 @@
 # -*- coding: utf-8 -*-
+from ..logger import logger
+logger.debug("Started 'reading process/color.py'")
 import numpy as np
 from qtpy import QtWidgets, QtCore, QtGui
 from .. import global_vars as g
 from ..window import Window
-from .BaseProcess import BaseProcess, WindowSelector, MissingWindowError, CheckBox
+from ..utils.BaseProcess import BaseProcess, WindowSelector, MissingWindowError, CheckBox
 
-__all__ = ['split_channels']
+__all__ = ['split_channels', 'Split_channels']
 
 
 class Split_channels(BaseProcess):
     """ split_channels(keepSourceWindow=False)
+
     This splits the color channels in a Window
 
     Returns:
@@ -42,3 +45,5 @@ class Split_channels(BaseProcess):
 
 
 split_channels = Split_channels()
+
+logger.debug("Completed 'reading process/color.py'")

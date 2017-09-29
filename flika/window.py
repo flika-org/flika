@@ -1,15 +1,55 @@
 # -*- coding: utf-8 -*-
+from .logger import logger
+logger.debug("Started 'reading window.py'")
 from qtpy import QtCore, QtGui, QtWidgets
 import pyqtgraph as pg
 import os, time
 import numpy as np
-from skimage import measure
-from .tracefig import TraceFig
 from . import global_vars as g
-from .process.measure import measure
 from .roi import *
 from .utils.misc import save_file_gui
+from .utils.BaseProcess import WindowSelector, SliderLabel
+
 pg.setConfigOptions(useWeave=False)
+
+
+class Bg_im_dialog(QtWidgets.QDialog):
+    def __init__(self, parent=None):
+        QtWidgets.QDialog.__init__(self)
+        self.parent = parent
+        self.setWindowTitle("Select background image")
+        self.window_selector = WindowSelector()
+        self.window_selector.valueChanged.connect(self.bg_win_changed)
+        self.alpha_slider = SliderLabel(3)
+        self.alpha_slider.setRange(0,1)
+        self.alpha_slider.setValue(.5)
+        self.alpha_slider.valueChanged.connect(self.alpha_changed)
+        self.formlayout = QtWidgets.QFormLayout()
+        self.formlayout.setLabelAlignment(QtCore.Qt.AlignRight)
+        self.formlayout.addRow("Select window with background image", self.window_selector)
+        self.formlayout.addRow("Set background opacity", self.alpha_slider)
+        self.layout = QtWidgets.QVBoxLayout()
+        self.layout.addLayout(self.formlayout)
+        self.setLayout(self.layout)
+
+    def alpha_changed(self, value):
+        self.parent.bg_im.setOpacity(value)
+
+    def bg_win_changed(self):
+        if self.parent.bg_im is not None:
+            self.parent.imageview.view.removeItem(self.parent.bg_im)
+            self.bg_im = None
+        self.parent.bg_im = pg.ImageItem(self.window_selector.window.imageview.imageItem.image)
+        self.parent.bg_im.setOpacity(self.alpha_slider.value())
+        self.parent.imageview.view.addItem(self.parent.bg_im)
+
+
+    def closeEvent(self,ev):
+        if self.parent.bg_im is not None:
+            self.parent.imageview.view.removeItem(self.parent.bg_im)
+            self.bg_im = None
+
+
 
 class ImageView(pg.ImageView):
     def __init__(self, *args, **kargs):
@@ -25,6 +65,11 @@ class ImageView(pg.ImageView):
         self.ui.normLUTbtn.setObjectName("LUT norm")
         self.ui.normLUTbtn.setText("LUT norm")
         self.ui.gridLayout.addWidget(self.ui.normLUTbtn, 1, 1, 1, 1)
+
+        self.ui.bg_imbtn = QtWidgets.QPushButton(self.ui.layoutWidget)
+        self.ui.bg_imbtn.setObjectName("bg im")
+        self.ui.bg_imbtn.setText("bg im")
+        self.ui.gridLayout.addWidget(self.ui.bg_imbtn, 1, 2, 1, 1)
 
         self.ui.roiPlot.setMaximumHeight(40)
         self.ui.roiPlot.getPlotItem().getViewBox().setMouseEnabled(False)
@@ -73,6 +118,7 @@ class Window(QtWidgets.QWidget):
     lostFocusSignal = QtCore.Signal()
 
     def __init__(self, tif, name='flika', filename='', commands=[], metadata=dict()):
+        from .process.measure import measure
         QtWidgets.QWidget.__init__(self)
         self.name = name  #: str: The name of the window.
         self.filename = filename  #: str: The filename (including full path) of file this window's image orinated from.
@@ -91,6 +137,7 @@ class Window(QtWidgets.QWidget):
         self.currentROI = None  #: :class:`ROI <flika.roi.ROI_Base>`: When an ROI is clicked, it becomes the currentROI of that window and can be accessed via this variable.
         self.creatingROI = False
         self.imageview = None
+        self.bg_im = None
         self.currentIndex = 0
         self.linkedWindows = set()
         self.measure = measure
@@ -155,6 +202,7 @@ class Window(QtWidgets.QWidget):
         self.imageview.setMouseTracking(True)
         self.imageview.installEventFilter(self)
         self.imageview.ui.normLUTbtn.pressed.connect(lambda: self.normLUT(self.image))
+        self.imageview.ui.bg_imbtn.pressed.connect(self.set_bg_im)
         rp = self.imageview.ui.roiPlot.getPlotItem()
         self.linkMenu = QtWidgets.QMenu("Link frame")
         rp.ctrlMenu = self.linkMenu
@@ -222,11 +270,9 @@ class Window(QtWidgets.QWidget):
         plotAllAct = QtWidgets.QAction('&Plot All ROIs', self.menu, triggered=self.plotAllROIs )
         copyAll = QtWidgets.QAction("Copy All ROIs", self.menu, triggered = lambda a: setattr(g, 'clipboard', self.rois))
         removeAll = QtWidgets.QAction("Remove All ROIs", self.menu, triggered = self.removeAllROIs)
-        saveAll = QtWidgets.QAction("&Save All ROIs",self, triggered=self.save_rois)
         self.menu.addAction(pasteAct)
         self.menu.addAction(plotAllAct)
         self.menu.addAction(copyAll)
-        self.menu.addAction(saveAll)
         self.menu.addAction(removeAll)
         self.menu.aboutToShow.connect(updateMenu)
 
@@ -237,9 +283,11 @@ class Window(QtWidgets.QWidget):
         g.settings['window_settings']['coords'] = self.geometry().getRect()
 
     def save(self, filename):
-        """
+        """save(self, filename)
+        Saves the current window to a specificed directory as a (.tif) file
+
         Args:
-            filename (str): The filename, including the full path, where this (.tif) file will be saved. 
+            filename (str): The filename, including the full path, where this (.tif) file will be saved.
 
         """
         from .process.file_ import save_file
@@ -253,6 +301,10 @@ class Window(QtWidgets.QWidget):
             # if the image is binary (either all 0s or 0s and 1s)
             if np.min(tif) == 0 and (np.max(tif) == 0 or np.max(tif) == 1):
                 self.imageview.setLevels(-.01, 1.01)  # set levels from slightly below 0 to 1
+            else:
+                r = (np.min(tif), np.max(tif))  # set the levels to be just above and below the min and max of the image
+                r = (r[0] - (r[1] - r[0]) / 100, r[1] + (r[1] - r[0]) / 100)
+                self.imageview.setLevels(r[0], r[1])
         if self.nDims == 3 and not self.metadata['is_rgb']:
             if np.all(tif[self.currentIndex] == 0):  # if the current frame is all zeros
                 r = (np.min(tif), np.max(tif))  # set the levels to be just above and below the min and max of the entire tif
@@ -266,9 +318,13 @@ class Window(QtWidgets.QWidget):
         elif self.nDims == 4 and not self.metadata['is_rgb']:
             if np.min(tif) == 0 and (np.max(tif) == 0 or np.max(tif) == 1):  # if the image is binary (either all 0s or 0s and 1s)
                 self.imageview.setLevels(-.01, 1.01)  # set levels from slightly below 0 to 1
-    
+
+    def set_bg_im(self):
+        self.bg_im_dialog = Bg_im_dialog(self)
+        self.bg_im_dialog.show()
+
     def link(self, win):
-        """
+        """link(self, win)
         Linking a window to another means when the current index of one changes, the index of the other will automatically change.
 
         Args:
@@ -280,7 +336,7 @@ class Window(QtWidgets.QWidget):
             win.link(self)
 
     def unlink(self, win):
-        """
+        """unlink(self, win)
         This unlinks a window from this one.
 
         Args:
@@ -319,7 +375,7 @@ class Window(QtWidgets.QWidget):
             self.sigTimeChanged.emit(t)
 
     def setIndex(self, index):
-        """
+        """setIndex(self, index)
         This sets the index (frame) of this window. 
 
         Args:
@@ -352,8 +408,11 @@ class Window(QtWidgets.QWidget):
             g.m.statusBar().showMessage(msg)
 
     def setName(self,name):
-        """
-        set the name of this window.
+        """setName(self,name)
+        Set the name of this window.
+
+        Args:
+            name (str): the name for window to be set to
         """
         name = str(name)
         self.name = name
@@ -388,8 +447,10 @@ class Window(QtWidgets.QWidget):
             event.accept() # let the window close
 
     def imageArray(self):
-        """
-        returns image as a 3d array, correcting for color or 2d image
+        """imageArray(self)
+
+        Returns:
+             Image as a 3d array, correcting for color or 2d image
         """
         tif = self.image
         nDims = len(tif.shape)
@@ -426,8 +487,9 @@ class Window(QtWidgets.QWidget):
         self.imageview.resize(self.size())
 
     def paste(self):
-        """ This function pastes an ROI from one window into another.
-        The ROIs will be linked so that when you alter one of them, the other will be altered in the same way.
+        """ paste(self)
+        This function pastes a ROI from one window into another.
+        The ROIs will be automatically linked using the link() fucntion so that when you alter one of them, the other will be altered in the same way.
         """
         def pasteROI(roi):
             if roi in self.rois:
@@ -453,7 +515,8 @@ class Window(QtWidgets.QWidget):
         self.setAsCurrentWindow()
 
     def setAsCurrentWindow(self):
-        """This function sets this window as the current window. There is only one current window. All operations are performed on the
+        """setAsCurrentWindow(self)
+        This function sets this window as the current window. There is only one current window. All operations are performed on the
         current window. The current window can be accessed from the variable ``g.win``. 
         """
 
@@ -490,7 +553,8 @@ class Window(QtWidgets.QWidget):
             self.scatterPlot.setPoints(pos=self.scatterPoints[t], size=pointSizes, brush=brushes)
 
     def getScatterPts(self):
-        """
+        """getScatterPts(self)
+
         Returns:
             numpy array: an Nx3 array of scatter points, where N is the number of points. Col0 is frame, Col1 is x, Col2 is y. 
         """
@@ -526,6 +590,9 @@ class Window(QtWidgets.QWidget):
         self.scatterPlot.addPoints(pos=[[x, y]], size=pointSize, brush=pg.mkBrush(*pointColor.getRgb()))
 
     def mouseClickEvent(self,ev):
+        ''''mouseClickevent(self, ev)
+        Event handler for when the mouse is pressed in a flika window.
+        '''
         self.EEEE = ev
         if self.x is not None and self.y is not None and ev.button() == 2 and not self.creatingROI:
             mm = g.settings['mousemode']
@@ -541,9 +608,10 @@ class Window(QtWidgets.QWidget):
             self.creatingROI = None
 
     def save_rois(self, filename=None):
-        """
+        """save_rois(self, filename=None)
+
         Args:
-            filename (str): The filename, including the full path, where the ROI file will be saved. 
+            filename (str): The filename, including the full path, where the ROI file will be saved.
 
         """
         if not isinstance(filename, str):
@@ -559,6 +627,7 @@ class Window(QtWidgets.QWidget):
             open(filename, 'w').write(reprs)
         else:
             g.m.statusBar().showMessage('No File Selected')
+
     
     def keyPressEvent(self, ev):
         if ev.key() == QtCore.Qt.Key_Delete:
@@ -571,6 +640,9 @@ class Window(QtWidgets.QWidget):
         self.keyPressSignal.emit(ev)
         
     def mouseMoved(self,point):
+        '''mouseMoved(self,point)
+        Event handler function for mouse movement.
+        '''
         point=self.imageview.getImageItem().mapFromScene(point)
         self.point = point
         self.x = point.x()
@@ -635,3 +707,4 @@ class Window(QtWidgets.QWidget):
             minutes = int(np.floor(mminutes/60))
             seconds = mminutes-minutes*60
             label.setHtml("<span style='font-size: 12pt;color:white;background-color:None;'>{}h {}m {:.3f} s</span>".format(hours,minutes,seconds))
+logger.debug("Completed 'reading window.py'")

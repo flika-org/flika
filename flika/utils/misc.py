@@ -1,11 +1,10 @@
+from ..logger import logger
+logger.debug("Started 'reading utils/misc.py'")
 import os
-import random
 import numpy as np
 import platform
 import json
-import requests
-import time
-from qtpy import uic, QtGui, QtWidgets
+from qtpy import uic, QtGui, QtWidgets, QtCore
 __all__ = ['nonpartial', 'setConsoleVisible', 'load_ui', 'random_color', 'save_file_gui', 'open_file_gui', 'get_location']
 
 def nonpartial(func, *args, **kwargs):
@@ -157,6 +156,7 @@ def send_error_report(email, report):
         Request Response if the API was reached, or None if connection failed. Use response.status==200 to check success
 
     """
+    import requests
     from .. import global_vars as g
     address = g.settings['user_information']['UUID']
     location = g.settings['user_information']['location']
@@ -168,26 +168,34 @@ def send_error_report(email, report):
         return None
     return r
 
-def send_user_stats():
+class Send_User_Stats_Thread(QtCore.QThread):
     """Log user information to the flikarest.pythonanywhere REST API to be stored in a SQL database
 
-    Currently uses the get_node to get a UUID for the machine, and the IP address location API to get a rough 
+    Currently uses the get_node to get a UUID for the machine, and the IP address location API to get a rough
     'city, region, country' location, which are only retrieved once and stored in global settings.
 
     Returns:
         Request Response if the API was reached, or None if connection failed. Use response.status==200 to check success
 
     """
-    from .. import global_vars as g
-    address = g.settings['user_information']['UUID']
-    location = g.settings['user_information']['location']
 
-    kargs = {'address': address, 'location': location}
-    try:
-        r = requests.post("http://flikarest.pythonanywhere.com/user_stats/log_user", data=kargs)
-    except requests.exceptions.ConnectionError:
-        return None
-    return r
+    def __init__(self):
+        QtCore.QThread.__init__(self)
+
+    def __del__(self):
+        self.wait()
+
+    def run(self):
+        import requests
+        from .. import global_vars as g
+        address = g.settings['user_information']['UUID']
+        location = g.settings['user_information']['location']
+        kargs = {'address': address, 'location': location}
+        try:
+            r = requests.post("http://flikarest.pythonanywhere.com/user_stats/log_user", data=kargs)
+        except requests.exceptions.ConnectionError:
+            pass
+
 
 def get_location():
     """Call to a location REST API that uses the current IP address to get a string representation of the geolocation
@@ -195,6 +203,7 @@ def get_location():
     Returns:
         str: the 'city, region, country' location of the current IP address. Or None if the connection fails
     """
+    import requests
     send_url = 'http://freegeoip.net/json'
     try:
         r = requests.get(send_url)
@@ -203,3 +212,5 @@ def get_location():
     j = json.loads(r.text)
     location = "{}, {}, {}".format(j['city'], j['region_name'], j['country_name'])
     return location
+
+logger.debug("Completed 'reading utils/misc.py'")

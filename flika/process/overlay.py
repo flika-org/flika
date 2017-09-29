@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
+from ..logger import logger
+logger.debug("Started 'reading process/overlay.py'")
 import numpy as np
 import pyqtgraph as pg
 from qtpy import QtWidgets, QtCore, QtGui
 from .. import global_vars as g
-from .BaseProcess import BaseProcess, SliderLabel, WindowSelector,  MissingWindowError, CheckBox, ComboBox
+from ..utils.BaseProcess import BaseProcess, SliderLabel, WindowSelector,  MissingWindowError, CheckBox, ComboBox
 
 __all__ = ['time_stamp','background','scale_bar']
      
@@ -11,11 +13,12 @@ __all__ = ['time_stamp','background','scale_bar']
 
 class Time_Stamp(BaseProcess):
     """time_stamp(framerate,show=True)
+
     Adds a time stamp to a movie
     
     Parameters:
-        | framerate (float) -- The number of frames per second
-        | show (bool) -- Turns on or off the time stamp
+        framerate (float): The number of frames per second
+        show (bool): Turns on or off the time stamp
     Returns:
         None
     """
@@ -75,11 +78,12 @@ class ShowCheckbox(CheckBox):
 
 class Background(BaseProcess):
     """ background(background_window, data_window)
+
     Overlays the background_window onto the data_window
     
     Parameters:
-        | background_window (Window)
-        | data_window (Window)
+        background_window (Window)
+        data_window (Window)
     Returns:
         None
     """
@@ -137,13 +141,13 @@ class Scale_Bar(BaseProcess):
     ''' scale_bar(width_microns, width_pixels, font_size, color, background, location, show=True)
 
     Parameters:
-        | width_microns (float)
-        | width_pixels (float)
-        | font_size (int)
-        | color ['Black','White'] (string)
-        | background  ['Black','White', 'None'] (string)
-        | location ['Lower Right','Lower Left','Top Right','Top Left'] (string)
-        | show (bool)
+        width_microns (float): width in microns
+        width_pixels (float): width in pixels
+        font_size (int): size of the font
+        color (string): ['Black', White']
+        background (string): ['Black','White', 'None']
+        location (string): ['Lower Right','Lower Left','Top Right','Top Left']
+        show (bool): controls whether the Scale_bar is displayed or not
     '''
     
     def __init__(self):
@@ -286,7 +290,7 @@ scale_bar=Scale_Bar()
 
 
 
-
+logger.debug("Completed 'reading process/overlay.py'")
 
 
 

@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+from ..logger import logger
+logger.debug("Started 'reading process/__init__.py'")
+
 from .stacks import *
 from .math_ import *
 from .filters import *
@@ -10,6 +13,7 @@ from .overlay import *
 from .file_ import *
 
 def setup_menus():
+    logger.debug("Started 'process.__init__.setup_menus()'")
     from .. import global_vars as g
     if len(g.menus) > 0:
         print("flika menubar already initialized.")
@@ -83,3 +87,6 @@ def setup_menus():
 
     g.menus.append(imageMenu)
     g.menus.append(processMenu)
+    logger.debug("Completed 'process.__init__.setup_menus()'")
+
+logger.debug("Completed 'reading process/__init__.py'")
