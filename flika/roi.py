@@ -645,6 +645,15 @@ class ROI_freehand(ROI_Base, pg.ROI):
         x, y = self.state['pos']
         return np.add(self._untranslated_pts, [x, y])
 
+    def contains_pt(self, x, y):
+        pt = QtCore.QPointF(x, y) - self.pos()
+        qPainterPath = self.shape()
+        return qPainterPath.contains(pt)
+
+    def contains_pts(self, x, y):
+        ''' not yet implemented'''
+        pass
+
     def getMask(self):
         from skimage.draw import polygon
         if self._untranslated_mask is not None:
