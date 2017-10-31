@@ -313,6 +313,14 @@ def open_file(filename=None, from_gui=False):
         else:
             g.alert('Install of {} failed'.format(filename))
         return
+    elif ext == '.jpg' or ext == '.png':
+        import skimage.io
+        A = skimage.io.imread(filename)
+        if len(A.shape) == 3:
+            perm = get_permutation_tuple(['y', 'x', 'c'], ['x', 'y', 'c'])
+            A = np.transpose(A, perm)
+            metadata['is_rgb'] = True
+
     else:
         msg = "Could not open.  Filetype for '{}' not recognized".format(filename)
         g.alert(msg)

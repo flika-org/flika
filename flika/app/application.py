@@ -336,7 +336,6 @@ class FlikaApplication(QtWidgets.QMainWindow):
         from ..process.file_ import open_file
         if event.mimeData().hasUrls():   # if file or link is dropped
             for url in event.mimeData().urls():
-                g.mimeDataurls = event.mimeData().urls()
                 filename = url.toLocalFile()
                 filename = str(filename)
                 #if platform.system() == 'Windows':
