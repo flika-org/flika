@@ -51,19 +51,11 @@ class Set_value(BaseProcess):
         elif nDim == 2:
             mx, my = self.tif.shape
         if restrictToROI:
-            roi=g.win.currentROI
-            roi.pts=roi.getPoints()
-            x=np.array([p[0] for p in roi.pts])
-            y=np.array([p[1] for p in roi.pts])
-            xx,yy=skimage.draw.polygon(x,y)
-            inside_bounds=(xx>=0) & (yy>=0) & (xx<mx) & (yy<my)
-            xx=xx[inside_bounds]
-            yy=yy[inside_bounds]
-            #mask=np.zeros((mx,my),np.bool)
-            #mask[xx,yy]=True
-            if nDim==2:
+            roi = g.win.currentROI
+            xx, yy = roi.getMask()
+            if nDim == 2:
                 self.newtif[xx,yy]=value
-            elif nDim==3:
+            elif nDim == 3:
                 for i in np.arange(firstFrame,lastFrame+1):
                     self.newtif[i][xx,yy]=value
         elif restrictToOutside:
