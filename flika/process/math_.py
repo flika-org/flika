@@ -48,7 +48,9 @@ class Subtract(BaseProcess):
         self.gui_reset()
         value=QtWidgets.QDoubleSpinBox()
         if g.win is not None:
-            value.setRange(-1 * np.max(g.win.image),np.max(g.win.image)) # -np.max sometimes returns abnormal large value
+            maxx = np.max(g.win.image) * 100
+            minn = -1 * maxx # -np.max sometimes returns abnormal large value
+            value.setRange(minn, maxx)
             value.setValue(np.min(g.win.image))
         self.items.append({'name':'value','string':'Value','object':value})
         self.items.append({'name':'preview','string':'Preview','object':CheckBox()})
@@ -242,7 +244,7 @@ class Power(BaseProcess):
 power=Power()
     
 class Ratio(BaseProcess):
-    """ ratio(first_frame,nFrames,ratio_type, keepSourceWindow=False)
+    """ ratio(first_frame, nFrames, ratio_type, black_level, keepSourceWindow=False)
 
     Takes a set of frames, combines them into a 2D array according to ratio_type, and divides the entire 3D array frame-by-frame by this array.
     
@@ -250,39 +252,46 @@ class Ratio(BaseProcess):
         first_frame (int): The first frame in the set of frames to be combined
         nFrames (int): The number of frames to be combined.
         ratio_type (str): The method used to combine the frames.  Either 'standard deviation' or 'average'.
+        black_level (float): The value to subtract from the entire movie prior to the ratio operation.
     Returns:
         newWindow
     """
     def __init__(self):
         super().__init__()
+
     def gui(self):
         self.gui_reset()
-        nFrames=1
+        nFrames = 1
         if g.win is not None:
-            nFrames=g.win.image.shape[0]
-        first_frame=QtWidgets.QSpinBox()
+            nFrames = g.win.image.shape[0]
+        first_frame = QtWidgets.QSpinBox()
         first_frame.setMaximum(nFrames)
-        self.items.append({'name':'first_frame','string':'First Frame','object':first_frame})
-        nFrames_spinbox=QtWidgets.QSpinBox()
+        self.items.append({'name': 'first_frame', 'string': 'First Frame', 'object': first_frame})
+        nFrames_spinbox = QtWidgets.QSpinBox()
         nFrames_spinbox.setMaximum(nFrames)
         nFrames_spinbox.setMinimum(1)
-        self.items.append({'name':'nFrames','string':'Number of Frames','object':nFrames_spinbox})
-        ratio_type=ComboBox()
+        self.items.append({'name': 'nFrames', 'string': 'Number of Frames', 'object': nFrames_spinbox})
+        ratio_type = ComboBox()
         ratio_type.addItem('average')
         ratio_type.addItem('standard deviation')
-        self.items.append({'name':'ratio_type','string':'Ratio Type','object':ratio_type})
+        self.items.append({'name': 'ratio_type', 'string': 'Ratio Type', 'object': ratio_type})
+        black_level = QtWidgets.QDoubleSpinBox()
+        black_level.setMinimum(0)
+        black_level.setMaximum(1000)
+        self.items.append({'name': 'black_level', 'string': 'Black Level', 'object': black_level})
         super().gui()
-    def __call__(self,first_frame,nFrames,ratio_type,keepSourceWindow=False):
+
+    def __call__(self, first_frame, nFrames, ratio_type, black_level=0, keepSourceWindow=False):
         self.start(keepSourceWindow)
         if self.oldwindow.volume is None:
-            A = self.tif
+            A = self.tif - black_level
         else:
-            A = self.oldwindow.volume
-        if ratio_type=='average':
-            baseline=A[first_frame:first_frame+nFrames].mean(0)
-            baseline[baseline == 0] = np.min(np.abs(baseline[baseline != 0])) #This isn't mathematically correct.  I do this to avoid dividing by zero
-        elif ratio_type=='standard deviation':
-            baseline=A[first_frame:first_frame+nFrames].std(0)
+            A = self.oldwindow.volume - black_level
+        if ratio_type == 'average':
+            baseline = A[first_frame:first_frame+nFrames].mean(0)
+            baseline[baseline == 0] = np.min(np.abs(baseline[baseline != 0])) # This isn't mathematically correct.  I do this to avoid dividing by zero
+        elif ratio_type == 'standard deviation':
+            baseline = A[first_frame:first_frame+nFrames].std(0)
             baseline[baseline == 0] = np.min(np.abs(baseline[baseline != 0]))
         else:
             g.alert("'{}' is an unknown ratio_type.  Try 'average' or 'standard deviation'".format(ratio_type))
