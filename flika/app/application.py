@@ -11,7 +11,7 @@ logger.debug("Completed 'reading app/application.py, importing qtpy'")
 
 from ..utils.misc import nonpartial
 from ..utils.app import get_qapp
-from ..app.settings_editor import SettingsEditor, rectSettings, pointSettings
+from ..app.settings_editor import SettingsEditor, rectSettings, pointSettings, pencilSettings
 from .. import global_vars as g
 from .plugin_manager import PluginManager, Load_Local_Plugins_Thread
 from .script_editor import ScriptEditor
@@ -280,12 +280,15 @@ class FlikaApplication(QtWidgets.QMainWindow):
         self.freehand.clicked.connect(lambda: g.settings.__setitem__('mousemode', 'freehand'))
         self.line.clicked.connect(lambda: g.settings.__setitem__('mousemode', 'line'))
         self.rect_line.clicked.connect(lambda: g.settings.__setitem__('mousemode', 'rect_line'))
+        self.pencil.clicked.connect(lambda: g.settings.__setitem__('mousemode', 'pencil'))
         self.rectangle.clicked.connect(lambda: g.settings.__setitem__('mousemode', 'rectangle'))
         self.point.clicked.connect(lambda: g.settings.__setitem__('mousemode', 'point'))
         self.mouse.clicked.connect(lambda: g.settings.__setitem__('mousemode', 'mouse'))
 
         self.point.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.point.customContextMenuRequested.connect(pointSettings)
+        self.pencil.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.pencil.customContextMenuRequested.connect(pencilSettings)
         self.rectangle.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.rectangle.customContextMenuRequested.connect(rectSettings)
 

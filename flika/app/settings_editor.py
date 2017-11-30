@@ -9,7 +9,7 @@ from ..utils.BaseProcess import BaseDialog, BaseProcess, ColorSelector
 from .. import global_vars as g
 
 
-__all__ = ['SettingsEditor', 'rectSettings', 'pointSettings']
+__all__ = ['SettingsEditor', 'rectSettings', 'pointSettings', 'pencilSettings']
 
 data_types = ['uint8', 'uint16', 'uint32', 'uint64', 'int8', 'int16', 'int32', 'int64', 'float16', 'float32', 'float64']
 
@@ -77,6 +77,30 @@ class SettingsEditor(BaseDialog):
             SettingsEditor.gui = SettingsEditor()
         BaseDialog.show(SettingsEditor.gui)
 
+
+def pencilSettings(pencilButton):
+    """
+    default points color
+    default points size
+    currentWindow points color
+    currentWindow points size
+    clear current points
+
+    """
+    pencil_value = QtWidgets.QSpinBox()
+    pencil_value.setRange(0, 1000)
+    v = g.settings['pencil_value']
+    if v is None:
+        v = 0
+    pencil_value.setValue(v)
+    items = []
+    items.append({'name': 'pencil_value', 'string': 'Pencil Value', 'object': pencil_value})
+    def update_final():
+        g.settings['pencil_value'] = pencil_value.value()
+    dialog = BaseDialog(items, 'Points Settings', '')
+    g.dialogs.append(dialog)
+    dialog.accepted.connect(update_final)
+    dialog.show()
 
 def pointSettings(pointButton):
     """
