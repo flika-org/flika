@@ -130,6 +130,7 @@ class Window(QtWidgets.QWidget):
         self.mx = 0  #: int: The number of pixels wide the image is in the x (left to right) dimension.
         self.my = 0  #: int: The number of pixels heigh the image is in the y (up to down) dimension.
         self.mt = 0  #: int: The number of frames in the image stack.
+        self.framerate = None  #: float: The number of frames per second (Hz).
         self.image = tif
         self.dtype = tif.dtype  #: dtype: The datatype of the stored image, e.g. ``uint8``.
         self.top_left_label = None
@@ -240,9 +241,11 @@ class Window(QtWidgets.QWidget):
             self.mx, self.my = tif.shape
             dimensions_txt = "{}x{} pixels; ".format(self.mx, self.my)
         dimensions_txt += 'dtype=' + str(self.dtype)
-        if 'timestamps' in self.metadata:
-            ts = self.metadata['timestamps']
-            self.framerate = (ts[-1] - ts[0]) / len(ts)
+        if self.framerate is None:
+            if 'timestamps' in self.metadata:
+                ts = self.metadata['timestamps']
+                self.framerate = (ts[-1] - ts[0]) / len(ts)
+        if self.framerate is not None:
             dimensions_txt += '; {:.4f} {}/frame'.format(self.framerate, self.metadata['timestamp_units'])
 
         if self.top_left_label is not None and self.imageview is not None and self.top_left_label in self.imageview.ui.graphicsView.items():
