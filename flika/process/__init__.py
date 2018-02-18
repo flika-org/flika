@@ -67,6 +67,7 @@ def setup_menus():
     addAction(mathMenu, "Divide", divide.gui)
     addAction(mathMenu, "Subtract", subtract.gui)
     addAction(mathMenu, "Power", power.gui)
+    addAction(mathMenu, "Square Root", sqrt.gui)
     addAction(mathMenu, "Ratio By Baseline", ratio.gui)
     addAction(mathMenu, "Absolute Value", absolute_value.gui)
     addAction(mathMenu, "Subtract Trace", subtract_trace.gui)

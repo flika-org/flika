@@ -7,7 +7,7 @@ from .. import global_vars as g
 from ..utils.BaseProcess import BaseProcess, CheckBox, ComboBox
 from ..window import Window
 
-__all__ = ['subtract','multiply','divide','power','ratio','absolute_value','subtract_trace','divide_trace']
+__all__ = ['subtract','multiply','divide','power','ratio','absolute_value','subtract_trace','divide_trace', 'sqrt']
 
 
 def upgrade_dtype(dtype):
@@ -242,6 +242,41 @@ class Power(BaseProcess):
         else:
             g.win.reset()
 power=Power()
+
+class Sqrt(BaseProcess):
+    """ sqrt(value, keepSourceWindow=False)
+
+    This takes the square root of the current window's image.
+    In this function, the square root of a negative number is set to 0.
+    
+    Parameters:
+        value (int): The exponent.
+    Returns:
+        newWindow
+    """
+    def __init__(self):
+        super().__init__()
+    def gui(self):
+        self.gui_reset()
+        self.items.append({'name':'preview', 'string':'Preview', 'object':CheckBox()})
+        super().gui()
+    def __call__(self, keepSourceWindow=False):
+        self.start(keepSourceWindow)
+        A = np.copy(self.tif)
+        A[A<0] = 0
+        self.newtif = np.sqrt(A)
+        self.newname = self.oldname+' - Sqrt '
+        return self.end()
+    def preview(self):
+        preview = self.getValue('preview')
+        if preview:
+            A = np.copy(g.win.image[g.win.currentIndex])
+            A[A<0] = 0
+            A = np.sqrt(A)
+            g.win.imageview.setImage(A, autoLevels=False)
+        else:
+            g.win.reset()
+sqrt = Sqrt()
     
 class Ratio(BaseProcess):
     """ ratio(first_frame, nFrames, ratio_type, black_level, keepSourceWindow=False)
