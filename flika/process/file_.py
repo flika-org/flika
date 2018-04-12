@@ -313,6 +313,14 @@ def open_file(filename=None, from_gui=False):
         else:
             g.alert('Install of {} failed'.format(filename))
         return
+    elif ext == '.jpg' or ext == '.png':
+        import skimage.io
+        A = skimage.io.imread(filename)
+        if len(A.shape) == 3:
+            perm = get_permutation_tuple(['y', 'x', 'c'], ['x', 'y', 'c'])
+            A = np.transpose(A, perm)
+            metadata['is_rgb'] = True
+
     else:
         msg = "Could not open.  Filetype for '{}' not recognized".format(filename)
         g.alert(msg)
@@ -420,17 +428,27 @@ def open_points(filename=None):
             if g.win.mt == 1:
                 t = 0
             g.win.scatterPoints[t].append([pt[1],pt[2], pointColor, pointSize])
-        t = g.win.currentIndex
-        g.win.scatterPlot.setPoints(pos=g.win.scatterPoints[t])
+        if g.settings['show_all_points']:
+            pts = []
+            for t in np.arange(g.win.mt):
+                pts.extend(g.win.scatterPoints[t])
+            pointSizes = [pt[3] for pt in pts]
+            brushes = [pg.mkBrush(*pt[2].getRgb()) for pt in pts]
+            g.win.scatterPlot.setPoints(pos=pts, size=pointSizes, brush=brushes)
+        else:
+            t = g.win.currentIndex
+            g.win.scatterPlot.setPoints(pos=g.win.scatterPoints[t])
+            g.win.updateindex()
     elif nCols == 2:
         t = 0
         for pt in pts:
             g.win.scatterPoints[t].append([pt[0], pt[1], pointColor, pointSize])
         t = g.win.currentIndex
         g.win.scatterPlot.setPoints(pos=g.win.scatterPoints[t])
+
     g.m.statusBar().showMessage('Successfully loaded {}'.format(os.path.basename(filename)))
 
-    
+
 
 
     

@@ -164,19 +164,28 @@ from scipy.signal import butter, filtfilt
     
 
 class Butterworth_filter(BaseProcess):
-    """ butterworth_filter(filter_order, low, high, keepSourceWindow=False)
+    """ butterworth_filter(filter_order, low, high, framerate, keepSourceWindow=False)
 
     This filters a stack in time.
     
     Parameters:
-        filter_order (int): The order of the butterworth filter (higher->steeper).
+        filter_order (int): The order of the butterworth filter (higher order -> steeper cutoff).
         low (float): The low frequency cutoff.  Must be between 0 and 1 and must be below high.
         high (float): The high frequency cutoff.  Must be between 0 and 1 and must be above low.
+        framerate (float): The framerate in Hz. If set to zero, a framerate of 2 Hz will be used, so as to set the Nyquist frequency to 1. Default is 0.
     Returns:
         newWindow
     """
     def __init__(self):
         super().__init__()
+
+    def framerate_adjusted(self, rate):
+        high = self.items[2]
+        assert high['name'] == 'high'
+        if rate == 0:
+            rate = 2
+        high['object'].setMaximum(rate / 2)
+
 
     def gui(self):
         self.gui_reset()
@@ -188,16 +197,23 @@ class Butterworth_filter(BaseProcess):
         high=SliderLabel(5)
         high.setRange(0,1)
         high.setValue(1)
+        framerate = SliderLabel(2)
+        framerate.setRange(0, 1000)
         low.valueChanged.connect(lambda low: high.setMinimum(low))
         high.valueChanged.connect(lambda high: low.setMaximum(high))
+        framerate.valueChanged.connect(self.framerate_adjusted)
         preview=CheckBox()
         preview.setChecked(True)
         self.items.append({'name':'filter_order','string':'Filter Order','object':filter_order})
         self.items.append({'name':'low','string':'Low Cutoff Frequency','object':low})
         self.items.append({'name':'high','string':'High Cutoff Frequency','object':high})
+        self.items.append({'name': 'framerate', 'string': 'Frame rate (Hz)', 'object': framerate})
         self.items.append({'name':'preview','string':'Preview','object':preview})        
         super().gui()
-        self.roi=g.win.currentROI
+        if g.win is None:
+            self.roi = None
+        else:
+            self.roi=g.win.currentROI
         if self.roi is not None:
             self.ui.rejected.connect(self.roi.redraw_trace)
             self.ui.accepted.connect(self.roi.redraw_trace)
@@ -205,116 +221,121 @@ class Butterworth_filter(BaseProcess):
             preview.setChecked(False)
             preview.setEnabled(False)
         
-    def __call__(self,filter_order,low,high,keepSourceWindow=False):
-        if low==0 and high==1:
+    def __call__(self, filter_order, low, high, framerate=0, keepSourceWindow=False):
+        if framerate == 0:
+            framerate = 2
+        if low == 0 and high == framerate/2:
             return
         self.start(keepSourceWindow)
         if self.tif.ndim != 3:
             g.alert("Butterworth filter only works on 3-dimensional movies.")
             return
         if g.settings['multiprocessing']:
-            self.newtif=butterworth_filter_multi(filter_order,low,high,g.win.image)
+            self.newtif = butterworth_filter_multi(filter_order, low/(framerate/2), high/(framerate/2), g.win.image)
         else:
-            self.newtif=np.zeros(self.tif.shape,dtype=g.settings.d['internal_data_type'])
-            mt,mx,my=self.tif.shape
-            b,a,padlen=self.makeButterFilter(filter_order,low,high)
+            self.newtif = np.zeros(self.tif.shape, dtype=g.settings.d['internal_data_type'])
+            mt, mx, my = self.tif.shape
+            b, a, padlen = self.makeButterFilter(filter_order, low/(framerate/2), high/(framerate/2))
             for i in np.arange(mx):
                 for j in np.arange(my):
-                    self.newtif[:, i, j]=filtfilt(b,a, self.tif[:, i, j], padlen=padlen)
-        self.newname=self.oldname+' - Butter Filtered'
+                    self.newtif[:, i, j] = filtfilt(b, a, self.tif[:, i, j], padlen=padlen)
+        self.newname = self.oldname+' - Butter Filtered'
         return self.end()
         
     def preview(self):
         if g.currentTrace is not None:
-            filter_order=self.getValue('filter_order')
-            low=self.getValue('low')
-            high=self.getValue('high')
-            preview=self.getValue('preview')
+            framerate = self.getValue('framerate')
+            if framerate == 0:
+                framerate = 2
+            filter_order = self.getValue('filter_order')
+            low = self.getValue('low')
+            high = self.getValue('high')
+            preview = self.getValue('preview')
             if self.roi is not None:
                 if preview:
-                    if (low==0 and high==1) or (low==0 and high==0):
+                    if (low == 0 and high == framerate/2) or (low == 0 and high == 0):
                         self.roi.onRegionChangeFinished() #redraw roi without filter
                     else:
-                        b,a,padlen=self.makeButterFilter(filter_order,low,high)
-                        trace=self.roi.getTrace()
-                        trace=filtfilt(b,a, trace, padlen=padlen)
-                        roi_index=g.currentTrace.get_roi_index(self.roi)
+                        b, a, padlen = self.makeButterFilter(filter_order, low/(framerate/2), high/(framerate/2))
+                        trace = self.roi.getTrace()
+                        trace = filtfilt(b,a, trace, padlen=padlen)
+                        roi_index = g.currentTrace.get_roi_index(self.roi)
                         g.currentTrace.update_trace_full(roi_index,trace) #update_trace_partial may speed it up
                 else:
                     self.roi.redraw_trace()
-    def makeButterFilter(self,filter_order,low,high):
-        padlen=0
-        if high==1: 
-            if low==0: #if there is no temporal filter at all,
+    def makeButterFilter(self, filter_order, low, high):
+        padlen = 0
+        if high == 1:
+            if low == 0: #if there is no temporal filter at all,
                 return None,None,None
             else: #if only high pass temporal filter
-                [b,a]= butter(filter_order,low,btype='highpass')
-                padlen=3
+                [b, a] = butter(filter_order, low, btype='highpass')
+                padlen = 3
         else:
-            if low==0:
-                [b,a]= butter(filter_order,high,btype='lowpass')
+            if low == 0:
+                [b,a] = butter(filter_order, high, btype='lowpass')
             else:
-                [b,a]=butter(filter_order,[low,high], btype='bandpass')
-            padlen=6
-        return b,a,padlen
+                [b,a] = butter(filter_order, [low, high], btype='bandpass')
+            padlen = 6
+        return b, a, padlen
         
 butterworth_filter=Butterworth_filter()
 
         
-def butterworth_filter_multi(filter_order,low,high,tif):
-    nThreads= g.settings['nCores']
-    mt,mx,my=tif.shape
-    block_ends=np.linspace(0,mx,nThreads+1).astype(np.int)
-    data=[tif[:, block_ends[i]:block_ends[i+1],:] for i in np.arange(nThreads)] #split up data along x axis. each thread will get one.
-    args=(filter_order,low,high)
+def butterworth_filter_multi(filter_order, low, high, tif):
+    nThreads = g.settings['nCores']
+    mt, mx, my = tif.shape
+    block_ends = np.linspace(0, mx, nThreads+1).astype(np.int)
+    data = [tif[:, block_ends[i]:block_ends[i+1], :] for i in np.arange(nThreads)] #split up data along x axis. each thread will get one.
+    args = (filter_order, low, high)
     progress = ProgressBar(butterworth_filter_multi_inner, data, args, nThreads, msg='Performing Butterworth Filter')
     if progress.results is None or any(r is None for r in progress.results):
-        result=None
+        result = None
     else:
-        result=np.concatenate(progress.results,axis=1).astype(g.settings['internal_data_type'])
+        result = np.concatenate(progress.results,axis=1).astype(g.settings['internal_data_type'])
     return result
     
 
 def butterworth_filter_multi_inner(q_results, q_progress, q_status, child_conn, args):
-    data=child_conn.recv()
-    status=q_status.get(True) #this blocks the process from running until all processes are launched
-    if status=='Stop':
+    data = child_conn.recv()
+    status = q_status.get(True) #this blocks the process from running until all processes are launched
+    if status == 'Stop':
         q_results.put(None)
     
-    def makeButterFilter(filter_order,low,high):
-        padlen=0
-        if high==1: 
-            if low==0: #if there is no temporal filter at all,
+    def makeButterFilter(filter_order, low, high):
+        padlen = 0
+        if high == 1:
+            if low == 0: #if there is no temporal filter at all,
                 return None,None,None
             else: #if only high pass temporal filter
-                [b,a]= butter(filter_order,low,btype='highpass')
-                padlen=3
+                [b,a] = butter(filter_order,low,btype='highpass')
+                padlen = 3
         else:
-            if low==0:
-                [b,a]= butter(filter_order,high,btype='lowpass')
+            if low == 0:
+                [b,a]= butter(filter_order, high, btype='lowpass')
             else:
-                [b,a]=butter(filter_order,[low,high], btype='bandpass')
-            padlen=6
-        return b,a,padlen
+                [b,a]=butter(filter_order, [low,high], btype='bandpass')
+            padlen = 6
+        return b, a, padlen
         
     filter_order,low,high = args
-    b,a,padlen=makeButterFilter(filter_order,low,high)
-    mt,mx,my=data.shape
-    result=np.zeros(data.shape,g.settings['internal_data_type'])
-    nPixels=mx*my
-    pixel=0
-    percent=0
+    b, a, padlen = makeButterFilter(filter_order,low,high)
+    mt, mx, my = data.shape
+    result = np.zeros(data.shape,g.settings['internal_data_type'])
+    nPixels = mx*my
+    pixel = 0
+    percent = 0
     for x in np.arange(mx):
         for y in np.arange(my):
             if not q_status.empty():
-                stop=q_status.get(False)
+                stop = q_status.get(False)
                 q_results.put(None)
                 return
-            pixel+=1
-            if percent<int(100*pixel/nPixels):
-                percent=int(100*pixel/nPixels)
+            pixel += 1
+            if percent < int(100*pixel/nPixels):
+                percent = int(100*pixel/nPixels)
                 q_progress.put(percent)
-            result[:, x, y]=filtfilt(b,a, data[:, x, y], padlen=padlen)
+            result[:, x, y] = filtfilt(b,a, data[:, x, y], padlen=padlen)
     q_results.put(result)
 
 from scipy.ndimage.filters import convolve

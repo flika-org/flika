@@ -130,6 +130,7 @@ class Window(QtWidgets.QWidget):
         self.mx = 0  #: int: The number of pixels wide the image is in the x (left to right) dimension.
         self.my = 0  #: int: The number of pixels heigh the image is in the y (up to down) dimension.
         self.mt = 0  #: int: The number of frames in the image stack.
+        self.framerate = None  #: float: The number of frames per second (Hz).
         self.image = tif
         self.dtype = tif.dtype  #: dtype: The datatype of the stored image, e.g. ``uint8``.
         self.top_left_label = None
@@ -240,9 +241,11 @@ class Window(QtWidgets.QWidget):
             self.mx, self.my = tif.shape
             dimensions_txt = "{}x{} pixels; ".format(self.mx, self.my)
         dimensions_txt += 'dtype=' + str(self.dtype)
-        if 'timestamps' in self.metadata:
-            ts = self.metadata['timestamps']
-            self.framerate = (ts[-1] - ts[0]) / len(ts)
+        if self.framerate is None:
+            if 'timestamps' in self.metadata:
+                ts = self.metadata['timestamps']
+                self.framerate = (ts[-1] - ts[0]) / len(ts)
+        if self.framerate is not None:
             dimensions_txt += '; {:.4f} {}/frame'.format(self.framerate, self.metadata['timestamp_units'])
 
         if self.top_left_label is not None and self.imageview is not None and self.top_left_label in self.imageview.ui.graphicsView.items():
@@ -661,8 +664,34 @@ class Window(QtWidgets.QWidget):
             pass #This is how I detect that the shift key is held down.
         if ev.button() == QtCore.Qt.LeftButton:
             ev.accept()
-            difference=self.imageview.getImageItem().mapFromScene(ev.lastScenePos())-self.imageview.getImageItem().mapFromScene(ev.scenePos())
-            self.imageview.view.translateBy(difference)
+            if g.settings['mousemode'] == 'pencil':
+                if ev.isStart():
+                    self.last_x = None
+                    self.last_y = None
+                else:
+                    if self.x < 0 or self.y < 0 or self.x >= self.mx or self.y >= self.my:
+                        self.last_x = None  # if we are outside the image
+                        self.last_y = None
+                    else:
+                        x = int(self.x)
+                        y = int(self.y)
+                        if self.last_x == x and self.last_y == y:
+                            pass
+                        z = self.imageview.currentIndex
+                        image = self.imageview.getImageItem().image
+                        v = g.settings['pencil_value']
+                        if self.last_x is None:
+                            image[x, y] = v
+                        else:
+                            xs, ys = get_line(x, y, self.last_x, self.last_y).T
+                            image[xs, ys] = v
+                        self.imageview.imageItem.updateImage(image)
+                        self.last_x = x
+                        self.last_y = y
+                        self.ev = ev
+            else:
+                difference=self.imageview.getImageItem().mapFromScene(ev.lastScenePos())-self.imageview.getImageItem().mapFromScene(ev.scenePos())
+                self.imageview.view.translateBy(difference)
         if ev.button() == QtCore.Qt.RightButton:
             ev.accept()
             mm = g.settings['mousemode']
@@ -708,3 +737,50 @@ class Window(QtWidgets.QWidget):
             seconds = mminutes-minutes*60
             label.setHtml("<span style='font-size: 12pt;color:white;background-color:None;'>{}h {}m {:.3f} s</span>".format(hours,minutes,seconds))
 logger.debug("Completed 'reading window.py'")
+
+
+def get_line(x1, y1, x2, y2):
+    """Bresenham's Line Algorithm
+    Produces a list of tuples """
+    # Setup initial conditions
+    dx = x2 - x1
+    dy = y2 - y1
+
+    # Determine how steep the line is
+    is_steep = abs(dy) > abs(dx)
+
+    # Rotate line
+    if is_steep:
+        x1, y1 = y1, x1
+        x2, y2 = y2, x2
+
+    # Swap start and end points if necessary and store swap state
+    swapped = False
+    if x1 > x2:
+        x1, x2 = x2, x1
+        y1, y2 = y2, y1
+        swapped = True
+
+    # Recalculate differentials
+    dx = x2 - x1
+    dy = y2 - y1
+
+    # Calculate error
+    error = int(dx / 2.0)
+    ystep = 1 if y1 < y2 else -1
+
+    # Iterate over bounding box generating points between start and end
+    y = y1
+    points = []
+    for x in range(x1, x2 + 1):
+        coord = [y, x] if is_steep else [x, y]
+        points.append(coord)
+        error -= abs(dy)
+        if error < 0:
+            y += ystep
+            error += dx
+
+    # Reverse the list if the coordinates were swapped
+    if swapped:
+        points.reverse()
+    return np.array(points)

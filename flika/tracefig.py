@@ -5,9 +5,12 @@ import os
 import time
 import numpy as np
 from qtpy import QtCore, QtGui, QtWidgets
+from scipy.fftpack import fft, fftfreq, fftshift
 import pyqtgraph as pg
+from pyqtgraph.dockarea import *
 from . import global_vars as g
 from .utils.misc import save_file_gui
+
 
 pg.setConfigOptions(useWeave=False)
 
@@ -33,7 +36,7 @@ class TraceFig(QtWidgets.QWidget):
     name = "Trace Widget"
 
     def __init__(self):
-        super(TraceFig,self).__init__()
+        super(TraceFig, self).__init__()
         g.traceWindows.append(self)
         self.setCurrentTraceWindow()
         if 'tracefig_settings' in g.settings and 'coords' in g.settings['tracefig_settings']:
@@ -42,6 +45,7 @@ class TraceFig(QtWidgets.QWidget):
             self.setGeometry(QtCore.QRect(355, 30, 1219, 148))
         self.setWindowTitle('flika')
         self.l = QtWidgets.QVBoxLayout()
+
         self.l.setContentsMargins(0,0,0,0)
         self.setLayout(self.l)
         self.p1=pg.PlotWidget()
@@ -51,9 +55,18 @@ class TraceFig(QtWidgets.QWidget):
         self.export_button = QtWidgets.QPushButton("Export")
         self.export_button.setMaximumWidth(100)
         self.export_button.clicked.connect(self.export_gui)
+        self.power_spectrum_button = QtWidgets.QPushButton("Power Spectrum")
+        self.power_spectrum_button.setMaximumWidth(100)
+        self.power_spectrum_button.clicked.connect(self.generate_power_spectrum)
+        self.button_layout = QtWidgets.QGridLayout()
         self.l.addWidget(self.p1, 1)
         self.l.addWidget(self.p2, 1)
-        self.l.addWidget(self.export_button, 0)
+        self.l.addLayout(self.button_layout)
+        self.button_layout.setContentsMargins(0, 0, 0, 0)
+        self.button_layout.addWidget(self.export_button, 0, 0)
+        self.button_layout.addWidget(self.power_spectrum_button, 0, 1)
+        verticalSpacer = QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.button_layout.addItem(verticalSpacer, 0, 2)
     
         self.region = pg.LinearRegionItem()         # Add the LinearRegionItem to the ViewBox, but tell the ViewBox to exclude this item when doing auto-range calculations.
         self.region.setZValue(10)
@@ -204,7 +217,7 @@ class TraceFig(QtWidgets.QWidget):
         roi.sigRegionChanged.connect(self.translated)
         roi.sigRegionChangeFinished.connect(self.translateFinished)
 
-        if len(self.rois)==0:
+        if len(self.rois) == 0:
             self.region.setRegion([0, len(trace)-1])
         self.rois.append(dict({'roi':roi,'p1trace':p1trace,'p2trace':p2trace,'toBeRedrawn':False,'toBeRedrawnFull':False}))
 
@@ -257,7 +270,100 @@ class TraceFig(QtWidgets.QWidget):
         traces=np.array(traces).T
         np.savetxt(filename,traces,delimiter='\t',fmt='%10f')
         g.m.statusBar().showMessage('Successfully saved {}'.format(os.path.basename(filename)))
-        
+
+    def generate_power_spectrum(self):
+        sample_interval = 1
+        self.fft_analyzer = FFT_Analyzer(self.rois, sample_interval, self)
+
+class FFT_Analyzer(QtWidgets.QWidget):
+    def __init__(self, rois, sample_interval, tracefig, parent = None) :
+        QtWidgets.QWidget.__init__(self, parent)
+        """
+        sample_interval is the sample_duration in seconds. If the sample is 1000 Hz, sample_interval = .001 (1 ms)
+        """
+        self.tracefig = tracefig
+        self.rois = rois
+        geo = self.tracefig.geometry()
+        geo.adjust(0, geo.height(), 0, geo.height())
+        self.setGeometry(geo)
+        self.setWindowTitle("Power Spectrum")
+        self.l = QtWidgets.QVBoxLayout()
+        self.setLayout(self.l)
+        self.area = DockArea()
+        self.l.addWidget(self.area)
+
+        self.d3 = Dock("FFT")
+        self.area.addDock(self.d3, size=(382, 216))
+        self.fftplt = pg.PlotWidget()
+        self.d3.addWidget(self.fftplt)
+        self.fftplt.showGrid(x=True, y=True)
+        self.fftplt.setLogMode(x=True,y=True)
+        self.fftplt.setLabel('bottom', 'Frequency')
+        self.fftplt.setLabel('left', 'Power')
+        self.sample_interval = sample_interval
+        self.set_data(rois, self.sample_interval)
+
+        self.export_button = QtWidgets.QPushButton("Export")
+        self.export_button.setMaximumWidth(100)
+        self.export_button.clicked.connect(self.export_gui)
+        self.d3.addWidget(self.export_button)
+        self.show()
+
+    def set_data(self, rois, sample_interval):
+        traces = []
+        pens = []
+        for roi in rois:
+            traces.append(roi['roi'].getTrace())
+            pen = QtGui.QPen(roi['roi'].pen)
+            pen.setWidth(0)
+            pens.append(pen)
+
+        longest_trace_len = np.max([len(trace) for trace in traces])
+        N = int(2**np.floor(np.log2(longest_trace_len)))
+        # x = np.linspace(0.0, N * sample_interval, N)
+        for i in np.arange(len(rois)):
+            trace = traces[i]
+            yf = fft(trace[-N:])
+            xf = fftfreq(N, sample_interval)
+            xf = xf[1:int(N / 2)]
+            yf = np.abs(yf[1:int(N / 2)])**2
+            rois[i]['power_spectrum_x'] = xf
+            rois[i]['power_spectrum_y'] = yf
+            self.fftplt.plot(xf, yf, pen=pens[i])
+
+    def export_gui(self):
+        filename = g.settings['filename']
+        directory = os.path.dirname(filename)
+        if filename is not None:
+            filename = save_file_gui('Save Power Spectrum', directory, '*.csv')
+        else:
+            filename = save_file_gui('Save Power Spectrum', '', '*.csv')
+        if filename == '':
+            return False
+        else:
+            self.export(filename)
+
+    def export(self, filename):
+        ''' This function saves out all the traces in the 'Power Spectrum" to a file specified by the argument 'filename'.
+        The output file is a csv.
+        Traces are saved in the order they were added to the tracefig window.
+
+        '''
+        g.m.statusBar().showMessage('Saving {}'.format(os.path.basename(filename)))
+        traces = []
+        headers = []
+        cols = []
+        for i, roi in enumerate(self.rois):
+            cols.append(roi['power_spectrum_x'])
+            cols.append(roi['power_spectrum_y'])
+            headers.append('X roi{}'.format(i))
+            headers.append('Y roi{}'.format(i))
+        header = ','.join(headers)
+        cols = np.array(cols).T
+        np.savetxt(filename, cols, header=header, delimiter=',', comments='', fmt='%10f')
+        g.m.statusBar().showMessage('Successfully saved {}'.format(os.path.basename(filename)))
+
+
 def roiPlot(roi):
     '''
     returns tracefig that is used to plot roi
