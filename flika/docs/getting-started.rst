@@ -26,27 +26,17 @@ Installation and Getting Started
 Installation
 ----------------------------------------
 
-Install on Windows
-^^^^^^^^^^^^^^^^^^
-The easiest way for people with little programming experience to install flika on 
-Windows is by `following these instructions <https://github.com/flika-org/flika_windows_installer/>`_.
+Install on Windows and Mac OSX
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+flika requires Python 3 to run. To install Python along with most of flika's dependencies, download `Anaconda <https://www.continuum.io/downloads>`_ for the latest Python 3 version. Once Python is installed open a terminal and run::
 
-If you are comfortable with using a terminal (command prompt), install Python 3 and type::
-
-    pip install -U flika
-
-
-Install on Mac OSX
-^^^^^^^^^^^^^^^^^^
-flika requires Python 3 to run. To install Python along with most of flika's dependencies, download `Anaconda <https://www.continuum.io/downloads>`_. Once Python is installed open a terminal and run::
-
-    pip install -U flika
+    pip install flika
 
 Install on Linux
 ^^^^^^^^^^^^^^^^
 Make sure that the 'pip' command is for Python 3. Then open a terminal and run::
 
-    pip install -U flika
+    pip install flika
 
 
 Starting flika
