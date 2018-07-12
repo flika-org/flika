@@ -203,14 +203,15 @@ def get_location():
     Returns:
         str: the 'city, region, country' location of the current IP address. Or None if the connection fails
     """
-    import requests
-    send_url = 'http://freegeoip.net/json'
-    try:
-        r = requests.get(send_url)
-    except (requests.exceptions.ConnectionError, Exception):
-        return None
-    j = json.loads(r.text)
-    location = "{}, {}, {}".format(j['city'], j['region_name'], j['country_name'])
+    #import requests
+    #send_url = 'http://freegeoip.net/json'
+    #try:
+    #    r = requests.get(send_url)
+    #except (requests.exceptions.ConnectionError, Exception):
+    #    return None
+    #j = json.loads(r.text)
+    #location = "{}, {}, {}".format(j['city'], j['region_name'], j['country_name'])
+    location = "Unknown, Unknown, Unknown"
     return location
 
 logger.debug("Completed 'reading utils/misc.py'")
