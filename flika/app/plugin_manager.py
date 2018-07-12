@@ -13,6 +13,7 @@ import threading
 import tempfile
 from xml.etree import ElementTree
 import platform
+import pkg_resources
 
 from .. import global_vars as g
 from ..utils.misc import load_ui
@@ -414,6 +415,7 @@ class PluginManager(QtWidgets.QMainWindow):
 
     @staticmethod
     def downloadPlugin(plugin):
+        PluginManager.gui.statusBar.showMessage("Installing plugin")
         import pip
         if isinstance(plugin, str):
             if plugin in PluginManager.plugins:
@@ -423,7 +425,7 @@ class PluginManager(QtWidgets.QMainWindow):
         if plugin.url is None:
             return
         failed = []
-        dists = [a.project_name for a in pip.get_installed_distributions()]
+        dists = [a.project_name for a in pkg_resources.working_set]
         PluginManager.gui.statusBar.showMessage("Installing dependencies for %s" % plugin.name)
         for pl in plugin.dependencies:
             try:
