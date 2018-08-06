@@ -20,11 +20,12 @@ from ..utils.misc import load_ui
 from ..images import image_path
 
 plugin_list = {
-    'Global Analysis':  'https://raw.githubusercontent.com/BrettJSettle/GlobalAnalysisPlugin/master/',
     'Beam Splitter':    'https://raw.githubusercontent.com/BrettJSettle/BeamSplitter/master/',
-    'Rodent Tracker':   'https://raw.githubusercontent.com/kyleellefsen/rodentTracker/master/',
     'Detect Puffs':     'https://raw.githubusercontent.com/kyleellefsen/detect_puffs/master/',
-    'Pynsight':         'http://raw.githubusercontent.com/kyleellefsen/pynsight/master/'
+    'Global Analysis':  'https://raw.githubusercontent.com/BrettJSettle/GlobalAnalysisPlugin/master/',
+    'Pynsight':         'http://raw.githubusercontent.com/kyleellefsen/pynsight/master/',
+    'QuantiMus':        'http://raw.githubusercontent.com/Quantimus/quantimus/perimeter_method/',
+    'Rodent Tracker':   'https://raw.githubusercontent.com/kyleellefsen/rodentTracker/master/'
 }
 
 helpHTML = '''
