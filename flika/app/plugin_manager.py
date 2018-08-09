@@ -24,7 +24,7 @@ plugin_list = {
     'Detect Puffs':     'https://raw.githubusercontent.com/kyleellefsen/detect_puffs/master/',
     'Global Analysis':  'https://raw.githubusercontent.com/BrettJSettle/GlobalAnalysisPlugin/master/',
     'Pynsight':         'http://raw.githubusercontent.com/kyleellefsen/pynsight/master/',
-    'QuantiMus':        'http://raw.githubusercontent.com/Quantimus/quantimus/perimeter_method/',
+    'QuantiMus':        'http://raw.githubusercontent.com/Quantimus/quantimus/master/',
     'Rodent Tracker':   'https://raw.githubusercontent.com/kyleellefsen/rodentTracker/master/'
 }
 
