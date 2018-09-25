@@ -5,6 +5,7 @@ import pyqtgraph as pg
 import pyqtgraph.exporters
 import time
 import os.path
+import sys
 import numpy as np
 from qtpy import uic, QtGui, QtCore, QtWidgets
 import shutil, subprocess
@@ -299,7 +300,6 @@ def open_file(filename=None, from_gui=False):
         ScriptEditor.importScript(filename)
         return
     elif ext == '.whl':
-        import pip
         # first, remove trailing (1) or (2)
         newfilename = re.sub(r' \([^)]*\)', '', filename)
         try:
@@ -307,7 +307,7 @@ def open_file(filename=None, from_gui=False):
         except FileExistsError:
             pass
         filename = newfilename
-        result = pip.main(['install', filename])
+        result = subprocess.call([sys.executable, '-m', 'pip', 'install', '{}'.format(filename)])
         if result == 0:
             g.alert('Successfully installed {}'.format(filename))
         else:

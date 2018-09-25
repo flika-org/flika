@@ -3,7 +3,7 @@ from ..logger import logger
 logger.debug("Started 'reading app/plugin_manager.py'")
 
 from glob import glob
-import os, sys, difflib, zipfile, time, shutil, traceback
+import os, sys, difflib, zipfile, time, shutil, traceback, subprocess
 from os.path import expanduser
 from qtpy import QtGui, QtWidgets, QtCore
 from urllib.request import urlopen
@@ -417,7 +417,6 @@ class PluginManager(QtWidgets.QMainWindow):
     @staticmethod
     def downloadPlugin(plugin):
         PluginManager.gui.statusBar.showMessage("Installing plugin")
-        import pip
         if isinstance(plugin, str):
             if plugin in PluginManager.plugins:
                 plugin = PluginManager.plugins[plugin]
@@ -434,7 +433,7 @@ class PluginManager(QtWidgets.QMainWindow):
                     continue
                 a = __import__(pl)
             except ImportError:
-                res = pip.main(['install', pl, '--no-cache-dir'])
+                res = subprocess.call([sys.executable, '-m', 'pip', 'install', '{}'.format(pl), '--no-cache-dir'])
                 if res != 0:
                     failed.append(pl)
         if failed:

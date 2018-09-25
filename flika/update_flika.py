@@ -10,6 +10,7 @@ import pathlib
 import tempfile
 from zipfile import ZipFile
 import shutil
+from subprocess import check_output
 from qtpy import QtWidgets, QtGui, QtCore
 from . import global_vars as g
 from .version import __version__ as installed_flika_version
@@ -63,11 +64,9 @@ def path_walk(top, topdown=False, followlinks=False):
 
 
 def get_pypi_version():
-    import pip
-    with capture() as out:
-        pip.main(['search', 'flika'])
-    stdout, stderr = out
-    pypi_version = re.search(r'\((.*?)\)', stdout).group(1)
+    out = check_output([sys.executable, '-m', 'pip', 'search', 'flika'])
+    out = out.decode('utf-8')
+    pypi_version = re.search(r'\((.*?)\)', out).group(1)
     return pypi_version
 
 
@@ -112,13 +111,11 @@ def checkUpdates():
 
 
 def updateFlika():
-    import pip
     installed_via_pip = check_if_installed_via_pip()
     if installed_via_pip:
-        with capture() as out:
-            pip.main(['install', '-U', '--no-deps', 'flika'])
-        stdout, stderr = out
-        print(stdout)
+        out = check_output([sys.executable, '-m', 'pip', 'install', '-U', '--no-deps', 'flika'])
+        out = out.decode('utf-8')
+        print(out)
         g.alert('Update successful. Restart flika to complete update.')
     else:
         flika_location = pathlib.Path(__file__).parents[1]
