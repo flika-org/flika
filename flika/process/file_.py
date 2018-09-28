@@ -498,7 +498,7 @@ def get_metadata_tiff(Tiff):
             metadata['timestamp_units'] = 'ms'
         keys_to_remove = ['NextFrame', 'ImageNumber', 'Frame', 'FrameIndex']
         for key in keys_to_remove:
-            metadata.pop(key)
+            metadata.pop(key, None)
     else:
         try:
             metadata = Tiff[0].image_description
