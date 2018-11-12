@@ -28,7 +28,7 @@ Installation
 
 Install on Windows and Mac OSX
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-flika requires Python 3 to run. To install Python along with most of flika's dependencies, download `Anaconda <https://www.continuum.io/downloads>`_ for the latest Python 3 version. Once Python is installed open a terminal and run::
+flika requires Python 3 to run. To install Python along with most of flika's dependencies, download `Anaconda <https://www.anaconda.com/download/>`_ for the latest Python 3 version. Once Python is installed open a terminal and run::
 
     pip install flika
 
