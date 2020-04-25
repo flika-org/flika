@@ -121,3 +121,4 @@ flika.egg-info
 .cache
 
 /flika/docs/_build/*
+.vscode/settings.json

@@ -404,7 +404,7 @@ class Binary_Dilation(BaseProcess):
     def __call__(self,rank,connectivity,iterations, keepSourceWindow=False):
         self.start(keepSourceWindow)
         if self.tif.dtype == np.float16:
-            g.alert("Adaptive Threshold does not support float16 type arrays")
+            g.alert("binary_dilation does not support float16 type arrays")
             return
         if len(self.tif.shape)==3 and rank==2:
             s=scipy.ndimage.generate_binary_structure(3,connectivity)
@@ -481,17 +481,19 @@ class Generate_ROIs(BaseProcess):
     def __init__(self):
         super().__init__()
         self.ROIs = []
+
     def gui(self):
         self.gui_reset()
-        self.previewing = False
-        self.toPreview = False
         level=SliderLabel(2)
         level.setRange(0,1)
         level.setValue(.5)
         minDensity=QtWidgets.QSpinBox()
         minDensity.setRange(4, 1000)
+        preview=CheckBox()
+        preview.setChecked(True)
         self.items.append({'name':'level','string':'Contour Level','object':level})
         self.items.append({'name':'minDensity','string':'Minimum Density','object':minDensity})
+        self.items.append({'name': 'preview','string': 'Preview','object': preview})
         self.ROIs = []
         super().gui()
         self.ui.rejected.connect(self.removeROIs)
@@ -504,19 +506,19 @@ class Generate_ROIs(BaseProcess):
     def __call__(self, level, minDensity, keepSourceWindow=False):
         self.start(keepSourceWindow)
         if self.tif.dtype == np.float16:
-            g.alert("Adaptive Threshold does not support float16 type arrays")
-            return
+            g.alert("generate_rois does not support float16 type arrays")
+            return None
+        if not np.all((self.tif == 0) | (self.tif == 1)):
+            g.alert("The current image is not a binary image. Threshold first")
+            return None
         for roi in self.ROIs:
             roi.cancel()
         self.ROIs = []
 
         im = g.win.image if g.win.image.ndim == 2 else g.win.image[g.win.currentIndex]
         im = scipy.ndimage.morphology.binary_closing(im)
-        if np.any(im < 0) or np.any(im > 1):
-            raise Exception("The current image is not a binary image. Threshold first")
-
         thresholded_image = np.squeeze(im)
-        labelled=measure.label(thresholded_image)
+        labelled = measure.label(thresholded_image)
         ROIs = []
         for i in range(1, np.max(labelled)+1):
             if np.sum(labelled == i) >= minDensity:
@@ -532,15 +534,11 @@ class Generate_ROIs(BaseProcess):
         if g.win is None or g.win.closed:
             return
         win = g.win
-        if self.previewing:
-            self.toPreview = True
-            return
-        self.previewing = True
         im = win.image if win.image.ndim == 2 else win.image[win.currentIndex]
+        if not np.all((im == 0) | (im == 1)):
+            g.alert("The current image is not a binary image. Threshold first")
+            return None
         im = scipy.ndimage.morphology.binary_closing(im)
-        if np.any(im < 0) or np.any(im > 1):
-            raise Exception("The current image is not a binary image. Threshold first")
-
         level = self.getValue('level')
         minDensity = self.getValue('minDensity')
         thresholded_image = np.squeeze(im)
@@ -561,11 +559,6 @@ class Generate_ROIs(BaseProcess):
                 for p in outline_coords[1:]:
                     self.ROIs[-1].extend(p[0], p[1])
                     QtWidgets.qApp.processEvents()
-
-        self.previewing = False
-        if self.toPreview:
-            self.toPreview = False
-            self.preview()
 
 generate_rois = Generate_ROIs()
 
