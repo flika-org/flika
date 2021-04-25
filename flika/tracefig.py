@@ -12,9 +12,6 @@ from . import global_vars as g
 from .utils.misc import save_file_gui
 
 
-pg.setConfigOptions(useWeave=False)
-
-
 class TraceFig(QtWidgets.QWidget):
     """Pyqtgraph PlotWidget with frame range selector. Display average trace of ROIs and updates in realtime.
     
