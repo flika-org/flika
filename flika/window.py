@@ -10,7 +10,7 @@ from .roi import *
 from .utils.misc import save_file_gui
 from .utils.BaseProcess import WindowSelector, SliderLabel
 
-pg.setConfigOptions(useWeave=False)
+pg.setConfigOptions()
 
 
 class Bg_im_dialog(QtWidgets.QDialog):
