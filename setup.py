@@ -58,7 +58,7 @@ install_requires = [
       'PyQt5>=5.8.0',
       'qtpy>=1.1',
       'setuptools>=1.0',
-      'scikit-image',
+      'scikit-image>0.13.0',
       'scikit-learn',
       'ipython>=1.0',
       'ipykernel',
