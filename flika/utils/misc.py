@@ -182,9 +182,6 @@ class Send_User_Stats_Thread(QtCore.QThread):
     def __init__(self):
         QtCore.QThread.__init__(self)
 
-    def __del__(self):
-        self.wait()
-
     def run(self):
         import requests
         from .. import global_vars as g

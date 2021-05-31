@@ -72,7 +72,7 @@ def parse(x):
             d['#text'] = item.text.strip()
         for k, v in item.items():
             d['@%s' % k] = v
-        for k in item.getchildren():
+        for k in list(item):
             if k.tag not in d:
                 d[k.tag] = step(k)
             elif type(d[k.tag]) == list:
@@ -151,17 +151,19 @@ class Plugin():
 
     def fromLocal(self, path):
         #logger.debug('Calling app.plugin_manager.Plugin.fromLocal')
-        text = open(os.path.join(path, 'info.xml'), 'r').read()
+        with open(os.path.join(path, 'info.xml'), 'r') as f:
+            text = f.read()
         info = parse(text)
         self.name = info['@name']
         self.directory = info['directory']
         self.version = info['version']
         self.latest_version = self.version
         self.author = info['author']
-        try:
-            self.description = str(open(os.path.join(path, 'about.html'), 'r').read())
-        except FileNotFoundError:
-            self.description = "No local description file found"
+        with open(os.path.join(path, 'about.html'), 'r') as f:
+            try:
+                self.description = str(f.read())
+            except FileNotFoundError:
+                self.description = "No local description file found"
         self.url = info['url'] if 'url' in info else None
         self.documentation = info['documentation'] if 'documentation' in info else None
         if 'dependencies' in info and 'dependency' in info['dependencies']:
@@ -505,9 +507,6 @@ class Load_Local_Plugins_Thread(QtCore.QThread):
     error_loading = QtCore.Signal(str)
     def __init__(self):
         QtCore.QThread.__init__(self)
-
-    def __del__(self):
-        self.wait()
 
     def run(self):
         #logger.debug("Started 'app.plugin_manager.load_local_plugins'")

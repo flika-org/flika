@@ -15,17 +15,22 @@ im = np.random.random([150, 60, 60])
 
 
 class Test_File():
-	def test_open(self):
-		if len(g.settings['recent_files']) == 0:
-			g.settings['recent_files'].append('tests')
+
+	@pytest.fixture
+	def set_test_img(self):
+		test_img_dir = os.path.join(os.path.dirname(__file__), 'test_images')
+		test_img = os.path.join(test_img_dir, 'tiff_image_bw.tiff')
+		g.settings['recent_files'] = [test_img]
+		g.settings['filename'] = test_img
+
+	def test_open(self, set_test_img):
 		w = open_file()
 		w.close()
 
-	def test_open_recent(self):
+	def test_open_recent(self, set_test_img):
 		g.m._make_recents()
-		if len(g.m.recentFileMenu.actions()) > 0:
-			g.m.recentFileMenu.actions()[0].trigger()
-			g.win.close()
+		g.m.recentFileMenu.actions()[0].trigger()
+		g.win.close()
 
 	def test_save_as(self):
 		w = Window(im)

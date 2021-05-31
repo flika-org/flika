@@ -1,12 +1,13 @@
-from ..app.plugin_manager import PluginManager, load_local_plugins, plugin_list
+from ..app.plugin_manager import PluginManager, plugin_list
 from ..app.script_editor import ScriptEditor
 from ..window import Window
+from .. import flika
 import numpy as np
 
 class TestPluginManager():
 	def setup_method(self, method):
+		flika.start_flika()
 		PluginManager.show()
-		load_local_plugins()
 		
 	def teardown_method(self, method):
 		PluginManager.close()
@@ -18,7 +19,6 @@ class TestPluginManager():
 		assert (local & plugins) == local, "Local plugin list not loaded correctly"
 
 	def test_install_plugin(self):
-		load_local_plugins()
 		plugin_name = 'Detect Puffs'
 		if PluginManager.plugins[plugin_name].installed:
 			return
