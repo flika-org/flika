@@ -1,3 +1,0 @@
-recursive-include flika *.ui *.png *.ico
-include README.md
-include flika.desktop
