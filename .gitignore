@@ -119,6 +119,8 @@ fabric.properties
 
 flika.egg-info
 .cache
+*.egg
+*.eggs
 
 /flika/docs/_build/*
 .vscode/settings.json

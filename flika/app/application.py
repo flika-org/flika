@@ -211,7 +211,7 @@ class FlikaApplication(QtWidgets.QMainWindow):
         logger.debug("Started 'app.application.FlikaApplication.start()'")
         self.show()
         self.raise_()
-        QtWidgets.qApp.processEvents()
+        QtWidgets.QApplication.processEvents()
         logger.debug("Started 'app.application.FlikaApplication.send_user_stats()'")
         self.send_user_stats_thread = Send_User_Stats_Thread()
         self.send_user_stats_thread.start()

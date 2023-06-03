@@ -29,7 +29,6 @@ class Gaussian_blur(BaseProcess):
     """
     def __init__(self):
         super().__init__()
-        assert 'gaussian' in skimage.filters.__dict__  # Make sure your version of skimage is >= 0.12.3
 
     def gui(self):
         logger.debug("Started 'running process.filters.gaussian_blur.gui()'")
@@ -105,7 +104,6 @@ class Difference_of_Gaussians(BaseProcess):
 
     def __init__(self):
         super().__init__()
-        assert 'gaussian' in skimage.filters.__dict__  # Make sure your version of skimage is >= 0.12.3
 
     def gui(self):
         self.gui_reset()
