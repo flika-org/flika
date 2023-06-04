@@ -151,9 +151,9 @@ def pointSettings(pointButton):
                 pts = []
                 for t in np.arange(win.mt):
                     pts.extend(win.scatterPoints[t])
-                pointSizes = [pt[3] for pt in pts]
+                point_sizes = [pt[3] for pt in pts]
                 brushes = [mkBrush(*pt[2].getRgb()) for pt in pts]
-                win.scatterPlot.setPoints(pos=pts, size=pointSizes, brush=brushes)
+                win.scatterPlot.setData(pos=pts, size=point_sizes, brush=brushes)
             else:
                 win.updateindex()
 

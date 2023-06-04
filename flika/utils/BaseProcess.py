@@ -177,39 +177,58 @@ class SliderLabel(QtWidgets.QWidget):
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.layout)
         self.slider.valueChanged.connect(
-            lambda val: self.updateLabel(int(val / 10**self.decimals)))
+            lambda slider_value: self.updateLabel(self.slider_2_spinbox(slider_value)))
         self.label.valueChanged.connect(self.updateSlider)
         self.valueChanged = self.label.valueChanged
+
+    def spinbox_2_slider(self, spinbox_value: float | int) -> int:
+        """Takes a spinbox value and converts it to a slider value."""
+        return int(spinbox_value * 10**self.decimals)
+    
+    def slider_2_spinbox(self, slider_value: int) -> int | float:
+        """Takes a slider value and converts it to a spinbox value."""
+        spinbox_value = slider_value / 10**self.decimals
+        if isinstance(self.label, QtWidgets.QSpinBox):
+            spinbox_value = int(spinbox_value)
+        return spinbox_value
 
     @QtCore.Slot(float)
     @QtCore.Slot(int)
     def updateSlider(self, value: int | float):
-        self.slider.setValue(int(value * 10**self.decimals))
+        slider_value = self.spinbox_2_slider(value)
+        self.slider.setValue(slider_value)
 
-    def updateLabel(self, value: int):
-        self.label.setValue(value)
+    def updateLabel(self, spinbox_value: int | float):
+        """Sets the spinbox value."""
+        self.label.setValue(spinbox_value)
 
-    def value(self):
+    def value(self) -> int | float:
+        """Gets the spinbox value."""
         return self.label.value()
 
-    def setRange(self, minn: float, maxx: float):
-        self.slider.setRange(minn*10**self.decimals, maxx*10**self.decimals)
-        self.label.setRange(minn, maxx)
+    def setRange(self, new_min: float, new_max: float):
+        new_slider_min = self.spinbox_2_slider(new_min)
+        new_slider_max = self.spinbox_2_slider(new_max)
+        self.slider.setRange(new_slider_min, new_slider_max)
+        self.label.setRange(new_min, new_max)
 
-    def setMinimum(self, minn: float):
-        self.slider.setMinimum(minn*10**self.decimals)
-        self.label.setMinimum(minn)
+    def setMinimum(self, new_min: float):
+        new_slider_min = self.spinbox_2_slider(new_min)
+        self.slider.setMinimum(new_slider_min)
+        self.label.setMinimum(new_min)
 
-    def setMaximum(self, maxx: float):
-        self.slider.setMaximum(maxx*10**self.decimals)
-        self.label.setMaximum(maxx)
+    def setMaximum(self, new_max: float):
+        new_slider_max = self.spinbox_2_slider(new_max)
+        self.slider.setMaximum(new_slider_max)
+        self.label.setMaximum(new_max)
 
-    def setValue(self, value: float):
-        self.slider.setValue(value*10**self.decimals)
-        self.label.setValue(value)
+    def setValue(self, spinbox_value: float):
+        slider_value = self.spinbox_2_slider(spinbox_value)
+        self.slider.setValue(slider_value)
+        self.label.setValue(spinbox_value)
 
-    def setSingleStep(self, value):
-        self.label.setSingleStep(value)
+    def setSingleStep(self, spinbox_step_value: int | float):
+        self.label.setSingleStep(spinbox_step_value)
 
     def setEnabled(self, enabled: bool):
         self.label.setEnabled(enabled)
@@ -229,11 +248,11 @@ class SliderLabelOdd(SliderLabel):
             value += 1
         self.slider.setValue(value)
 
-    def updateLabel(self, value):
-        value = int(value)
-        if value % 2 == 0:  # if value is even
-            value += 1
-        self.label.setValue(value)
+    def updateLabel(self, spinbox_value: int | float):
+        spinbox_value = int(spinbox_value)
+        if spinbox_value % 2 == 0:  # if value is even
+            spinbox_value += 1
+        self.label.setValue(spinbox_value)
 
 
 class CheckBox(QtWidgets.QCheckBox):
