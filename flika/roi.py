@@ -26,6 +26,8 @@ import numpy as np
 from pyqtgraph.graphicsItems.ROI import Handle
 from . import global_vars as g
 from .utils.misc import random_color, open_file_gui, nonpartial
+
+
 class ROI_Drawing(pg.GraphicsObject):
     """Graphics Object for ROIs while initially being drawn. Extends pyqtrgaph.GraphicsObject
 
@@ -294,9 +296,11 @@ class ROI_Base():
 
     def raiseContextMenu(self, ev):
         pos = ev.screenPos()
+        x = int(pos.x())
+        y = int(pos.y())
         self.menu.addSeparator()
         self.menu.addActions(self.window.menu.actions())
-        self.menu.popup(QtCore.QPoint(pos.x(), pos.y()))
+        self.menu.popup(QtCore.QPoint(x, y))
     
     def makeMenu(self):
         def plotPressed():
@@ -772,31 +776,34 @@ class ROI_rect_line(ROI_Base, QtWidgets.QGraphicsObject):
         p = self.mapFromScene(self.lines[0].getHandles()[0].scenePos())
         p = self.lines[0].getSnapPosition([p.x(), p.y()])
         pos = [p]
-        for l in self.lines:
-            p = self.mapFromScene(l.getHandles()[1].scenePos())
-            p = l.getSnapPosition([p.x(), p.y()])
+        for line in self.lines:
+            p = self.mapFromScene(line.getHandles()[1].scenePos())
+            p = line.getSnapPosition([p.x(), p.y()])
             pos.append(p)
         self.pts = pos
         return self.pts
 
-    def getArrayRegion(self, arr, img=None, axes=(0,1), **kwds):
+    def getArrayRegion(self, data: np.ndarray,
+                       image_item: QtWidgets.QGraphicsItem=None,
+                       axes: tuple[int, int]=(0, 1),
+                       **kwds) -> np.ndarray:
         rgns = []
-        for l in self.lines:
-            rgn = l.getArrayRegion(arr, img, axes=axes, **kwds)
+        for line in self.lines:
+            rgn = line.getArrayRegion(data, image_item, axes=axes, **kwds)
             if rgn is None:
                 continue
                 #return None
             rgns.append(rgn)
-            #print l.state['size']
+            #print line.state['size']
             
         ## make sure orthogonal axis is the same size
         ## (sometimes fp errors cause differences)
-        if img.axisOrder == 'row-major':
+        if image_item.axisOrder == 'row-major':
             axes = axes[::-1]
-        ms = min([r.shape[axes[1]] for r in rgns])
-        sl = [slice(None)] * rgns[0].ndim
-        sl[axes[1]] = slice(0,ms)
-        rgns = [r[sl] for r in rgns]
+        ms = min([rgn.shape[axes[1]] for rgn in rgns])
+        slices = [slice(None)] * rgns[0].ndim
+        slices[axes[1]] = slice(0, ms)
+        rgns = [rgn[*slices] for rgn in rgns]
         #print [r.shape for r in rgns], axes
         
         return np.concatenate(rgns, axis=axes[0])

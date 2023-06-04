@@ -9,7 +9,8 @@ import pytest
 from ..roi import makeROI
 import pyqtgraph as pg
 from qtpy import QtGui
-from qtpy.QtWidgets import qApp
+from qtpy.QtWidgets import QApplication
+
 im = np.random.random([120, 90, 90])
 	
 class TestWindow():
@@ -218,7 +219,7 @@ class ROITest():
 			self.checkChanged()
 			self.checkChangeFinished()
 			#time.sleep(.02)
-			#qApp.processEvents()
+			#QApplication.processEvents()
 
 		w2.close()
 		self.roi.draw_from_points(self.POINTS)
@@ -244,7 +245,7 @@ class ROITest():
 				self.checkChangeFinished()
 				self.check_similar(roi2)
 				#time.sleep(.02)
-				#qApp.processEvents()
+				#QApplication.processEvents()
 
 		w2.close()
 		self.roi.draw_from_points(self.POINTS)

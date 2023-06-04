@@ -1,9 +1,8 @@
-from ..logger import logger
 import numpy as np
 import skimage
 import skimage.filters
 from qtpy import QtWidgets, QtGui, QtCore
-import time
+from ..logger import logger
 from .. import global_vars as g
 from ..utils.BaseProcess import BaseProcess, SliderLabel, SliderLabelOdd, CheckBox
 from .progress_bar import ProgressBar
@@ -824,18 +823,10 @@ class Wavelet_filter(BaseProcess):
             else:
                 self.roi.redraw_trace()
 wavelet_filter=Wavelet_filter()
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
+
 class Bilateral_filter(BaseProcess):
-    ''' bilateral_filter( keepSourceWindow=False)
+    """bilateral_filter( keepSourceWindow=False)
     
     Parameters:
         soft (bool): True for guassian, False for hard filter
@@ -845,7 +836,7 @@ class Bilateral_filter(BaseProcess):
         maxiter (int): maximum number of iterations
     Returns:
         newWindow
-    '''
+    """
     def __init__(self):
         super().__init__()
     def gui(self):

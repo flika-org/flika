@@ -170,9 +170,9 @@ def alert(msg, title="flika - Alert"):
     msgbx.setWindowTitle(title)
     msgbx.show()
     m.statusBar().showMessage(msg)
-    desktopSize = QtWidgets.QDesktopWidget().screenGeometry()
-    top = (desktopSize.height() / 2) - (msgbx.size().height() / 2)
-    left = (desktopSize.width() / 2) - (msgbx.size().width() / 2)
+    desktopSize = QtGui.QGuiApplication.primaryScreen().availableGeometry()
+    top = int((desktopSize.height() / 2) - (msgbx.size().height() / 2))
+    left = int((desktopSize.width() / 2) - (msgbx.size().width() / 2))
     msgbx.move(left, top)
     dialogs.append(msgbx)
 

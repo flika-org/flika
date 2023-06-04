@@ -434,7 +434,7 @@ class RedrawPartialThread(QtCore.QThread):
                 newtrace[bb[0]:bb[1]]=trace
                 curve.setData(newtrace,pen=pen)
                 self.alert.emit("CURVE {} redrawn".format(roi_index))
-                QtWidgets.qApp.processEvents()
+                QtWidgets.QApplication.processEvents()
             self.redrawCompleted=True
 
 class InvalidTraceException(Exception):
