@@ -12,9 +12,9 @@ import platform
 import os
 import sys
 
-with open('flika/version.py') as infile:
+with open('flika/version.py') as version_file:
     __version__ = '0.0.0'
-    exec(infile.read())  # This sets the __version__ variable.
+    exec(version_file.read())  # This sets the __version__ variable.
 
 with open('README.rst') as readme:
     LONG_DESCRIPTION = readme.read()
