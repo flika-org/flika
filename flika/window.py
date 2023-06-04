@@ -33,7 +33,8 @@ class Bg_im_dialog(QtWidgets.QDialog):
         self.setLayout(self.layout)
 
     def alpha_changed(self, value):
-        self.parent.bg_im.setOpacity(value)
+        if self.parent.bg_im is not None:
+            self.parent.bg_im.setOpacity(value)
 
     def bg_win_changed(self):
         if self.parent.bg_im is not None:
@@ -48,7 +49,6 @@ class Bg_im_dialog(QtWidgets.QDialog):
         if self.parent.bg_im is not None:
             self.parent.imageview.view.removeItem(self.parent.bg_im)
             self.bg_im = None
-
 
 
 class ImageView(pg.ImageView):
@@ -95,6 +95,7 @@ class ImageView(pg.ImageView):
             #self.ui.roiPlot.hide()
             
         self.ui.roiPlot.setVisible(showRoiPlot)
+
 
 class Window(QtWidgets.QWidget):
     """
@@ -229,24 +230,25 @@ class Window(QtWidgets.QWidget):
             if self.metadata['is_rgb']:
                 self.mx, self.my, mc = tif.shape
                 self.mt = 1
-                dimensions_txt = "{}x{} pixels; {} colors; ".format(self.mx, self.my, mc)
+                dimensions_txt = f"{self.mx}x{self.my} pixels; {mc} colors; "
             else:
                 self.mt, self.mx, self.my = tif.shape
-                dimensions_txt = "{} frames; {}x{} pixels; ".format(self.mt, self.mx, self.my)
+                dimensions_txt = f"{self.mt} frames; {self.mx}x{self.my} pixels; "
         elif self.nDims == 4:
             self.mt, self.mx ,self.my, mc = tif.shape
-            dimensions_txt = "{} frames; {}x{} pixels; {} colors; ".format(self.mt, self.mx, self.my, mc)
+            dimensions_txt = f"{self.mt} frames; {self.mx}x{self.my} pixels; {mc} colors; "
         elif self.nDims == 2:
             self.mt = 1
             self.mx, self.my = tif.shape
-            dimensions_txt = "{}x{} pixels; ".format(self.mx, self.my)
+            dimensions_txt = f"{self.mx}x{self.my} pixels; "
         dimensions_txt += 'dtype=' + str(self.dtype)
         if self.framerate is None:
             if 'timestamps' in self.metadata:
                 ts = self.metadata['timestamps']
                 self.framerate = (ts[-1] - ts[0]) / len(ts)
         if self.framerate is not None:
-            dimensions_txt += '; {:.4f} {}/frame'.format(self.framerate, self.metadata['timestamp_units'])
+            tu = self.metadata['timestamp_units']
+            dimensions_txt += f'; {self.framerate:.4f} {tu}/frame'
 
         if self.top_left_label is not None and self.imageview is not None and self.top_left_label in self.imageview.ui.graphicsView.items():
             self.imageview.ui.graphicsView.removeItem(self.top_left_label)
@@ -539,7 +541,6 @@ class Window(QtWidgets.QWidget):
     def clickedScatter(self, plot, points):
         p = points[0]
         x, y = p.pos()
-
         if g.settings['show_all_points']:
             pts = []
             for t in np.arange(self.mt):
@@ -592,12 +593,12 @@ class Window(QtWidgets.QWidget):
         self.scatterPoints[t].append(position)
         self.scatterPlot.addPoints(pos=[[x, y]], size=pointSize, brush=pg.mkBrush(*pointColor.getRgb()))
 
-    def mouseClickEvent(self,ev):
+    def mouseClickEvent(self, ev):
         ''''mouseClickevent(self, ev)
         Event handler for when the mouse is pressed in a flika window.
         '''
         self.EEEE = ev
-        if self.x is not None and self.y is not None and ev.button() == 2 and not self.creatingROI:
+        if self.x is not None and self.y is not None and ev.button() == QtCore.Qt.RightButton and not self.creatingROI:
             mm = g.settings['mousemode']
             if mm == 'point':
                 self.addPoint()
@@ -736,7 +737,6 @@ class Window(QtWidgets.QWidget):
             minutes = int(np.floor(mminutes/60))
             seconds = mminutes-minutes*60
             label.setHtml("<span style='font-size: 12pt;color:white;background-color:None;'>{}h {}m {:.3f} s</span>".format(hours,minutes,seconds))
-logger.debug("Completed 'reading window.py'")
 
 
 def get_line(x1, y1, x2, y2):
@@ -784,3 +784,5 @@ def get_line(x1, y1, x2, y2):
     if swapped:
         points.reverse()
     return np.array(points)
+
+logger.debug("Completed 'reading window.py'")

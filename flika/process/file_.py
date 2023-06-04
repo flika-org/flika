@@ -45,7 +45,7 @@ def save_file(filename=None):
     if os.path.dirname(filename) == '':  # if the user didn't specify a directory
         directory = os.path.normpath(os.path.dirname(g.settings['filename']))
         filename = os.path.join(directory, filename)
-    g.m.statusBar().showMessage('Saving {}'.format(os.path.basename(filename)))
+    g.m.statusBar().showMessage(f'Saving {os.path.basename(filename)}')
     A = g.win.image
     if A.dtype == np.bool:
         A = A.astype(np.uint8)
@@ -53,7 +53,7 @@ def save_file(filename=None):
     try:
         metadata = json.dumps(metadata, default=JSONhandler)
     except TypeError as e:
-        msg = "Error saving metadata.\n{}\nContinuing to save file".format(e)
+        msg = f"Error saving metadata.\n{e}\nContinuing to save file"
         g.alert(msg)
     if len(A.shape) == 3:
         A = np.transpose(A, (0, 2, 1))  # This keeps the x and the y the same as in FIJI
@@ -61,7 +61,7 @@ def save_file(filename=None):
         A = np.transpose(A, (1, 0))
     tifffile.imsave(filename, A,
                     description=metadata)  # http://stackoverflow.com/questions/20529187/what-is-the-best-way-to-save-image-metadata-alongside-a-tif-with-python
-    g.m.statusBar().showMessage('Successfully saved {}'.format(os.path.basename(filename)))
+    g.m.statusBar().showMessage(f'Successfully saved {os.path.basename(filename)}')
     return filename
 
 def save_points(filename=None):
@@ -80,7 +80,7 @@ def save_points(filename=None):
         filename = save_file_gui(prompt, filetypes=filetypes)
         if filename is None:
             return None
-    g.m.statusBar().showMessage('Saving Points in {}'.format(os.path.basename(filename)))
+    g.m.statusBar().showMessage(f'Saving Points in {os.path.basename(filename)}')
     p_out = []
     p_in = g.win.scatterPoints
     for t in np.arange(len(p_in)):
@@ -88,7 +88,7 @@ def save_points(filename=None):
             p_out.append(np.array([t, p[0], p[1]]))
     p_out = np.array(p_out)
     np.savetxt(filename, p_out)
-    g.m.statusBar().showMessage('Successfully saved {}'.format(os.path.basename(filename)))
+    g.m.statusBar().showMessage(f'Successfully saved {os.path.basename(filename)}')
     return filename
 
 
@@ -160,7 +160,7 @@ def save_movie(rate, filename=None):
     win.top_left_label.hide()
     for i in np.arange(0, nFrames):
         win.setIndex(i)
-        exporter.export(os.path.join(tmpdir, '{:03}.jpg'.format(i)))
+        exporter.export(os.path.join(tmpdir, f'{i:03}.jpg'))
         QtWidgets.QApplication.processEvents()
     win.top_left_label.show()
     olddir = os.getcwd()
@@ -169,7 +169,7 @@ def save_movie(rate, filename=None):
         ['ffmpeg', '-r', '%d' % rate, '-i', '%03d.jpg', '-vf', 'scale=trunc(iw/2)*2:trunc(ih/2)*2', 'output.mp4'])
     os.rename('output.mp4', filename)
     os.chdir(olddir)
-    g.m.statusBar().showMessage('Successfully saved movie as {}.'.format(os.path.basename(filename)))
+    g.m.statusBar().showMessage(f'Successfully saved movie as {os.path.basename(filename)}.')
 
 
 
@@ -193,13 +193,13 @@ def open_file_from_gui():
 
 def open_image_sequence(filename=None, from_gui=False):
     """ open_image_sequencefilename(filename=None)
-    Opens an image sequence (.tif, .png) into a newWindow.
+    Opens an image sequence (.tif, .png) into a new_window.
 
     Parameters:
         filename (str): Address of the first of a series of files that will be stitched together into a movie.
                             If no filename is provided, the last opened file is used.
     Returns:
-        newWindow
+        new_window
 
     """
     if filename is None:
@@ -214,8 +214,8 @@ def open_image_sequence(filename=None, from_gui=False):
             if filename is None:
                 g.alert('No filename selected')
                 return None
-    print("Filename: {}".format(filename))
-    g.m.statusBar().showMessage('Loading {}'.format(os.path.basename(filename)))
+    print(f"Filename: {filename}")
+    g.m.statusBar().showMessage(f'Loading {os.path.basename(filename)}')
     t = time.time()
     metadata = dict()
 
@@ -239,21 +239,22 @@ def open_image_sequence(filename=None, from_gui=False):
         pass
 
     append_recent_file(str(filename))  # make first in recent file menu
-    g.m.statusBar().showMessage('{} successfully loaded ({} s)'.format(filename.parts[-1], time.time() - t))
+    msg = f'{filename.parts[-1]} successfully loaded ({time.time() - t} s)'
+    g.m.statusBar().showMessage(msg)
     g.settings['filename'] = str(filename)
-    commands = ["open_image_sequence('{}')".format(str(filename))]
-    newWindow = Window(all_images, filename.parts[-1], str(filename), commands, metadata)
-    return newWindow
+    commands = [f"open_image_sequence('{str(filename)}')"]
+    new_window = Window(all_images, filename.parts[-1], str(filename), commands, metadata)
+    return new_window
 
 
 def open_file(filename=None, from_gui=False):
     """ open_file(filename=None)
-    Opens an image or movie file (.tif, .stk, .nd2) into a newWindow.
+    Opens an image or movie file (.tif, .stk, .nd2) into a new_window.
 
     Parameters:
         filename (str): Address of file to open. If no filename is provided, the last opened file is used.
     Returns:
-        newWindow
+        new_window
 
     """
     if filename is None:
@@ -268,8 +269,8 @@ def open_file(filename=None, from_gui=False):
             if filename is None:
                 g.alert('No filename selected')
                 return None
-    print("Filename: {}".format(filename))
-    g.m.statusBar().showMessage('Loading {}'.format(os.path.basename(str(filename))))
+    print(f"Filename: {filename}")
+    g.m.statusBar().showMessage(f'Loading {os.path.basename(str(filename))}')
     t = time.time()
     metadata = dict()
     ext = os.path.splitext(str(filename))[1]
@@ -292,7 +293,7 @@ def open_file(filename=None, from_gui=False):
             A[frame] = nd2[frame].T
             if percent < int(100 * float(frame) / mt):
                 percent = int(100 * float(frame) / mt)
-                g.m.statusBar().showMessage('Loading file {}%'.format(percent))
+                g.m.statusBar().showMessage(f'Loading file {percent}%')
                 QtWidgets.QApplication.processEvents()
         metadata = nd2.metadata
     elif ext == '.py':
@@ -307,11 +308,11 @@ def open_file(filename=None, from_gui=False):
         except FileExistsError:
             pass
         filename = newfilename
-        result = subprocess.call([sys.executable, '-m', 'pip', 'install', '{}'.format(filename)])
+        result = subprocess.call([sys.executable, '-m', 'pip', 'install', f'{filename}'])
         if result == 0:
-            g.alert('Successfully installed {}'.format(filename))
+            g.alert(f'Successfully installed {filename}')
         else:
-            g.alert('Install of {} failed'.format(filename))
+            g.alert(f'Install of {filename} failed')
         return
     elif ext == '.jpg' or ext == '.png':
         import skimage.io
@@ -322,7 +323,7 @@ def open_file(filename=None, from_gui=False):
             metadata['is_rgb'] = True
 
     else:
-        msg = "Could not open.  Filetype for '{}' not recognized".format(filename)
+        msg = f"Could not open.  Filetype for '{filename}' not recognized"
         g.alert(msg)
         if filename in g.settings['recent_files']:
             g.settings['recent_files'].remove(filename)
@@ -330,17 +331,18 @@ def open_file(filename=None, from_gui=False):
         return
         
     append_recent_file(str(filename))  # make first in recent file menu
-    g.m.statusBar().showMessage('{} successfully loaded ({} s)'.format(os.path.basename(str(filename)), time.time() - t))
+    msg = f'{os.path.basename(str(filename))} successfully loaded ({time.time() - t} s)'
+    g.m.statusBar().showMessage(msg)
     g.settings['filename'] = str(filename)
-    commands = ["open_file('{}')".format(filename)]
-    newWindow = Window(A, os.path.basename(str(filename)), filename, commands, metadata)
-    return newWindow
+    commands = [f"open_file('{filename}')"]
+    new_window = Window(A, os.path.basename(str(filename)), filename, commands, metadata)
+    return new_window
 
 def open_tiff(filename, metadata):
     try:
         Tiff = tifffile.TiffFile(str(filename))
     except Exception as s:
-        g.alert("Unable to open {}. {}".format(filename, s))
+        g.alert(f"Unable to open {filename}. {s}")
         return None
     metadata = get_metadata_tiff(Tiff)
     A = Tiff.asarray()
@@ -351,8 +353,8 @@ def open_tiff(filename, metadata):
         assert len(axes) == len(A.shape)
     except AssertionError:
         msg = 'Tiff could not be loaded because the number of axes in the array does not match the number of axes found by tifffile.py\n'
-        msg += "Shape of array: {}\n".format(A.shape)
-        msg += "Axes found by tifffile.py: {}\n".format(axes)
+        msg += f"Shape of array: {A.shape}\n"
+        msg += f"Axes found by tifffile.py: {axes}\n"
         g.alert(msg)
         return None
     if set(axes) == set(['height', 'width']):  # still image in black and white.
@@ -410,7 +412,8 @@ def open_points(filename=None):
         filename = open_file_gui(prompt, filetypes=filetypes)
         if filename is None:
             return None
-    g.m.statusBar().showMessage('Loading points from {}'.format(os.path.basename(filename)))
+    msg = f'Loading points from {os.path.basename(filename)}'
+    g.m.statusBar().showMessage(msg)
     try:
         pts = np.loadtxt(filename)
     except UnicodeDecodeError:
@@ -446,7 +449,7 @@ def open_points(filename=None):
         t = g.win.currentIndex
         g.win.scatterPlot.setPoints(pos=g.win.scatterPoints[t])
 
-    g.m.statusBar().showMessage('Successfully loaded {}'.format(os.path.basename(filename)))
+    g.m.statusBar().showMessage(f'Successfully loaded {os.path.basename(filename)}')
 
 
 
