@@ -1549,7 +1549,7 @@ class TiffFile(object):
                 if percent < int(100 * i / nPages):
                     percent = int(100 * i / nPages)
                     g.m.statusBar().showMessage('Loading file {}%'.format(percent))
-                    QtWidgets.qApp.processEvents()
+                    QtWidgets.QApplication.processEvents()
                 keep.open(page)
                 if page:
                     a = page.asarray(memmap=False, colormapped=False,
@@ -4961,7 +4961,7 @@ def stack_pages(pages, memmap=False, tempdir=None, *args, **kwargs):
         if percent < int(100*i/nPages):
             percent = int(100 * i / nPages)
             g.m.statusBar().showMessage('Loading file {}%'.format(percent))
-            QtWidgets.qApp.processEvents()
+            QtWidgets.QApplication.processEvents()
         data[i+1] = page.asarray(*args, **kwargs)
         if memmap:
             data.flush()

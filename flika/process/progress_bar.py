@@ -91,7 +91,7 @@ class ProgressBar(QtWidgets.QWidget):
         self.setWindowTitle(msg)
         self.stopPressed = False
         self.show()
-        QtWidgets.qApp.processEvents()
+        QtWidgets.QApplication.processEvents()
         
         self.results=[None for i in range(nCores)]
         self.process_finished=[False for i in range(nCores)]
@@ -116,7 +116,7 @@ class ProgressBar(QtWidgets.QWidget):
         
         while self.finished is False: #the exec_() loop doesn't wait for loop.quit when running in spyder for some reason.  This is the workaround
             time.sleep(.01)
-            QtWidgets.qApp.processEvents()
+            QtWidgets.QApplication.processEvents()
         self.close()
         
     def check_if_finished(self):
@@ -130,7 +130,7 @@ class ProgressBar(QtWidgets.QWidget):
                 self.results[i]=self.q_results[i].get()
                 self.process_finished[i]=True
                 self.processes[i].join(1)
-        QtWidgets.qApp.processEvents()
+        QtWidgets.QApplication.processEvents()
         if all(self.process_finished):
             if any(r is None for r in self.results):
                 self.results=None

@@ -161,7 +161,7 @@ def save_movie(rate, filename=None):
     for i in np.arange(0, nFrames):
         win.setIndex(i)
         exporter.export(os.path.join(tmpdir, '{:03}.jpg'.format(i)))
-        QtWidgets.qApp.processEvents()
+        QtWidgets.QApplication.processEvents()
     win.top_left_label.show()
     olddir = os.getcwd()
     os.chdir(tmpdir)
@@ -293,7 +293,7 @@ def open_file(filename=None, from_gui=False):
             if percent < int(100 * float(frame) / mt):
                 percent = int(100 * float(frame) / mt)
                 g.m.statusBar().showMessage('Loading file {}%'.format(percent))
-                QtWidgets.qApp.processEvents()
+                QtWidgets.QApplication.processEvents()
         metadata = nd2.metadata
     elif ext == '.py':
         from ..app.script_editor import ScriptEditor

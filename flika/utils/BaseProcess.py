@@ -1,23 +1,25 @@
 # -*- coding: utf-8 -*-
+from ..utils.misc import save_file_gui
+from .. import global_vars as g
+import markdown
+import inspect
+import sys
+from qtpy import QtCore, QtGui, QtWidgets
+import numpy as np
+import os.path
 from ..logger import logger
 logger.debug("Started 'reading process/BaseProcess.py'")
 
-import os.path
-import numpy as np
-from qtpy import QtCore, QtGui, QtWidgets
-import sys
-import inspect
-import markdown
 
-from .. import global_vars as g
-from ..utils.misc import save_file_gui
+__all__ = ['MissingWindowError', 'WindowSelector', 'FileSelector', 'ColorSelector', 'SliderLabel',
+           'SliderLabelOdd', 'CheckBox', 'ComboBox', 'BaseDialog', 'BaseProcess', 'BaseProcess_noPriorWindow']
 
-__all__ = ['MissingWindowError', 'WindowSelector', 'FileSelector', 'ColorSelector', 'SliderLabel', 'SliderLabelOdd', 'CheckBox', 'ComboBox', 'BaseDialog', 'BaseProcess', 'BaseProcess_noPriorWindow']
-        
+
 class MissingWindowError(Exception):
     def __init__(self, value):
         self.value = value
         g.m.statusBar().showMessage(value)
+
     def __str__(self):
         return repr(self.value)
 
@@ -26,7 +28,8 @@ class WindowSelector(QtWidgets.QWidget):
     """
     This widget is a button with a label.  Once you click the button, the widget waits for you to click a Window object.  Once you do, it sets self.window to be the window, and it sets the label to be the widget name.
     """
-    valueChanged=QtCore.Signal()
+    valueChanged = QtCore.Signal()
+
     def __init__(self):
         QtWidgets.QWidget.__init__(self)
         self.button = QtWidgets.QPushButton('Select Window')
@@ -58,8 +61,10 @@ class WindowSelector(QtWidgets.QWidget):
         self.label.setText('...'+os.path.split(self.window.name)[-1][-20:])
         self.valueChanged.emit()
         self.parent().raise_()
+
     def value(self):
         return self.window
+
     def setValue(self, window):
         ''' This function is written to satify the requirement that all items have a setValue function to recall from settings the last set value. '''
         self.setWindow(window)
@@ -69,20 +74,21 @@ class FileSelector(QtWidgets.QWidget):
     """
     This widget is a button with a label.  Once you click the button, the widget waits for you to select a file to save.  Once you do, it sets self.filename and it sets the label.
     """
-    valueChanged=QtCore.Signal()
-    def __init__(self,filetypes='*.*'):
+    valueChanged = QtCore.Signal()
+
+    def __init__(self, filetypes='*.*'):
         QtWidgets.QWidget.__init__(self)
-        self.button=QtWidgets.QPushButton('Select Filename')
-        self.label=QtWidgets.QLabel('None')
-        self.window=None
-        self.layout=QtWidgets.QHBoxLayout()
+        self.button = QtWidgets.QPushButton('Select Filename')
+        self.label = QtWidgets.QLabel('None')
+        self.window = None
+        self.layout = QtWidgets.QHBoxLayout()
         self.layout.addWidget(self.button)
         self.layout.addWidget(self.label)
         self.setLayout(self.layout)
         self.button.clicked.connect(self.buttonclicked)
         self.filetypes = filetypes
         self.filename = ''
-        
+
     def buttonclicked(self):
         prompt = 'testing fileSelector'
         self.filename = save_file_gui(prompt, filetypes=self.filetypes)
@@ -96,6 +102,7 @@ class FileSelector(QtWidgets.QWidget):
         self.filename = str(filename)
         self.label.setText('...' + os.path.split(self.filename)[-1][-20:])
 
+
 def color_pixmap(color):
     pm = QtGui.QPixmap(15, 15)
     p = QtGui.QPainter(pm)
@@ -103,23 +110,25 @@ def color_pixmap(color):
     p.fillRect(-1, -1, 20, 20, b)
     return pm
 
+
 class ColorSelector(QtWidgets.QWidget):
     """
     This widget is a button with a label.  Once you click the button, the widget waits for you to select a color.  Once you do, it sets self.color and it sets the label.
     """
-    valueChanged=QtCore.Signal()
+    valueChanged = QtCore.Signal()
+
     def __init__(self):
         QtWidgets.QWidget.__init__(self)
-        self.button=QtWidgets.QPushButton('Select Color')
-        self.label=QtWidgets.QLabel('None')
-        self.window=None
-        self.layout=QtWidgets.QHBoxLayout()
+        self.button = QtWidgets.QPushButton('Select Color')
+        self.label = QtWidgets.QLabel('None')
+        self.window = None
+        self.layout = QtWidgets.QHBoxLayout()
         self.layout.addWidget(self.button)
         self.layout.addWidget(self.label)
         self.setLayout(self.layout)
         self.button.clicked.connect(self.buttonclicked)
-        self._color=''
-        self.colorDialog=QtWidgets.QColorDialog()
+        self._color = ''
+        self.colorDialog = QtWidgets.QColorDialog()
         self.colorDialog.colorSelected.connect(self.colorSelected)
 
     @property
@@ -136,90 +145,115 @@ class ColorSelector(QtWidgets.QWidget):
 
     def value(self):
         return self._color
-        
+
     def colorSelected(self, color):
         if color.isValid():
-            self.color=color.name()
+            self.color = color.name()
             self.label.setText(color.name())
             self.valueChanged.emit()
 
 
 class SliderLabel(QtWidgets.QWidget):
-    changeSignal=QtCore.Signal(int)
-    def __init__(self,decimals=0): #decimals specifies the resolution of the slider.  0 means only integers,  1 means the tens place, etc.
+    changeSignal = QtCore.Signal(int)
+
+    def __init__(self, decimals: int = 0):
+        """
+        Args:
+          decimals: the resolution of the slider. 0 means only integers,  1 
+          means the tens place, etc.
+        """
+        # decimals specifies the resolution of the slider.
         QtWidgets.QWidget.__init__(self)
-        self.slider=QtWidgets.QSlider(QtCore.Qt.Horizontal)
-        self.decimals=decimals
-        if self.decimals<=0:
-            self.label=QtWidgets.QSpinBox()
+        self.slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
+        self.decimals = decimals
+        if self.decimals <= 0:
+            self.label = QtWidgets.QSpinBox()
         else:
-            self.label=QtWidgets.QDoubleSpinBox()
+            self.label = QtWidgets.QDoubleSpinBox()
             self.label.setDecimals(self.decimals)
-        self.layout=QtWidgets.QHBoxLayout()
+        self.layout = QtWidgets.QHBoxLayout()
         self.layout.addWidget(self.slider)
         self.layout.addWidget(self.label)
-        self.layout.setContentsMargins(0,0,0,0)
+        self.layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.layout)
-        self.slider.valueChanged.connect(lambda val: self.updateLabel(val/10**self.decimals))
+        self.slider.valueChanged.connect(
+            lambda val: self.updateLabel(int(val / 10**self.decimals)))
         self.label.valueChanged.connect(self.updateSlider)
-        self.valueChanged=self.label.valueChanged
+        self.valueChanged = self.label.valueChanged
+
     @QtCore.Slot(float)
     @QtCore.Slot(int)
-    def updateSlider(self,value):
-        self.slider.setValue(int(value*10**self.decimals))
-    def updateLabel(self,value):
+    def updateSlider(self, value: int | float):
+        self.slider.setValue(int(value * 10**self.decimals))
+
+    def updateLabel(self, value: int):
         self.label.setValue(value)
+
     def value(self):
         return self.label.value()
-    def setRange(self,minn,maxx):
-        self.slider.setRange(minn*10**self.decimals,maxx*10**self.decimals)
-        self.label.setRange(minn,maxx)
-    def setMinimum(self,minn):
+
+    def setRange(self, minn: float, maxx: float):
+        self.slider.setRange(minn*10**self.decimals, maxx*10**self.decimals)
+        self.label.setRange(minn, maxx)
+
+    def setMinimum(self, minn: float):
         self.slider.setMinimum(minn*10**self.decimals)
         self.label.setMinimum(minn)
-    def setMaximum(self,maxx):
+
+    def setMaximum(self, maxx: float):
         self.slider.setMaximum(maxx*10**self.decimals)
         self.label.setMaximum(maxx)
-    def setValue(self,value):
+
+    def setValue(self, value: float):
         self.slider.setValue(value*10**self.decimals)
         self.label.setValue(value)
-    def setSingleStep(self,value):
+
+    def setSingleStep(self, value):
         self.label.setSingleStep(value)
-    def setEnabled(self, en):
-        self.label.setEnabled(en)
-        self.slider.setEnabled(en)
+
+    def setEnabled(self, enabled: bool):
+        self.label.setEnabled(enabled)
+        self.slider.setEnabled(enabled)
 
 
 class SliderLabelOdd(SliderLabel):
     '''This is a modified SliderLabel class that forces the user to only choose odd numbers.'''
+
     def __init__(self):
-        SliderLabel.__init__(self,decimals=0)
+        SliderLabel.__init__(self, decimals=0)
+
     @QtCore.Slot(int)
-    def updateSlider(self,value):
-        value=int(value)
-        if value%2==0: #if value is even
-            value+=1
+    def updateSlider(self, value):
+        value = int(value)
+        if value % 2 == 0:  # if value is even
+            value += 1
         self.slider.setValue(value)
-    def updateLabel(self,value):
-        value=int(value)
-        if value%2==0: #if value is even
-            value+=1
+
+    def updateLabel(self, value):
+        value = int(value)
+        if value % 2 == 0:  # if value is even
+            value += 1
         self.label.setValue(value)
 
 
 class CheckBox(QtWidgets.QCheckBox):
     '''Overwrote the QCheckBox class so that every graphical element has the method 'setValue'
     '''
-    def __init__(self,parent=None):
-        QtWidgets.QCheckBox.__init__(self,parent)
-    def setValue(self,value):
+
+    def __init__(self, parent=None):
+        QtWidgets.QCheckBox.__init__(self, parent)
+
+    def setValue(self, value):
         self.setChecked(value)
+
 
 class ComboBox(QtWidgets.QComboBox):
     '''Overwrote the QComboBox class so that every graphical element has the method 'setValue'
     '''
+
     def __init__(self, parent=None):
         QtWidgets.QComboBox.__init__(self, parent)
+
     def setValue(self, value):
         if isinstance(value, str):
             idx = self.findText(value)
@@ -228,9 +262,11 @@ class ComboBox(QtWidgets.QComboBox):
         if idx != -1:
             self.setCurrentIndex(idx)
 
+
 class BaseDialog(QtWidgets.QDialog):
-    changeSignal=QtCore.Signal()
-    closeSignal=QtCore.Signal()
+    changeSignal = QtCore.Signal()
+    closeSignal = QtCore.Signal()
+
     def __init__(self, items, title, docstring, parent=None):
         QtWidgets.QDialog.__init__(self)
         self.parent = parent
@@ -241,7 +277,8 @@ class BaseDialog(QtWidgets.QDialog):
         self.items = items
         self.setupitems()
         self.connectToChangeSignal()
-        self.bbox = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+        self.bbox = QtWidgets.QDialogButtonBox(
+            QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
         self.bbox.accepted.connect(self.accept)
         self.bbox.rejected.connect(self.reject)
         self._init_docstring(docstring)
@@ -261,9 +298,9 @@ class BaseDialog(QtWidgets.QDialog):
         self.docstring.setOpenExternalLinks(True)
         docstring = markdown.markdown(docstring)
         self.docstring.setHtml(docstring)
-        #css = """ """
-        #self.docstring.setStyleSheet(css)
-        self.docstring.setWordWrapMode(0)
+        # css = """ """
+        # self.docstring.setStyleSheet(css)
+        self.docstring.setWordWrapMode(QtGui.QTextOption.NoWrap)
 
     def setupitems(self):
         for item in self.items:
@@ -284,7 +321,8 @@ class BaseDialog(QtWidgets.QDialog):
 
     def connectToChangeSignal(self):
         for item in self.items:
-            methods=[method for method in dir(item['object']) if callable(getattr(item['object'], method))]
+            methods = [method for method in dir(item['object']) if callable(
+                getattr(item['object'], method))]
             if 'valueChanged' in methods:
                 item['object'].valueChanged.connect(self.changeSignal)
             elif 'stateChanged' in methods:
@@ -292,16 +330,18 @@ class BaseDialog(QtWidgets.QDialog):
             elif 'currentIndexChanged' in methods:
                 item['object'].currentIndexChanged.connect(self.changeSignal)
 
-    def updateValues(self): # copy values from gui into the 'item' dictionary
+    def updateValues(self):  # copy values from gui into the 'item' dictionary
         for item in self.items:
-            methods=[method for method in dir(item['object']) if callable(getattr(item['object'], method))]
+            methods = [method for method in dir(item['object']) if callable(
+                getattr(item['object'], method))]
             if 'value' in methods:
-                item['value']=item['object'].value()
+                item['value'] = item['object'].value()
             elif 'currentText' in methods:
-                item['value']=item['object'].currentText()
+                item['value'] = item['object'].currentText()
             elif 'isChecked' in methods:
-                item['value']=item['object'].isChecked()
-    def closeEvent(self,ev):
+                item['value'] = item['object'].isChecked()
+
+    def closeEvent(self, ev):
         self.closeSignal.emit()
 
 
@@ -321,19 +361,20 @@ class BaseProcess(object):
 
 
     """
+
     def __init__(self):
         self.noPriorWindow = False
-        self.__name__=self.__class__.__name__.lower()
-        self.items=[]
+        self.__name__ = self.__class__.__name__.lower()
+        self.items = []
 
-    def getValue(self,name):
+    def getValue(self, name):
         '''getValue(self,name)
 
         Returns:
             The value of a the name stored in self.items
 
         '''
-        return [i['value'] for i in self.items if i['name']==name][0]
+        return [i['value'] for i in self.items if i['name'] == name][0]
 
     def get_init_settings_dict(self):
         '''get_init_settings_dict(self)
@@ -346,18 +387,21 @@ class BaseProcess(object):
             A dictionary containing the initial settings and their values
 
                 '''
-        return dict() #this function needs to be overwritten by every subclass
+        return dict()  # this function needs to be overwritten by every subclass
 
     def start(self, keepSourceWindow):
         frame = inspect.getouterframes(inspect.currentframe())[1][0]
         args, _, _, values = inspect.getargvalues(frame)
         funcname = self.__name__
-        self.command = funcname+'('+', '.join([i+'='+convert_to_string(values[i]) for i in args if i!='self'])+')'
+        self.command = funcname + \
+            '('+', '.join([i+'='+convert_to_string(values[i])
+                           for i in args if i != 'self'])+')'
         g.m.statusBar().showMessage('Running function {}...'.format(self.__name__))
         self.keepSourceWindow = keepSourceWindow
         self.oldwindow = g.win
         if self.oldwindow is None:
-            raise(MissingWindowError("You cannot execute '{}' without selecting a window first.".format(self.__name__)))
+            raise (MissingWindowError(
+                "You cannot execute '{}' without selecting a window first.".format(self.__name__)))
         self.tif = self.oldwindow.image
         self.oldname = self.oldwindow.name
 
@@ -366,16 +410,17 @@ class BaseProcess(object):
         if not hasattr(self, 'newtif') or self.newtif is None:
             self.oldwindow.reset()
             return
-        commands=self.oldwindow.commands[:]
+        commands = self.oldwindow.commands[:]
         if hasattr(self, 'command'):
             commands.append(self.command)
-        newWindow=window.Window(self.newtif,str(self.newname),self.oldwindow.filename,commands,self.oldwindow.metadata)
+        newWindow = window.Window(self.newtif, str(
+            self.newname), self.oldwindow.filename, commands, self.oldwindow.metadata)
         if self.keepSourceWindow is False:
             self.oldwindow.close()
         else:
             self.oldwindow.reset()
-        if np.max(self.newtif)==1 and np.min(self.newtif)==0: #if the array is boolean
-            newWindow.imageview.setLevels(-.1,1.1)
+        if np.max(self.newtif) == 1 and np.min(self.newtif) == 0:  # if the array is boolean
+            newWindow.imageview.setLevels(-.1, 1.1)
         g.m.statusBar().showMessage('Finished with {}.'.format(self.__name__))
         del self.tif
         del self.newtif
@@ -383,11 +428,13 @@ class BaseProcess(object):
 
     def gui(self):
         from pyqtgraph import SignalProxy
-        self.ui = BaseDialog(self.items,self.__name__,self.__doc__, self)
+        self.ui = BaseDialog(self.items, self.__name__, self.__doc__, self)
         if hasattr(self, '__url__'):
             self.ui.bbox.addButton(QtWidgets.QDialogButtonBox.Help)
-            self.ui.bbox.helpRequested.connect(lambda : QtWidgets.QDesktopServices.openUrl(QtCore.QUrl(self.__url__)))
-        self.proxy= SignalProxy(self.ui.changeSignal,rateLimit=60, slot=self.preview)
+            self.ui.bbox.helpRequested.connect(
+                lambda: QtWidgets.QDesktopServices.openUrl(QtCore.QUrl(self.__url__)))
+        self.proxy = SignalProxy(self.ui.changeSignal,
+                                 rateLimit=60, slot=self.preview)
         if g.win is not None:
             self.ui.rejected.connect(g.win.reset)
         self.ui.closeSignal.connect(self.ui.rejected.emit)
@@ -398,11 +445,12 @@ class BaseProcess(object):
         return True
 
     def gui_reset(self):
-        self.items=[]
+        self.items = []
 
     def call_from_gui(self):
         from .. import window
-        varnames = [i for i in inspect.getargspec(self.__call__)[0] if i != 'self' and i != 'keepSourceWindow']
+        varnames = [i for i in inspect.getfullargspec(
+            self.__call__)[0] if i != 'self' and i != 'keepSourceWindow']
         try:
             args = [self.getValue(name) for name in varnames]
         except IndexError as err:
@@ -412,7 +460,8 @@ class BaseProcess(object):
         newsettings = dict()
         for name in varnames:
             value = self.getValue(name)
-            if not isinstance(value, window.Window): # cannot save window objects using pickle
+            # cannot save window objects using pickle
+            if not isinstance(value, window.Window):
                 newsettings[name] = value
         g.settings['baseprocesses'][self.__name__] = newsettings
         g.settings.save()
@@ -422,9 +471,11 @@ class BaseProcess(object):
             else:
                 self.__call__(*args, keepSourceWindow=True)
         except MemoryError as err:
-            msg = 'There was a memory error in {}. Close other programs and try again.'.format(self.__name__)
+            msg = 'There was a memory error in {}. Close other programs and try again.'.format(
+                self.__name__)
             msg += str(err)
             g.alert(msg)
+
     def preview(self):
         pass
 
@@ -432,6 +483,7 @@ class BaseProcess(object):
 class BaseProcess_noPriorWindow(BaseProcess):
     """A BaseProcess subclass that has no prior window.
     Some flika objects inherit this class."""
+
     def __init__(self):
         super().__init__()
         self.noPriorWindow = True
@@ -440,52 +492,21 @@ class BaseProcess_noPriorWindow(BaseProcess):
         frame = inspect.getouterframes(inspect.currentframe())[1][0]
         args, _, _, values = inspect.getargvalues(frame)
         funcname = self.__name__
-        self.command = funcname+'('+', '.join([i+'='+convert_to_string(values[i]) for i in args if i!='self'])+')'
+        self.command = funcname + \
+            '('+', '.join([i+'='+convert_to_string(values[i])
+                           for i in args if i != 'self'])+')'
         g.m.statusBar().showMessage('Performing {}...'.format(self.__name__))
-        
+
     def end(self):
         from .. import window
         commands = [self.command]
-        newWindow = window.Window(self.newtif,str(self.newname),commands=commands)
-        if np.max(self.newtif) == 1 and np.min(self.newtif) == 0: #if the array is boolean
-            newWindow.imageview.setLevels(-.1,1.1)
+        newWindow = window.Window(self.newtif, str(
+            self.newname), commands=commands)
+        if np.max(self.newtif) == 1 and np.min(self.newtif) == 0:  # if the array is boolean
+            newWindow.imageview.setLevels(-.1, 1.1)
         g.m.statusBar().showMessage('Finished with {}.'.format(self.__name__))
         del self.newtif
         return newWindow
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 logger.debug("Completed 'reading process/BaseProcess.py'")
-
-
-
-
-
-
-
-

@@ -12,43 +12,23 @@ from zmq.eventloop.zmqstream import ZMQStream
 from ..version import __version__
 
 
-IPYTHON_VERSION = LooseVersion(IPython.__version__)
+from IPython import get_ipython
 
-if IPYTHON_VERSION >= LooseVersion('4'):
+from traitlets import TraitError
 
-    from IPython import get_ipython
+from ipykernel.connect import _find_connection_file as find_connection_file
+from ipykernel.kernelbase import Kernel
+from ipykernel.kernelapp import IPKernelApp
+from ipykernel.iostream import OutStream
+from ipykernel.inprocess.ipkernel import InProcessInteractiveShell
+from ipykernel.connect import get_connection_file
 
-    from traitlets import TraitError
+from qtconsole.client import QtKernelClient
+from qtconsole.manager import QtKernelManager
+from qtconsole.inprocess import QtInProcessKernelManager
+from qtconsole.rich_jupyter_widget import RichJupyterWidget as RichIPythonWidget
 
-    from ipykernel import find_connection_file
-    from ipykernel.kernelbase import Kernel
-    from ipykernel.kernelapp import IPKernelApp
-    from ipykernel.iostream import OutStream
-    from ipykernel.inprocess.ipkernel import InProcessInteractiveShell
-    from ipykernel.connect import get_connection_file
 
-    from qtconsole.client import QtKernelClient
-    from qtconsole.manager import QtKernelManager
-    from qtconsole.inprocess import QtInProcessKernelManager
-    from qtconsole.rich_jupyter_widget import RichJupyterWidget as RichIPythonWidget
-
-else:
-
-    from IPython.utils.traitlets import TraitError
-    from IPython.lib.kernel import find_connection_file
-
-    from IPython import get_ipython
-
-    from IPython.kernel.zmq.ipkernel import Kernel
-    from IPython.kernel.zmq.kernelapp import IPKernelApp
-    from IPython.kernel.zmq.iostream import OutStream
-    from IPython.kernel.inprocess.ipkernel import InProcessInteractiveShell
-    from IPython.kernel.connect import get_connection_file
-
-    from IPython.qt.client import QtKernelClient
-    from IPython.qt.manager import QtKernelManager
-    from IPython.qt.inprocess import QtInProcessKernelManager
-    from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
 
 
 def in_process_console(console_class=RichIPythonWidget, **kwargs):

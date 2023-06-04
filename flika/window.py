@@ -174,7 +174,7 @@ class Window(QtWidgets.QWidget):
         else:
             geometry = g.win.geometry()
 
-        desktopGeom = QtWidgets.QDesktopWidget().screenGeometry()
+        desktopGeom = QtGui.QGuiApplication.primaryScreen().availableGeometry()
         maxX = (desktopGeom.width() - geometry.width()) or 1
         maxY = (desktopGeom.height() - geometry.height()) or 1
         newX = (geometry.x() + 10) % maxX
@@ -188,7 +188,7 @@ class Window(QtWidgets.QWidget):
         if g.settings['show_windows']:
             self.show()
             self.raise_()
-            QtWidgets.qApp.processEvents()
+            QtWidgets.QApplication.processEvents()
 
     def _check_for_infinities(self, tif):
         try:
@@ -374,7 +374,7 @@ class Window(QtWidgets.QWidget):
             if not g.settings['show_all_points']:
                 pointSizes = [pt[3] for pt in self.scatterPoints[t]]
                 brushes = [pg.mkBrush(*pt[2].getRgb()) for pt in self.scatterPoints[t]]
-                self.scatterPlot.setPoints(pos=self.scatterPoints[t], size=pointSizes, brush=brushes)
+                self.scatterPlot.setData(pos=self.scatterPoints[t], size=pointSizes, brush=brushes)
             self.sigTimeChanged.emit(t)
 
     def setIndex(self, index):

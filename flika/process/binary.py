@@ -544,7 +544,7 @@ class Generate_ROIs(BaseProcess):
         self.ROIs = []
 
         for i in range(1, np.max(labelled)+1):
-            QtWidgets.qApp.processEvents()
+            QtWidgets.QApplication.processEvents()
             if np.sum(labelled == i) >= minDensity:
                 im = scipy.ndimage.morphology.binary_dilation(scipy.ndimage.morphology.binary_closing(labelled == i))
                 outline_coords = measure.find_contours(im, level)
@@ -554,7 +554,7 @@ class Generate_ROIs(BaseProcess):
                 self.ROIs.append(ROI_Drawing(win, outline_coords[0][0], outline_coords[0][1], 'freehand'))
                 for p in outline_coords[1:]:
                     self.ROIs[-1].extend(p[0], p[1])
-                    QtWidgets.qApp.processEvents()
+                    QtWidgets.QApplication.processEvents()
 
 generate_rois = Generate_ROIs()
 
