@@ -282,7 +282,7 @@ class Trim(BaseProcess):
             self.newtif=self.tif[firstFrame:lastFrame+1:increment]
         if delete:
             idxs_not=np.arange(firstFrame, lastFrame+1, increment)
-            idxs = np.ones(len(self.tif),dtype=np.bool)
+            idxs = np.ones(len(self.tif),dtype=bool)
             idxs[idxs_not] = False
             self.newtif = self.tif[idxs]
         self.newname=self.oldname+' - Kept Stack'
