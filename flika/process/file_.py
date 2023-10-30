@@ -47,7 +47,7 @@ def save_file(filename=None):
         filename = os.path.join(directory, filename)
     g.m.statusBar().showMessage(f'Saving {os.path.basename(filename)}')
     A = g.win.image
-    if A.dtype == np.bool:
+    if A.dtype == bool:
         A = A.astype(np.uint8)
     metadata = g.win.metadata
     try:
@@ -329,7 +329,7 @@ def open_file(filename=None, from_gui=False):
             g.settings['recent_files'].remove(filename)
         # make_recent_menu()
         return
-        
+
     append_recent_file(str(filename))  # make first in recent file menu
     msg = f'{os.path.basename(str(filename))} successfully loaded ({time.time() - t} s)'
     g.m.statusBar().showMessage(msg)
@@ -454,7 +454,7 @@ def open_points(filename=None):
 
 
 
-    
+
 ########################################################################################################################
 ######################                INTERNAL HELPER FUNCTIONS                              ###########################
 ########################################################################################################################

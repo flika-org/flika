@@ -742,7 +742,7 @@ class Boxcar_differential_filter(BaseProcess):
                 cnt=np.array([np.array([np.array([p[1],p[0]])]) for p in self.roi.pts ])
                 mask=np.zeros(self.tif[0,:,:].shape,np.uint8)
                 cv2.drawContours(mask,[cnt],0,255,-1)
-                mask=mask.reshape(mx*my).astype(np.bool)
+                mask=mask.reshape(mx*my).astype(bool)
                 tif=self.tif.reshape((mt,mx*my))
                 tif=tif[:,mask]
                 newtrace=np.zeros(mt)

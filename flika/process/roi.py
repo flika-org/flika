@@ -67,7 +67,7 @@ class Set_value(BaseProcess):
             inside_bounds=(xx>=0) & (yy>=0) & (xx<mx) & (yy<my)
             xx=xx[inside_bounds]
             yy=yy[inside_bounds]
-            mask=np.ones((mx,my),np.bool)
+            mask=np.ones((mx,my),bool)
             mask[xx,yy]=False
             if nDim==2:
                 self.newtif[mask]=value
