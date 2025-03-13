@@ -302,27 +302,73 @@ class Window(QtWidgets.QWidget):
         old_curr_win.setAsCurrentWindow()
 
     def normLUT(self, tif):
+        """Set the display levels for the image based on its content and type.
+        
+        Handles boolean, integer, and float arrays properly by ensuring appropriate
+        type conversion before arithmetic operations.
+        """
+        # First, determine if we're dealing with a boolean array and convert if needed
+        is_bool_array = tif.dtype == np.bool_
+        
         if self.nDims == 2:
-            # if the image is binary (either all 0s or 0s and 1s)
-            if np.min(tif) == 0 and (np.max(tif) == 0 or np.max(tif) == 1):
-                self.imageview.setLevels(-.01, 1.01)  # set levels from slightly below 0 to 1
+            # Handle 2D images
+            if is_bool_array or (np.min(tif) == 0 and (np.max(tif) == 0 or np.max(tif) == 1)):
+                # For binary images, set levels slightly outside 0-1 range
+                self.imageview.setLevels(-.01, 1.01)
             else:
-                r = (np.min(tif), np.max(tif))  # set the levels to be just above and below the min and max of the image
-                r = (r[0] - (r[1] - r[0]) / 100, r[1] + (r[1] - r[0]) / 100)
-                self.imageview.setLevels(r[0], r[1])
-        if self.nDims == 3 and not self.metadata['is_rgb']:
-            if np.all(tif[self.currentIndex] == 0):  # if the current frame is all zeros
-                r = (np.min(tif), np.max(tif))  # set the levels to be just above and below the min and max of the entire tif
-                r = (r[0] - (r[1] - r[0]) / 100, r[1] + (r[1] - r[0]) / 100)
-                self.imageview.setLevels(r[0], r[1])
+                # For grayscale, compute appropriate range
+                min_val = float(np.min(tif))
+                max_val = float(np.max(tif))
+                if min_val == max_val:
+                    # Avoid division by zero if image is uniform
+                    padding = 0.01 if min_val == 0 else min_val * 0.01
+                    self.imageview.setLevels(min_val - padding, max_val + padding)
+                else:
+                    # Add 1% padding to min/max range
+                    padding = (max_val - min_val) / 100
+                    self.imageview.setLevels(min_val - padding, max_val + padding)
+        
+        elif self.nDims == 3 and not self.metadata['is_rgb']:
+            # Handle 3D grayscale stacks
+            if is_bool_array:
+                # Convert boolean array to uint8 for computation
+                # This is just for level calculation, doesn't change the actual data
+                if np.all(tif[self.currentIndex] == 0):
+                    # If current frame is all zeros, use global min/max
+                    self.imageview.setLevels(-.01, 1.01)
+                else:
+                    # For binary data, always use 0-1 range with small padding
+                    self.imageview.setLevels(-.01, 1.01)
             else:
-                r = (np.min(tif[self.currentIndex]),
-                     np.max(tif[self.currentIndex]))  # set the levels to be just above and below the min and max of the first frame
-                r = (r[0] - (r[1] - r[0]) / 100, r[1] + (r[1] - r[0]) / 100)
-                self.imageview.setLevels(r[0], r[1])
+                # Handle numeric arrays
+                if np.all(tif[self.currentIndex] == 0):
+                    # If current frame is all zeros, use global min/max
+                    min_val = float(np.min(tif))
+                    max_val = float(np.max(tif))
+                    if min_val == max_val:
+                        # Avoid division by zero
+                        padding = 0.01 if min_val == 0 else min_val * 0.01
+                        self.imageview.setLevels(min_val - padding, max_val + padding)
+                    else:
+                        padding = (max_val - min_val) / 100
+                        self.imageview.setLevels(min_val - padding, max_val + padding)
+                else:
+                    # Use current frame's min/max for better contrast
+                    min_val = float(np.min(tif[self.currentIndex]))
+                    max_val = float(np.max(tif[self.currentIndex]))
+                    if min_val == max_val:
+                        # Avoid division by zero
+                        padding = 0.01 if min_val == 0 else min_val * 0.01
+                        self.imageview.setLevels(min_val - padding, max_val + padding)
+                    else:
+                        padding = (max_val - min_val) / 100
+                        self.imageview.setLevels(min_val - padding, max_val + padding)
+        
         elif self.nDims == 4 and not self.metadata['is_rgb']:
-            if np.min(tif) == 0 and (np.max(tif) == 0 or np.max(tif) == 1):  # if the image is binary (either all 0s or 0s and 1s)
-                self.imageview.setLevels(-.01, 1.01)  # set levels from slightly below 0 to 1
+            # Handle 4D arrays
+            if is_bool_array or (np.min(tif) == 0 and (np.max(tif) == 0 or np.max(tif) == 1)):
+                # For binary volumes, set levels slightly outside 0-1 range
+                self.imageview.setLevels(-.01, 1.01)
 
     def set_bg_im(self):
         self.bg_im_dialog = Bg_im_dialog(self)

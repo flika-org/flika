@@ -32,3 +32,12 @@ def clean_qt_app_shutdown():
     
     # Force garbage collection to clean up any remaining references
     gc.collect()
+
+@pytest.fixture(scope="session")
+def qapp():
+    """Create and return a QApplication instance"""
+    app = QtWidgets.QApplication.instance()
+    if app is None:
+        app = QtWidgets.QApplication([])
+    yield app
+    app.quit()

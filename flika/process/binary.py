@@ -408,7 +408,7 @@ class Binary_Dilation(BaseProcess):
             s[2]=False
         else:
             s=scipy.ndimage.generate_binary_structure(rank,connectivity)
-        self.newtif=scipy.ndimage.morphology.binary_dilation(self.tif,s,iterations)
+        self.newtif=scipy.ndimage.binary_dilation(self.tif,s,iterations)
         self.newtif=self.newtif.astype(np.uint8)
         self.newname=self.oldname+' - Dilated '
         return self.end()
@@ -456,7 +456,7 @@ class Binary_Erosion(BaseProcess):
             s[2] = False
         else:
             s = scipy.ndimage.generate_binary_structure(rank, connectivity)
-        self.newtif = scipy.ndimage.morphology.binary_erosion(self.tif, s, iterations)
+        self.newtif = scipy.ndimage.binary_erosion(self.tif, s, iterations)
         self.newtif = self.newtif.astype(np.uint8)
         self.newname = self.oldname+' - Dilated '
         return self.end()
@@ -518,7 +518,7 @@ class Generate_ROIs(BaseProcess):
         ROIs = []
         for i in range(1, np.max(labelled)+1):
             if np.sum(labelled == i) >= minDensity:
-                im = scipy.ndimage.morphology.binary_dilation(scipy.ndimage.morphology.binary_closing(labelled == i))
+                im = scipy.ndimage.binary_dilation(scipy.ndimage.binary_closing(labelled == i))
                 outline_coords = measure.find_contours(im, level)
                 if len(outline_coords) == 0:
                     continue
