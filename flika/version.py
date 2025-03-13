@@ -1,1 +1,2 @@
-__version__ = '0.3.1'
+# pylint: disable=C0114
+__version__ = "0.3.2"

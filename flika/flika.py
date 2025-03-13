@@ -6,7 +6,7 @@ import platform
 import optparse
 import warnings
 logger.debug("Started 'reading flika.py, importing numpy'")
-import numpy as np
+import numpy as np  # type: ignore
 logger.debug("Completed 'reading flika.py, importing numpy'")
 from .version import __version__
 from .app.application import FlikaApplication
@@ -17,7 +17,7 @@ from .app.application import FlikaApplication
 
 
 
-warnings.filterwarnings("ignore", category=np.VisibleDeprecationWarning)
+warnings.filterwarnings("ignore", category=np.exceptions.VisibleDeprecationWarning)
 
 def parse_arguments(argv):
     ''' Parses command line arguments for valid flika args
@@ -91,9 +91,9 @@ def ipython_qt_event_loop_setup():
         return #  If __IPYTHON__ is not defined, we are not in ipython
     else:
         print("Starting flika inside IPython")
-        from IPython import get_ipython
+        from IPython import get_ipython  # type: ignore
         ipython = get_ipython()
-        ipython.magic("gui qt")
+        ipython.run_line_magic("gui", "qt")
 
 def load_files(files):
     from .process.file_ import open_file
@@ -126,7 +126,7 @@ def exec_():
 def post_install():
     if platform.system() == 'Windows':
         print("Creating start menu shortcut...")
-        import winshell
+        import winshell  # type: ignore
         icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'images', 'favicon.ico')
         flika_exe = os.path.join(sys.exec_prefix, 'Scripts', 'flika.exe')
         link_path = os.path.join(winshell.programs(), "flika.lnk")

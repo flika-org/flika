@@ -1,0 +1,82 @@
+[build-system]
+requires = [
+    "setuptools>=42", 
+    "wheel", 
+    "markdown", 
+    "numpy", 
+    "scipy", 
+    "pytest", 
+    "qtpy", 
+    "PySide6"
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "flika"
+dynamic = ["version"]
+description = "An interactive image processing program for biologists written in Python."
+readme = "README.md"
+authors = [
+    {name = "Kyle Ellefsen, Brett Settle", email = "kyleellefsen@gmail.com"}
+]
+license = {text = "MIT"}
+requires-python = ">=3.13"
+classifiers = [
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Visualization", 
+    "License :: OSI Approved :: MIT License",
+]
+dependencies = [
+    "pandas>=0.14",
+    "matplotlib>=1.4",
+    "pyqtgraph>=0.9",
+    "PySide6",
+    "qtpy>=1.1",
+    "setuptools>=1.0",
+    "scikit-image>0.13.0",
+    "scikit-learn",
+    "ipython>=1.0",
+    "ipykernel",
+    "qtconsole",
+    "pyopengl",
+    "requests",
+    "nd2reader",
+    "markdown",
+]
+
+[project.urls]
+Documentation = "http://flika-org.github.io/contents.html"
+Source = "https://github.com/flika-org/flika"
+Tracker = "https://github.com/flika-org/flika/issues"
+Homepage = "http://flika-org.github.io"
+
+[project.scripts]
+flika = "flika.flika:exec_"
+flika_post_install = "flika.flika:post_install"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=6.0.0",
+    "pytest-cov>=2.12.0",
+    "twine>=3.4.0",
+    "build>=0.7.0",
+    "wheel>=0.36.0",
+    "sphinx>=4.0.0",
+    "sphinxcontrib-napoleon>=0.7",
+    "mypy",
+    "types-numpy",
+]
+
+[tool.setuptools]
+packages = ["flika"]
+
+[tool.setuptools.package-data]
+"gui" = ["*.ui"]
+"images" = ["*.ico", "*.png", "*.txt", "*.tif"]
+
+[tool.setuptools.dynamic]
+version = {attr = "flika.__version__"} 
