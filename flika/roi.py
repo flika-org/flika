@@ -142,16 +142,36 @@ class ROI_Base():
         super().mouseClickEvent(ev)
 
     def resetSignals(self):
-        try:
-            self.sigRegionChanged.disconnect()
-        except:
-            pass
-        try:
-            self.sigRegionChangeFinished.disconnect()
-        except:
-            pass
-        self.sigRegionChanged.connect(self.onRegionChange)
-        self.sigRegionChangeFinished.connect(self.onRegionChangeFinished)
+        # Implement a safer signal disconnection method by tracking connection state
+        
+        # Define markers to track if signals were connected
+        if not hasattr(self, '_signals_connected'):
+            self._signals_connected = False
+        
+        # Only try disconnecting if we previously connected signals
+        if self._signals_connected and hasattr(self, 'sigRegionChanged'):
+            try:
+                # Disconnect with a try/except but don't show warnings
+                self.sigRegionChanged.disconnect(self.onRegionChange)
+            except Exception:
+                # Silently ignore all exceptions
+                pass
+            
+        if self._signals_connected and hasattr(self, 'sigRegionChangeFinished'):
+            try:
+                self.sigRegionChangeFinished.disconnect(self.onRegionChangeFinished)
+            except Exception:
+                pass
+        
+        # Now connect signals to their slots
+        if hasattr(self, 'sigRegionChanged'):
+            self.sigRegionChanged.connect(self.onRegionChange)
+        
+        if hasattr(self, 'sigRegionChangeFinished'):
+            self.sigRegionChangeFinished.connect(self.onRegionChangeFinished)
+        
+        # Mark signals as connected
+        self._signals_connected = True
 
     def updateLinkedROIs(self, finish=False):
         for roi in self.linkedROIs:
@@ -890,7 +910,7 @@ class ROI_rect_line(ROI_Base, QtWidgets.QGraphicsObject):
         self.sigRegionChanged.emit(self)
         return newRoi, h2
 
-    def removeSegment(self, segment=None, finish=True): 
+    def removeSegment(self, segment=None, finish=True):
         """Remove a segment from the ROI"""
         if segment is None:
             segment = self.removeLinkAction.data()

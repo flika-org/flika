@@ -335,7 +335,7 @@ def butterworth_filter_multi_inner(q_results, q_progress, q_status, child_conn, 
             result[:, x, y] = filtfilt(b,a, data[:, x, y], padlen=padlen)
     q_results.put(result)
 
-from scipy.ndimage.filters import convolve
+from scipy.ndimage import convolve
 class Mean_filter(BaseProcess):
     """ mean_filter(nFrames, keepSourceWindow=False)
 

@@ -4,8 +4,7 @@ from qtpy import QtCore, QtGui
 def format(color, style=''):
     """Return a QtGui.QTextCharFormat with the given attributes.
     """
-    _color = QtGui.QColor()
-    _color.setNamedColor(color)
+    _color = QtGui.QColor(color)
 
     _format = QtGui.QTextCharFormat()
     _format.setForeground(_color)

@@ -29,6 +29,12 @@ In [1]: import flika
 In [2]: flika.start_flika()
 ```
 
+For tests:
+```fish
+pip install -e .[dev]
+pytest flika --cov=flika
+```
+
 Cleanup :
 ```fish
 deactivate

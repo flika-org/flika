@@ -68,7 +68,6 @@ dev = [
     "sphinx>=4.0.0",
     "sphinxcontrib-napoleon>=0.7",
     "mypy",
-    "types-numpy",
 ]
 
 [tool.setuptools]
@@ -80,3 +79,9 @@ packages = ["flika"]
 
 [tool.setuptools.dynamic]
 version = {attr = "flika.__version__"} 
+
+[tool.pytest.ini_options]
+testpaths = ["flika"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"

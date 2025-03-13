@@ -437,17 +437,18 @@ def open_points(filename=None):
                 pts.extend(g.win.scatterPoints[t])
             pointSizes = [pt[3] for pt in pts]
             brushes = [pg.mkBrush(*pt[2].getRgb()) for pt in pts]
-            g.win.scatterPlot.setPoints(pos=pts, size=pointSizes, brush=brushes)
+            g.win.scatterPlot.setData(pos=pts, size=pointSizes, brush=brushes)
         else:
             t = g.win.currentIndex
-            g.win.scatterPlot.setPoints(pos=g.win.scatterPoints[t])
+            print(type(g.win.scatterPlot))
+            g.win.scatterPlot.setData(pos=g.win.scatterPoints[t])
             g.win.updateindex()
     elif nCols == 2:
         t = 0
         for pt in pts:
             g.win.scatterPoints[t].append([pt[0], pt[1], pointColor, pointSize])
         t = g.win.currentIndex
-        g.win.scatterPlot.setPoints(pos=g.win.scatterPoints[t])
+        g.win.scatterPlot.setData(pos=g.win.scatterPoints[t])
 
     g.m.statusBar().showMessage(f'Successfully loaded {os.path.basename(filename)}')
 

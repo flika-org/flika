@@ -3,7 +3,7 @@ from ..logger import logger
 logger.debug("Started 'reading app/plugin_manager.py'")
 
 from glob import glob
-import os, sys, difflib, zipfile, time, shutil, traceback, subprocess
+import os, sys, difflib, zipfile, shutil, subprocess
 from os.path import expanduser
 from qtpy import QtGui, QtWidgets, QtCore
 from urllib.request import urlopen
@@ -13,7 +13,7 @@ import threading
 import tempfile
 from xml.etree import ElementTree
 import platform
-import pkg_resources
+import packaging
 
 from .. import global_vars as g
 from ..utils.misc import load_ui
@@ -335,18 +335,18 @@ class PluginManager(QtWidgets.QMainWindow):
             info = f'By {plugin.author}, Latest: {plugin.latest_version}'
             self.downloadButton.setVisible(True)
         if plugin.version != '':
-            version = pkg_resources.parse_version(plugin.version)
+            version_obj = packaging.version.parse(plugin.version)
         if plugin.latest_version != '':
-            latest_version = pkg_resources.parse_version(plugin.latest_version)
-        if plugin.version and version < latest_version:
+            latest_version_obj = packaging.version.parse(plugin.latest_version)
+        if plugin.version and version_obj < latest_version_obj:
             info += '; <b>Update Available!</b>'
 
-        self.updateButton.setVisible(plugin.version != '' and version < latest_version)
+        self.updateButton.setVisible(plugin.version != '' and version_obj < latest_version_obj)
         self.downloadButton.setText('Install' if plugin.version == '' else 'Uninstall')
         self.documentationButton.setVisible(plugin.documentation is not None)
         if plugin.version == '':
             plugin.listWidget.setIcon(QtGui.QIcon())
-        elif pkg_resources.parse_version(plugin.version) < pkg_resources.parse_version(plugin.latest_version):
+        elif version.parse(plugin.version) < version.parse(plugin.latest_version):
             plugin.listWidget.setIcon(QtGui.QIcon(image_path('exclamation.png')))
         else:
             plugin.listWidget.setIcon(QtGui.QIcon(image_path('check.png')))
@@ -382,7 +382,7 @@ class PluginManager(QtWidgets.QMainWindow):
             plug = PluginManager.plugins[name]
             if plug.version == '':
                 plug.listWidget.setIcon(QtGui.QIcon())
-            elif pkg_resources.parse_version(plug.version) < pkg_resources.parse_version(plug.latest_version):
+            elif packaging.version.parse(plug.version) < packaging.version.parse(plug.latest_version):
                 plug.listWidget.setIcon(QtGui.QIcon(image_path('exclamation.png')))
             else:
                 plug.listWidget.setIcon(QtGui.QIcon(image_path('check.png')))
