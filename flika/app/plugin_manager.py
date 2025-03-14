@@ -57,11 +57,19 @@ def get_plugin_directory():
         plugin_directory.mkdir(parents=True, exist_ok=True)
     if not plugin_directory.joinpath('__init__.py').exists():
         plugin_directory.joinpath('__init__.py').touch()  # Create empty __init__.py file
-    if plugin_directory not in sys.path:
-        sys.path.append(plugin_directory)
-    if local_flika_directory not in sys.path:
-        sys.path.append(local_flika_directory)
+    ensure_plugin_path()
     return plugin_directory
+
+def ensure_plugin_path():
+    """Ensure the plugin directory is in the Python path."""
+    local_flika_directory : pathlib.Path = pathlib.Path.home() / '.FLIKA'
+    plugin_directory : pathlib.Path = local_flika_directory / 'plugins'
+    
+    # Add to sys.path if not already present
+    if str(plugin_directory) not in sys.path:
+        sys.path.insert(0, str(plugin_directory))
+    if str(local_flika_directory) not in sys.path:
+        sys.path.insert(0, str(local_flika_directory))
 
 plugin_dir = get_plugin_directory()
 
@@ -74,32 +82,62 @@ def str2func(plugin_name: str, file_location: str, function: str) -> callable:
     imports plugin_name.path and gets the function from that imported object
     to be run when an action is clicked
     '''
-    __import__(plugin_name)
-    plugin_dir_str = f"plugins.{plugin_name}.{file_location}"
-    levels = function.split('.')
-    module = __import__(plugin_dir_str, fromlist=[levels[0]]).__dict__[levels[0]]
-    for i in range(1, len(levels)):
-        module = getattr(module, levels[i])
-    return module
+    try:
+        # Try importing through the plugins package first
+        plugin_dir_str = f"plugins.{plugin_name}.{file_location}"
+        __import__(plugin_dir_str)
+        levels = function.split('.')
+        module = __import__(plugin_dir_str, fromlist=[levels[0]]).__dict__[levels[0]]
+        for i in range(1, len(levels)):
+            module = getattr(module, levels[i])
+        return module
+    except (ImportError, ModuleNotFoundError):
+        # If that fails, try direct import (legacy or during installation)
+        try:
+            __import__(plugin_name)
+            plugin_dir_str = f"{plugin_name}.{file_location}"
+            levels = function.split('.')
+            module = __import__(plugin_dir_str, fromlist=[levels[0]]).__dict__[levels[0]]
+            for i in range(1, len(levels)):
+                module = getattr(module, levels[i])
+            return module
+        except (ImportError, ModuleNotFoundError):
+            # Module doesn't exist yet, return None
+            logger.warning(f"Could not import module {plugin_name}.{file_location} - may not be installed yet")
+            return None
 
 @beartype.beartype
-def build_submenu(module_name: str, parent_menu: QtWidgets.QMenu, layout_dict: dict) -> None:
+def build_submenu(module_name: str, parent_menu: QtWidgets.QMenu, layout_data: dict | list, installing: bool = False) -> None:
     #logger.debug('Calling app.plugin_manager.build_submenu')
+    
+    # Convert list to appropriate dict format if needed
+    if isinstance(layout_data, list):
+        # Convert list of actions to dict with 'action' key
+        layout_dict = {'action': layout_data}
+    else:
+        layout_dict = layout_data
+        
     if len(layout_dict) == 0:
         g.alert(f"Error building submenu for the plugin '{module_name}'. No items found in 'menu_layout' in the info.xml file.")
+    
     for key, value in layout_dict.items():
         if type(value) != list:
             value = [value]
         if key == 'menu':
             for v in value:
                 menu = parent_menu.addMenu(v["@name"])
-                build_submenu(module_name, menu, v)
+                build_submenu(module_name, menu, v, installing)
         elif key == 'action':
             for od in value:
                 method = str2func(module_name, od['@location'], od['@function'])
+                # Create QAction - if method is None, it will be a disabled placeholder
+                action = QtWidgets.QAction(od['#text'], parent_menu)
                 if method is not None:
-                    action = QtWidgets.QAction(od['#text'], parent_menu, triggered = method)
-                    parent_menu.addAction(action)
+                    action.triggered.connect(method)
+                else:
+                    # If we couldn't load the function, disable the action
+                    action.setEnabled(False)
+                parent_menu.addAction(action)
 
 
 
@@ -135,9 +173,58 @@ class Plugin():
         if self.plugin_info and self.plugin_info.menu_layout and len(self.plugin_info.menu_layout) > 0:
             self.menu = QtWidgets.QMenu(self.name)
             if self.plugin_info.directory:
+                # Pass menu_layout directly - build_submenu now handles both dict and list formats
                 build_submenu(self.plugin_info.directory, self.menu, self.plugin_info.menu_layout)
         else:
             self.menu = None
+
+    def reload_and_bind_menu(self):
+        """
+        Reload the plugin module and rebind menu actions.
+        Used after installation to make menu items active without requiring a restart.
+        """
+        # Remove old menu first if it exists
+        if self.menu is not None:
+            self.menu = None
+            
+        # Create new menu with fresh bindings
+        if self.plugin_info and self.plugin_info.menu_layout and len(self.plugin_info.menu_layout) > 0:
+            self.menu = QtWidgets.QMenu(self.name)
+            if self.plugin_info.directory:
+                # Special handling to force Python to reload the module
+                module_name = self.plugin_info.directory
+                try:
+                    # First try to clean up any existing modules
+                    module_to_remove = f"plugins.{module_name}"
+                    if module_to_remove in sys.modules:
+                        del sys.modules[module_to_remove]
+                    
+                    # Also clean up any submodules
+                    for key in list(sys.modules.keys()):
+                        if key.startswith(f"{module_to_remove}."):
+                            del sys.modules[key]
+                    
+                    # Make sure plugin path is in sys.path
+                    ensure_plugin_path()
+                    
+                    # Try to import the module directly to force Python to load it
+                    try:
+                        importlib.import_module(f"plugins.{module_name}")
+                    except ImportError:
+                        # Try to import directly if that fails
+                        try:
+                            importlib.import_module(module_name)
+                        except ImportError:
+                            pass
+                            
+                    # Now rebuild the menu
+                    build_submenu(module_name, self.menu, self.plugin_info.menu_layout)
+                    logger.debug(f"Successfully reloaded and bound menu for plugin {self.name}")
+                    return True
+                except Exception as e:
+                    logger.error(f"Error reloading module for plugin {self.name}: {e}")
+                    return False
+        return False
 
     @staticmethod
     def fromLocal(plugin_path : pathlib.Path):
@@ -578,12 +665,19 @@ Then try installing the plugin again.""")
         # Create the menu
         plugin.menu = QtWidgets.QMenu(plugin.name)
         if plugin.plugin_info and plugin.plugin_info.directory and plugin.plugin_info.menu_layout:
-            build_submenu(plugin.plugin_info.directory, plugin.menu, plugin.plugin_info.menu_layout)
+            # Pass menu_layout directly with installing=True
+            build_submenu(plugin.plugin_info.directory, plugin.menu, plugin.plugin_info.menu_layout, installing=True)
         
         # Mark as installed and update the UI
         plugin.installed = True
         plugin.listWidget.setIcon(QtGui.QIcon(image_path("check.png")))
         PluginManager.gui.statusBar.showMessage(f'Successfully installed {plugin.name} and its dependencies')
+        
+        # Try to reload the plugin module to make menu items active immediately
+        success = plugin.reload_and_bind_menu()
+        if not success:
+            g.message(f"Plugin {plugin.name} has been installed. You may need to restart Flika to use all its features.")
+            
         PluginManager.gui.pluginSelected(plugin.listWidget)
 
 

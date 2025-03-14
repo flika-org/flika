@@ -100,7 +100,7 @@ class FileSelector(QtWidgets.QWidget):
     def buttonclicked(self):
         prompt = 'testing fileSelector'
         self.filename = save_file_gui(prompt, filetypes=self.filetypes)
-        self.label.setText('...' + Path(self.filename).name[-20:])
+        self.label.setText('...' + pathlib.Path(self.filename).name[-20:])
         self.valueChanged.emit()
 
     def value(self):
@@ -108,7 +108,7 @@ class FileSelector(QtWidgets.QWidget):
 
     def setValue(self, filename):
         self.filename = str(filename)
-        self.label.setText('...' + Path(self.filename).name[-20:])
+        self.label.setText('...' + pathlib.Path(self.filename).name[-20:])
 
 
 def color_pixmap(color):
