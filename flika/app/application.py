@@ -9,13 +9,14 @@ logger.debug("Started 'reading app/application.py, importing qtpy'")
 from qtpy import QtCore, QtWidgets, QtGui
 logger.debug("Completed 'reading app/application.py, importing qtpy'")
 
-from ..utils.misc import nonpartial
+from ..utils.misc import nonpartial, send_user_stats
 from ..utils.app import get_qapp
 from ..app.settings_editor import SettingsEditor, rectSettings, pointSettings, pencilSettings
 from .. import global_vars as g
-from .plugin_manager import PluginManager, Load_Local_Plugins_Thread
+from .plugin_manager import PluginManager, load_local_plugins
 from .script_editor import ScriptEditor
-from ..utils.misc import load_ui, send_error_report, Send_User_Stats_Thread
+from ..utils.misc import load_ui, send_error_report
+from ..utils.thread_manager import run_in_thread, cleanup_threads
 from ..images import image_path
 from ..version import __version__
 from ..update_flika import checkUpdates
@@ -114,7 +115,7 @@ class Logger(QtWidgets.QWidget):
             email = email[0]
         response = send_error_report(email=email, report=text)
         if response is None or response.status_code != 200:
-            g.alert("Failed to send error report. Response {}:\n{}".format((response.status_code, response._content)))
+            g.alert("Failed to send error report. Response {}:\n{}".format(response.status_code if response else 'None', response._content if response else 'Connection failed'))
         else:
             if email != '':
                 g.alert("Bug report sent. We will contact you as soon as we can.")
@@ -195,13 +196,19 @@ class FlikaApplication(QtWidgets.QMainWindow):
         self.statusBar().setSizeGripEnabled(False)
         self.setCurrentWindowSignal = SetCurrentWindowSignal(self)
         self.setAcceptDrops(True)
-        self.load_local_plugins_thread = Load_Local_Plugins_Thread()
-        self.load_local_plugins_thread.start()
-        self.load_local_plugins_thread.plugins_done_sig.connect(self.plugins_done)
-        self.load_local_plugins_thread.error_loading.connect(g.alert)
+        
+        # Load plugins synchronously
+        plugins, errors = load_local_plugins()
+        self.plugins_done(plugins)
+        # Show any errors that occurred
+        for error in errors:
+            g.alert(error)
         logger.debug("Completed 'creating app.application.FlikaApplication'")
 
         self.setup_button_icons()
+        
+        # Register the application cleanup function to ensure threads are terminated
+        self.app.aboutToQuit.connect(self.cleanup_application)
 
     def plugins_done(self, plugins):
         for p in plugins.values():
@@ -215,12 +222,23 @@ class FlikaApplication(QtWidgets.QMainWindow):
         self.raise_()
         QtWidgets.QApplication.processEvents()
         logger.debug("Started 'app.application.FlikaApplication.send_user_stats()'")
-        self.send_user_stats_thread = Send_User_Stats_Thread()
-        self.send_user_stats_thread.start()
+        
+        # Start the user stats thread using the new thread manager
+        self.stats_thread_controller = run_in_thread(send_user_stats)
+        
         logger.debug("Completed 'app.application.FlikaApplication.send_user_stats()'")
         logger.debug("Completed 'app.application.FlikaApplication.start()'")
-        #if 'PYCHARM_HOSTED' not in os.environ and 'SPYDER_SHELL_ID' not in os.environ:
-        #    return self.app.exec_()
+        
+    def cleanup_application(self):
+        """
+        Clean up application resources before exit.
+        """
+        logger.debug("Started 'app.application.FlikaApplication.cleanup_application()'")
+        
+        # Clean up threads
+        cleanup_threads()
+        
+        logger.debug("Completed 'app.application.FlikaApplication.cleanup_application()'")
 
     def setWindowSize(self):
         #desktop = QtWidgets.QApplication.desktop()

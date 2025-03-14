@@ -28,6 +28,7 @@ import skimage.draw
 from pyqtgraph.graphicsItems.ROI import Handle
 from . import global_vars as g
 from .utils.misc import random_color, open_file_gui, nonpartial
+import os
 
 
 @beartype.beartype
@@ -160,36 +161,53 @@ class ROI_Base():
         super().mouseClickEvent(ev)
 
     def resetSignals(self):
-        # Implement a safer signal disconnection method by tracking connection state
-        
+        """
+        Safely disconnect and reconnect signals, or just connect them if they weren't connected before.
+        This function is designed to be idempotent - it can be called multiple times safely.
+        """
         # Define markers to track if signals were connected
         if not hasattr(self, '_signals_connected'):
             self._signals_connected = False
         
-        # Only try disconnecting if we previously connected signals
-        if self._signals_connected and hasattr(self, 'sigRegionChanged'):
+        # Create safer signal disconnection helper
+        def safe_disconnect(signal, slot):
             try:
-                # Disconnect with a try/except but don't show warnings
-                self.sigRegionChanged.disconnect(self.onRegionChange)
-            except Exception:
+                # Use QtCore.SignalInstance.disconnect syntax which is safer
+                if isinstance(signal, QtCore.SignalInstance):
+                    signal.disconnect(slot)
+                else:
+                    signal.disconnect()
+            except (TypeError, RuntimeError, AttributeError) as e:
                 # Silently ignore all exceptions
                 pass
+        
+        # Only try disconnecting if we previously connected signals
+        if self._signals_connected:
+            # Handle sigRegionChanged signal
+            if hasattr(self, 'sigRegionChanged'):
+                safe_disconnect(self.sigRegionChanged, self.onRegionChange)
             
-        if self._signals_connected and hasattr(self, 'sigRegionChangeFinished'):
-            try:
-                self.sigRegionChangeFinished.disconnect(self.onRegionChangeFinished)
-            except Exception:
-                pass
+            # Handle sigRegionChangeFinished signal
+            if hasattr(self, 'sigRegionChangeFinished'):
+                safe_disconnect(self.sigRegionChangeFinished, self.onRegionChangeFinished)
+            
+            # Reset connection tracking
+            self._signals_connected = False
         
         # Now connect signals to their slots
         if hasattr(self, 'sigRegionChanged'):
-            self.sigRegionChanged.connect(self.onRegionChange)
+            try:
+                self.sigRegionChanged.connect(self.onRegionChange)
+                self._signals_connected = True
+            except Exception:
+                pass
         
         if hasattr(self, 'sigRegionChangeFinished'):
-            self.sigRegionChangeFinished.connect(self.onRegionChangeFinished)
-        
-        # Mark signals as connected
-        self._signals_connected = True
+            try:
+                self.sigRegionChangeFinished.connect(self.onRegionChangeFinished)
+                self._signals_connected = True
+            except Exception:
+                pass
 
     def updateLinkedROIs(self, finish=False):
         for roi in self.linkedROIs:
@@ -1179,30 +1197,63 @@ def open_rois(filename=None):
         filename (str): The filename (including full path) of the roi.txt file.
 
     Returns:
-        list of rois
-
+        list: List of created ROI objects
     """
     if filename is None:
-        filetypes = '*.txt'
-        prompt = 'Load ROIs from file'
-        filename = open_file_gui(prompt, filetypes=filetypes)
+        filename = open_file_gui('Open ROI File', filetypes='*.txt')
         if filename is None:
-            return None
-    text = open(filename, 'r').read()
-    rois = []
-    kind = None
-    pts = None
-    for text_line in text.split('\n'):
-        if kind is None:
-            kind = text_line
-            pts = []
-        elif text_line == '':
-            roi = makeROI(kind,pts)
-            rois.append(roi)
-            kind = None
-            pts = None
-        else:
-            pts.append(tuple(int(float(i)) for i in text_line.split()))
+            return
+    if not os.path.isfile(filename):
+        g.alert("Can't open roi file {}. File does not exist".format(filename))
+        return
+    try:
+        with open(filename, 'r') as file:
+            text = file.read()
 
+    except Exception:
+        g.alert("Can't open roi file. Wrong file format")
+        return
+    if g.win is None:
+        g.alert('You need to open an image window before opening ROIs.')
+        return
+
+    kinds = []
+    roi_starts = []
+    i = 0
+    for line in text.split('\n'):
+        # Check for ROI types in brackets [rectangle] or without brackets (rectangle)
+        if (line.startswith('[') or 
+            line.strip() in ['rectangle', 'line', 'freehand', 'rect_line']):
+            
+            # Handle both bracketed and non-bracketed formats
+            if line.startswith('['):
+                kinds.append(line.strip('[], '))
+            else:
+                kinds.append(line.strip())
+                
+            roi_starts.append(i)
+        i += 1
+    roi_starts.append(i)  # add end of file
+    
+    text_lines = text.split('\n')
+
+    rois = []
+    for i in range(len(kinds)):
+        roi_text_lines = text_lines[roi_starts[i]+1:roi_starts[i+1]]
+        pts = []
+        for text_line in roi_text_lines:
+            try:
+                if text_line.strip() == '':
+                    continue
+            except Exception:
+                pts = None
+            else:
+                pts.append(tuple(int(float(i)) for i in text_line.split()))
+        
+        if pts is not None and len(pts) > 0:
+            roi = makeROI(kinds[i], pts)
+            if roi is not None:
+                rois.append(roi)
+    
     return rois
 logger.debug("Completed 'reading roi.py'")

@@ -1,152 +1,148 @@
 from ..logger import logger
 logger.debug("Started 'reading utils/misc.py'")
 import os
-import numpy as np
+import sys
 import platform
+import uuid
+import stat
+from qtpy import QtWidgets, QtCore, QtGui
 import json
-from qtpy import uic, QtGui, QtWidgets, QtCore
-__all__ = ['nonpartial', 'setConsoleVisible', 'load_ui', 'random_color', 'save_file_gui', 'open_file_gui', 'get_location']
+import re
+import numpy as np
+from .. import global_vars as g
+from typing import Any, Dict, List, Optional, Tuple, Union
+__all__ = ['nonpartial', 'setConsoleVisible', 'load_ui', 'random_color', 'save_file_gui', 'open_file_gui']
 
 def nonpartial(func, *args, **kwargs):
-    """Like functools.partial, this returns a function which, when called, calls
-    ``func(*args, **kwargs)``.
-
-    Unlike functools.partial, extra arguments passed to the returned function
-    are *not* passed to the input function.
-    """
+    '''Pass args and kwargs without an automatic binding of the first
+    arguemnt to self (as is done in a bound method).'''
     def result(*a, **k):
-        return func(*args, **kwargs)
-
+        return func(*(args + a), **dict(kwargs, **k))
     return result
 
 def setConsoleVisible(v):
-    """ Set visibility of the console when running flika. This only works on windows systems
-    when running flika as a standalone process and may be removed soon.
-
-    Args:
-        v (bool): True to show console, False to hide
-
-    """
+    '''
+    Only works on windows or linux
+    On linux, runs xdotool to show/hide the parent window of the program
+    On windows, shows/hides the attached console window
+    Other platforms are not supported
+    v: boolean, True to show and False to hide
+    '''
     if platform.system() == 'Windows':
-        from ctypes import windll
-        GetConsoleWindow = windll.kernel32.GetConsoleWindow
-        console_window_handle = GetConsoleWindow()
-        ShowWindow = windll.user32.ShowWindow
-        ShowWindow(console_window_handle, v)
-    else:
-        print('Displaying the console on non-windows systems not yet supported')
+        import ctypes
+        ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), v)
+    elif platform.system() == 'Linux':
+        for _ in range(2): # xdotool won't work on 1st try if the flika window has focus, so try twice
+            QtWidgets.QApplication.processEvents()
+            win = QtWidgets.QApplication.activeWindow()
+            try:
+                os.system(f"xdotool windowactivate $(xdotool search --pid {os.getppid()} | head -1)")
+                os.system(f"xdotool windowactivate {win.winId() if v else ''}")
+            except:
+                pass
 
-def random_color():
-    """ Generate an QColor that is bright enough to see on a black and white background
+def random_color() -> QtGui.QColor:
+    """
+    Generate a random RGB color and return it as a QColor object.
     
     Returns:
-        QtGui.QColor: randomly generated color object
-    """ 
-    colors = [(165,42,42), (178,34,34), (220,20,60), (255,0,0), (255,99,71), (255,127,80), (205,92,92), (240,128,128), (233,150,122), 
-    (250,128,114), (255,160,122), (255,69,0), (255,140,0), (255,165,0), (255,215,0), (184,134,11), (218,165,32), (238,232,170), (240,230,140),
-    (128,128,0), (255,255,0), (154,205,50), (85,107,47), (107,142,35), (124,252,0), (127,255,0), (173,255,47), (34,139,34), (0,255,0),
-    (50,205,50), (144,238,144), (152,251,152), (0,250,154), (0,255,127), (46,139,87), (102,205,170), (60,179,113), (32,178,170),
-    (0,128,128), (0,139,139), (0,255,255), (0,255,255), (0,206,209), (64,224,208), (72,209,204), (175,238,238), (127,255,212), (176,224,230),
-    (95,158,160), (70,130,180), (100,149,237), (0,191,255), (30,144,255), (173,216,230), (135,206,235), (135,206,250), 
-    (138,43,226), (75,0,130), (106,90,205), (123,104,238), (147,112,219), (139,0,139), (148,0,211),
-    (153,50,204), (186,85,211), (128,0,128), (216,191,216), (221,160,221), (238,130,238), (255,0,255), (218,112,214), (199,21,133), (219,112,147),
-    (255,20,147), (255,105,180), (255,182,193), (255,192,203), (250,235,215), (245,245,220), (255,228,196), (255,235,205), (245,222,179), (255,248,220),
-    (255,250,205), (250,250,210), (255,255,224), (139,69,19), (160,82,45), (210,105,30), (205,133,63), (244,164,96), (222,184,135), (210,180,140),
-    (188,143,143), (255,228,181), (255,222,173), (255,218,185), (255,228,225), (255,240,245), (250,240,230), (253,245,230), (255,239,213), (255,245,238),
-    (245,255,250), (176,196,222), (230,230,250), (240,248,255), (248,248,255), (240,255,240)]
-    ind = np.random.choice(range(len(colors)))
-    return QtGui.QColor(*colors[ind])
+        QtGui.QColor: A randomly generated color
+    """
+    rgb: np.ndarray = np.random.randint(0, 255, 3)
+    return QtGui.QColor(int(rgb[0]), int(rgb[1]), int(rgb[2]))
 
 def load_ui(path, parent=None, directory=None):
-    """Load a .ui file
+    """
+    Load a .ui file for PyQt.
 
     Args:
-        path (str): Name of ui file to load
-        parent (QtCore.QObject): Object to use as the parent of this widget
+        path (str): Path to .ui file
+        parent: Parent element
+        directory (str): Directory where the path is relative to
 
     Returns:
-        QtWidgets.QWidget: The widget created from the specified ui file
+        QWidget: UI widget
     """
-
     if directory is not None:
-        full_path = os.path.join(directory, path)
-    else:
-        full_path = os.path.abspath(path)
+        path = os.path.join(directory, path)
+    if not os.path.isfile(path):
+        raise IOError(f"File '{path}' does not exist")
 
-    if not os.path.exists(full_path) and 'site-packages.zip' in full_path:
-        # Workaround for Mac app
-        full_path = os.path.join(full_path.replace('site-packages.zip', 'flika'))
-
-    return uic.loadUi(full_path, parent)
+    try:
+        from qtpy.uic import loadUi
+        ui = loadUi(path, parent)  # PyQt method
+        return ui
+    except Exception as e:
+        logger.debug(f"ui loading failed: {e}")
+        if hasattr(QtCore, 'QMetaObject'):  # Pyside fallback
+            l = QtCore.QMetaObject.connectSlotsByName
+        else:  # PySide2 fallback
+            l = QtCore.QObject.connectSlotsByName
+        return l(QtWidgets.QWidget(parent))
 
 def save_file_gui(prompt="Save file", directory=None, filetypes=''):
-    """ File dialog for saving a new file, isolated to handle tuple/string return value
-    
-    Args:
-        prompt (str): string to display at the top of the window
-        directory (str): initial directory to save the file to
-        filetypes (str): argument for filtering file types separated by ;; (*.png) or (Images *.png);;(Other *.*)
-    
-    Returns:
-        str: the file path selected, or empty string if canceled
     """
-    from .. import global_vars as g
-    if directory is None or directory == '':
-        filename = g.settings['filename']
-        try:
-            directory = os.path.dirname(filename)
-        except:
-            directory = None
-    if directory is None:
-        filename = QtWidgets.QFileDialog.getSaveFileName(g.m, prompt, filter=filetypes)
-    else:
-        filename = QtWidgets.QFileDialog.getSaveFileName(g.m, prompt, directory, filter=filetypes)
-    if isinstance(filename, tuple):
-        filename, ext = filename
-        if ext and '.' not in filename:
-            filename += '.' + ext.rsplit('.')[-1]
-    if filename is None or str(filename) == '':
-        g.m.statusBar().showMessage('Save Cancelled')
-        return None
-    else:
-        return str(filename)
+    Open a save file dialog.
 
+    Args:
+        prompt (str): Dialog title
+        directory (str): Initial directory
+        filetypes (str): File filter string (e.g., "Images (*.jpg, *.png)")
+
+    Returns:
+        str: Selected file path or empty string if canceled
+    """
+    if directory is None:
+        directory = g.settings['filename']
+    if directory is None:
+        directory = ''
+    try:
+        filename = QtWidgets.QFileDialog.getSaveFileName(None, prompt, directory, filetypes)
+        if isinstance(filename, tuple):
+            filename = filename[0]
+        filename = str(filename)
+        if filename != '':
+            file_dir = os.path.dirname(filename)
+            g.settings['filename'] = file_dir
+            g.m.statusBar().showMessage(f"Successfully saved file '{os.path.basename(filename)}'")
+    except Exception as e:
+        logger.error(f"Error in save_file_gui: {e}")
+        filename = ''
+    return filename
 
 def open_file_gui(prompt="Open File", directory=None, filetypes=''):
-    """ File dialog for opening an existing file, isolated to handle tuple/string return value
-    
-    Args:
-        prompt (str): string to display at the top of the window
-        directory (str): initial directory to open
-        filetypes (str): argument for filtering file types separated by ;; (*.png) or (Images *.png);;(Other *.*)
-    
-    Returns:
-        str: the file (path+file+extension) selected, or None
     """
-    from .. import global_vars as g
-    filename = None
+    Open a file dialog.
+
+    Args:
+        prompt (str): Dialog title
+        directory (str): Initial directory
+        filetypes (str): File filter string (e.g., "Images (*.jpg, *.png)")
+
+    Returns:
+        str: Selected file path or None if canceled
+    """
     if directory is None:
-        filename = g.settings['filename']
-        try:
-            directory = os.path.dirname(filename)
-        except:
-            directory = None
-    if directory is None or filename is None:
-        filename = QtWidgets.QFileDialog.getOpenFileName(g.m, prompt, '', filetypes)
-    else:
-        filename = QtWidgets.QFileDialog.getOpenFileName(g.m, prompt, filename, filetypes)
-    if isinstance(filename, tuple):
-        filename, ext = filename
-        if ext and '.' not in filename:
-            filename += '.' + ext.rsplit('.')[-1]
-    if filename is None or str(filename) == '':
-        g.m.statusBar().showMessage('No File Selected')
+        directory = g.settings['filename']
+    if directory is None:
+        directory = ''
+    try:
+        filename = QtWidgets.QFileDialog.getOpenFileName(g.m, prompt, directory, filetypes)
+        if isinstance(filename, tuple):
+            filename = filename[0]
+        filename = str(filename)
+        if filename == '':
+            return None
+        file_dir = os.path.dirname(filename)
+        g.settings['filename'] = file_dir
+        return filename
+    except Exception as e:
+        logger.error(f"Error in open_file_gui: {e}")
         return None
-    else:
-        return str(filename)
 
 def send_error_report(email, report):
-    """Log error reports to the flikarest.pythonanywhere REST API to be stored in a SQL database
+    """
+    Log error reports to the flikarest.pythonanywhere REST API to be stored in a SQL database
 
     Parameters:
         email (str): Email of the user, optionally entered for response
@@ -154,7 +150,6 @@ def send_error_report(email, report):
 
     Returns:
         Request Response if the API was reached, or None if connection failed. Use response.status==200 to check success
-
     """
     import requests
     from .. import global_vars as g
@@ -164,51 +159,50 @@ def send_error_report(email, report):
     kargs = {'address': address, 'email': email, 'report': report, 'location': location}
     try:
         r = requests.post("http://flikarest.pythonanywhere.com/reports/submit", data=kargs)
+        return r
     except requests.exceptions.ConnectionError:
         return None
-    return r
 
-class Send_User_Stats_Thread(QtCore.QThread):
-    """Log user information to the flikarest.pythonanywhere REST API to be stored in a SQL database
-
-    Currently uses the get_node to get a UUID for the machine, and the IP address location API to get a rough
-    'city, region, country' location, which are only retrieved once and stored in global settings.
-
-    Returns:
-        Request Response if the API was reached, or None if connection failed. Use response.status==200 to check success
-
+def send_user_stats():
     """
-
-    def __init__(self):
-        QtCore.QThread.__init__(self)
-
-    def run(self):
-        import requests
-        from .. import global_vars as g
-        address = g.settings['user_information']['UUID']
-        location = g.settings['user_information']['location']
-        kargs = {'address': address, 'location': location}
-        try:
-            r = requests.post("http://flikarest.pythonanywhere.com/user_stats/log_user", data=kargs)
-        except requests.exceptions.ConnectionError:
-            pass
-
-
-def get_location():
-    """Call to a location REST API that uses the current IP address to get a string representation of the geolocation
-
-    Returns:
-        str: the 'city, region, country' location of the current IP address. Or None if the connection fails
+    Log user information to the flikarest.pythonanywhere REST API to be stored in a SQL database.
+    
+    This function replaces the Send_User_Stats_Thread class with a simple function that can be
+    run in a thread using the thread_manager module.
     """
-    #import requests
-    #send_url = 'http://freegeoip.net/json'
-    #try:
-    #    r = requests.get(send_url)
-    #except (requests.exceptions.ConnectionError, Exception):
-    #    return None
-    #j = json.loads(r.text)
-    #location = "{}, {}, {}".format(j['city'], j['region_name'], j['country_name'])
-    location = "Unknown, Unknown, Unknown"
-    return location
+    import requests
+    from .. import global_vars as g
+    address = g.settings['user_information']['UUID']
+    location = g.settings['user_information']['location']
+    kargs = {'address': address, 'location': location}
+    try:
+        r = requests.post("http://flikarest.pythonanywhere.com/user_stats/log_user", data=kargs)
+        return r
+    except requests.exceptions.ConnectionError:
+        return None
+    except Exception as e:
+        logger.error(f"Error sending user stats: {e}")
+        return None
+
+def convert_to_string(arg) -> str:
+    """
+    Convert a Python object to its string representation for use in command strings.
+    
+    Args:
+        arg: Any Python object
+        
+    Returns:
+        str: String representation of the object
+    """
+    if isinstance(arg, str):
+        return "'" + arg + "'"
+    elif isinstance(arg, bool):
+        return str(arg)
+    elif isinstance(arg, (list, tuple, dict)):
+        return str(arg)
+    elif isinstance(arg, np.ndarray):
+        return 'np.array(' + str(arg.tolist()) + ')'
+    else:
+        return str(arg)
 
 logger.debug("Completed 'reading utils/misc.py'")

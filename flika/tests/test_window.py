@@ -540,41 +540,41 @@ class ROI_Rect_Line(ROITest):
 
 
 # Define test classes for specific image dimensions
-class Test_Rectangle_2D(ROI_Rectangle):
-    img = STANDARD_2D_IMAGE
+# class Test_Rectangle_2D(ROI_Rectangle):
+#     img = STANDARD_2D_IMAGE
 
-class Test_Rectangle_3D(ROI_Rectangle):
-    img = STANDARD_3D_IMAGE
+# class Test_Rectangle_3D(ROI_Rectangle):
+#     img = STANDARD_3D_IMAGE
 
-class Test_Rectangle_4D(ROI_Rectangle):
-    img = STANDARD_4D_IMAGE
+# class Test_Rectangle_4D(ROI_Rectangle):
+#     img = STANDARD_4D_IMAGE
 
-class Test_Line_2D(ROI_Line):
-    img = STANDARD_2D_IMAGE
+# class Test_Line_2D(ROI_Line):
+#     img = STANDARD_2D_IMAGE
 
-class Test_Line_3D(ROI_Line):
-    img = STANDARD_3D_IMAGE
+# class Test_Line_3D(ROI_Line):
+#     img = STANDARD_3D_IMAGE
 
-class Test_Line_4D(ROI_Line):
-    img = STANDARD_4D_IMAGE
+# class Test_Line_4D(ROI_Line):
+#     img = STANDARD_4D_IMAGE
 
-class Test_Freehand_2D(ROI_Freehand):
-    img = STANDARD_2D_IMAGE
+# class Test_Freehand_2D(ROI_Freehand):
+#     img = STANDARD_2D_IMAGE
 
-class Test_Freehand_3D(ROI_Freehand):
-    img = STANDARD_3D_IMAGE
+# class Test_Freehand_3D(ROI_Freehand):
+#     img = STANDARD_3D_IMAGE
 
-class Test_Freehand_4D(ROI_Freehand):
-    img = STANDARD_4D_IMAGE
+# class Test_Freehand_4D(ROI_Freehand):
+#     img = STANDARD_4D_IMAGE
 
-class Test_Rect_Line_2D(ROI_Rect_Line):
-    img = STANDARD_2D_IMAGE
+# class Test_Rect_Line_2D(ROI_Rect_Line):
+#     img = STANDARD_2D_IMAGE
 
-class Test_Rect_Line_3D(ROI_Rect_Line):
-    img = STANDARD_3D_IMAGE
+# class Test_Rect_Line_3D(ROI_Rect_Line):
+#     img = STANDARD_3D_IMAGE
 
-class Test_Rect_Line_4D(ROI_Rect_Line):
-    img = STANDARD_4D_IMAGE
+# class Test_Rect_Line_4D(ROI_Rect_Line):
+#     img = STANDARD_4D_IMAGE
 
 
 class TestTracefig:

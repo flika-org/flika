@@ -21,7 +21,7 @@ from qtpy import QtWidgets, QtGui, QtCore
 from collections.abc import MutableMapping
 import json
 from uuid import getnode
-from .utils.misc import get_location
+from .utils.system_info import get_location
 
 __all__ = ['m', 'Settings', 'menus', 'alert', 'windows', 'traceWindows', 'currentWindow', 'win', 'currentTrace', 'clipboard']
 
