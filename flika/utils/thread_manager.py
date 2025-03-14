@@ -183,13 +183,36 @@ class ThreadController:
     def abort(self):
         """Abort the worker and wait for the thread to finish"""
         try:
-            if self.worker.is_running():
-                self.worker.abort()
-                self.thread.quit()
-                self.thread.wait(5000)  # Wait up to 5 seconds
-        except RuntimeError:
-            # If the QThread object has already been deleted, just return
-            logger.warning("Thread object already deleted while aborting")
+            # First check if the worker still exists and can be aborted
+            if hasattr(self, 'worker') and self.worker is not None and hasattr(self.worker, 'is_running'):
+                try:
+                    if self.worker.is_running():
+                        self.worker.abort()
+                except RuntimeError:
+                    # Worker's Qt object might have been deleted
+                    logger.debug("Worker object already deleted")
+            
+            # Then check if the thread still exists and is running
+            if hasattr(self, 'thread') and self.thread is not None:
+                try:
+                    # Use a safe try/except around thread operations
+                    if self.thread.isRunning():
+                        self.thread.quit()
+                        # Use a reasonable timeout
+                        self.thread.wait(2000)  # Wait up to 2 seconds
+                except (RuntimeError, AttributeError, Exception) as e:
+                    # Thread C++ object might have been deleted
+                    logger.debug(f"Thread object not accessible: {str(e)}")
+                
+                # Clear the reference to potentially deleted objects
+                self.thread = None
+            
+            if hasattr(self, 'worker'):
+                self.worker = None
+                
+        except (RuntimeError, AttributeError, Exception) as e:
+            # If any objects have already been deleted, just log and continue
+            logger.warning(f"Error during thread abort: {str(e)}")
 
 
 class ThreadPool:

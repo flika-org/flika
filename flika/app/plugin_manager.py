@@ -264,9 +264,46 @@ class PluginManager(QtWidgets.QMainWindow):
 
     def closeEvent(self, ev):
         if hasattr(PluginManager, 'thread_controllers'):
-            for controller in PluginManager.thread_controllers.values():
-                if controller.thread.isRunning():
-                    controller.abort()
+            # Make a copy of the keys to avoid modification during iteration
+            controller_names = list(PluginManager.thread_controllers.keys())
+            
+            # First, try to abort all controllers
+            for controller_name in controller_names:
+                try:
+                    controller = PluginManager.thread_controllers.get(controller_name)
+                    if controller is None:
+                        continue
+                        
+                    if hasattr(controller, 'thread') and controller.thread is not None:
+                        try:
+                            # Use safe try/except to check if thread is running
+                            # This will catch RuntimeError if the C++ object is deleted
+                            logger.debug(f"Attempting to abort thread controller for plugin: {controller_name}")
+                            controller.abort()  # Our enhanced abort method handles deleted threads safely
+                        except (RuntimeError, AttributeError) as e:
+                            logger.debug(f"Thread object for {controller_name} not accessible: {str(e)}")
+                            # Clean up to prevent future errors
+                            controller.thread = None
+                    else:
+                        logger.debug(f"No valid thread found for {controller_name}")
+                        
+                except (RuntimeError, AttributeError, Exception) as e:
+                    # If the thread has been deleted or is in an invalid state, log and continue
+                    logger.warning(f"Error handling thread controller for plugin {controller_name}: {str(e)}")
+            
+            # Now clean up the dictionary
+            for controller_name in controller_names:
+                try:
+                    if controller_name in PluginManager.thread_controllers:
+                        controller = PluginManager.thread_controllers[controller_name]
+                        # If thread is None or not valid, remove from dictionary
+                        if not hasattr(controller, 'thread') or controller.thread is None:
+                            PluginManager.thread_controllers.pop(controller_name, None)
+                            logger.debug(f"Removed invalid thread controller for {controller_name}")
+                except Exception as e:
+                    logger.warning(f"Error cleaning up thread controller {controller_name}: {str(e)}")
+                    # Just remove it to be safe
+                    PluginManager.thread_controllers.pop(controller_name, None)
 
     @staticmethod
     def close():
