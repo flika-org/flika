@@ -132,6 +132,7 @@ class ROI_Base():
         self.window.closeSignal.connect(self.delete)
         self.window.currentROI = self
         self.traceWindow = None  #: tracefig.TraceFig: the Trace window that this ROI is plotted in. To test if roi is plotted, check 'roi.traceWindow is None'
+        self._trace_signal_connected = False  # Initialize tracking variable
         self.pts = np.array(pts) #: list: Array of points that make up the boundary of the ROI
         self.linkedROIs = set()
         self.resetSignals()
@@ -280,6 +281,7 @@ class ROI_Base():
         if self.traceWindow == None:
             return
         self.traceWindow.indexChanged.connect(self.window.setIndex)
+        self._trace_signal_connected = True  # Track that we connected this signal
         self.plotSignal.emit()
         return self.traceWindow
 
@@ -299,15 +301,25 @@ class ROI_Base():
     def unplot(self):
         """Remove the ROI from its :class:`TraceFig <flika.tracefig.TraceFig>`
         """
-        try:
-            self.traceWindow.indexChanged.disconnect(self.window.setIndex)
-        except:
-            # sometimes errors, says signals not connected
-            pass
-        if self.traceWindow != None:
+        if self.traceWindow is not None:
+            # Suppress any QT warnings from disconnection by using blockSignals
+            old_state = None
+            if hasattr(self.traceWindow, 'blockSignals'):
+                old_state = self.traceWindow.blockSignals(True)
+            
+            try:
+                self.traceWindow.indexChanged.disconnect(self.window.setIndex)
+                self._trace_signal_connected = False
+            except Exception:
+                # Explicitly ignore all errors in signal disconnection
+                pass
+            
+            # Restore signal blocking state
+            if hasattr(self.traceWindow, 'blockSignals') and old_state is not None:
+                self.traceWindow.blockSignals(old_state)
+            
             self.traceWindow.removeROI(self)
-        
-        self.traceWindow = None
+            self.traceWindow = None
 
     def copy(self):
         """Store this ROI in the clipboard
