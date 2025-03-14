@@ -425,15 +425,24 @@ class Window(QtWidgets.QWidget):
                 self.scatterPlot.setData(pos=self.scatterPoints[t], size=pointSizes, brush=brushes)
             self.sigTimeChanged.emit(t)
 
-    def setIndex(self, index):
+    def setIndex(self, index: int):
         """setIndex(self, index)
         This sets the index (frame) of this window. 
 
         Args:
             index (int): The index of the image this window will display
         """
-        if hasattr(self, 'image') and self.image.ndim > 2 and 0 <= index < len(self.image):
-            self.imageview.setCurrentIndex(index)
+        if hasattr(self, 'image') and self.image.ndim > 2:
+            # Ensure index is in valid range
+            if 0 <= index < len(self.image):
+                self.imageview.setCurrentIndex(index)
+                # Ensure currentIndex is updated
+                self.currentIndex = index
+                # Explicitly emit the signal
+                self.sigTimeChanged.emit(index)
+            else:
+                # Log or handle out-of-range index
+                logger.debug(f"Attempt to set invalid index {index}, image has shape {self.image.shape}")
 
     def showFrame(self, index):
         if index>=0 and index<self.mt:
@@ -650,7 +659,7 @@ class Window(QtWidgets.QWidget):
                 self.addPoint()
             elif mm == 'rectangle' and g.settings['default_roi_on_click']:
                 pts = [pg.Point(self.x - g.settings['rect_width']/2, self.y - g.settings['rect_height']/2), pg.Point(g.settings['rect_width'], g.settings['rect_height'])]
-                self.currentROI = makeROI("rectangle", pts)
+                self.currentROI = makeROI("rectangle", pts, self)
             else:
                 self.menu.exec_(ev.screenPos().toQPoint())
         elif self.creatingROI:
@@ -707,7 +716,7 @@ class Window(QtWidgets.QWidget):
 
     def mouseDragEvent(self, ev):
         modifiers = QtWidgets.QApplication.keyboardModifiers()
-        if modifiers == QtCore.Qt.ShiftModifier:
+        if modifiers == QtWidgets.QApplication.ShiftModifier:
             pass #This is how I detect that the shift key is held down.
         if ev.button() == QtCore.Qt.LeftButton:
             ev.accept()

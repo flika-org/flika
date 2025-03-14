@@ -4,6 +4,7 @@ import pytest
 import numpy as np
 import pyqtgraph as pg
 from qtpy import QtGui, QtWidgets
+from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QApplication
 
 from .. import global_vars as g
@@ -77,17 +78,17 @@ class TestWindow:
 		
 		try:
 			win1.link(win2)
-			win1.setIndex(100)
+			win1.setIndex(5)
 			assert win2.currentIndex == win1.currentIndex, "Linked windows failure"
 			
-			win2.setIndex(50)
+			win2.setIndex(3)
 			assert win1.currentIndex == win2.currentIndex, "Linked windows failure"
 			
 			win2.unlink(win1)
-			win1.setIndex(100)
+			win1.setIndex(1)
 			assert win2.currentIndex != win1.currentIndex, "Unlinked windows failure"
 			
-			win2.setIndex(50)
+			win2.setIndex(4)
 			assert win1.currentIndex != win2.currentIndex, "Unlinked windows failure"
 			
 			win2.close()
@@ -109,6 +110,7 @@ class ROITest:
 	TYPE = None
 	POINTS = []
 	MASK = []
+	img = None
 	
 	@pytest.fixture
 	def roi_setup(self, mock_message_box, fa: application.FlikaApplication):
