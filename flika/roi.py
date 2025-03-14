@@ -229,7 +229,7 @@ class ROI_Base():
         '''
         raise NotImplementedError()
 
-    def getTrace(self, bounds: tuple[int, int] | None = None) -> jaxtyping.Float[np.ndarray, "t"] | None:
+    def getTrace(self, bounds: list[int] | None = None) -> jaxtyping.Float[np.ndarray, "t"] | None:
         '''Compute the average of the pixels within this ROI in its window
 
         Returns:
@@ -343,7 +343,7 @@ class ROI_Base():
         """
         g.clipboard = self
 
-    def raiseContextMenu(self, ev: QtGui.QContextMenuEvent) -> None:
+    def raiseContextMenu(self, ev) -> None:
         pos: QtCore.QPoint = ev.screenPos()
         x: int = int(pos.x())
         y: int = int(pos.y())
@@ -551,8 +551,8 @@ class ROI_rectangle(ROI_Base, pg.ROI):
 
     def __init__(self,
         window,
-        pos: jaxtyping.Integer[np.ndarray, "2"] | tuple[int, int] | list[int],
-        size: jaxtyping.Integer[np.ndarray, "2"] | tuple[int, int] | list[int],
+        pos: jaxtyping.Num [np.ndarray, "2"] | tuple[int, int] | list[int] | pg.Point,
+        size: jaxtyping.Num[np.ndarray, "2"] | tuple[int, int] | list[int] | pg.Point,
         resizable: bool = True,
         **kargs):
         """__init__ of ROI_rectangle class
@@ -808,21 +808,21 @@ class ROI_rect_line(ROI_Base, QtWidgets.QGraphicsObject):
             self.sigRegionChangeFinished.emit(self)
         self.pts = pts
 
-    def getTrace(self, bounds=None):
+    def getTrace(self, bounds: list[int] | None = None) -> jaxtyping.Float[np.ndarray, "t"] | None:
         if self.window.image.ndim > 3 or self.window.metadata['is_rgb']:
             g.alert("Plotting trace of RGB movies is not supported. Try splitting the channels.")
             return None
+        trace : jaxtyping.Float[np.ndarray, "t"]
         if self.window.image.ndim == 3:
             region = self.getArrayRegion(self.window.imageview.image, self.window.imageview.getImageItem(), (1, 2))
             while region.ndim > 1:
-                region = np.average(region, 1)
+                trace = np.average(region, 1)
         elif self.window.image.ndim == 2:
             region = self.getArrayRegion(self.window.imageview.image, self.window.imageview.getImageItem(), (0, 1))
-            region = [np.average(region)]
-
+            trace = np.array([np.average(region)])
         if bounds:
-            region = region[bounds[0]:bounds[1]]
-        return region
+            trace = trace[bounds[0]:bounds[1]]
+        return trace
 
     def preview(self):
         im = self.getArrayRegion(self.window.imageview.getImageItem().image, self.window.imageview.getImageItem(), (0, 1))
