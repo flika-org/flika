@@ -7,7 +7,7 @@ flikaApp = FlikaApplication()
 
 @pytest.fixture(scope='session', autouse=True)
 def fa() -> FlikaApplication:
-	return flikaApp
+    return flikaApp
 
 @pytest.fixture(scope="session", autouse=True)
 def clean_qt_app_shutdown():

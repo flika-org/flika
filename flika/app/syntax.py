@@ -112,14 +112,12 @@ class PythonHighlighter (QtGui.QSyntaxHighlighter):
         """
         # Do other syntax formatting
         for expression, nth, format in self.rules:
-            index = expression.indexIn(text, 0)
-
-            while index >= 0:
-                # We actually want the index of the nth match
-                index = expression.pos(nth)
-                length = len(expression.cap(nth))
+            match = expression.match(text, 0)
+            while match.hasMatch():
+                index = match.capturedStart()
+                length = match.capturedLength()
                 self.setFormat(index, length, format)
-                index = expression.indexIn(text, index + length)
+                match = expression.match(text, index + length)
 
         self.setCurrentBlockState(0)
 
