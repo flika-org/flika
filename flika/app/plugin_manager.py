@@ -1,25 +1,32 @@
-# -*- coding: utf-8 -*-
-from ..logger import logger
-logger.debug("Started 'reading app/plugin_manager.py'")
+"""
+Plugin manager for flika.
+"""
 
 from glob import glob
-import os, sys, difflib, zipfile, shutil, subprocess
-from os.path import expanduser
-from qtpy import QtGui, QtWidgets, QtCore
-from urllib.request import urlopen
-from urllib.error import HTTPError
-from urllib.parse import urljoin
-import threading
-import tempfile
-from xml.etree import ElementTree
+import os
+import sys
+import difflib
+import zipfile
+import shutil
+import subprocess
+import urllib
+import pathlib
 import platform
 import packaging.version
 import importlib.metadata
+import threading
+import tempfile
+import dataclasses
+import beartype
+from qtpy import QtGui, QtWidgets, QtCore
+from xml.etree import ElementTree
 
-from .. import global_vars as g
-from ..utils.misc import load_ui
-from ..images import image_path
-from ..utils.thread_manager import run_in_thread, ThreadController
+from flika.logger import logger
+logger.debug("Started 'reading app/plugin_manager.py'")
+from flika import global_vars as g
+from flika.utils.misc import load_ui
+from flika.images import image_path
+from flika.utils.thread_manager import run_in_thread, ThreadController
 
 plugin_list = {
     'Beam Splitter':    'https://raw.githubusercontent.com/BrettJSettle/BeamSplitter/master/',
@@ -50,12 +57,12 @@ helpHTML = '''
 
 def get_plugin_directory():
     logger.debug('Calling app.plugin_manager.get_plugin_directory')
-    local_flika_directory = os.path.join(expanduser("~"), '.FLIKA')
-    plugin_directory = os.path.join(expanduser("~"), '.FLIKA', 'plugins' )
-    if not os.path.exists(plugin_directory):
-        os.makedirs(plugin_directory)
-    if not os.path.isfile(os.path.join(plugin_directory, '__init__.py')):
-        open(os.path.join(plugin_directory, '__init__.py'), 'a').close()  # Create empty __init__.py file
+    local_flika_directory : pathlib.Path = pathlib.Path.home() / '.FLIKA'
+    plugin_directory : pathlib.Path = local_flika_directory / 'plugins'
+    if not plugin_directory.exists():
+        plugin_directory.mkdir(parents=True, exist_ok=True)
+    if not plugin_directory.joinpath('__init__.py').exists():
+        plugin_directory.joinpath('__init__.py').touch()  # Create empty __init__.py file
     if plugin_directory not in sys.path:
         sys.path.append(plugin_directory)
     if local_flika_directory not in sys.path:
@@ -65,10 +72,14 @@ def get_plugin_directory():
 plugin_dir = get_plugin_directory()
 
 
-def parse(x):
+@beartype.beartype
+def parse_plugin_info_xml(xml_str: str) -> dict:
+    """
+    Parse an XML string into a dictionary.
+    """
     #logger.debug('Calling app.plugin_manager.parse')
-    tree = ElementTree.fromstring(x)
-    def step(item):
+    tree = ElementTree.fromstring(xml_str)
+    def step(item: ElementTree.Element) -> dict:
         d = {}
         if item.text and item.text.strip():
             d['#text'] = item.text.strip()
@@ -86,25 +97,22 @@ def parse(x):
         return d
     return step(tree)
 
-
-def str2func(plugin_name, file_location, function):
+def str2func(plugin_name: str, file_location: str, function: str) -> callable:
     '''
     takes plugin_name, path to object, function as arguments
     imports plugin_name.path and gets the function from that imported object
     to be run when an action is clicked
     '''
-    #logger.debug("Started 'app.plugin_manager.str2func({}, {}, {})'".format(plugin_name, file_location, function))
     __import__(plugin_name)
-    plugin_dir = f"plugins.{plugin_name}.{file_location}"
+    plugin_dir_str = f"plugins.{plugin_name}.{file_location}"
     levels = function.split('.')
-    module = __import__(plugin_dir, fromlist=[levels[0]]).__dict__[levels[0]]
+    module = __import__(plugin_dir_str, fromlist=[levels[0]]).__dict__[levels[0]]
     for i in range(1, len(levels)):
         module = getattr(module, levels[i])
-    #logger.debug("Completed 'app.plugin_manager.str2func({}, {}, {})'".format(plugin_name, file_location, function))
     return module
 
-
-def build_submenu(module_name, parent_menu, layout_dict):
+@beartype.beartype
+def build_submenu(module_name: str, parent_menu: QtWidgets.QMenu, layout_dict: dict) -> None:
     #logger.debug('Calling app.plugin_manager.build_submenu')
     if len(layout_dict) == 0:
         g.alert(f"Error building submenu for the plugin '{module_name}'. No items found in 'menu_layout' in the info.xml file.")
@@ -122,53 +130,106 @@ def build_submenu(module_name, parent_menu, layout_dict):
                     action = QtWidgets.QAction(od['#text'], parent_menu, triggered = method)
                     parent_menu.addAction(action)
 
+@beartype.beartype
+@dataclasses.dataclass(frozen=True)
+class PluginInfo:
+    author: str  # The author of the plugin
+    dependencies: list[str]  # The dependencies of the plugin
+    description: str  # The description of the plugin
+    directory: str  # The name of the module to import. This will be changed to 'module_name' eventually.
+    documentation: str  # The documentation of the plugin
+    full_path: pathlib.Path  # The full path to the plugin directory    
+    info_url: str  # The URL of the plugin info
+    last_modified: float  # The last modified date of the plugin
+    latest_version: str  # The latest version of the plugin
+    menu_layout: list[dict]  # The menu layout of the plugin
+    name: str  # The human-readable name of the plugin
+    url: str  # The URL of the plugin
+    version: packaging.version.Version  # The version of the plugin
 
+
+@beartype.beartype
 class Plugin():
     def __init__(self, name=None, info_url=None):
-        self.name = name
-        self.directory = None
-        self.url = None
-        self.author = None
-        self.documentation = None
-        self.version = ''
-        self.latest_version = ''
+        self.name : str = name
+        self.info_url : str | None = info_url
+        self.plugin_info : PluginInfo | None = None
         self.menu = None
         self.listWidget = QtWidgets.QListWidgetItem(self.name)
-        self.installed = False
-        self.description = ''
-        self.dependencies = []
         self.loaded = False
-        self.info_url = info_url
+        self.installed = False
+
+
+
+        # self.directory : pathlib.Path | None = None
+        # self.url : str | None = None
+        # self.author : str | None = None
+        # self.documentation : str | None = None
+        # self.version : str = ''
+        # self.latest_version : str = ''
+        # self.description = ''
+        # self.dependencies = []
+        
+        # self.info_url = info_url
         if info_url:
-            self.update_info()
+            self.plugin_info = self.get_plugin_info_from_url(info_url, plugin_dir)
+            self.loaded = True
 
-    def lastModified(self):
-        return os.path.getmtime(os.path.join(plugin_dir, self.directory))
+        # when fromLocal is called:
+        #  self.listWidget.setIcon(QtGui.QIcon(image_path('check.png')))
+        # self.loaded=True
 
-    def fromLocal(self, path):
+    def lastModified(self) -> float:
+        file_path : pathlib.Path = plugin_dir / self.plugin_info.directory
+        return file_path.stat().st_mtime
+
+
+    @staticmethod
+    def fromLocal(plugin_path : pathlib.Path):
         #logger.debug('Calling app.plugin_manager.Plugin.fromLocal')
-        with open(os.path.join(path, 'info.xml'), 'r') as f:
-            text = f.read()
-        info = parse(text)
-        self.name = info['@name']
-        self.directory = info['directory']
-        self.version = info['version']
-        self.latest_version = self.version
-        self.author = info['author']
-        with open(os.path.join(path, 'about.html'), 'r', encoding='utf-8') as f:
+        with open(plugin_path / 'info.xml', 'r', encoding='utf-8') as f:
+            info_xml_str = f.read()
+
+
+        with open(plugin_path / 'about.html', 'r', encoding='utf-8') as f:
             try:
-                self.description = str(f.read())
+                description = str(f.read())
             except FileNotFoundError:
-                self.description = "No local description file found"
-        self.url = info['url'] if 'url' in info else None
-        self.documentation = info['documentation'] if 'documentation' in info else None
-        if 'dependencies' in info and 'dependency' in info['dependencies']:
-            deps = info['dependencies']['dependency']
-            self.dependencies = [d['@name'] for d in deps] if isinstance(deps, list) else [deps['@name']]
-        self.menu_layout = info.pop('menu_layout')
-        self.listWidget = QtWidgets.QListWidgetItem(self.name)
-        self.listWidget.setIcon(QtGui.QIcon(image_path('check.png')))
-        self.loaded = True
+                description = "No local description file found"
+
+        d: dict = parse_plugin_info_xml(info_xml_str)
+        if 'dependencies' in d and 'dependency' in d['dependencies']:
+            deps = d['dependencies']['dependency']
+            dependencies = [d['@name'] for d in deps] if isinstance(deps, list) else [deps['@name']]
+
+        
+        author : str = d['author']
+        dependencies : list[str] = dependencies
+        description: str = description
+        directory: str = d['directory']# The name of the module to import. This will be changed to 'module_name' eventually.
+        documentation: str = d['documentation'] if 'documentation' in d else None # The documentation of the plugin
+        full_path: pathlib.Path = plugin_dir / d['directory']  # The full path to the plugin directory    
+        info_url: str = info_url # The URL of the plugin info
+        last_modified: float = d['date']  # The last modified date of the plugin
+        latest_version = d['version']  # The latest version of the plugin
+        menu_layout: d['menu_layout']  # The menu layout of the plugin
+        name: str = d['@name']  # The human-readable name of the plugin
+        url: str | None = d['url'] if 'url' in d else None  # The URL of the plugin
+        version: packaging.version.Version = d['version']  # The version of the plugin
+
+        return PluginInfo(author=author,
+                          dependencies=dependencies,
+                          description=description,
+                          directory=directory,
+                          documentation=documentation,
+                          full_path=full_path,
+                          info_url=info_url,
+                          last_modified=last_modified,
+                          latest_version=latest_version,
+                          menu_layout=menu_layout,
+                          name=name,
+                          url=url,
+                          version=version)
 
     def bind_menu_and_methods(self):
         if len(self.menu_layout) > 0:
@@ -177,39 +238,76 @@ class Plugin():
         else:
             self.menu = None
 
-    def update_info(self):
-        logger.debug('Calling app.plugin_manager.update_info')
-        if self.info_url is None:
-            return False
-        info_url = urljoin(self.info_url, 'info.xml')
+    @staticmethod
+    def get_plugin_info_from_url(
+        info_url: str,
+        plugin_dir: pathlib.Path,
+    ) -> PluginInfo | Exception:
+        """
+        Update the plugin information from the online repository.
+        Returns True if the update was successful, False otherwise.
+        """
+        info_url_xml : str = urllib.parse.urljoin(info_url, 'info.xml')
         try:
-            txt = urlopen(info_url).read()
-        except HTTPError as e:
-            g.alert(f"Failed to update information for {self.name}.\n\t{e}")
-            return
+            info_xml_bytes : bytes = urllib.request.urlopen(info_url_xml).read()
+            info_xml_str : str = info_xml_bytes.decode('utf-8')
+        except urllib.error.HTTPError as e:
+            return e
 
-        new_info = parse(txt)
-        description_url = urljoin(self.info_url, 'about.html')
+        plugin_info_dict: dict = parse_plugin_info_xml(info_xml_str)
+        description_url: str = urllib.parse.urljoin(info_url, 'about.html')
         try:
-            new_info['description'] = urlopen(description_url).read().decode('utf-8')
-        except HTTPError:
-            new_info['description'] = f"Unable to get description for {self.name} from <a href={description_url}>{description_url}</a>"
-        self.menu_layout = new_info.pop('menu_layout')
-        if 'date' in new_info:
-            new_info['version'] = '.'.join(new_info['date'].split('/')[2:] + new_info['date'].split('/')[:2])
-            new_info.pop('date')
-        new_info['latest_version'] = new_info.pop('version')
-        if 'dependencies' in new_info and 'dependency' in new_info['dependencies']:
-            deps = new_info.pop('dependencies')['dependency']
-            self.dependencies = [d['@name'] for d in deps] if isinstance(deps, list) else [deps['@name']]
-        self.__dict__.update(new_info)
-        self.loaded = True
-    
+            description: str = urllib.request.urlopen(description_url).read().decode('utf-8')
+        except urllib.error.HTTPError as e:
+            return e
+        menu_layout = plugin_info_dict['menu_layout']
+        if 'date' in plugin_info_dict:
+            version = '.'.join(plugin_info_dict['date'].split('/')[2:] + plugin_info_dict['date'].split('/')[:2])
+            latest_version = version
+        else:
+            version = ''
+            latest_version = ''
+        if 'dependencies' in plugin_info_dict and 'dependency' in plugin_info_dict['dependencies']:
+            deps = plugin_info_dict.pop('dependencies')['dependency']
+            dependencies: list[str] = [d['@name'] for d in deps] if isinstance(deps, list) else [deps['@name']]
+        else:
+            dependencies: list[str] = []
 
+        d = plugin_info_dict
+        author : str = d['author']
+        dependencies = dependencies
+        description = description
+        directory: str = d['directory']# The name of the module to import. This will be changed to 'module_name' eventually.
+        documentation: str = d['documentation']  # The documentation of the plugin
+        full_path: pathlib.Path = plugin_dir / d['directory']  # The full path to the plugin directory    
+        info_url: str = info_url # The URL of the plugin info
+        last_modified: float = d['date']  # The last modified date of the plugin
+        latest_version = latest_version  # The latest version of the plugin
+        menu_layout: list[dict] = menu_layout  # The menu layout of the plugin
+        name: str = d['@name']  # The human-readable name of the plugin
+        url: str | None = d['url'] if 'url' in d else None  # The URL of the plugin
+        version: packaging.version.Version = packaging.version.parse(d['version'])  # The version of the plugin
+
+        return PluginInfo(author=author,
+                          dependencies=dependencies,
+                          description=description,
+                          directory=directory,
+                          documentation=documentation,
+                          full_path=full_path,
+                          info_url=info_url,
+                          last_modified=last_modified,
+                          latest_version=latest_version,
+                          menu_layout=menu_layout,
+                          name=name,
+                          url=url,
+                          version=version)
+
+@beartype.beartype
 class PluginManager(QtWidgets.QMainWindow):
     plugins: dict[str, Plugin] = {}
     thread_controllers: dict[str, ThreadController] = {}
     sigPluginLoaded = QtCore.Signal(str)
+
     '''
     PluginManager handles installed plugins and the online plugin database
     | show() : initializes a gui as a static variable of the class, if necessary, and displays it. Call in place of constructor
@@ -235,32 +333,39 @@ class PluginManager(QtWidgets.QMainWindow):
             PluginManager.load_online_plugin(p)
 
     @staticmethod
-    def load_online_plugin(p):
+    def load_online_plugin(plugin_name: str) -> None:
         logger.debug('Calling app.plugin_manager.PluginManager.load_online_plugin()')
-        if p not in plugin_list:
+        if plugin_name not in plugin_list:
             return
             
         # Check if there's already a thread loading this plugin
-        if p in PluginManager.thread_controllers and PluginManager.thread_controllers[p].thread.isRunning():
+        if plugin_name in PluginManager.thread_controllers and PluginManager.thread_controllers[plugin_name].thread.isRunning():
             return
             
-        def load_plugin_info():
+        def load_plugin_info() -> PluginInfo:
             """Function to load plugin info from its URL"""
-            plug = PluginManager.plugins[p]
-            plug.info_url = plugin_list[p]
-            plug.update_info()
-            return p  # Return the plugin name to identify which plugin was loaded
+            plugin : Plugin = PluginManager.plugins[plugin_name]
+            info_url : str = plugin_list[plugin_name]
+            plugin_info : PluginInfo | Exception = plugin.get_plugin_info_from_url(info_url, plugin_dir)
+            if isinstance(plugin_info, Exception):
+                raise plugin_info
+            return plugin_info  # Return the plugin name to identify which plugin was loaded
             
         # Create a thread controller for this plugin
         controller = run_in_thread(load_plugin_info)
-        PluginManager.thread_controllers[p] = controller
+        PluginManager.thread_controllers[plugin_name] = controller
         
         # Connect signals
-        controller.connect('result', lambda plugin_name: PluginManager.gui.sigPluginLoaded.emit(plugin_name))
-        controller.connect('error', lambda error_msg: logger.error(f"Error loading plugin {p}: {error_msg}"))
+        def handle_error(error_msg):
+            raise Exception(f"Error loading plugin {plugin_name}: {error_msg}")
+
+        controller.connect('result', lambda plugin_info: PluginManager.gui.sigPluginLoaded.emit(plugin_info))
+        controller.connect('error', lambda error_msg: handle_error)
+        # controller.connect('error', lambda error_msg: logger.error(f"Error loading plugin {plugin_name}: {error_msg}"))
         
-        PluginManager.gui.statusBar.showMessage(f'Loading plugin information for {p}...')
-        logger.debug(f'Loading plugin information for {p}')
+        if hasattr(PluginManager, 'gui'):
+            PluginManager.gui.statusBar.showMessage(f'Loading plugin information for {plugin_name}...')
+        logger.debug(f'Loading plugin information for {plugin_name}')
 
     def closeEvent(self, ev):
         if hasattr(PluginManager, 'thread_controllers'):
@@ -314,14 +419,14 @@ class PluginManager(QtWidgets.QMainWindow):
         logger.debug('Calling app.plugin_manager.PluginManager.load_online_plugin()')
 
         super(PluginManager,self).__init__()
-        load_ui('plugin_manager.ui', self, directory=os.path.dirname(__file__))
+        load_ui('plugin_manager.ui', self, directory=pathlib.Path(__file__).parent)
         try:
             self.scrollAreaWidgetContents.setContentsMargins(10, 10, 10, 10)
         except:
             pass
         #self.pluginList.itemClicked.connect(self.pluginSelected)
         self.tutorialButton.clicked.connect(lambda : QtGui.QDesktopServices.openUrl(QtCore.QUrl('https://github.com/flika-org/flika_plugin_template')))
-        self.open_plugins_directory_button.clicked.connect(lambda: QtGui.QDesktopServices.openUrl(QtCore.QUrl('file:///' + os.path.expanduser('~/.FLIKA/plugins/'))))
+        self.open_plugins_directory_button.clicked.connect(lambda: QtGui.QDesktopServices.openUrl(QtCore.QUrl('file:///' + str(pathlib.Path.home() / '.FLIKA' / 'plugins'))))
         self.downloadButton.clicked.connect(self.downloadClicked)
         self.pluginList.currentItemChanged.connect(lambda new, old: self.pluginSelected(new))
         self.documentationButton.clicked.connect(self.documentationClicked)
@@ -330,13 +435,15 @@ class PluginManager(QtWidgets.QMainWindow):
         self.searchButton.clicked.connect(lambda f: self.showPlugins(search_str=str(self.searchBox.text())))
         self.descriptionLabel.setOpenExternalLinks(True)
         self.refreshButton.pressed.connect(self.refresh_online_plugins)
-        def updatePlugin(a):
-            self.statusBar.showMessage(f'Finished loading {a}')
-            if PluginManager.plugins[a].listWidget.isSelected():
-                PluginManager.gui.pluginSelected(a)
+
+        def update_plugin_info_async(plugin_info: PluginInfo):
+            self.statusBar.showMessage(f'Finished loading {plugin_info.name}')
+            PluginManager.plugins[plugin_info.name].plugin_info = plugin_info
+            if PluginManager.plugins[plugin_info.name].listWidget.isSelected():
+                PluginManager.gui.pluginSelected(plugin_info.name)
             #else:
                 #self.showPlugins()
-        self.sigPluginLoaded.connect(updatePlugin)
+        self.sigPluginLoaded.connect(update_plugin_info_async)
 
         self.setWindowTitle('Plugin Manager')
         self.showPlugins()
@@ -382,55 +489,64 @@ class PluginManager(QtWidgets.QMainWindow):
         plugin = self.plugins[s]
         self.pluginLabel.setText(s)
         if not plugin.loaded:
-            info = 'Loading information'
+            msg = 'Loading information'
         else:
-            info = f'By {plugin.author}, Latest: {plugin.latest_version}'
+            msg = f'By {plugin.author}, Latest: {plugin.latest_version}'
             self.downloadButton.setVisible(True)
             
         # Initialize version objects for comparison
         version_obj = None
         latest_version_obj = None
-        
-        if plugin.version != '':
-            version_obj = packaging.version.parse(plugin.version)
-            if plugin.latest_version != '':
-                latest_version_obj = packaging.version.parse(plugin.latest_version)
-                if version_obj < latest_version_obj:
-                    info += '; <b>Update Available!</b>'
+
+        info : PluginInfo | None = plugin.plugin_info
+
+        if info is not None:
+            if info.version != '':
+                version_obj = packaging.version.parse(info.version)
+                if info.latest_version != '':
+                    latest_version_obj = packaging.version.parse(info.latest_version)
+                    if version_obj < latest_version_obj:
+                        msg += '; <b>Update Available!</b>'
 
         # Only show update button if we have valid versions and an update is available
-        self.updateButton.setVisible(plugin.version != '' and 
-                                     plugin.latest_version != '' and
+        self.updateButton.setVisible(info is not None and
+                                     info.version != '' and 
+                                     info.latest_version != '' and
                                      version_obj is not None and 
                                      latest_version_obj is not None and
                                      version_obj < latest_version_obj)
-        self.downloadButton.setText('Install' if plugin.version == '' else 'Uninstall')
-        self.documentationButton.setVisible(plugin.documentation is not None)
-        if plugin.version == '':
+        self.downloadButton.setText('Install' if info is not None and info.version == '' else 'Uninstall')
+        self.documentationButton.setVisible(info is not None and info.documentation is not None)
+        if info is None or info.version == '':
             plugin.listWidget.setIcon(QtGui.QIcon())
-        elif packaging.version.parse(plugin.version) < packaging.version.parse(plugin.latest_version):
+        elif info.version < info.latest_version:
             plugin.listWidget.setIcon(QtGui.QIcon(image_path('exclamation.png')))
         else:
             plugin.listWidget.setIcon(QtGui.QIcon(image_path('check.png')))
 
-        self.infoLabel.setText(info)
-        self.descriptionLabel.setHtml(plugin.description)
-        if plugin.info_url is None:
+        self.infoLabel.setText(msg)
+        if info is not None:
+            self.descriptionLabel.setHtml(info.description)
+        else:
+            self.descriptionLabel.setHtml('')
+
+        # Finally, load the plugin info from the online repo if it's not already loaded
+        if info is None or info.info_url is None:
             self.load_online_plugin(plugin.name)
 
     @staticmethod
-    def local_plugin_paths():
-        paths = []
-        for path in glob(os.path.join(plugin_dir, '*')):
-            if os.path.isdir(path) and os.path.exists(os.path.join(path, 'info.xml')):
-                paths.append(path)
+    def local_plugin_paths() -> list[pathlib.Path]:
+        paths : list[pathlib.Path] = []
+        for path in glob(str(plugin_dir / '*')):
+            if pathlib.Path(path).is_dir() and pathlib.Path(path).joinpath('info.xml').exists():
+                paths.append(pathlib.Path(path))
         return paths
 
     def clearList(self):
         while self.pluginList.count() > 0:
             self.pluginList.takeItem(0)
 
-    def showPlugins(self, search_str=None):
+    def showPlugins(self, search_str: str | None = None) -> None:
         self.clearList()
         if search_str is None or len(search_str) == 0:
             names = sorted(self.plugins.keys())
@@ -442,22 +558,26 @@ class PluginManager(QtWidgets.QMainWindow):
             names = sorted(d.keys(), key=lambda a: d[a])
         for name in names:
             plug = PluginManager.plugins[name]
-            if plug.version == '':
+            info : PluginInfo | None = plug.plugin_info
+            if info is None:
                 plug.listWidget.setIcon(QtGui.QIcon())
-            elif packaging.version.parse(plug.version) < packaging.version.parse(plug.latest_version):
-                plug.listWidget.setIcon(QtGui.QIcon(image_path('exclamation.png')))
             else:
-                plug.listWidget.setIcon(QtGui.QIcon(image_path('check.png')))
+                if info.version == '':
+                    plug.listWidget.setIcon(QtGui.QIcon())
+                elif info.version < info.latest_version:
+                    plug.listWidget.setIcon(QtGui.QIcon(image_path('exclamation.png')))
+                else:
+                    plug.listWidget.setIcon(QtGui.QIcon(image_path('check.png')))
             self.pluginList.addItem(plug.listWidget)
 
     @staticmethod
-    def removePlugin(plugin):
+    def removePlugin(plugin: Plugin) -> None:
         PluginManager.gui.statusBar.showMessage(f'Uninstalling {plugin.name}')
-        if os.path.isdir(os.path.join(plugin_dir, plugin.directory, '.git')):
+        if (plugin_dir / plugin.directory / '.git').is_dir():
             g.alert("This plugin's directory is managed by git. To remove, manually delete the directory")
             return False
         try:
-            shutil.rmtree(os.path.join(plugin_dir, plugin.directory), ignore_errors=True)
+            shutil.rmtree(plugin_dir / plugin.directory, ignore_errors=True)
             plugin.version = ''
             plugin.menu = None
             plugin.listWidget.setIcon(QtGui.QIcon())
@@ -469,7 +589,7 @@ class PluginManager(QtWidgets.QMainWindow):
         plugin.installed = False
 
     @staticmethod
-    def downloadPlugin(plugin):
+    def downloadPlugin(plugin: Plugin):
         PluginManager.gui.statusBar.showMessage('Installing plugin')
         if isinstance(plugin, str):
             if plugin in PluginManager.plugins:
@@ -512,38 +632,45 @@ Then try installing the plugin again.""")
 
             return
 
-        if os.path.exists(os.path.join(plugin_dir, plugin.directory)):
+
+        if plugin.directory and (plugin_dir / plugin.directory).exists():
             g.alert(f'A folder with name {plugin.directory} already exists in the plugins directory. Please remove it to install this plugin!')
             return
 
         PluginManager.gui.statusBar.showMessage(f'Opening {plugin.url}')
+        plugin_url : str | None = plugin.url
+        if plugin_url is None:
+            raise ValueError(f'Plugin {plugin.name} has no URL')
+
+        # Download the plugin zip file
         try:
-            data = urlopen(plugin.url).read()
+            plugin_zip_bytes : bytes = urllib.request.urlopen(plugin_url).read()
         except Exception as e:
             g.alert(f'Failed to connect to {plugin.url} to install the {plugin.name} flika Plugin. Check your internet connection and try again, or download the plugin manually.', title='Download Error')
             return
 
+        # Extract the plugin zip file into a temporary file
         try:
             with tempfile.TemporaryFile() as tf:
-                tf.write(data)
+                tf.write(plugin_zip_bytes)
                 tf.seek(0)
-                with zipfile.ZipFile(tf) as z:
-                    folder_name = os.path.dirname(z.namelist()[0])
-                    z.extractall(plugin_dir)
+                with zipfile.ZipFile(tf) as zip_file:
+                    unzipped_plugin_path : pathlib.Path = plugin_dir / os.path.dirname(zip_file.namelist()[0])
+                    zip_file.extractall(plugin_dir)
 
-            plugin = PluginManager.plugins[plugin.name]
-            directory = os.path.join(plugin_dir, plugin.directory)
-            os.rename(os.path.join(plugin_dir, folder_name), directory)
+            # Move the unzipped plugin directory to the plugins directory
+            plugin : Plugin = PluginManager.plugins[plugin.name]
+            target_plugin_path : pathlib.Path = plugin_dir / plugin.directory
+            os.rename(unzipped_plugin_path, target_plugin_path)
         except (PermissionError, Exception) as e:
-            if os.path.exists(folder_name):
-                shutil.rmtree(folder_name)
+            if pathlib.Path(unzipped_plugin_path).exists():
+                shutil.rmtree(unzipped_plugin_path)
             if isinstance(e, PermissionError):
                 g.alert(f"Unable to download plugin to {plugin.name}. Rerun flika as administrator and download the plugin again.", title='Permission Denied')
             else:
                 g.alert(f"Error occurred while installing {plugin.name}.\n\t{e}", title='Plugin Install Failed')    
-            
             return
-        
+
         PluginManager.gui.statusBar.showMessage(f'Extracting {plugin.name}')
         plugin.version = plugin.latest_version
         plugin.listWidget.setIcon(QtGui.QIcon(image_path("check.png")))
@@ -589,4 +716,5 @@ def load_local_plugins():
 # from flika.app.plugin_manager import *
 
 
+logger.debug("Completed 'reading app/plugin_manager.py'")
 logger.debug("Completed 'reading app/plugin_manager.py'")
