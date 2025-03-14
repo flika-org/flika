@@ -120,6 +120,7 @@ Useful variables:
 
         
     def resetNamespace(self):
+        from .script_namespace import getnamespace
         self.terminal.shell.reset()
         self.terminal.shell.user_ns.update(getnamespace())
         self.terminal.namespace.update({'clear': self.terminal.clear, 'reset': self.resetNamespace})

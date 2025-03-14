@@ -5,16 +5,17 @@ import sys, os
 import platform
 import optparse
 import warnings
+
+# Set Jupyter to use platformdirs (fixes deprecation warning)
+os.environ['JUPYTER_PLATFORM_DIRS'] = '1'
+
 logger.debug("Started 'reading flika.py, importing numpy'")
 import numpy as np  # type: ignore
 logger.debug("Completed 'reading flika.py, importing numpy'")
 from .version import __version__
 from .app.application import FlikaApplication
 
-
-
-
-
+# Filter out known warnings
 warnings.filterwarnings("ignore", category=np.exceptions.VisibleDeprecationWarning)
 
 def parse_arguments(argv):

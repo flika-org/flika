@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import sys
+import os
 import atexit
 from contextlib import contextmanager
 from typing import Any, Dict, Optional, Type, Union
@@ -14,7 +15,11 @@ from IPython import get_ipython
 
 # ZMQ imports
 from zmq import ZMQError
-from zmq.eventloop import ioloop
+# Remove deprecated zmq.eventloop.ioloop import
+# from zmq.eventloop import ioloop
+# Import tornado's ioloop directly instead (if needed)
+import tornado.ioloop
+# Use current import location for ZMQStream
 from zmq.eventloop.zmqstream import ZMQStream
 
 # Import version
@@ -158,9 +163,9 @@ class EmbeddedQtKernelApp(IPKernelApp):
 
     def start(self) -> None:
         # Handoff between IOLoop and QApplication event loops
-        loop = ioloop.IOLoop.instance()
+        loop = tornado.ioloop.IOLoop.instance()
         # Use 1ms callback time to prevent application hanging
-        stopper = ioloop.PeriodicCallback(loop.stop, 1, loop)
+        stopper = tornado.ioloop.PeriodicCallback(loop.stop, 1, loop)
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(loop.start)
         self.timer.start(100)

@@ -9,7 +9,7 @@ def format(color, style=''):
     _format = QtGui.QTextCharFormat()
     _format.setForeground(_color)
     if 'bold' in style:
-        _format.setFontWeight(QtGui.QFont.Bold)
+        _format.setFontWeight(QtGui.QFont.Weight.Bold if hasattr(QtGui.QFont, 'Weight') else QtGui.QFont.Bold)
     if 'italic' in style:
         _format.setFontItalic(True)
     return _format
@@ -48,25 +48,31 @@ class PythonHighlighter (QtGui.QSyntaxHighlighter):
         # Comparison
         '==', '!=', '<', '<=', '>', '>=',
         # Arithmetic
-        '\+', '-', '\*', '/', '//', '\%', '\*\*',
+        r'\+', '-', r'\*', '/', '//', r'%', r'\*\*',
         # In-place
-        '\+=', '-=', '\*=', '/=', '\%=',
+        r'\+=', '-=', r'\*=', '/=', r'%=',
         # Bitwise
-        '\^', '\|', '\&', '\~', '>>', '<<',
+        r'\^', r'\|', r'\&', r'\~', '>>', '<<',
     ]
 
     # Python braces
     braces = [
-        '\{', '\}', '\(', '\)', '\[', '\]',
+        r'\{', r'\}', r'\(', r'\)', r'\[', r'\]',
     ]
+    
     def __init__(self, document):
         QtGui.QSyntaxHighlighter.__init__(self, document)
 
         # Multi-line strings (expression, flag, style)
-        # FIXME: The triple-quotes in these two lines will mess up the
-        # syntax highlighting from this point onward
-        self.tri_single = (QtCore.QRegularExpression("'''"), 1, STYLES['string2'])
-        self.tri_double = (QtCore.QRegularExpression('"""'), 2, STYLES['string2'])
+        # Use QRegExp if QRegularExpression is not available
+        if hasattr(QtCore, 'QRegularExpression'):
+            self.tri_single = (QtCore.QRegularExpression("'''"), 1, STYLES['string2'])
+            self.tri_double = (QtCore.QRegularExpression('"""'), 2, STYLES['string2'])
+            self.RegexClass = QtCore.QRegularExpression
+        else:
+            self.tri_single = (QtCore.QRegExp("'''"), 1, STYLES['string2'])
+            self.tri_double = (QtCore.QRegExp('"""'), 2, STYLES['string2'])
+            self.RegexClass = QtCore.QRegExp
 
         rules = []
 
@@ -102,8 +108,8 @@ class PythonHighlighter (QtGui.QSyntaxHighlighter):
             (r'\b[+-]?[0-9]+(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?\b', 0, STYLES['numbers']),
         ]
 
-        # Build a QtCore.QRegularExpression for each pattern
-        self.rules = [(QtCore.QRegularExpression(pat), index, fmt)
+        # Build a RegExp for each pattern
+        self.rules = [(self.RegexClass(pat), index, fmt)
             for (pat, index, fmt) in rules]
 
 
@@ -112,12 +118,27 @@ class PythonHighlighter (QtGui.QSyntaxHighlighter):
         """
         # Do other syntax formatting
         for expression, nth, format in self.rules:
-            match = expression.match(text, 0)
-            while match.hasMatch():
-                index = match.capturedStart()
-                length = match.capturedLength()
-                self.setFormat(index, length, format)
-                match = expression.match(text, index + length)
+            if hasattr(QtCore, 'QRegularExpression'):
+                # For QRegularExpression
+                match = expression.match(text, 0)
+                while match.hasMatch():
+                    index = match.capturedStart()
+                    length = match.capturedLength()
+                    if nth > 0:
+                        index = match.capturedStart(nth)
+                        length = match.capturedLength(nth)
+                    self.setFormat(index, length, format)
+                    match = expression.match(text, index + length)
+            else:
+                # For QRegExp
+                index = expression.indexIn(text)
+                while index >= 0:
+                    length = expression.matchedLength()
+                    if nth > 0:
+                        index = expression.pos(nth)
+                        length = len(expression.cap(nth))
+                    self.setFormat(index, length, format)
+                    index = expression.indexIn(text, index + length)
 
         self.setCurrentBlockState(0)
 
@@ -129,7 +150,7 @@ class PythonHighlighter (QtGui.QSyntaxHighlighter):
 
     def match_multiline(self, text, delimiter, in_state, style):
         """Do highlighting of multi-line strings. ``delimiter`` should be a
-        ``QtCore.QRegularExpression`` for triple-single-quotes or triple-double-quotes, and
+        ``QRegExp`` or ``QRegularExpression`` for triple-single-quotes or triple-double-quotes, and
         ``in_state`` should be a unique integer to represent the corresponding
         state changes when inside those strings. Returns True if we're still
         inside a multi-line string when this function is finished.
@@ -140,17 +161,34 @@ class PythonHighlighter (QtGui.QSyntaxHighlighter):
             add = 0
         # Otherwise, look for the delimiter on this line
         else:
-            start = delimiter.indexIn(text)
-            # Move past this match
-            add = delimiter.matchedLength()
+            if hasattr(QtCore, 'QRegularExpression'):
+                # For QRegularExpression
+                match = delimiter.match(text)
+                start = match.capturedStart() if match.hasMatch() else -1
+                add = match.capturedLength() if match.hasMatch() else 0
+            else:
+                # For QRegExp
+                start = delimiter.indexIn(text)
+                add = delimiter.matchedLength()
 
         # As long as there's a delimiter match on this line...
         while start >= 0:
             # Look for the ending delimiter
-            end = delimiter.indexIn(text, start + add)
+            if hasattr(QtCore, 'QRegularExpression'):
+                # For QRegularExpression
+                match = delimiter.match(text, start + add)
+                end = match.capturedStart() if match.hasMatch() else -1
+            else:
+                # For QRegExp
+                end = delimiter.indexIn(text, start + add)
+                
             # Ending delimiter on this line?
             if end >= add:
-                length = end - start + add + delimiter.matchedLength()
+                # Fix the conditional to properly handle match objects
+                if hasattr(QtCore, 'QRegularExpression') and match.hasMatch():
+                    length = end - start + add + match.capturedLength()
+                else:
+                    length = end - start + add + delimiter.matchedLength()
                 self.setCurrentBlockState(0)
             # No; multi-line string
             else:
@@ -159,7 +197,13 @@ class PythonHighlighter (QtGui.QSyntaxHighlighter):
             # Apply formatting
             self.setFormat(start, length, style)
             # Look for the next match
-            start = delimiter.indexIn(text, start + length)
+            if hasattr(QtCore, 'QRegularExpression'):
+                # For QRegularExpression
+                match = delimiter.match(text, start + length)
+                start = match.capturedStart() if match.hasMatch() else -1
+            else:
+                # For QRegExp
+                start = delimiter.indexIn(text, start + length)
 
         # Return True if still inside a multi-line string, False otherwise
         if self.currentBlockState() == in_state:

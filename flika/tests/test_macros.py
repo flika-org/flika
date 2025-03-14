@@ -35,17 +35,17 @@ import numpy as np
 #         assert PluginManager.plugins[plugin_name].menu is None and not PluginManager.plugins[plugin_name].installed, "Plugin uninstall"
 
 
-# class TestScriptEditor():
-#     def setup_method(self, method):
-#         ScriptEditor.show()
+class TestScriptEditor():
+    def setup_method(self, method):
+        ScriptEditor.show()
 
-#     def teardown_method(self, method):
-#         ScriptEditor.close()
+    def teardown_method(self, method):
+        ScriptEditor.close()
 
-#     def test_from_window(self):
-#         w1 = Window(np.random.random([10, 20, 20]))
-#         from ..process import threshold
-#         w2 = threshold(.5)
-#         ScriptEditor.gui.actionFrom_Window.trigger()
-#         text = str(ScriptEditor.gui.currentTab().toPlainText())
-#         assert text == "threshold(value=0.5, darkBackground=False, keepSourceWindow=False)", "From window command not expected"
+    def test_from_window(self):
+        w1 = Window(np.random.random([10, 20, 20]))
+        from ..process import threshold
+        w2 = threshold(.5)
+        ScriptEditor.gui.actionFrom_Window.trigger()
+        text = str(ScriptEditor.gui.currentTab().toPlainText())
+        assert text == "threshold(value=0.5, darkBackground=False, keepSourceWindow=False)", "From window command not expected"
