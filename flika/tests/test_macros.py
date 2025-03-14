@@ -4,35 +4,35 @@ from ..window import Window
 from .. import flika
 import numpy as np
 
-# class TestPluginManager():
-#     def setup_method(self, method):
-#         flika.start_flika()
-#         PluginManager.show()
+class TestPluginManager():
+    def setup_method(self, method):
+        flika.start_flika()
+        PluginManager.show()
         
-#     def teardown_method(self, method):
-#         PluginManager.close()
+    def teardown_method(self, method):
+        PluginManager.close()
 
-#     def test_local_plugins(self):
-#         local = set(plugin_list.keys())
-#         plugins = set(PluginManager.plugins.keys())
+    def test_local_plugins(self):
+        local = set(plugin_list.keys())
+        plugins = set(PluginManager.plugins.keys())
 
-#         assert (local & plugins) == local, "Local plugin list not loaded correctly"
+        assert (local & plugins) == local, "Local plugin list not loaded correctly"
 
-#     def test_install_plugin(self):
-#         plugin_name = 'Detect Puffs'
-#         if PluginManager.plugins[plugin_name].installed:
-#             return
-#         PluginManager.refresh_online_plugins()
-#         i = 0
-#         while PluginManager.plugins[plugin_name].url == None:
-#             i += 1
-#             if i == 1000:
-#                 return
-#             continue
-#         PluginManager.downloadPlugin(plugin_name)
-#         assert PluginManager.plugins[plugin_name].menu is not None and PluginManager.plugins[plugin_name].installed, "Plugin install"
-#         PluginManager.removePlugin(plugin_name)
-#         assert PluginManager.plugins[plugin_name].menu is None and not PluginManager.plugins[plugin_name].installed, "Plugin uninstall"
+    def test_install_plugin(self):
+        plugin_name = 'Detect Puffs'
+        if PluginManager.plugins[plugin_name].installed:
+            return
+        PluginManager.refresh_online_plugins()
+        i = 0
+        while PluginManager.plugins[plugin_name].url == None:
+            i += 1
+            if i == 1000:
+                return
+            continue
+        PluginManager.downloadPlugin(plugin_name)
+        assert PluginManager.plugins[plugin_name].menu is not None and PluginManager.plugins[plugin_name].installed, "Plugin install"
+        PluginManager.removePlugin(plugin_name)
+        assert PluginManager.plugins[plugin_name].menu is None and not PluginManager.plugins[plugin_name].installed, "Plugin uninstall"
 
 
 class TestScriptEditor():

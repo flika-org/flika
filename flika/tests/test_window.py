@@ -567,14 +567,14 @@ class Test_Freehand_3D(ROI_Freehand):
 class Test_Freehand_4D(ROI_Freehand):
     img = STANDARD_4D_IMAGE
 
-# class Test_Rect_Line_2D(ROI_Rect_Line):
-#     img = STANDARD_2D_IMAGE
+class Test_Rect_Line_2D(ROI_Rect_Line):
+    img = STANDARD_2D_IMAGE
 
-# class Test_Rect_Line_3D(ROI_Rect_Line):
-#     img = STANDARD_3D_IMAGE
+class Test_Rect_Line_3D(ROI_Rect_Line):
+    img = STANDARD_3D_IMAGE
 
-# class Test_Rect_Line_4D(ROI_Rect_Line):
-#     img = STANDARD_4D_IMAGE
+class Test_Rect_Line_4D(ROI_Rect_Line):
+    img = STANDARD_4D_IMAGE
 
 
 class TestTracefig:
