@@ -3,7 +3,6 @@ from ..utils.misc import save_file_gui
 from .. import global_vars as g
 import markdown
 import inspect
-import sys
 from qtpy import QtCore, QtGui, QtWidgets
 import numpy as np
 import os.path
@@ -382,9 +381,17 @@ class BaseProcess(object):
     """
 
     def __init__(self):
-        self.noPriorWindow = False
-        self.__name__ = self.__class__.__name__.lower()
-        self.items = []
+        self.noPriorWindow: bool = False
+        self.__name__: str = self.__class__.__name__.lower()
+        self.items: list[dict[str, str | QtWidgets.QWidget]] = []
+
+        self.newtif: np.ndarray | None = None
+        self.newname: str = ""
+        self.tif: np.ndarray | None = None
+        self.oldwindow: "window.Window" | None = None
+        self.oldname: str = ""
+        self.keepSourceWindow: bool = False
+        self.command: str = ""
 
     def getValue(self, name):
         '''getValue(self,name)

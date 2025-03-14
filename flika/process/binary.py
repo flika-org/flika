@@ -21,7 +21,7 @@ def convert2uint8(tif):
     tif = ((tif-oldmin)*newmax)/(oldmax-oldmin)
     tif = tif.astype(np.uint8)
     return tif
-    
+
 class Threshold(BaseProcess):
     """threshold(value, darkBackground=False, keepSourceWindow=False)
 
@@ -33,9 +33,6 @@ class Threshold(BaseProcess):
     Returns:
         newWindow
     """
-    def __init__(self):
-        super().__init__()
-
     def gui(self):
         self.gui_reset()
         valueSlider = SliderLabel(2)
@@ -50,7 +47,7 @@ class Threshold(BaseProcess):
         self.items.append({'name': 'preview','string': 'Preview','object': preview})
         super().gui()
 
-    def __call__(self, value, darkBackground=False, keepSourceWindow=False):
+    def __call__(self, value: float, darkBackground: bool = False, keepSourceWindow: bool = False):
         self.start(keepSourceWindow)
         if self.oldwindow.nDims > 3:
             g.alert("You cannot run this function on an image of dimension greater than 3. If your window has color, convert to a grayscale image before running this function")
@@ -60,7 +57,7 @@ class Threshold(BaseProcess):
         else:
             newtif = self.tif > value
         self.newtif = newtif.astype(np.uint8)
-        self.newname = self.oldname+' - Thresholded '+str(value)
+        self.newname = self.oldname + ' - Thresholded ' + str(value)
         return self.end()
 
     def preview(self):
@@ -122,8 +119,6 @@ class Adaptive_threshold(BaseProcess):
     Returns:
         newWindow
     """
-    def __init__(self):
-        super().__init__()
     def gui(self):
         self.gui_reset()
         valueSlider=SliderLabel(2)
@@ -205,8 +200,6 @@ class Canny_edge_detector(BaseProcess):
     Returns:
         newWindow
     """
-    def __init__(self):
-        super().__init__()
     def gui(self):
         self.gui_reset()
         sigma=SliderLabel(2)
@@ -274,8 +267,6 @@ class Logically_combine(BaseProcess):
     Returns:
         newWindow
     """
-    def __init__(self):
-        super().__init__()
     def gui(self):
         self.gui_reset()
         window1=WindowSelector()
@@ -325,9 +316,6 @@ class Remove_small_blobs(BaseProcess):
     Returns:
         newWindow
     """
-    def __init__(self):
-        super().__init__()
-
     def gui(self):
         self.gui_reset()
         rank = QtWidgets.QSpinBox()
@@ -382,8 +370,6 @@ class Binary_Dilation(BaseProcess):
     Returns:
         newWindow
     """
-    def __init__(self):
-        super().__init__()
     def gui(self):
         self.gui_reset()
         rank=QtWidgets.QSpinBox()
@@ -429,9 +415,6 @@ class Binary_Erosion(BaseProcess):
     Returns:
         newWindow
     """
-    def __init__(self):
-        super().__init__()
-
     def gui(self):
         self.gui_reset()
         rank=QtWidgets.QSpinBox()
@@ -512,7 +495,7 @@ class Generate_ROIs(BaseProcess):
         self.ROIs = []
 
         im = g.win.image if g.win.image.ndim == 2 else g.win.image[g.win.currentIndex]
-        im = scipy.ndimage.morphology.binary_closing(im)
+        im = scipy.ndimage.binary_closing(im)
         thresholded_image = np.squeeze(im)
         labelled = measure.label(thresholded_image)
         ROIs = []
@@ -525,6 +508,10 @@ class Generate_ROIs(BaseProcess):
                 outline_coords = outline_coords[0]
                 new_roi = makeROI("freehand", outline_coords)
                 ROIs.append(new_roi)
+        
+        self.newtif = self.tif.copy()
+        self.newname = self.oldname + ' - ROIs Generated'
+        return self.end()
 
     def preview(self):
         if g.win is None or g.win.closed:
@@ -534,7 +521,7 @@ class Generate_ROIs(BaseProcess):
         if not np.all((im == 0) | (im == 1)):
             g.alert("The current image is not a binary image. Threshold first")
             return None
-        im = scipy.ndimage.morphology.binary_closing(im)
+        im = scipy.ndimage.binary_closing(im)
         level = self.getValue('level')
         minDensity = self.getValue('minDensity')
         thresholded_image = np.squeeze(im)
@@ -546,7 +533,7 @@ class Generate_ROIs(BaseProcess):
         for i in range(1, np.max(labelled)+1):
             QtWidgets.QApplication.processEvents()
             if np.sum(labelled == i) >= minDensity:
-                im = scipy.ndimage.morphology.binary_dilation(scipy.ndimage.morphology.binary_closing(labelled == i))
+                im = scipy.ndimage.binary_dilation(scipy.ndimage.binary_closing(labelled == i))
                 outline_coords = measure.find_contours(im, level)
                 if len(outline_coords) == 0:
                     continue

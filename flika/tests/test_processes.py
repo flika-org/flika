@@ -132,7 +132,6 @@ class TestBinary(ProcessTest):
         w = binary_erosion(2, 3, 1)
         assert w is not None, "Binary erosion should return a window"
     
-    @pytest.mark.skip(reason="generate_rois function is returning None")
     def test_generate_rois(self, test_image, mock_message_box):
         # Create binary image first for better testing
         if self.is_color_image(test_image):
@@ -314,8 +313,7 @@ def suppress_alerts():
     
     if hasattr(g, "messageBox"):
         original_message_box = g.messageBox
-        g.messageBox = lambda *args, **kwargs: QtWidgets.QMessageBox.Ok
-    
+        g.messageBox = lambda *args, **kwargs: QtWidgets.QMessageBox.StandardButton.Ok
     # Create dummy functions for QtWidgets.QMessageBox
     original_qmessagebox_methods = {}
     for method_name in ['information', 'warning', 'critical', 'question', 'about']:

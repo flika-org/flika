@@ -45,10 +45,10 @@ class ROI_Drawing(pg.GraphicsObject):
         pg.GraphicsObject.__init__(self)
         window.imageview.addItem(self)
         self.window = window
-        self.pts = [pg.Point(round(x), round(y))]
-        self.kind = kind
-        self.state = {'pos': pg.Point(x, y), 'size': pg.Point(0, 0)}
-        self.color = QtGui.QColor(g.settings['roi_color']) if g.settings['roi_color'] != 'random' else random_color()
+        self.pts: list[pg.Point.Points] = [pg.Point(round(x), round(y))]
+        self.kind: str = kind
+        self.state: dict[str, pg.Point.Points] = {'pos': pg.Point(x, y), 'size': pg.Point(0, 0)}
+        self.color: QtGui.QColor = QtGui.QColor(g.settings['roi_color']) if g.settings['roi_color'] != 'random' else random_color()
 
     def cancel(self):
         g.win.imageview.removeItem(self)
@@ -74,12 +74,12 @@ class ROI_Drawing(pg.GraphicsObject):
         self.prepareGeometryChange()
         self.update()
 
-    def paint(self, p, *args):
+    def paint(self, p: QtGui.QPainter, *args):
         pen = QtGui.QPen(self.color)
         pen.setWidth(0)
         p.setPen(pen)
         if self.kind == 'freehand':
-            p.drawPolyline(*self.pts)
+            p.drawPolyline(self.pts)
         elif self.kind == 'rectangle':
             p.drawRect(self.boundingRect())
         elif self.kind in ('rect_line', 'line'):
@@ -646,9 +646,10 @@ class ROI_freehand(ROI_Base, pg.ROI):
         p.lineTo(*self._untranslated_pts[0])
         return p
 
-    def paint(self, painter, *args):
+    def paint(self, painter: QtGui.QPainter, *args):
         painter.setPen(self.currentPen)
-        painter.drawPolygon(*[pg.Point(a, b) for a, b in self._untranslated_pts])
+        points: list[pg.Point.Points]= [pg.Point(a, b) for a, b in self._untranslated_pts]
+        painter.drawPolygon(points)
 
     def draw_from_points(self, pts, finish=False):
         self.blockSignals(True)

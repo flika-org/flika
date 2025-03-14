@@ -61,7 +61,9 @@ class Subtract(BaseProcess):
             value = int(value)
         if np.issubdtype(self.tif.dtype,np.integer):
             ddtype=np.iinfo(self.tif.dtype)
-            while np.min(self.tif)-value<ddtype.min or np.max(self.tif)-value>ddtype.max: # if we exceed the bounds of the datatype
+            # Simple bounds check for subtraction
+            while (value > 0 and np.min(self.tif) < ddtype.min + value) or \
+                  (value < 0 and np.max(self.tif) > ddtype.max + value):
                 ddtype=np.iinfo(upgrade_dtype(ddtype.dtype))
             self.newtif=self.tif.astype(ddtype.dtype)-value
         else:
