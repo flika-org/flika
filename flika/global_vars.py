@@ -9,19 +9,22 @@ image inside current window, simply run::
 
     I = g.win.image
 
-
-
 """
-from .logger import logger
-logger.debug("Started 'reading global_vars.py'")
-import os
-from multiprocessing import cpu_count
-from os.path import expanduser
-from qtpy import QtWidgets, QtGui, QtCore
-from collections.abc import MutableMapping
+
 import json
-from uuid import getnode
-from .utils.system_info import get_location
+import uuid
+import multiprocessing
+from collections.abc import MutableMapping
+import pathlib
+
+# Third-party imports
+from qtpy import QtWidgets, QtGui, QtCore
+
+# Local application imports
+from flika.logger import logger
+import flika.utils.system_info
+
+logger.debug("Started 'reading global_vars.py'")
 
 __all__ = ['m', 'Settings', 'menus', 'alert', 'windows', 'traceWindows', 'currentWindow', 'win', 'currentTrace', 'clipboard']
 
@@ -42,7 +45,7 @@ class Settings(MutableMapping): #http://stackoverflow.com/questions/3387691/pyth
                         'show_windows': True, 
                         'recent_scripts': [],
                         'recent_files': [],
-                        'nCores':cpu_count(),
+                        'nCores':multiprocessing.cpu_count(),
                         'debug_mode': False,
                         'point_color': '#ff0000',
                         'point_size': 5,
@@ -53,8 +56,8 @@ class Settings(MutableMapping): #http://stackoverflow.com/questions/3387691/pyth
                         'default_roi_on_click': False}
 
     def __init__(self):
-        self.settings_file = os.path.join(expanduser("~"), '.FLIKA', 'settings.json' )
-        self.d = Settings.initial_settings
+        self.settings_file = pathlib.Path(pathlib.Path("~").expanduser() / '.FLIKA' / 'settings.json')
+        self.d = Settings.initial_settings.copy()
         self.load()
 
     def __getitem__(self, item):
@@ -83,15 +86,14 @@ class Settings(MutableMapping): #http://stackoverflow.com/questions/3387691/pyth
     def save(self):
         """save(self)
                  Save settings file. The file is stored in ``~/.FLIKA/settings.json`` """
-        if not os.path.exists(os.path.dirname(self.settings_file)):
-            os.makedirs(os.path.dirname(self.settings_file))
+        self.settings_file.parent.mkdir(parents=True, exist_ok=True)
         with open(self.settings_file, 'w') as fp:
             json.dump(self.d, fp, indent=4)
 
     def load(self):
         """load(self)
         Load settings file. The file is stored in ``~/.FLIKA/settings.json`` """
-        if not os.path.exists(self.settings_file):
+        if not self.settings_file.exists():
             print('No settings file found. Creating settings file.')
             self.save()
         try:
@@ -114,9 +116,9 @@ class Settings(MutableMapping): #http://stackoverflow.com/questions/3387691/pyth
         if 'user_information' not in self.d:
             self.d['user_information'] = {}
         if 'UUID' not in self.d['user_information'] or self.d['user_information']['UUID'] is None:
-            self.d['user_information']['UUID'] = getnode()
+            self.d['user_information']['UUID'] = uuid.getnode()
         if 'location' not in self.d['user_information'] or self.d['user_information']['location'] is None:
-            self.d['user_information']['location'] = get_location()
+            self.d['user_information']['location'] = flika.utils.system_info.get_location()
 
 
     def setmousemode(self, mode):

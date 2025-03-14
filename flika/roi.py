@@ -17,19 +17,24 @@ Example:
 Todo:
     * Correct ROI line handles to be at center of pixel
 """
-from .logger import logger
-logger.debug("Started 'reading roi.py'")
+
+# Standard library imports
+import os
+
+import numpy as np
 import jaxtyping
 import beartype
 from qtpy import QtGui, QtCore, QtWidgets
 import pyqtgraph as pg
-import numpy as np
 import skimage.draw
 from pyqtgraph.graphicsItems.ROI import Handle
-from . import global_vars as g
-from .utils.misc import random_color, open_file_gui, nonpartial
-import os
 
+# Local application imports
+from flika.logger import logger
+import flika.global_vars as g
+from flika.utils.misc import random_color, open_file_gui, nonpartial
+
+logger.debug("Started 'reading roi.py'")
 
 @beartype.beartype
 class ROI_Drawing(pg.GraphicsObject):
@@ -691,7 +696,7 @@ class ROI_freehand(ROI_Base, pg.ROI):
         roiArgs.update(kargs)
         roiArgs['closed'] = True
         pg.ROI.__init__(self, np.min(pts, axis=0), np.ptp(a=np.array(pts),
-                        axis=0), translateSnap=(1, 1), **kargs)
+                       axis=0), translateSnap=(1, 1), **kargs)
         ROI_Base.__init__(self, window, pts)
         self._untranslated_pts: jaxtyping.Float[np.ndarray, "num_pts 2"] = np.subtract(self.pts, self.pos())
         self._untranslated_mask = None

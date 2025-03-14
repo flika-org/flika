@@ -1,14 +1,26 @@
 # -*- coding: utf-8 -*-
-from .logger import logger
-logger.debug("Started 'reading window.py'")
-from qtpy import QtCore, QtGui, QtWidgets
-import pyqtgraph as pg
-import os, time
+"""
+Window module for flika - provides the main UI window component.
+"""
+
+# Standard library imports
+import os
+import time
+
+# Third-party imports
 import numpy as np
-from . import global_vars as g
-from .roi import *
-from .utils.misc import save_file_gui
-from .utils.BaseProcess import WindowSelector, SliderLabel
+import pyqtgraph as pg
+from qtpy import QtCore, QtGui, QtWidgets
+import beartype
+
+# Local application imports
+from flika.logger import logger
+import flika.global_vars as g
+from flika.roi import *
+from flika.utils.misc import save_file_gui
+from flika.utils.BaseProcess import WindowSelector, SliderLabel
+
+logger.debug("Started 'reading window.py'")
 
 pg.setConfigOptions()
 

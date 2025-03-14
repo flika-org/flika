@@ -1,12 +1,21 @@
 # -*- coding: utf-8 -*-
-from ..utils.misc import save_file_gui
-from .. import global_vars as g
-import markdown
+"""
+Base process module for flika operations.
+"""
+
+# Standard library imports
 import inspect
-from qtpy import QtCore, QtGui, QtWidgets
+import pathlib
+# Third-party imports
+import markdown
 import numpy as np
-import os.path
-from ..logger import logger
+from qtpy import QtCore, QtGui, QtWidgets
+
+# Local application imports
+import flika.global_vars as g
+from flika.logger import logger
+from flika.utils.misc import save_file_gui
+
 logger.debug("Started 'reading process/BaseProcess.py'")
 
 
@@ -57,7 +66,7 @@ class WindowSelector(QtWidgets.QWidget):
         else:
             self.window = window
         self.button.setChecked(False)
-        self.label.setText('...'+os.path.split(self.window.name)[-1][-20:])
+        self.label.setText('...' + pathlib.Path(self.window.name).name[-20:])
         self.valueChanged.emit()
         self.parent().raise_()
 
@@ -91,7 +100,7 @@ class FileSelector(QtWidgets.QWidget):
     def buttonclicked(self):
         prompt = 'testing fileSelector'
         self.filename = save_file_gui(prompt, filetypes=self.filetypes)
-        self.label.setText('...'+os.path.split(self.filename)[-1][-20:])
+        self.label.setText('...' + Path(self.filename).name[-20:])
         self.valueChanged.emit()
 
     def value(self):
@@ -99,7 +108,7 @@ class FileSelector(QtWidgets.QWidget):
 
     def setValue(self, filename):
         self.filename = str(filename)
-        self.label.setText('...' + os.path.split(self.filename)[-1][-20:])
+        self.label.setText('...' + Path(self.filename).name[-20:])
 
 
 def color_pixmap(color):
@@ -376,8 +385,6 @@ class BaseProcess(object):
 
     Attributes:
         items: list of significant values unique to each BaseProcess subclass
-
-
     """
 
     def __init__(self):
@@ -432,7 +439,7 @@ class BaseProcess(object):
         self.oldname = self.oldwindow.name
 
     def end(self):
-        from .. import window
+        from flika import window
         if not hasattr(self, 'newtif') or self.newtif is None:
             self.oldwindow.reset()
             return
@@ -474,7 +481,7 @@ class BaseProcess(object):
         self.items = []
 
     def call_from_gui(self):
-        from .. import window
+        from flika import window
         varnames = [i for i in inspect.getfullargspec(
             self.__call__)[0] if i != 'self' and i != 'keepSourceWindow']
         try:
@@ -524,7 +531,7 @@ class BaseProcess_noPriorWindow(BaseProcess):
         g.m.statusBar().showMessage('Performing {}...'.format(self.__name__))
 
     def end(self):
-        from .. import window
+        from flika import window
         commands = [self.command]
         newWindow = window.Window(self.newtif, str(
             self.newname), commands=commands)

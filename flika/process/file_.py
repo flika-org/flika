@@ -1,24 +1,33 @@
 # -*- coding: utf-8 -*-
-from ..logger import logger
-logger.debug("Started 'reading process/file_.py'")
-import pyqtgraph as pg
-import pyqtgraph.exporters
+"""
+File-related operations for flika - opening, saving, and closing files.
+"""
+
+# Standard library imports
 import time
 import os.path
 import sys
-import numpy as np
-from qtpy import uic, QtGui, QtCore, QtWidgets
-import shutil, subprocess
+import shutil
+import subprocess
 import datetime
 import json
 import re
 import pathlib
 
-from .. import global_vars as g
-from ..utils.BaseProcess import BaseDialog
-from ..window import Window
-from ..utils.misc import open_file_gui, save_file_gui
-from ..utils.io import tifffile
+# Third-party imports
+import numpy as np
+import pyqtgraph as pg
+from qtpy import QtGui, QtWidgets
+
+# Local application imports
+from flika.logger import logger
+import flika.global_vars as g
+from flika.utils.BaseProcess import BaseDialog
+from flika.window import Window
+from flika.utils.misc import open_file_gui, save_file_gui
+from flika.utils.io import tifffile
+
+logger.debug("Started 'reading process/file_.py'")
 
 __all__ = ['save_file', 'save_points', 'save_rois', 'save_movie_gui', 'open_file', 'open_file_from_gui', 'open_image_sequence_from_gui', 'open_points', 'close']
 
@@ -247,7 +256,7 @@ def open_image_sequence(filename=None, from_gui=False):
     return new_window
 
 
-def open_file(filename=None, from_gui=False):
+def open_file(filename: str|None =None, from_gui: bool =False):
     """ open_file(filename=None)
     Opens an image or movie file (.tif, .stk, .nd2) into a new_window.
 
@@ -272,7 +281,7 @@ def open_file(filename=None, from_gui=False):
     print(f"Filename: {filename}")
     g.m.statusBar().showMessage(f'Loading {os.path.basename(str(filename))}')
     t = time.time()
-    metadata = dict()
+    metadata: dict = {}
     ext = os.path.splitext(str(filename))[1]
     if ext in ['.tif', '.stk', '.tiff', '.ome']:
         results = open_tiff(str(filename), metadata)

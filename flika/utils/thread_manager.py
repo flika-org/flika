@@ -245,7 +245,7 @@ class ThreadPool:
         valid_controllers = []
         for c in self.controllers:
             try:
-                if c.thread.isRunning():
+                if c.thread is not None and c.thread.isRunning():
                     valid_controllers.append(c)
             except RuntimeError:
                 # Thread was already deleted, skip it

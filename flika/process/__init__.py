@@ -1,20 +1,26 @@
 # -*- coding: utf-8 -*-
-from ..logger import logger
+"""
+Process module for flika - provides image processing operations.
+"""
+
+# Local application imports
+from flika.logger import logger
 logger.debug("Started 'reading process/__init__.py'")
 
-from .stacks import *
-from .math_ import *
-from .filters import *
-from .binary import *
-from .roi import *
-from .measure import *
-from .color import *
-from .overlay import *
-from .file_ import *
+from flika.process.stacks import *
+from flika.process.math_ import *
+from flika.process.filters import *
+from flika.process.binary import *
+from flika.process.roi import *
+from flika.process.measure import *
+from flika.process.color import *
+from flika.process.overlay import *
+from flika.process.file_ import *
 
 def setup_menus():
+    """Set up the flika menu structure for process operations."""
     logger.debug("Started 'process.__init__.setup_menus()'")
-    from .. import global_vars as g
+    import flika.global_vars as g
     if len(g.menus) > 0:
         print("flika menubar already initialized.")
         return

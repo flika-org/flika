@@ -1,16 +1,24 @@
 # -*- coding: utf-8 -*-
-from .logger import logger
-logger.debug("Started 'reading tracefig.py'")
+"""
+Trace display module for flika - provides visualization of ROI traces.
+"""
+
+# Standard library imports
 import os
 import time
+# Third-party imports
 import numpy as np
 from qtpy import QtCore, QtGui, QtWidgets
 from scipy.fftpack import fft, fftfreq, fftshift
 import pyqtgraph as pg
 from pyqtgraph.dockarea import *
-from . import global_vars as g
-from .utils.misc import save_file_gui
-from .roi import ROI_Base
+# Local application imports
+from flika.logger import logger
+import flika.global_vars as g
+from flika.utils.misc import save_file_gui
+from flika.roi import ROI_Base
+
+logger.debug("Started 'reading tracefig.py'")
 
 class TraceFig(QtWidgets.QWidget):
     """Pyqtgraph PlotWidget with frame range selector. Display average trace of ROIs and updates in realtime.
@@ -84,7 +92,7 @@ class TraceFig(QtWidgets.QWidget):
         self.timer.timeout.connect(self.p1.update)
         self.timer.start()
 
-        from .process.measure import measure
+        from flika.process.measure import measure
         self.measure=measure
         self.p1.scene().sigMouseClicked.connect(self.measure.pointclicked)
         self.p1.scene().sigMouseClicked.connect(self.setCurrentTraceWindow)
