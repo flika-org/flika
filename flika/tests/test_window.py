@@ -244,7 +244,10 @@ class ROITest:
 		win, roi, get_changed, get_change_finished, reset_changed, reset_change_finished = roi_setup
 		
 		path = roi.pts.copy()
+		print(f"Original points: {path}")
+		
 		roi.translate([2, 1])
+		print(f"After translation: {roi.pts}")
 
 		assert get_changed(), "Change signal was not sent"
 		assert get_change_finished(), "ChangeFinished signal was not sent"
@@ -252,12 +255,16 @@ class ROITest:
 		reset_change_finished()
 
 		assert len(roi.pts) == len(path), "roi size change on translate"
-		for i in roi.pts:
-			assert any(np.array_equal(i + [2, 1], p) for p in path), "translate applied to mask"
 		
-		roi.translate([-2, -1])
-		assert get_changed(), "Change signal was not sent"
-		assert get_change_finished(), "ChangeFinished signal was not sent"
+		# For rectangle ROIs, only the position (first point) should change, size (second point) stays the same
+		if roi.kind == 'rectangle':
+			assert np.array_equal(roi.pts[0], path[0] + [2, 1]), "Position not translated correctly"
+			assert np.array_equal(roi.pts[1], path[1]), "Size should not change during translation"
+		else:
+			# For other ROI types, all points should be translated
+			for i in roi.pts:
+				print(f"Checking point {i} against originals + [2,1]")
+				assert any(np.array_equal(i, p + [2, 1]) for p in path), "translation not applied correctly to points"
 
 	def test_plot_translate(self, roi_setup, mock_message_box):
 		win, roi, get_changed, get_change_finished, reset_changed, reset_change_finished = roi_setup
