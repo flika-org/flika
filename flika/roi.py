@@ -23,6 +23,7 @@ import os
 from qtpy import QtGui, QtCore, QtWidgets
 import pyqtgraph as pg
 import numpy as np
+import skimage.draw
 from pyqtgraph.graphicsItems.ROI import Handle
 from . import global_vars as g
 from .utils.misc import random_color, open_file_gui, nonpartial
@@ -467,10 +468,9 @@ class ROI_line(ROI_Base, pg.LineSegmentROI):
             self.deleteKymograph()
 
     def getMask(self):
-        from skimage.draw import line
         x=np.array([p[0] for p in self.pts], dtype=int)
         y=np.array([p[1] for p in self.pts], dtype=int)
-        xx, yy = line(x[0],y[0],x[1],y[1])
+        xx, yy = skimage.draw.line(x[0],y[0],x[1],y[1])
         idx_to_keep = np.logical_not( (xx>=self.window.mx) | (xx<0) | (yy>=self.window.my) | (yy<0))
         xx = xx[idx_to_keep]
         yy = yy[idx_to_keep]
@@ -692,14 +692,13 @@ class ROI_freehand(ROI_Base, pg.ROI):
         pass
 
     def getMask(self):
-        from skimage.draw import polygon
         if self._untranslated_mask is not None:
             xx = self._untranslated_mask[0] + int(self.state['pos'][0])
             yy = self._untranslated_mask[1] + int(self.state['pos'][1])
         else:
             x, y = np.transpose(self._untranslated_pts)
             mask=np.zeros(self.window.imageDimensions())
-            xx, yy = polygon(x,y,shape=mask.shape)
+            xx, yy = skimage.draw.polygon(x,y,shape=mask.shape)
             self._untranslated_mask = xx, yy
 
         idx_to_keep = np.logical_not( (xx>=self.window.mx) | (xx<0) | (yy>=self.window.my) | (yy<0))
@@ -994,7 +993,7 @@ class ROI_rect_line(ROI_Base, QtWidgets.QGraphicsObject):
         yys = []
         for i in range(len(self.pts)-1):
             p1, p2 = self.pts[i], self.pts[i+1]
-            xx, yy = line(int(p1[0]), int(p1[1]), int(p2[0]), int(p2[1]))
+            xx, yy = skimage.draw.line(int(p1[0]), int(p1[1]), int(p2[0]), int(p2[1]))
             idx_to_keep = np.logical_not( (xx>=self.window.mx) | (xx<0) | (yy>=self.window.my) | (yy<0))
             xx = xx[idx_to_keep]
             yy = yy[idx_to_keep]

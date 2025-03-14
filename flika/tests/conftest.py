@@ -6,7 +6,7 @@ import gc
 flikaApp = FlikaApplication()
 
 @pytest.fixture(scope='session', autouse=True)
-def fa():
+def fa() -> FlikaApplication:
 	return flikaApp
 
 @pytest.fixture(scope="session", autouse=True)
