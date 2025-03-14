@@ -27,15 +27,9 @@ from flika import global_vars as g
 from flika.utils.misc import load_ui
 from flika.images import image_path
 from flika.utils.thread_manager import run_in_thread, ThreadController
+from flika.app.plugin_utils import PluginInfo, plugin_info_urls_by_name, get_plugin_info_xml_from_url
+import flika.app.plugin_utils as plugin_utils
 
-plugin_list = {
-    'Beam Splitter':    'https://raw.githubusercontent.com/BrettJSettle/BeamSplitter/master/',
-    'Detect Puffs':     'https://raw.githubusercontent.com/kyleellefsen/detect_puffs/master/',
-    'Global Analysis':  'https://raw.githubusercontent.com/BrettJSettle/GlobalAnalysisPlugin/master/',
-    'Pynsight':         'http://raw.githubusercontent.com/kyleellefsen/pynsight/master/',
-    'QuantiMus':        'http://raw.githubusercontent.com/Quantimus/quantimus/master/',
-    'Rodent Tracker':   'https://raw.githubusercontent.com/kyleellefsen/rodentTracker/master/'
-}
 
 helpHTML = '''
 <h1 style="width:100%; text-align:center">Welcome to the flika Plugin Manager</h1>
@@ -72,30 +66,7 @@ def get_plugin_directory():
 plugin_dir = get_plugin_directory()
 
 
-@beartype.beartype
-def parse_plugin_info_xml(xml_str: str) -> dict:
-    """
-    Parse an XML string into a dictionary.
-    """
-    #logger.debug('Calling app.plugin_manager.parse')
-    tree = ElementTree.fromstring(xml_str)
-    def step(item: ElementTree.Element) -> dict:
-        d = {}
-        if item.text and item.text.strip():
-            d['#text'] = item.text.strip()
-        for k, v in item.items():
-            d[f'@{k}'] = v
-        for k in list(item):
-            if k.tag not in d:
-                d[k.tag] = step(k)
-            elif isinstance(d[k.tag], list):
-                d[k.tag].append(step(k))
-            else:
-                d[k.tag] = [d[k.tag], step(k)]
-        if len(d) == 1 and '#text' in d:
-            return d['#text']
-        return d
-    return step(tree)
+
 
 def str2func(plugin_name: str, file_location: str, function: str) -> callable:
     '''
@@ -130,22 +101,8 @@ def build_submenu(module_name: str, parent_menu: QtWidgets.QMenu, layout_dict: d
                     action = QtWidgets.QAction(od['#text'], parent_menu, triggered = method)
                     parent_menu.addAction(action)
 
-@beartype.beartype
-@dataclasses.dataclass(frozen=True)
-class PluginInfo:
-    author: str  # The author of the plugin
-    dependencies: list[str]  # The dependencies of the plugin
-    description: str  # The description of the plugin
-    directory: str  # The name of the module to import. This will be changed to 'module_name' eventually.
-    documentation: str  # The documentation of the plugin
-    full_path: pathlib.Path  # The full path to the plugin directory    
-    info_url: str  # The URL of the plugin info
-    last_modified: float  # The last modified date of the plugin
-    latest_version: str  # The latest version of the plugin
-    menu_layout: list[dict]  # The menu layout of the plugin
-    name: str  # The human-readable name of the plugin
-    url: str  # The URL of the plugin
-    version: packaging.version.Version  # The version of the plugin
+
+
 
 
 @beartype.beartype
@@ -184,52 +141,7 @@ class Plugin():
         return file_path.stat().st_mtime
 
 
-    @staticmethod
-    def fromLocal(plugin_path : pathlib.Path):
-        #logger.debug('Calling app.plugin_manager.Plugin.fromLocal')
-        with open(plugin_path / 'info.xml', 'r', encoding='utf-8') as f:
-            info_xml_str = f.read()
 
-
-        with open(plugin_path / 'about.html', 'r', encoding='utf-8') as f:
-            try:
-                description = str(f.read())
-            except FileNotFoundError:
-                description = "No local description file found"
-
-        d: dict = parse_plugin_info_xml(info_xml_str)
-        if 'dependencies' in d and 'dependency' in d['dependencies']:
-            deps = d['dependencies']['dependency']
-            dependencies = [d['@name'] for d in deps] if isinstance(deps, list) else [deps['@name']]
-
-        
-        author : str = d['author']
-        dependencies : list[str] = dependencies
-        description: str = description
-        directory: str = d['directory']# The name of the module to import. This will be changed to 'module_name' eventually.
-        documentation: str = d['documentation'] if 'documentation' in d else None # The documentation of the plugin
-        full_path: pathlib.Path = plugin_dir / d['directory']  # The full path to the plugin directory    
-        info_url: str = info_url # The URL of the plugin info
-        last_modified: float = d['date']  # The last modified date of the plugin
-        latest_version = d['version']  # The latest version of the plugin
-        menu_layout: d['menu_layout']  # The menu layout of the plugin
-        name: str = d['@name']  # The human-readable name of the plugin
-        url: str | None = d['url'] if 'url' in d else None  # The URL of the plugin
-        version: packaging.version.Version = d['version']  # The version of the plugin
-
-        return PluginInfo(author=author,
-                          dependencies=dependencies,
-                          description=description,
-                          directory=directory,
-                          documentation=documentation,
-                          full_path=full_path,
-                          info_url=info_url,
-                          last_modified=last_modified,
-                          latest_version=latest_version,
-                          menu_layout=menu_layout,
-                          name=name,
-                          url=url,
-                          version=version)
 
     def bind_menu_and_methods(self):
         if len(self.menu_layout) > 0:
@@ -237,6 +149,14 @@ class Plugin():
             build_submenu(self.directory, self.menu, self.menu_layout)
         else:
             self.menu = None
+
+    @staticmethod
+    def fromLocal(plugin_path : pathlib.Path):
+        plugin_info = plugin_utils.get_plugin_info_from_filesystem(plugin_path)
+        if isinstance(plugin_info, FileNotFoundError):
+            return plugin_info
+        return Plugin(plugin_info.name, plugin_info.info_url)
+
 
     @staticmethod
     def get_plugin_info_from_url(
@@ -247,66 +167,17 @@ class Plugin():
         Update the plugin information from the online repository.
         Returns True if the update was successful, False otherwise.
         """
-        info_url_xml : str = urllib.parse.urljoin(info_url, 'info.xml')
-        try:
-            info_xml_bytes : bytes = urllib.request.urlopen(info_url_xml).read()
-            info_xml_str : str = info_xml_bytes.decode('utf-8')
-        except urllib.error.HTTPError as e:
-            return e
-
-        plugin_info_dict: dict = parse_plugin_info_xml(info_xml_str)
-        description_url: str = urllib.parse.urljoin(info_url, 'about.html')
-        try:
-            description: str = urllib.request.urlopen(description_url).read().decode('utf-8')
-        except urllib.error.HTTPError as e:
-            return e
-        menu_layout = plugin_info_dict['menu_layout']
-        if 'date' in plugin_info_dict:
-            version = '.'.join(plugin_info_dict['date'].split('/')[2:] + plugin_info_dict['date'].split('/')[:2])
-            latest_version = version
-        else:
-            version = ''
-            latest_version = ''
-        if 'dependencies' in plugin_info_dict and 'dependency' in plugin_info_dict['dependencies']:
-            deps = plugin_info_dict.pop('dependencies')['dependency']
-            dependencies: list[str] = [d['@name'] for d in deps] if isinstance(deps, list) else [deps['@name']]
-        else:
-            dependencies: list[str] = []
-
-        d = plugin_info_dict
-        author : str = d['author']
-        dependencies = dependencies
-        description = description
-        directory: str = d['directory']# The name of the module to import. This will be changed to 'module_name' eventually.
-        documentation: str = d['documentation']  # The documentation of the plugin
-        full_path: pathlib.Path = plugin_dir / d['directory']  # The full path to the plugin directory    
-        info_url: str = info_url # The URL of the plugin info
-        last_modified: float = d['date']  # The last modified date of the plugin
-        latest_version = latest_version  # The latest version of the plugin
-        menu_layout: list[dict] = menu_layout  # The menu layout of the plugin
-        name: str = d['@name']  # The human-readable name of the plugin
-        url: str | None = d['url'] if 'url' in d else None  # The URL of the plugin
-        version: packaging.version.Version = packaging.version.parse(d['version'])  # The version of the plugin
-
-        return PluginInfo(author=author,
-                          dependencies=dependencies,
-                          description=description,
-                          directory=directory,
-                          documentation=documentation,
-                          full_path=full_path,
-                          info_url=info_url,
-                          last_modified=last_modified,
-                          latest_version=latest_version,
-                          menu_layout=menu_layout,
-                          name=name,
-                          url=url,
-                          version=version)
+        plugin_info = plugin_utils.get_plugin_info_from_url(info_url)
+        if isinstance(plugin_info, urllib.error.HTTPError):
+            return plugin_info
+        plugin_info = dataclasses.replace(plugin_info, full_path=plugin_dir / plugin_info.directory)
+        return plugin_info
 
 @beartype.beartype
 class PluginManager(QtWidgets.QMainWindow):
     plugins: dict[str, Plugin] = {}
     thread_controllers: dict[str, ThreadController] = {}
-    sigPluginLoaded = QtCore.Signal(str)
+    sigPluginLoaded = QtCore.Signal(PluginInfo)
 
     '''
     PluginManager handles installed plugins and the online plugin database
@@ -329,13 +200,13 @@ class PluginManager(QtWidgets.QMainWindow):
     @staticmethod
     def refresh_online_plugins():
         logger.debug('Calling app.plugin_manager.PluginManager.refresh_online_plugins()')
-        for p in plugin_list.keys():
+        for p in plugin_info_urls_by_name.keys():
             PluginManager.load_online_plugin(p)
 
     @staticmethod
     def load_online_plugin(plugin_name: str) -> None:
         logger.debug('Calling app.plugin_manager.PluginManager.load_online_plugin()')
-        if plugin_name not in plugin_list:
+        if plugin_name not in plugin_info_urls_by_name.keys():
             return
             
         # Check if there's already a thread loading this plugin
@@ -345,7 +216,7 @@ class PluginManager(QtWidgets.QMainWindow):
         def load_plugin_info() -> PluginInfo:
             """Function to load plugin info from its URL"""
             plugin : Plugin = PluginManager.plugins[plugin_name]
-            info_url : str = plugin_list[plugin_name]
+            info_url : str = plugin_info_urls_by_name[plugin_name]
             plugin_info : PluginInfo | Exception = plugin.get_plugin_info_from_url(info_url, plugin_dir)
             if isinstance(plugin_info, Exception):
                 raise plugin_info
@@ -356,11 +227,9 @@ class PluginManager(QtWidgets.QMainWindow):
         PluginManager.thread_controllers[plugin_name] = controller
         
         # Connect signals
-        def handle_error(error_msg):
-            raise Exception(f"Error loading plugin {plugin_name}: {error_msg}")
 
         controller.connect('result', lambda plugin_info: PluginManager.gui.sigPluginLoaded.emit(plugin_info))
-        controller.connect('error', lambda error_msg: handle_error)
+        controller.connect('error', lambda error_msg: (_ for _ in ()).throw(Exception(f"Error loading plugin {plugin_name}: {error_msg}")))
         # controller.connect('error', lambda error_msg: logger.error(f"Error loading plugin {plugin_name}: {error_msg}"))
         
         if hasattr(PluginManager, 'gui'):
@@ -437,6 +306,7 @@ class PluginManager(QtWidgets.QMainWindow):
         self.refreshButton.pressed.connect(self.refresh_online_plugins)
 
         def update_plugin_info_async(plugin_info: PluginInfo):
+            assert isinstance(plugin_info, PluginInfo)
             self.statusBar.showMessage(f'Finished loading {plugin_info.name}')
             PluginManager.plugins[plugin_info.name].plugin_info = plugin_info
             if PluginManager.plugins[plugin_info.name].listWidget.isSelected():
@@ -447,6 +317,13 @@ class PluginManager(QtWidgets.QMainWindow):
 
         self.setWindowTitle('Plugin Manager')
         self.showPlugins()
+
+        # Set icons programmatically using image_path
+        try:
+            self.refreshButton.setIcon(QtGui.QIcon(image_path('refresh.png')))
+            self.searchButton.setIcon(QtGui.QIcon(image_path('search.png')))
+        except RuntimeError as e:
+            logger.warning(f"Failed to load icons: {e}")
 
     def showHelpScreen(self):
         self.pluginLabel.setText('')
@@ -501,12 +378,8 @@ class PluginManager(QtWidgets.QMainWindow):
         info : PluginInfo | None = plugin.plugin_info
 
         if info is not None:
-            if info.version != '':
-                version_obj = packaging.version.parse(info.version)
-                if info.latest_version != '':
-                    latest_version_obj = packaging.version.parse(info.latest_version)
-                    if version_obj < latest_version_obj:
-                        msg += '; <b>Update Available!</b>'
+            if info.version < info.latest_version:
+                msg += '; <b>Update Available!</b>'
 
         # Only show update button if we have valid versions and an update is available
         self.updateButton.setVisible(info is not None and
@@ -685,13 +558,16 @@ Then try installing the plugin again.""")
 
 def load_local_plugins():
     logger.debug("Started 'app.plugin_manager.load_local_plugins'")
-    plugins = {n: Plugin(n) for n in plugin_list}
+    plugins = {n: Plugin(n) for n in plugin_info_urls_by_name}
     installed_plugins = {}
     errors = []
     
     for pluginPath in PluginManager.local_plugin_paths():
         p = Plugin()
-        p.fromLocal(pluginPath)
+        plugin_info: PluginInfo | Exception = p.fromLocal(pluginPath)
+        if isinstance(plugin_info, FileNotFoundError):
+            raise plugin_info
+        p.plugin_info = plugin_info
         try:
             p.bind_menu_and_methods()
             if p.name not in plugins.keys() or p.name not in installed_plugins:
