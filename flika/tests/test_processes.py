@@ -1,4 +1,4 @@
-#pylint: disable=missing-function-docstring
+#pylint: disable=missing-function-docstring,missing-class-docstring,missing-module-docstring
 import sys, os
 import optparse
 import contextlib
@@ -113,8 +113,6 @@ class TestBinary(ProcessTest):
             
         w1 = Window(test_image)
         w_bin = threshold(.5)  # Create binary image first
-        if w_bin is None:
-            pytest.skip("Failed to create binary image")
             
         w = binary_dilation(2, 3, 1)
         assert w is not None, "Binary dilation should return a window"
@@ -126,9 +124,6 @@ class TestBinary(ProcessTest):
             
         w1 = Window(test_image)
         w_bin = threshold(.5)  # Create binary image first
-        if w_bin is None:
-            pytest.skip("Failed to create binary image")
-            
         w = binary_erosion(2, 3, 1)
         assert w is not None, "Binary erosion should return a window"
     
@@ -139,14 +134,10 @@ class TestBinary(ProcessTest):
             
         w1 = Window(test_image)
         w_bin = threshold(.5)  # Create binary image first
-        if w_bin is None:
-            pytest.skip("Failed to create binary image")
             
         w = generate_rois(10, 10)  # min_size and max_size
         assert w is not None, "Generate ROIs should return a window"
     
-    # Skip this test for now since it has issues with boolean arrays
-    # @pytest.mark.skip(reason="Issues with boolean array operations in normLUT")
     def test_remove_small_blobs(self, test_image, mock_message_box):
         # Create binary image first
         if self.is_color_image(test_image):
@@ -154,9 +145,6 @@ class TestBinary(ProcessTest):
             
         w1 = Window(test_image)
         w_bin = threshold(.5)  # First create a binary image
-        if w_bin is None:
-            pytest.skip("Failed to create binary image")
-            
         w2 = remove_small_blobs(10, value=1)
         assert w2 is not None, "Remove small blobs should return a window"
 
@@ -196,22 +184,19 @@ class TestFilters(ProcessTest):
         
         # Use our suppress_alerts context manager
         with suppress_alerts():
-            try:
-                # Patch the alert function directly before calling butterworth_filter
-                old_alert = None
-                if hasattr(g, "alert"):
-                    old_alert = g.alert
-                    g.alert = lambda *args, **kwargs: None
-                    
-                w = butterworth_filter(1, .2, .6)
+            # Patch the alert function directly before calling butterworth_filter
+            old_alert = None
+            if hasattr(g, "alert"):
+                old_alert = g.alert
+                g.alert = lambda *args, **kwargs: None
                 
-                # Restore original alert function if we changed it
-                if old_alert is not None:
-                    g.alert = old_alert
-                    
-                assert w is not None, "Butterworth filter should return a window"
-            except Exception as e:
-                pytest.skip(f"Butterworth filter raised an exception: {e}")
+            w = butterworth_filter(1, .2, .6)
+            
+            # Restore original alert function if we changed it
+            if old_alert is not None:
+                g.alert = old_alert
+                
+            assert w is not None, "Butterworth filter should return a window"
         
     def test_mean_filter(self, test_image, mock_message_box):
         # Mean filter only works on 3D grayscale movies
@@ -254,25 +239,17 @@ class TestFilters(ProcessTest):
         assert w is not None, "Difference filter should return a window"
 
     def test_bilateral_filter(self, test_image, mock_message_box):
-        # For consistency, test on all images but prepare for some to skip
+        # Bilateral filter only works on 3D grayscale movies
+        if not self.is_3d_grayscale(test_image):
+            pytest.skip("Bilateral filter only works on 3D grayscale movies")
+            
         w1 = Window(test_image)
-        
-        try:
-            w = bilateral_filter(True, 30, 10, .05, 100)  # soft filter
-            assert w is not None, "Bilateral filter (soft) should return a window"
-        except Exception as e:
-            # Just log the exception and skip for now
-            print(f"Bilateral filter (soft) raised: {e}")
-            pytest.skip(f"Bilateral filter (soft) error: {e}")
+        w = bilateral_filter(True, 30, 10, .05, 100)  # soft filter
+        assert w is not None, "Bilateral filter (soft) should return a window"
             
-        try:
-            g.win = w1  # Reset the active window
-            w2 = bilateral_filter(False, 30, 10, .05, 100)  # hard filter
-            assert w2 is not None, "Bilateral filter (hard) should return a window"
-        except Exception as e:
-            # Just log the exception and skip for now
-            print(f"Bilateral filter (hard) raised: {e}")
-            
+        w2 = bilateral_filter(False, 30, 10, .05, 100)  # hard filter
+        assert w2 is not None, "Bilateral filter (hard) should return a window"
+
 
 class TestMath(ProcessTest):
     def test_subtract(self, test_image, mock_message_box):
