@@ -201,6 +201,8 @@ class FlikaApplication(QtWidgets.QMainWindow):
         self.load_local_plugins_thread.error_loading.connect(g.alert)
         logger.debug("Completed 'creating app.application.FlikaApplication'")
 
+        self.setup_button_icons()
+
     def plugins_done(self, plugins):
         for p in plugins.values():
             if p.loaded:
@@ -374,6 +376,16 @@ class FlikaApplication(QtWidgets.QMainWindow):
         g.settings.save()
         if g.m == self:
             g.m = None
+
+    def setup_button_icons(self):
+        """Ultra-simple button icon setup"""
+        from ..images import image_path
+        
+        # One-liner for most buttons (assumes button name matches icon name)
+        for btn in self.findChildren(QtWidgets.QPushButton):
+            name = btn.objectName()
+            icon_name = f"{name}.png"
+            btn.setIcon(QtGui.QIcon(image_path(icon_name)))
 
 class SetCurrentWindowSignal(QtWidgets.QWidget):
     sig=QtCore.Signal()

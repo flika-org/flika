@@ -12,8 +12,6 @@ from .version import __version__
 from .app.application import FlikaApplication
 
 
-# for development purposes, add this if flika is not in your site-packages
-# sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 
 
@@ -142,34 +140,4 @@ def post_install():
 
 if __name__ == '__main__':
     start_flika(sys.argv[1:])
-
-logger.debug("Completed 'reading flika.py'")
-"""
-def exec_(args=sys.argv):
-    opt, args = parse_arguments(args[1:])
-
-    if opt.verbose:
-        logger.setLevel("INFO")
-
-    logger.info("Input arguments: %s", sys.argv)
-
-    start_flika(files=args)
-
-
-def run(args=sys.argv):
-    ''' open flika without running exec_. For debugging purposes
-    '''
-    opt, args = parse_arguments(args[1:])
-
-    if opt.verbose:
-        logger.setLevel("INFO")
-
-    fa = FlikaApplication()
-    fa.show()
-
-    load_files(files=args)
-
-    if 'PYCHARM_HOSTED' not in os.environ and 'SPYDER_SHELL_ID' not in os.environ:
-        return fa.app.exec_()
-"""
 
