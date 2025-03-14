@@ -164,8 +164,24 @@ class ROITest:
 		if points is None:
 			points = self.POINTS
 			
+		# First check the mask
 		assert np.array_equal(roi.getMask(), mask), f"Mask differs on creation. {roi.getMask()} != {mask}"
-		assert np.array_equal(roi.pts, points), f"pts differs on creation. {roi.pts} != {points}"
+		
+		# Diagnose points issue
+		roi_pts = roi.pts
+		print(f"ROI points type: {type(roi_pts)}")
+		print(f"Expected points: {points}")
+		print(f"Actual points: {roi_pts}")
+		
+		# Convert Point objects to arrays for comparison if needed
+		if hasattr(roi_pts[0], 'x') and hasattr(roi_pts[0], 'y'):
+			converted_pts = [(p.x(), p.y()) for p in roi_pts]
+			print(f"Converted points: {converted_pts}")
+			assert np.array_equal(converted_pts, points), f"pts differs on creation. {converted_pts} != {points}"
+		else:
+			assert np.array_equal(roi_pts, points), f"pts differs on creation. {roi_pts} != {points}"
+		
+		# Check getPoints too
 		assert np.array_equal(roi.getPoints(), points), f"getPoints differs on creation. {roi.getPoints()} != {points}"
 
 	def check_similar(self, roi1, roi2):
@@ -457,7 +473,8 @@ class ROI_Line(ROITest):
 class ROI_Freehand(ROITest):
 	TYPE = "freehand"
 	POINTS = [3, 2], [5, 6], [2, 4]
-	MASK = [[3, 3, 3, 4, 4], [2, 3, 4, 4, 5]]
+	MASK = (np.array([2, 3, 3, 3, 4, 4, 5], dtype=int), 
+			np.array([4, 2, 3, 4, 4, 5, 6], dtype=int))
 
 	def test_translate_multiple(self, roi_setup, mock_message_box):
 		# Skip this test for freehand ROIs
@@ -466,8 +483,8 @@ class ROI_Freehand(ROITest):
 
 class ROI_Rect_Line(ROITest):
 	TYPE = "rect_line"
-	POINTS = [[3, 2], [5, 4], [4, 8]]
-	MASK = [[3, 4, 5, 5, 5, 4, 4, 4], [2, 3, 4, 4, 5, 6, 7, 8]]
+	POINTS = [3, 2], [5, 4], [4, 8]
+	MASK = (np.array([3, 3, 3, 3, 4, 4, 4, 4]), np.array([2, 2, 3, 4, 5, 6, 7, 8]))
 
 	def test_extend(self, roi_setup, mock_message_box):
 		win, roi, get_changed, get_change_finished, reset_changed, reset_change_finished = roi_setup
