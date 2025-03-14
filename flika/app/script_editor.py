@@ -1,12 +1,15 @@
-# -*- coding: utf-8 -*-
-from ..logger import logger
-logger.debug("Started 'reading app/script_editor.py'")
-from qtpy import QtGui, QtCore, QtWidgets, uic
+"""
+Script editor for flika.
+"""
+
 import os
 
-from .. import global_vars as g
-from .syntax import PythonHighlighter
-from ..utils.misc import save_file_gui, open_file_gui, load_ui
+from qtpy import QtGui, QtCore, QtWidgets
+
+from flika.logger import logger
+from flika import global_vars as g
+from flika.app.syntax import PythonHighlighter
+from flika.utils.misc import save_file_gui, open_file_gui, load_ui
 
 MESSAGE_TIME = 2000
 try:
@@ -18,7 +21,7 @@ else:
 
 def qstr2str(string):
     string=str(string)
-    return string.replace(u'\u2029','\n').strip()
+    return string.replace('\u2029','\n').strip()
 
 class Editor(QtWidgets.QPlainTextEdit):
     def __init__(self, scriptfile = ''):
@@ -50,12 +53,12 @@ class Editor(QtWidgets.QPlainTextEdit):
     def open_file(self, scriptfile):
         self.scriptfile = scriptfile
         try:
-            script = open(scriptfile, 'r').read()
+            script = open(scriptfile, 'r', encoding='utf-8').read()
         except FileNotFoundError as e:
             print("Failed to read %s: %s" % (scriptfile, e))
             return
         self.setPlainText(script)
-        ScriptEditor.gui.statusBar().showMessage('{} opened.'.format(os.path.basename(self.scriptfile)), MESSAGE_TIME)
+        ScriptEditor.gui.statusBar().showMessage(f'{os.path.basename(self.scriptfile)} opened.', MESSAGE_TIME)
 
     def save_as(self):
         filename = save_file_gui('Save script', ScriptEditor.most_recent_script(), '*.py')
@@ -74,7 +77,7 @@ class Editor(QtWidgets.QPlainTextEdit):
         f.write(command)
         f.close()
         ScriptEditor.add_recent_file(self.scriptfile)
-        ScriptEditor.gui.statusBar().showMessage('{} saved.'.format(os.path.basename(self.scriptfile)), MESSAGE_TIME)
+        ScriptEditor.gui.statusBar().showMessage(f'{os.path.basename(self.scriptfile)} saved.', MESSAGE_TIME)
         return True
 
 class ScriptEditor(QtWidgets.QMainWindow):

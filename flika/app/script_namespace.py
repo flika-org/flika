@@ -1,12 +1,16 @@
-# -*- coding: utf-8 -*-
+"""
+Script namespace for flika.
+"""
+
 from inspect import getmembers, ismodule
 import numpy as np
 import scipy
 import pyqtgraph as pg
-from .. import process
-from .. import global_vars as g
-from .. import window
-from ..roi import open_rois
+
+from flika import process
+from flika import global_vars as g
+from flika import window
+from flika.roi import open_rois
 
 
 def getnamespace():
