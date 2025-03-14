@@ -46,6 +46,7 @@ dependencies = [
     "requests",
     "nd2reader",
     "markdown",
+    "beartype",
     "jaxtyping",
 ]
 

@@ -20,6 +20,7 @@ Todo:
 from .logger import logger
 logger.debug("Started 'reading roi.py'")
 import jaxtyping
+import beartype
 from qtpy import QtGui, QtCore, QtWidgets
 import pyqtgraph as pg
 import numpy as np
@@ -29,6 +30,7 @@ from . import global_vars as g
 from .utils.misc import random_color, open_file_gui, nonpartial
 
 
+@beartype.beartype
 class ROI_Drawing(pg.GraphicsObject):
     """Graphics Object for ROIs while initially being drawn. Extends pyqtrgaph.GraphicsObject
 
@@ -108,6 +110,7 @@ class ROI_Drawing(pg.GraphicsObject):
         size_y: int|float = self.state['size'].y()
         return QtCore.QRectF(pos_x, pos_y, size_x, size_y)
 
+@beartype.beartype
 class ROI_Base():
     """ROI_Base interface for all ROI types
 
@@ -226,42 +229,46 @@ class ROI_Base():
         '''
         raise NotImplementedError()
 
-    def getTrace(self, bounds: tuple[int, int] | None = None) -> np.ndarray | None:
+    def getTrace(self, bounds: tuple[int, int] | None = None) -> jaxtyping.Float[np.ndarray, "t"] | None:
         '''Compute the average of the pixels within this ROI in its window
 
         Returns:
             Average value within ROI mask, as an array. Cropped to bounds if specified
         '''
-        trace: np.ndarray | None = None
+        trace: jaxtyping.Float[np.ndarray, "t"] | None
         if self.window.image.ndim == 4 or self.window.metadata['is_rgb']:
             g.alert("Plotting trace of RGB movies is not supported. Try splitting the channels.")
             return None
         s1, s2 = self.getMask()
         if np.size(s1) == 0 or np.size(s2) == 0:
-            trace = np.zeros(self.window.mt)
+            trace = np.zeros(self.window.mt, dtype=float)
 
         elif self.window.image.ndim == 3:
             trace = self.window.image[:, s1, s2]
-            while trace.ndim > 1:
-                trace = np.average(trace, 1)
+            if trace is not None:
+                while trace.ndim > 1:
+                    trace = np.average(trace, 1)
         elif self.window.image.ndim == 2:
             trace = self.window.image[s1, s2]
-            trace = [np.average(trace)]
-
-        if bounds:
+            if trace is not None:
+                trace = np.array([np.average(trace)])
+        if bounds and trace is not None:
             trace = trace[bounds[0]:bounds[1]]
         return trace
 
-    def getPoints(self):
+    def getPoints(self) -> jaxtyping.Float[np.ndarray, "n 2"]:
         '''Get points that represent this ROI, used for exporting
+        
+        Returns:
+            np.ndarray: An Nx2 array of points where each row is [x, y]
         '''
         raise NotImplementedError()
 
-    def draw_from_points(self, pts, finish=True):
+    def draw_from_points(self, pts: jaxtyping.Float[np.ndarray, "n 2"], finish: bool = True) -> None:
         '''Redraw the ROI from the given points, used on linked ROIs
 
         Args:
-            pts: points used to represent ROI, often handle positions
+            pts: points used to represent ROI, often handle positions. Shape is Nx2 array
             finish: whether or not to emit the onRegionChangeFinished signal
         '''
         raise NotImplementedError()
@@ -284,10 +291,10 @@ class ROI_Base():
 
         self.update()
 
-    def plot(self) -> 'tracefig.TraceFig':
+    def plot(self):
         """Plot the ROI trace in a :class:`TraceFig <flika.tracefig.TraceFig>`"""
         from .tracefig import roiPlot
-        self.traceWindow: 'tracefig.TraceFig' | None = roiPlot(self)
+        self.traceWindow = roiPlot(self)
         if self.traceWindow == None:
             return
         self.traceWindow.indexChanged.connect(self.window.setIndex)
@@ -414,6 +421,7 @@ class ROI_Base():
         return w
 
 
+@beartype.beartype
 class ROI_line(ROI_Base, pg.LineSegmentROI):
     '''ROI Line class for selecting a straight line of pixels between two points.
 
@@ -485,7 +493,7 @@ class ROI_line(ROI_Base, pg.LineSegmentROI):
         yy = yy[idx_to_keep]
         return xx, yy
 
-    def getPoints(self):
+    def getPoints(self) -> jaxtyping.Float[np.ndarray, "2 2"]:
         return np.array([handle['pos'] + self.state['pos'] for handle in self.handles])
 
     def makeMenu(self):
@@ -532,6 +540,7 @@ class ROI_line(ROI_Base, pg.LineSegmentROI):
         self.sigRegionChanged.disconnect(self.update_kymograph)
         self.kymograph=None
 
+@beartype.beartype
 class ROI_rectangle(ROI_Base, pg.ROI):
     '''ROI rectangle class for selecting a set width and height group of pixels on an image.
 
@@ -542,21 +551,21 @@ class ROI_rectangle(ROI_Base, pg.ROI):
 
     def __init__(self,
         window,
-        pos: tuple[int, int],
-        size: tuple[int, int],
-        resizable: bool = True, 
+        pos: jaxtyping.Integer[np.ndarray, "2"] | tuple[int, int] | list[int],
+        size: jaxtyping.Integer[np.ndarray, "2"] | tuple[int, int] | list[int],
+        resizable: bool = True,
         **kargs):
         """__init__ of ROI_rectangle class
 
         Args:
-            pos (2-tuple): position of top left corner
-            size: (2-tuple): width and height of the rectangle
-            resizable (bool): add resize handles to ROI, this cannot be changed after creation
+            pos: position of top left corner
+            size: width and height of the rectangle
+            resizable: add resize handles to ROI, this cannot be changed after creation
         """
         roiArgs = self.INITIAL_ARGS.copy()
         roiArgs.update(kargs)
-        pos: jaxtyping.Float[np.ndarray, "2"] = np.array(pos, dtype=int)
-        size: jaxtyping.Float[np.ndarray, "2"] = np.array(size, dtype=int)
+        pos = np.array(pos, dtype=int)
+        size = np.array(size, dtype=int)
 
         pg.ROI.__init__(self, pos, size, **roiArgs)
         if resizable:
@@ -581,9 +590,9 @@ class ROI_rectangle(ROI_Base, pg.ROI):
         new_pts = np.array([old_pts[0]+diff, old_pts[1]])
         self.draw_from_points(new_pts)
 
-    def getPoints(self) -> jaxtyping.Float[np.ndarray, "2 2"]:
-        pos: jaxtyping.Float[np.ndarray, "2"] = self.state['pos']
-        size: jaxtyping.Float[np.ndarray, "2"] = self.state['size']
+    def getPoints(self) -> jaxtyping.Integer[np.ndarray, "2 2"]:
+        pos: jaxtyping.Integer[np.ndarray, "2"] = self.state['pos']
+        size: jaxtyping.Integer[np.ndarray, "2"] = self.state['size']
         return np.array([pos, size], dtype=int)
 
     def contains_pts(self, x: float|int, y: float|int) -> bool:
@@ -651,6 +660,7 @@ class ROI_rectangle(ROI_Base, pg.ROI):
         w.image = newtif
         return w
 
+@beartype.beartype
 class ROI_freehand(ROI_Base, pg.ROI):
     """ROI freehand class for selecting a polygon from the original image.
 
@@ -682,7 +692,7 @@ class ROI_freehand(ROI_Base, pg.ROI):
         points: list[pg.Point.Points]= [pg.Point(a, b) for a, b in self._untranslated_pts]
         painter.drawPolygon(points)
 
-    def draw_from_points(self, pts: jaxtyping.Float[np.ndarray, "num_pts 2"], finish: bool = False) -> None:
+    def draw_from_points(self, pts: jaxtyping.Float[np.ndarray, "n 2"], finish: bool = False) -> None:
         self.blockSignals(True)
         self.setPos(*np.min(pts, 0), False)
         self.setSize(np.ptp(pts, 0), False)
@@ -697,7 +707,7 @@ class ROI_freehand(ROI_Base, pg.ROI):
     def contextMenuEnabled(self):
         return True
 
-    def getPoints(self):
+    def getPoints(self) -> jaxtyping.Float[np.ndarray, "n 2"]:
         x, y = self.state['pos']
         return np.add(self._untranslated_pts, [x, y])
 
@@ -725,6 +735,7 @@ class ROI_freehand(ROI_Base, pg.ROI):
         yy = yy[idx_to_keep]
         return xx, yy
 
+@beartype.beartype
 class ROI_rect_line(ROI_Base, QtWidgets.QGraphicsObject):
     """Collection of linked line segments with adjustable width.
 
@@ -1112,6 +1123,7 @@ class ROI_rect_line(ROI_Base, QtWidgets.QGraphicsObject):
         self.kymograph.closeSignal.disconnect(self.deleteKymograph)
         self.kymograph=None
 
+@beartype.beartype
 def makeROI(kind, pts, window=None, color=None, **kargs):
     """Create an ROI object in window with the given points
 
