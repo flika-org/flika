@@ -570,7 +570,7 @@ class Window(QtWidgets.QWidget):
         else:
             return pasteROI(g.clipboard)
         
-    def mousePressEvent(self,ev):
+    def mousePressEvent(self, ev):
         ev.accept()
         self.setAsCurrentWindow()
 
@@ -716,7 +716,7 @@ class Window(QtWidgets.QWidget):
 
     def mouseDragEvent(self, ev):
         modifiers = QtWidgets.QApplication.keyboardModifiers()
-        if modifiers == QtWidgets.QApplication.ShiftModifier:
+        if modifiers == QtCore.Qt.ShiftModifier:
             pass #This is how I detect that the shift key is held down.
         if ev.button() == QtCore.Qt.LeftButton:
             ev.accept()

@@ -108,8 +108,8 @@ class TestWindow:
 # Base class for ROI tests with common setup/teardown
 class ROITest:
 	TYPE = None
-	POINTS = []
-	MASK = []
+	POINTS: list[list[int]] = []
+	MASK: list[list[int]] = []
 	img = None
 	
 	@pytest.fixture

@@ -19,7 +19,7 @@ Todo:
 """
 from .logger import logger
 logger.debug("Started 'reading roi.py'")
-import os
+import jaxtyping
 from qtpy import QtGui, QtCore, QtWidgets
 import pyqtgraph as pg
 import numpy as np
@@ -42,7 +42,7 @@ class ROI_Drawing(pg.GraphicsObject):
         kind (str): one of ['rectangle', 'line', 'freehand', 'rect_line']
         color (QtGui.QColor): pen color to draw ROI with
     """
-    def __init__(self, window, x, y, kind):
+    def __init__(self, window, x: int|float, y: int|float, kind: str):
         pg.GraphicsObject.__init__(self)
         window.imageview.addItem(self)
         self.window = window
@@ -50,13 +50,14 @@ class ROI_Drawing(pg.GraphicsObject):
         self.kind: str = kind
         self.state: dict[str, pg.Point.Points] = {'pos': pg.Point(x, y), 'size': pg.Point(0, 0)}
         self.color: QtGui.QColor = QtGui.QColor(g.settings['roi_color']) if g.settings['roi_color'] != 'random' else random_color()
+        self.mouseHovering: bool = False
 
     def cancel(self):
         g.win.imageview.removeItem(self)
         g.win.currentROI = None
         self.deleteLater()
 
-    def extend(self, x, y):
+    def extend(self, x: int|float, y: int|float):
         new_pt = pg.Point(round(x), round(y))
         if self.kind == 'freehand':
             if self.pts[-1] != new_pt:
@@ -101,7 +102,11 @@ class ROI_Drawing(pg.GraphicsObject):
         return pg.GraphicsObject.contains(self, *args)
 
     def boundingRect(self):
-        return QtCore.QRectF(self.state['pos'].x(), self.state['pos'].y(), self.state['size'].x(), self.state['size'].y())
+        pos_x: int|float = self.state['pos'].x()
+        pos_y: int|float = self.state['pos'].y()
+        size_x: int|float = self.state['size'].x()
+        size_y: int|float = self.state['size'].y()
+        return QtCore.QRectF(pos_x, pos_y, size_x, size_y)
 
 class ROI_Base():
     """ROI_Base interface for all ROI types
@@ -125,6 +130,7 @@ class ROI_Base():
 
     """
     INITIAL_ARGS = {'translateSnap': True, 'removable': True, 'snapSize': 1, 'scaleSnap': True}
+    # plotSignal = QtCore.Signal()
 
     def __init__(self, window, pts):
         self.window = window #: window.Window: Parent window that this ROI belongs to
@@ -138,6 +144,13 @@ class ROI_Base():
         self.linkedROIs = set()
         self.resetSignals()
         self.makeMenu()
+        self.pen = pg.mkPen(QtGui.QColor(255, 255, 255))
+        self.currentPen = self.pen
+        self.mouseHovering = False
+
+    def trigger_plot_signal(self):
+        pass
+        # self.plotSignal.emit()
 
     def mouseClickEvent(self, ev):
         self.window.currentROI = self
@@ -200,7 +213,7 @@ class ROI_Base():
         self.pts = self.getPoints()
         self.updateLinkedROIs(finish=True)
 
-    def link(self,roi):
+    def link(self, roi: 'ROI_Base'):
         '''Link this roi to another, so a translation of one will cause a translation of the other'''
         if not isinstance(roi, type(self)):
             return
@@ -213,13 +226,13 @@ class ROI_Base():
         '''
         raise NotImplementedError()
 
-    def getTrace(self, bounds=None):
+    def getTrace(self, bounds: tuple[int, int] | None = None) -> np.ndarray | None:
         '''Compute the average of the pixels within this ROI in its window
 
         Returns:
             Average value within ROI mask, as an array. Cropped to bounds if specified
         '''
-        trace = None
+        trace: np.ndarray | None = None
         if self.window.image.ndim == 4 or self.window.metadata['is_rgb']:
             g.alert("Plotting trace of RGB movies is not supported. Try splitting the channels.")
             return None
@@ -253,7 +266,7 @@ class ROI_Base():
         '''
         raise NotImplementedError()
 
-    def setMouseHover(self, hover):
+    def setMouseHover(self, hover: bool):
         """
         Inform the ROI that the mouse is or is not hovering over it.
 
@@ -271,14 +284,10 @@ class ROI_Base():
 
         self.update()
 
-    def plot(self):
-        """Plot the ROI trace in a :class:`TraceFig <flika.tracefig.TraceFig>`
-
-        Returns:
-            tracefig.TraceFig: the trace window that the ROI was plotted to
-        """
+    def plot(self) -> 'tracefig.TraceFig':
+        """Plot the ROI trace in a :class:`TraceFig <flika.tracefig.TraceFig>`"""
         from .tracefig import roiPlot
-        self.traceWindow = roiPlot(self)
+        self.traceWindow: 'tracefig.TraceFig' | None = roiPlot(self)
         if self.traceWindow == None:
             return
         self.traceWindow.indexChanged.connect(self.window.setIndex)
@@ -286,10 +295,10 @@ class ROI_Base():
         self.plotSignal.emit()
         return self.traceWindow
 
-    def changeColor(self):
+    def changeColor(self) -> None:
         self.colorDialog.open()
         
-    def colorSelected(self, color):
+    def colorSelected(self, color: QtGui.QColor) -> None:
         """Set the pen color of the ROI
 
         Args:
@@ -299,7 +308,7 @@ class ROI_Base():
             self.setPen(QtGui.QColor(color.name()))
             self.sigRegionChangeFinished.emit(self)
 
-    def unplot(self):
+    def unplot(self) -> None:
         """Remove the ROI from its :class:`TraceFig <flika.tracefig.TraceFig>`
         """
         if self.traceWindow is not None:
@@ -322,20 +331,20 @@ class ROI_Base():
             self.traceWindow.removeROI(self)
             self.traceWindow = None
 
-    def copy(self):
+    def copy(self) -> None:
         """Store this ROI in the clipboard
         """
-        g.clipboard=self
+        g.clipboard = self
 
-    def raiseContextMenu(self, ev):
-        pos = ev.screenPos()
-        x = int(pos.x())
-        y = int(pos.y())
+    def raiseContextMenu(self, ev: QtGui.QContextMenuEvent) -> None:
+        pos: QtCore.QPoint = ev.screenPos()
+        x: int = int(pos.x())
+        y: int = int(pos.y())
         self.menu.addSeparator()
         self.menu.addActions(self.window.menu.actions())
         self.menu.popup(QtCore.QPoint(x, y))
     
-    def makeMenu(self):
+    def makeMenu(self) -> None:
         def plotPressed():
             if plotAct.text() == "&Plot":
                 self.plot()
@@ -348,7 +357,7 @@ class ROI_Base():
         remAct = QtWidgets.QAction("&Delete", self, triggered=self.delete)
         self.menu = QtWidgets.QMenu("ROI Menu")
 
-        def updateMenu():
+        def updateMenu() -> None:
             #plotAct.setEnabled(self.window.image.ndim > 2)
             plotAct.setText("&Plot" if self.traceWindow == None else "&Unplot")
             self.window.menu.aboutToShow.emit()
@@ -359,7 +368,7 @@ class ROI_Base():
         self.menu.addAction(remAct)
         self.menu.aboutToShow.connect(updateMenu)
 
-    def delete(self):
+    def delete(self) -> None:
         """Remove the ROI from its window, unlink all ROIs and delete the object"""
         self.unplot()
         for roi in self.linkedROIs:
@@ -373,12 +382,12 @@ class ROI_Base():
         if g.clipboard == self:
             g.clipboard = None
 
-    def drawFinished(self):
+    def drawFinished(self) -> None:
         self.window.imageview.addItem(self)
         self.window.rois.append(self)
         self.window.currentROI = self
 
-    def _str(self):
+    def _str(self) -> str:
         """Return ROI kind and points for easy export and import
     
         Returns:
@@ -389,7 +398,7 @@ class ROI_Base():
             s += '{} {}\n'.format(x, y)
         return s
 
-    def showMask(self):
+    def showMask(self) -> 'Window':
         """Create a new binary window that visualizes the ROI mask
 
         Returns:
@@ -531,7 +540,12 @@ class ROI_rectangle(ROI_Base, pg.ROI):
     kind = 'rectangle'
     plotSignal = QtCore.Signal()
 
-    def __init__(self, window, pos, size, resizable=True, **kargs):
+    def __init__(self,
+        window,
+        pos: tuple[int, int],
+        size: tuple[int, int],
+        resizable: bool = True, 
+        **kargs):
         """__init__ of ROI_rectangle class
 
         Args:
@@ -541,8 +555,8 @@ class ROI_rectangle(ROI_Base, pg.ROI):
         """
         roiArgs = self.INITIAL_ARGS.copy()
         roiArgs.update(kargs)
-        pos = np.array(pos, dtype=int)
-        size = np.array(size, dtype=int)
+        pos: jaxtyping.Float[np.ndarray, "2"] = np.array(pos, dtype=int)
+        size: jaxtyping.Float[np.ndarray, "2"] = np.array(size, dtype=int)
 
         pg.ROI.__init__(self, pos, size, **roiArgs)
         if resizable:
@@ -553,28 +567,32 @@ class ROI_rectangle(ROI_Base, pg.ROI):
         self.cropAction = QtWidgets.QAction('&Crop', self, triggered=self.crop)
         ROI_Base.__init__(self, window, [pos, size])
 
-    def center_around(self, x, y):
+    def center_around(self, x: int, y: int) -> None:
         """Relocate ROI so center lies at Point (x, y). size is not changed
 
         Args:
             x (int): new center for rectangle on X axis
             y (int): new center for rectangle on Y axis
         """
-        old_pts = self.getPoints()
+        old_pts: jaxtyping.Float[np.ndarray, "2"] = self.getPoints()
         old_center = old_pts[0] + .5 * old_pts[1]
         new_center = np.array([x, y])
         diff = new_center - old_center
         new_pts = np.array([old_pts[0]+diff, old_pts[1]])
         self.draw_from_points(new_pts)
 
-    def getPoints(self):
-        return np.array([self.state['pos'], self.state['size']], dtype=int)
+    def getPoints(self) -> jaxtyping.Float[np.ndarray, "2 2"]:
+        pos: jaxtyping.Float[np.ndarray, "2"] = self.state['pos']
+        size: jaxtyping.Float[np.ndarray, "2"] = self.state['size']
+        return np.array([pos, size], dtype=int)
 
-    def contains_pts(self, x, y):
-        target = np.array([x, y])
-        return np.all(self.pts[0] < target) and np.all(target < self.pts[0]+self.pts[1])
+    def contains_pts(self, x: float|int, y: float|int) -> bool:
+        target: jaxtyping.Float[np.ndarray, "2"] = np.array([x, y])
 
-    def getMask(self):
+        return bool(np.all(self.pts[0] < target)) \
+           and bool(np.all(target < self.pts[0]+self.pts[1]))
+
+    def getMask(self) -> tuple[np.ndarray, np.ndarray]:
         x, y = self.state['pos']
         ww, hh = self.state['size']
 
@@ -644,26 +662,27 @@ class ROI_freehand(ROI_Base, pg.ROI):
         roiArgs = self.INITIAL_ARGS.copy()
         roiArgs.update(kargs)
         roiArgs['closed'] = True
-        pg.ROI.__init__(self, np.min(pts, 0), np.ptp(np.array(pts), 0), translateSnap=(1, 1), **kargs)
+        pg.ROI.__init__(self, np.min(pts, axis=0), np.ptp(a=np.array(pts),
+                        axis=0), translateSnap=(1, 1), **kargs)
         ROI_Base.__init__(self, window, pts)
-        self._untranslated_pts = np.subtract(self.pts, self.pos())
+        self._untranslated_pts: jaxtyping.Float[np.ndarray, "num_pts 2"] = np.subtract(self.pts, self.pos())
         self._untranslated_mask = None
         self.getMask()
 
     def shape(self):
         p = QtGui.QPainterPath()
         p.moveTo(*self._untranslated_pts[0])
-        for i in range(len(self._untranslated_pts)):
-            p.lineTo(*self._untranslated_pts[i])
+        for _, pt in enumerate(self._untranslated_pts):
+            p.lineTo(*pt)
         p.lineTo(*self._untranslated_pts[0])
         return p
 
-    def paint(self, painter: QtGui.QPainter, *args):
+    def paint(self, painter: QtGui.QPainter, *args) -> None:
         painter.setPen(self.currentPen)
         points: list[pg.Point.Points]= [pg.Point(a, b) for a, b in self._untranslated_pts]
         painter.drawPolygon(points)
 
-    def draw_from_points(self, pts, finish=False):
+    def draw_from_points(self, pts: jaxtyping.Float[np.ndarray, "num_pts 2"], finish: bool = False) -> None:
         self.blockSignals(True)
         self.setPos(*np.min(pts, 0), False)
         self.setSize(np.ptp(pts, 0), False)

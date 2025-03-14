@@ -10,7 +10,7 @@ import pyqtgraph as pg
 from pyqtgraph.dockarea import *
 from . import global_vars as g
 from .utils.misc import save_file_gui
-
+from .roi import ROI_Base
 
 class TraceFig(QtWidgets.QWidget):
     """Pyqtgraph PlotWidget with frame range selector. Display average trace of ROIs and updates in realtime.
@@ -361,7 +361,7 @@ class FFT_Analyzer(QtWidgets.QWidget):
         g.m.statusBar().showMessage('Successfully saved {}'.format(os.path.basename(filename)))
 
 
-def roiPlot(roi):
+def roiPlot(roi: ROI_Base) -> TraceFig | None:
     '''
     returns tracefig that is used to plot roi
     '''
