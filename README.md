@@ -40,3 +40,13 @@ Cleanup :
 deactivate
 rm -r ~/venvs/flika
 ```
+
+
+## Contributors
+
+- [Kyle Ellefsen](https://github.com/KyleEllefsen)
+- [Brett Settle](https://github.com/BrettJSettle)
+- [George Dickinson](https://github.com/gddickinson)
+- [Kevin Tarhan](https://github.com/KevinTarhan)
+
+

@@ -11,6 +11,7 @@ from zipfile import ZipFile
 import shutil
 from subprocess import check_output
 from qtpy import QtWidgets, QtGui, QtCore
+
 import flika.global_vars as g
 from flika.version import __version__ as installed_flika_version
 
