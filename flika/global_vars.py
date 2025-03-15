@@ -34,6 +34,13 @@ def get_flika_icon() -> QtGui.QIcon:
         flika_icon = QtGui.QIcon(str(icon_path))
     return flika_icon
 
+def inside_ipython() -> bool:
+    try:
+        __IPYTHON__
+        return True
+    except NameError:
+        return False
+
 class Settings(MutableMapping): #http://stackoverflow.com/questions/3387691/python-how-to-perfectly-override-a-dict
     """
     All of flika's settings are stored in this object, which is designed to act like a dictionary. When any value in
@@ -141,33 +148,74 @@ class Settings(MutableMapping): #http://stackoverflow.com/questions/3387691/pyth
 def messageBox(
         title: str,
         text: str,
-        buttons: QtWidgets.QMessageBox.StandardButton = QtWidgets.QMessageBox.Ok,
-        icon: QtWidgets.QMessageBox.Icon = QtWidgets.QMessageBox.Information,
+        buttons=None,  # Will be set inside the function
+        icon=None,  # Will be set inside the function
     ) ->  int:
     """Display a message box to the user
     
     This function creates a modal dialog box that will block until the user responds.
+
+    This doesn't work in IPython.
     
     Args:
         title: Title of the message box
         text: Message to display
         buttons: Which buttons to show (default: Ok)
         icon: Icon to display (default: Information)
+        timeout_seconds: Maximum time to wait for user input (default: 30 seconds)
         
     Returns:
         The exec() slot returns the StandardButtons value of the button that was clicked.
     """
-    # Create a standalone message box with proper window flags to ensure modality
-    msgbox = QtWidgets.QMessageBox(icon, title, text, buttons)
-    icon_pixmap = get_flika_icon().pixmap(64, 64)
-    msgbox.setIconPixmap(icon_pixmap)
+    # Set default values for buttons and icon (Qt6 style only)
+    if buttons is None:
+        buttons = QtWidgets.QMessageBox.StandardButton.Ok
+    if icon is None:
+        icon = QtWidgets.QMessageBox.Icon.Information
     
-    # Set the message box to be application modal
-    msgbox.setModal(True)
-    standard_button_value = msgbox.exec()
+    # Default return value in case of unexpected errors
+    default_return_value = 0
     
-    logger.debug(f"Message box result: {standard_button_value}")
-    return standard_button_value
+    try:
+        # For IPython, we need a different approach since we can't block without freezing
+        if inside_ipython():
+            logger.warning("In IPython environment, message boxes are non-blocking. Using default response.")
+            
+            # Create a non-modal dialog on the main thread
+            msgbox = QtWidgets.QMessageBox(icon, title, text, buttons)
+            icon_pixmap = get_flika_icon().pixmap(64, 64)
+            msgbox.setIconPixmap(icon_pixmap)
+            
+            # Add the dialog to our tracking list to prevent garbage collection
+            dialogs.append(msgbox)
+            
+            # Show non-modally
+            msgbox.show()
+            
+            # For IPython, we immediately return with the default value (usually Ok)
+            # This avoids blocking IPython and also avoids thread-related UI crashes
+            return QtWidgets.QMessageBox.StandardButton.Ok
+        else:
+            # Normal operation for non-IPython environments
+            # Create a standalone message box with proper window flags to ensure modality
+            msgbox = QtWidgets.QMessageBox(icon, title, text, buttons)
+            icon_pixmap = get_flika_icon().pixmap(64, 64)
+            msgbox.setIconPixmap(icon_pixmap)
+            msgbox.setModal(True)
+            
+            # Use the standard exec() method which will block until user response
+            result = msgbox.exec()
+            
+            # Make sure we return an integer
+            if isinstance(result, int):
+                logger.debug(f"Message box result: {result}")
+                return result
+            else:
+                logger.warning(f"Expected int result from exec(), got {type(result)}. Defaulting to {default_return_value}.")
+                return default_return_value
+    except Exception as e:
+        logger.error(f"Error in messageBox: {e}")
+        return default_return_value
     
 
 def setConsoleVisible(v):

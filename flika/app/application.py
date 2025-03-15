@@ -275,11 +275,17 @@ class FlikaApplication(QtWidgets.QMainWindow):
         
         # Define a wrapper function to help debug the issue
         def run_check_updates():
-            print("Menu action triggered checkUpdates")
-            result = checkUpdates()
-            print(f"checkUpdates returned: {result}")
+            try:
+                logger.debug("Menu action triggered checkUpdates")
+                result = checkUpdates()
+                logger.debug(f"checkUpdates returned: {result}")
+            except Exception as e:
+                import traceback
+                error_msg = f"Error checking for updates: {str(e)}\n{traceback.format_exc()}"
+                print(error_msg)
+                g.alert(error_msg, "Update Check Error")
             
-        helpMenu.addAction("Check For Updates", lambda: QtCore.QTimer.singleShot(100, checkUpdates))
+        helpMenu.addAction("Check For Updates", run_check_updates)
 
     def __getattr__(self, item):
         if item in self.__dict__:

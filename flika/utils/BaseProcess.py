@@ -40,7 +40,7 @@ class BaseProcess(object):
         self.newtif: np.ndarray | None = None
         self.newname: str = ""
         self.tif: np.ndarray | None = None
-        self.oldwindow: "window.Window" | None = None
+        self.oldwindow: flika.window.Window | None = None
         self.oldname: str = ""
         self.keepSourceWindow: bool = False
         self.command: str = ""

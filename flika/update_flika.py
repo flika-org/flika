@@ -212,10 +212,10 @@ def checkUpdates() -> bool:
             # Prompt user to update
             result = g.messageBox("Update Recommended", 
                           f"{message}\n\nWould you like to update?",
-                          QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
-                          QtWidgets.QMessageBox.Question)
+                          QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No,
+                          QtWidgets.QMessageBox.Icon.Question)
             
-            if result == QtWidgets.QMessageBox.Yes:
+            if result == QtWidgets.QMessageBox.StandardButton.Yes:
                 update_success = updateFlika()
                 if not update_success:
                     g.messageBox("Update Failed",
@@ -224,6 +224,7 @@ def checkUpdates() -> bool:
                 return True
         else:
             # Inform user they are up to date
+            logger.debug(f"checkUpdates(): ")
             g.messageBox("Up to date", message)
             return True
             
