@@ -16,9 +16,52 @@ import pathlib
 import beartype
 from types import TracebackType
 import datetime
+import colorama
+from colorama import Fore, Style
 
 # Set the default logging level
-LEVEL = logging.WARNING
+LEVEL = logging.DEBUG
+
+colorama.init()
+
+class ColoredFormatter(logging.Formatter):
+    COLORS = {
+        'DEBUG': Fore.CYAN,
+        'INFO': Fore.GREEN,
+        'WARNING': Fore.YELLOW,
+        'ERROR': Fore.RED,
+        'CRITICAL': Fore.RED + Style.BRIGHT
+    }
+    
+    def format(self, record):
+        # Color the level name
+        levelname = record.levelname
+        if levelname in self.COLORS:
+            colored_levelname = f"{self.COLORS[levelname]}{levelname}{Style.RESET_ALL}"
+            record.levelname = colored_levelname
+        
+        # Color the clickable link part
+        filename = record.filename
+        lineno = record.lineno
+        funcName = record.funcName
+        
+        # Use a distinct color for the clickable link
+        colored_link = f"{Fore.BLUE}{filename}:{lineno}:{funcName}{Style.RESET_ALL}"
+        
+        # Temporarily replace the values with our colored version
+        record.filename = ""
+        record.lineno = ""
+        record.funcName = colored_link
+        
+        # Format with a simplified format string
+        result = logging.Formatter('%(levelname)s %(funcName)s - %(message)s').format(record)
+        
+        # Restore the original values
+        record.filename = filename
+        record.lineno = lineno
+        record.funcName = funcName
+        
+        return result
 
 
 @beartype.beartype
@@ -35,18 +78,22 @@ def get_log_file() -> pathlib.Path:
     return log_dir / f"flika_{timestamp}.log"
 
 # Setup logging
+log_format = '%(levelname)s %(filename)s:%(lineno)d - %(message)s'
+log_format = '%(levelname)s %(filename)s:%(lineno)d:%(funcName)s - %(message)s'
 log_file = get_log_file()
-log_format = '%(asctime)s - %(levelname)s - %(message)s'
+formatter = ColoredFormatter(log_format)
+handler = logging.StreamHandler()
+handler.setFormatter(formatter)
+
+
+
 logging.basicConfig(filename=str(log_file), format=log_format)
 
 # Create logger
 logger = logging.getLogger(__name__)
 logger.setLevel(LEVEL)
-handler = logging.StreamHandler()
-handler.setLevel(LEVEL)
-formatter = logging.Formatter(log_format)
-handler.setFormatter(formatter)
 logger.addHandler(handler)
+
 
 @beartype.beartype
 def handle_exception(

@@ -48,6 +48,7 @@ dependencies = [
     "markdown",
     "beartype",
     "jaxtyping",
+    "colorama",
 ]
 
 [project.urls]
