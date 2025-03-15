@@ -1,14 +1,11 @@
-# -*- coding: utf-8 -*-
-from ..logger import logger
-logger.debug("Started 'reading process/stacks.py'")
-
-
 import numpy as np
 from qtpy import QtWidgets
-from ..window import Window
-from .. import global_vars as g
-from ..utils.BaseProcess import BaseProcess, BaseProcess_noPriorWindow, WindowSelector, MissingWindowError, CheckBox, SliderLabel, ComboBox
 
+from flika.window import Window
+import flika.global_vars as g
+from flika.utils.BaseProcess import BaseProcess, BaseProcess_noPriorWindow
+from flika.utils.custom_widgets import WindowSelector, MissingWindowError, CheckBox, SliderLabel, ComboBox
+from flika.logger import logger
 
 
 __all__ = ['deinterleave','trim','zproject','image_calculator', 'pixel_binning', 'frame_binning', 'resize', 'concatenate_stacks', 'duplicate', 'generate_random_image', 'change_datatype']

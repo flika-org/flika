@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
-from ..logger import logger
-logger.debug("Started 'reading process/math_.py'")
 import numpy as np
-from qtpy import QtGui, QtWidgets, QtCore
-from .. import global_vars as g
-from ..utils.BaseProcess import BaseProcess, CheckBox, ComboBox
-from ..window import Window
+from qtpy import QtWidgets
+import flika.global_vars as g
+from flika.utils.BaseProcess import BaseProcess
+from flika.utils.custom_widgets import CheckBox, ComboBox
+from flika.window import Window
+from flika.logger import logger
 
 __all__ = ['subtract','multiply','divide','power','ratio','absolute_value','subtract_trace','divide_trace', 'sqrt']
 

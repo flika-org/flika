@@ -9,8 +9,8 @@ from qtpy import QtWidgets, QtCore, QtGui
 import json
 import re
 import numpy as np
-from .. import global_vars as g
-from typing import Any, Dict, List, Optional, Tuple, Union
+import flika.global_vars as g
+
 __all__ = ['nonpartial', 'setConsoleVisible', 'load_ui', 'random_color', 'save_file_gui', 'open_file_gui']
 
 def nonpartial(func, *args, **kwargs):

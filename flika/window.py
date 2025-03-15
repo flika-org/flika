@@ -1,24 +1,20 @@
-# -*- coding: utf-8 -*-
 """
 Window module for flika - provides the main UI window component.
 """
 
-# Standard library imports
 import os
 import time
 
-# Third-party imports
 import numpy as np
 import pyqtgraph as pg
 from qtpy import QtCore, QtGui, QtWidgets
 import beartype
 
-# Local application imports
 from flika.logger import logger
 import flika.global_vars as g
 from flika.roi import *
 from flika.utils.misc import save_file_gui
-from flika.utils.BaseProcess import WindowSelector, SliderLabel
+from flika.utils.custom_widgets import WindowSelector, SliderLabel
 
 logger.debug("Started 'reading window.py'")
 

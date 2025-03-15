@@ -1,12 +1,16 @@
-from ..logger import logger
-logger.debug("Started 'reading app/settings_editor.py'")
-
 import numpy as np
-from qtpy import QtWidgets, QtGui
 from multiprocessing import cpu_count
-from ..utils.misc import setConsoleVisible
-from ..utils.BaseProcess import BaseDialog, BaseProcess, ColorSelector
-from .. import global_vars as g
+
+from qtpy import QtWidgets, QtGui
+from pyqtgraph import ComboBox, mkBrush
+
+from flika import global_vars as g
+from flika.logger import logger
+from flika.utils.BaseProcess import BaseProcess
+from flika.utils.custom_widgets import ColorSelector, BaseDialog
+from flika.utils.misc import setConsoleVisible
+
+logger.debug("Started 'reading app/settings_editor.py'")
 
 
 __all__ = ['SettingsEditor', 'rectSettings', 'pointSettings', 'pencilSettings']
@@ -16,8 +20,6 @@ data_types = ['uint8', 'uint16', 'uint32', 'uint64', 'int8', 'int16', 'int32', '
 class SettingsEditor(BaseDialog):
     gui = None
     def __init__(self):
-        from pyqtgraph import ComboBox
-
         old_dtype=g.settings['internal_data_type']
         dataDrop = ComboBox(items=data_types, default=old_dtype)
         showCheck = QtWidgets.QCheckBox()
@@ -133,7 +135,6 @@ def pointSettings(pointButton):
     items.append({'name': 'delete_all_points', 'string': 'Delete all points', 'object': delete_all_points})
 
     def update():
-        from pyqtgraph import mkBrush
         win = g.win
         g.settings['point_color'] = point_color.value()
         g.settings['point_size'] = point_size.value()

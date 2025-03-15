@@ -1,9 +1,9 @@
-# -*- coding: utf-8 -*-
-import sys, time
-from qtpy import QtCore, QtGui, QtWidgets
+import sys
+import time
 from multiprocessing import Process, Queue, cpu_count, Pipe
-import os
+
 import numpy as np
+from qtpy import QtCore, QtGui, QtWidgets
 
 __all__ = []
 

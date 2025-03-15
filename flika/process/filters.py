@@ -2,10 +2,11 @@ import numpy as np
 import skimage
 import skimage.filters
 from qtpy import QtWidgets, QtGui, QtCore
-from ..logger import logger
-from .. import global_vars as g
-from ..utils.BaseProcess import BaseProcess, SliderLabel, SliderLabelOdd, CheckBox
-from .progress_bar import ProgressBar
+from flika.logger import logger
+import flika.global_vars as g
+from flika.utils.BaseProcess import BaseProcess
+from flika.utils.custom_widgets import SliderLabel, CheckBox
+from flika.process.progress_bar import ProgressBar
 
 __all__ = ['gaussian_blur', 'difference_of_gaussians', 'mean_filter', 'variance_filter', 'median_filter', 'butterworth_filter', 'boxcar_differential_filter','wavelet_filter','difference_filter', 'fourier_filter', 'bilateral_filter']
 ###############################################################################

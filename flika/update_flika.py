@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import os, sys
 from urllib.request import urlopen
 from urllib.error import HTTPError
@@ -12,8 +11,8 @@ from zipfile import ZipFile
 import shutil
 from subprocess import check_output
 from qtpy import QtWidgets, QtGui, QtCore
-from . import global_vars as g
-from .version import __version__ as installed_flika_version
+import flika.global_vars as g
+from flika.version import __version__ as installed_flika_version
 
 
 

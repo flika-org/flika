@@ -22,7 +22,7 @@ from qtpy import QtGui, QtWidgets
 # Local application imports
 from flika.logger import logger
 import flika.global_vars as g
-from flika.utils.BaseProcess import BaseDialog
+from flika.utils.custom_widgets import BaseDialog
 from flika.window import Window
 from flika.utils.misc import open_file_gui, save_file_gui
 from flika.utils.io import tifffile

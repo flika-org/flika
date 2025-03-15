@@ -1,25 +1,27 @@
-from ..logger import logger, handle_exception
-logger.debug("Started 'reading app/application.py'")
-
-import sys, os, time
 import ctypes
+import os
 import platform
+import sys
+import time
 import traceback
-logger.debug("Started 'reading app/application.py, importing qtpy'")
-from qtpy import QtCore, QtWidgets, QtGui
-logger.debug("Completed 'reading app/application.py, importing qtpy'")
 
-from ..utils.misc import nonpartial, send_user_stats
-from ..utils.app import get_qapp
-from ..app.settings_editor import SettingsEditor, rectSettings, pointSettings, pencilSettings
-from .. import global_vars as g
-from .plugin_manager import PluginManager, load_local_plugins
-from .script_editor import ScriptEditor
-from ..utils.misc import load_ui, send_error_report
-from ..utils.thread_manager import run_in_thread, cleanup_threads
-from ..images import image_path
-from ..version import __version__
-from ..update_flika import checkUpdates
+from qtpy import QtCore, QtWidgets, QtGui
+from qtpy.QtCore import QUrl
+from qtpy.QtGui import QDesktopServices
+
+from flika import global_vars as g
+from flika.app.plugin_manager import PluginManager, load_local_plugins
+from flika.app.script_editor import ScriptEditor
+from flika.app.settings_editor import SettingsEditor, rectSettings, pointSettings, pencilSettings
+from flika.images import image_path
+from flika.logger import logger, handle_exception
+from flika.update_flika import checkUpdates
+from flika.utils.app import get_qapp
+from flika.utils.misc import nonpartial, send_user_stats, load_ui, send_error_report
+from flika.utils.thread_manager import run_in_thread, cleanup_threads
+from flika.version import __version__
+
+logger.debug("Started 'reading app/application.py'")
 
 
 def status_pixmap(attention=False):
@@ -151,8 +153,8 @@ class FlikaApplication(QtWidgets.QMainWindow):
     """
     def __init__(self):
         logger.debug("Started 'creating app.application.FlikaApplication'")
-        from ..process.file_ import open_file, open_file_from_gui, open_image_sequence_from_gui, open_points, save_file, save_movie_gui, save_points, save_rois
-        from ..process import setup_menus
+        from flika.process.file_ import open_file, open_file_from_gui, open_image_sequence_from_gui, open_points, save_file, save_movie_gui, save_points, save_rois
+        from flika.process import setup_menus
         logger.debug("Started 'creating app.application.FlikaApplication.app'")
         self.app = get_qapp(image_path('favicon.png'))
         logger.debug("Completed 'creating app.application.FlikaApplication.app'")
@@ -252,8 +254,8 @@ class FlikaApplication(QtWidgets.QMainWindow):
 
     def _make_menu(self):
         logger.debug("Started 'app.application.FlikaApplication._make_menu()'")
-        from ..roi import open_rois
-        from ..process.file_ import open_file, open_file_from_gui, open_image_sequence_from_gui, open_points, save_file, save_movie_gui, save_points, save_rois
+        from flika.roi import open_rois
+        from flika.process.file_ import open_file, open_file_from_gui, open_image_sequence_from_gui, open_points, save_file, save_movie_gui, save_points, save_rois
         fileMenu = self.menuBar().addMenu('File')
         openMenu = fileMenu.addMenu("Open")
         openMenu.addAction("Open Image/Movie", open_file_from_gui)
@@ -284,7 +286,7 @@ class FlikaApplication(QtWidgets.QMainWindow):
 
         helpMenu = self.menuBar().addMenu("Help")
         url = 'http://flika-org.github.io'
-        helpMenu.addAction("Documentation", lambda: QtGui.QDesktopServices.openUrl(QtCore.QUrl(url)))
+        helpMenu.addAction("Documentation", lambda: QDesktopServices.openUrl(QUrl(url)))
         helpMenu.addAction("Check For Updates", checkUpdates)
         logger.debug("Completed 'app.application.FlikaApplication._make_menu()'")
 
@@ -356,7 +358,7 @@ class FlikaApplication(QtWidgets.QMainWindow):
             event.ignore()
 
     def dropEvent(self, event):
-        from ..process.file_ import open_file
+        from flika.process.file_ import open_file
         if event.mimeData().hasUrls():   # if file or link is dropped
             for url in event.mimeData().urls():
                 filename = url.toLocalFile()
@@ -397,7 +399,7 @@ class FlikaApplication(QtWidgets.QMainWindow):
 
     def setup_button_icons(self):
         """Ultra-simple button icon setup"""
-        from ..images import image_path
+        from flika.images import image_path
         
         # One-liner for most buttons (assumes button name matches icon name)
         for btn in self.findChildren(QtWidgets.QPushButton):

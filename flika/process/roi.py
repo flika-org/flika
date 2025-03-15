@@ -1,12 +1,13 @@
-# -*- coding: utf-8 -*-
-from ..logger import logger
-logger.debug("Started 'reading process/roi.py'")
 import numpy as np
 import skimage
 from qtpy import QtWidgets
-from .. import global_vars as g
-from ..utils.BaseProcess import BaseProcess, CheckBox
 
+import flika.global_vars as g
+from flika.utils.BaseProcess import BaseProcess
+from flika.utils.custom_widgets import CheckBox
+from flika.logger import logger
+
+logger.debug("Started 'reading process/roi.py'")
 
 __all__ = ['set_value']
 

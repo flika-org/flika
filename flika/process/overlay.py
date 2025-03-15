@@ -1,11 +1,11 @@
-# -*- coding: utf-8 -*-
-from ..logger import logger
-logger.debug("Started 'reading process/overlay.py'")
 import numpy as np
 import pyqtgraph as pg
 from qtpy import QtWidgets, QtCore, QtGui
-from .. import global_vars as g
-from ..utils.BaseProcess import BaseProcess, SliderLabel, WindowSelector,  MissingWindowError, CheckBox, ComboBox
+
+import flika.global_vars as g
+from flika.logger import logger
+from flika.utils.BaseProcess import BaseProcess
+from flika.utils.custom_widgets import SliderLabel, WindowSelector, CheckBox, ComboBox
 
 __all__ = ['time_stamp','background','scale_bar']
      

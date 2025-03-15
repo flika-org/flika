@@ -599,14 +599,14 @@ class ROI_rectangle(ROI_Base, pg.ROI):
         self.cropAction = QtWidgets.QAction('&Crop', self, triggered=self.crop)
         ROI_Base.__init__(self, window, [pos, size])
 
-    def center_around(self, x: int, y: int) -> None:
+    def center_around(self, x: float|int, y: float|int) -> None:
         """Relocate ROI so center lies at Point (x, y). size is not changed
 
         Args:
             x (int): new center for rectangle on X axis
             y (int): new center for rectangle on Y axis
         """
-        old_pts: jaxtyping.Float[np.ndarray, "2"] = self.getPoints()
+        old_pts: jaxtyping.Num[np.ndarray, "2"] = self.getPoints()
         old_center = old_pts[0] + .5 * old_pts[1]
         new_center = np.array([x, y])
         diff = new_center - old_center

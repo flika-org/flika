@@ -1,15 +1,15 @@
-# -*- coding: utf-8 -*-
-from ..logger import logger
-logger.debug("Started 'reading process/measure.py'")
 import os
+
 import numpy as np
 import pyqtgraph as pg
 from qtpy import QtWidgets, QtCore, QtGui
-from .. import global_vars as g
-from ..utils.BaseProcess import BaseProcess
-from ..utils.misc import save_file_gui
 
-from ..roi import ROI_Base
+import flika.global_vars as g
+from flika.utils.BaseProcess import BaseProcess
+from flika.utils.misc import save_file_gui
+from flika.logger import logger
+from flika.roi import ROI_Base
+
 __all__ = ['measure']
 
 

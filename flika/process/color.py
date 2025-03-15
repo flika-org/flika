@@ -1,11 +1,7 @@
-# -*- coding: utf-8 -*-
-from ..logger import logger
-logger.debug("Started 'reading process/color.py'")
-import numpy as np
-from qtpy import QtWidgets, QtCore, QtGui
-from .. import global_vars as g
-from ..window import Window
-from ..utils.BaseProcess import BaseProcess, WindowSelector, MissingWindowError, CheckBox
+import flika.global_vars as g
+from flika.window import Window
+from flika.utils.BaseProcess import BaseProcess
+from flika.logger import logger
 
 __all__ = ['split_channels', 'Split_channels']
 
