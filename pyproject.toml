@@ -7,14 +7,13 @@ requires = [
     "scipy", 
     "pytest", 
     "qtpy", 
-    "PySide6",
-    "beartype"
+    "PySide6"
 ]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "flika"
-dynamic = ["version"]
+version = "0.3.2"  # Static version
 description = "An interactive image processing program for biologists written in Python."
 readme = "README.md"
 authors = [
@@ -79,9 +78,6 @@ packages = ["flika"]
 [tool.setuptools.package-data]
 "gui" = ["*.ui"]
 "images" = ["*.ico", "*.png", "*.txt", "*.tif"]
-
-[tool.setuptools.dynamic]
-version = {attr = "flika.__version__"}
 
 [tool.pytest.ini_options]
 testpaths = ["flika"]
