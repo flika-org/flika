@@ -1,13 +1,17 @@
-from ..app.plugin_manager import PluginManager, plugin_list
-from ..app.script_editor import ScriptEditor
-from ..window import Window
-from .. import flika
-import numpy as np
 import unittest.mock as mock
 import pytest
-from ..utils.thread_manager import cleanup_threads, run_in_thread
 import logging
 import time
+
+import numpy as np
+
+import flika
+from flika.app.plugin_manager import PluginManager
+from flika.app.plugin_utils import plugin_info_urls_by_name
+from flika.app.script_editor import ScriptEditor
+from flika.window import Window
+from flika.utils.thread_manager import cleanup_threads, run_in_thread
+
 
 class TestPluginManager():
     def setup_method(self, method):
@@ -22,7 +26,7 @@ class TestPluginManager():
         PluginManager.close()
 
     def test_local_plugins(self):
-        local = set(plugin_list.keys())
+        local = set(plugin_info_urls_by_name.keys())
         plugins = set(PluginManager.plugins.keys())
         assert (local & plugins) == local, "Local plugin list not loaded correctly"
 
@@ -50,7 +54,7 @@ class TestPluginManager():
         """Test that the plugin manager closes without errors when threads are active."""
         # Create a situation similar to what happens in real usage:
         # A thread controller that might be in an invalid state when the plugin manager closes
-        from ..app.plugin_manager import PluginManager
+        from flika.app.plugin_manager import PluginManager
         import time
         
         # Set up more verbose logging for this test
@@ -112,7 +116,7 @@ class TestScriptEditor():
     def teardown_method(self, method):
         cleanup_threads()
         # Close any windows first to prevent issues
-        from .. import global_vars as g
+        import flika.global_vars as g
         if hasattr(g, 'windows'):
             for window in list(g.windows):
                 try:
@@ -127,7 +131,7 @@ class TestScriptEditor():
         w1 = Window(np.random.random([10, 20, 20]))
         
         # Apply a threshold operation
-        from ..process import threshold
+        from flika.process import threshold
         w2 = threshold(.5)
         
         # Trigger the "From Window" action in the script editor
