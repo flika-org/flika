@@ -4,7 +4,52 @@ import pathlib
 import packaging.version
 import urllib.parse
 import urllib.request
+import sys
+import glob
 import xml.etree.ElementTree as ElementTree
+
+
+@beartype.beartype
+def get_plugin_directory() -> pathlib.Path:
+    """
+    Get the plugin directory path, creating it if it doesn't exist.
+    
+    Returns:
+        pathlib.Path: The path to the plugin directory.
+    """
+    local_flika_directory = pathlib.Path.home() / '.FLIKA'
+    plugin_directory = local_flika_directory / 'plugins'
+
+    # Create plugin directory if it doesn't exist
+    plugin_directory.mkdir(parents=True, exist_ok=True)
+
+    # Create empty __init__.py file if it doesn't exist
+    init_file = plugin_directory / '__init__.py'
+    if not init_file.exists():
+        init_file.touch()
+
+    # Add to sys.path if not already present
+    for directory in (str(local_flika_directory), str(plugin_directory)):
+        if directory not in sys.path:
+            sys.path.insert(0, directory)
+
+    return plugin_directory
+
+
+@beartype.beartype
+def _get_path_to_plugin(directory: str) -> pathlib.Path:
+    """ A simple map from the plugin directory name to the full path."""
+    return get_plugin_directory() / directory
+
+@beartype.beartype
+def get_local_plugin_list() -> list[str]:
+    """Returns the (directory) names of all local plugins"""
+    paths : list[str] = []
+    for path_str in glob.glob(str(get_plugin_directory() / '*')):
+        path = pathlib.Path(path_str)
+        if path.is_dir() and path.joinpath('info.xml').exists():
+            paths.append(path.name)
+    return paths
 
 
 plugin_info_urls_by_name = {
@@ -60,7 +105,7 @@ class PluginInfo:
     description: str  # The description of the plugin
     directory: str  # The name of the module to import. This will be changed to 'module_name' eventually.
     documentation: str  # The documentation of the plugin
-    full_path: pathlib.Path  # The full path to the plugin directory    
+    path_to_plugin: pathlib.Path  # The full path to the plugin directory    
     info_url: str  # The URL of the plugin info
     last_modified: float  # The last modified date of the plugin
     latest_version: packaging.version.Version  # The latest version of the plugin
@@ -94,6 +139,7 @@ class PluginInfo:
         
         # Extract other required fields, stripping whitespace
         directory = plugin_dict.get('directory', '').strip()
+        path_to_plugin = _get_path_to_plugin(directory) if directory else pathlib.Path('.')
         version_str = plugin_dict.get('version', '0.0.0').strip()
         author = plugin_dict.get('author', '').strip()
         url = plugin_dict.get('url', '').strip()
@@ -128,7 +174,6 @@ class PluginInfo:
         # Providing default values for required fields not in the XML
         description = plugin_dict.get('description', '')
         documentation = plugin_dict.get('documentation', '')
-        full_path = pathlib.Path(directory) if directory else pathlib.Path('.')
         info_url = plugin_dict.get('info_url', '')
         last_modified = float(plugin_dict.get('last_modified', 0))
         latest_version = packaging.version.Version(plugin_dict.get('latest_version', version_str))
@@ -140,7 +185,7 @@ class PluginInfo:
             description=description,
             directory=directory,
             documentation=documentation,
-            full_path=full_path,
+            path_to_plugin=path_to_plugin,
             info_url=info_url,
             last_modified=last_modified,
             latest_version=latest_version,
@@ -156,19 +201,24 @@ def get_plugin_info_from_url(info_url: str) -> PluginInfo | urllib.error.HTTPErr
         return info_xml_str
     return PluginInfo.from_xml_str(info_xml_str)
 
-def get_plugin_info_from_filesystem(plugin_dir: pathlib.Path) -> PluginInfo | FileNotFoundError:
-    info_xml_fn = plugin_dir / 'info.xml'
+def get_plugin_info_from_filesystem(plugin_dir_str: str) -> PluginInfo | FileNotFoundError:
+    info_xml_fn = _get_path_to_plugin(plugin_dir_str) / 'info.xml'
     if not info_xml_fn.exists():
-        return FileNotFoundError(f"info.xml not found in {plugin_dir}")
+        return FileNotFoundError(f"info.xml not found in {_get_path_to_plugin(plugin_dir_str)}")
     with open(info_xml_fn, 'r', encoding='utf-8') as f:
         info_xml_str = f.read()
     return PluginInfo.from_xml_str(info_xml_str)
 
-def main():
+def test_from_url():
     info_url = plugin_info_urls_by_name['Pynsight']
     info_xml_str = get_plugin_info_xml_from_url(info_url)
     print(info_xml_str)
     plugin_info = PluginInfo.from_xml_str(info_xml_str)
+    print(plugin_info)
+
+def test_from_filesystem():
+    path_to_plugin = _get_path_to_plugin('detect_puffs')
+    plugin_info = get_plugin_info_from_filesystem(path_to_plugin)
     print(plugin_info)
 
 if __name__ == '__main__':

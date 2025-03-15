@@ -2,7 +2,6 @@
 Plugin manager for flika.
 """
 
-from glob import glob
 import os
 import sys
 import difflib
@@ -49,29 +48,7 @@ helpHTML = '''
 '''
 
 
-def get_plugin_directory():
-    logger.debug('Calling app.plugin_manager.get_plugin_directory')
-    local_flika_directory : pathlib.Path = pathlib.Path.home() / '.FLIKA'
-    plugin_directory : pathlib.Path = local_flika_directory / 'plugins'
-    if not plugin_directory.exists():
-        plugin_directory.mkdir(parents=True, exist_ok=True)
-    if not plugin_directory.joinpath('__init__.py').exists():
-        plugin_directory.joinpath('__init__.py').touch()  # Create empty __init__.py file
-    ensure_plugin_path()
-    return plugin_directory
-
-def ensure_plugin_path():
-    """Ensure the plugin directory is in the Python path."""
-    local_flika_directory : pathlib.Path = pathlib.Path.home() / '.FLIKA'
-    plugin_directory : pathlib.Path = local_flika_directory / 'plugins'
-    
-    # Add to sys.path if not already present
-    if str(plugin_directory) not in sys.path:
-        sys.path.insert(0, str(plugin_directory))
-    if str(local_flika_directory) not in sys.path:
-        sys.path.insert(0, str(local_flika_directory))
-
-plugin_dir = get_plugin_directory()
+plugin_dir = plugin_utils.get_plugin_directory()
 
 
 
@@ -155,21 +132,21 @@ class Plugin():
         self.installed = False
         
         if info_url:
-            self.plugin_info = self.get_plugin_info_from_url(info_url, plugin_dir)
+            self.plugin_info = plugin_utils.get_plugin_info_from_url(info_url)
             self.loaded = True
 
     def lastModified(self) -> float:
         if self.plugin_info is None or not hasattr(self.plugin_info, 'directory'):
             return 0.0
-        file_path : pathlib.Path = plugin_dir / self.plugin_info.directory
+        file_path : pathlib.Path = plugin_utils.get_plugin_directory() / self.plugin_info.directory
         if not file_path.exists():
             return 0.0
         return file_path.stat().st_mtime
 
 
-
-
     def bind_menu_and_methods(self):
+        if self.plugin_info is not None:
+            assert isinstance(self.plugin_info, PluginInfo)
         if self.plugin_info and self.plugin_info.menu_layout and len(self.plugin_info.menu_layout) > 0:
             self.menu = QtWidgets.QMenu(self.name)
             if self.plugin_info.directory:
@@ -205,7 +182,7 @@ class Plugin():
                             del sys.modules[key]
                     
                     # Make sure plugin path is in sys.path
-                    ensure_plugin_path()
+                    plugin_utils.get_plugin_directory()
                     
                     # Try to import the module directly to force Python to load it
                     try:
@@ -226,34 +203,6 @@ class Plugin():
                     return False
         return False
 
-    @staticmethod
-    def fromLocal(plugin_path : pathlib.Path):
-        plugin_info = plugin_utils.get_plugin_info_from_filesystem(plugin_path)
-        if isinstance(plugin_info, FileNotFoundError):
-            return plugin_info
-        
-        # Create a new plugin instance
-        plugin = Plugin(plugin_info.name)
-        plugin.plugin_info = plugin_info
-        plugin.loaded = True
-        # Don't set installed=True here - this should be done in load_local_plugins
-        return plugin
-
-
-    @staticmethod
-    def get_plugin_info_from_url(
-        info_url: str,
-        plugin_dir: pathlib.Path,
-    ) -> PluginInfo | Exception:
-        """
-        Update the plugin information from the online repository.
-        Returns True if the update was successful, False otherwise.
-        """
-        plugin_info = plugin_utils.get_plugin_info_from_url(info_url)
-        if isinstance(plugin_info, urllib.error.HTTPError):
-            return plugin_info
-        plugin_info = dataclasses.replace(plugin_info, full_path=plugin_dir / plugin_info.directory)
-        return plugin_info
 
 @beartype.beartype
 class PluginManager(QtWidgets.QMainWindow):
@@ -297,9 +246,8 @@ class PluginManager(QtWidgets.QMainWindow):
             
         def load_plugin_info() -> PluginInfo:
             """Function to load plugin info from its URL"""
-            plugin : Plugin = PluginManager.plugins[plugin_name]
             info_url : str = plugin_info_urls_by_name[plugin_name]
-            plugin_info : PluginInfo | Exception = plugin.get_plugin_info_from_url(info_url, plugin_dir)
+            plugin_info : PluginInfo | Exception = plugin_utils.get_plugin_info_from_url(info_url)
             if isinstance(plugin_info, Exception):
                 raise plugin_info
             return plugin_info  # Return the plugin name to identify which plugin was loaded
@@ -509,13 +457,7 @@ class PluginManager(QtWidgets.QMainWindow):
         else:
             self.descriptionLabel.setHtml('')
 
-    @staticmethod
-    def local_plugin_paths() -> list[pathlib.Path]:
-        paths : list[pathlib.Path] = []
-        for path in glob(str(plugin_dir / '*')):
-            if pathlib.Path(path).is_dir() and pathlib.Path(path).joinpath('info.xml').exists():
-                paths.append(pathlib.Path(path))
-        return paths
+
 
     def clearList(self):
         while self.pluginList.count() > 0:
@@ -687,11 +629,11 @@ def load_local_plugins():
     installed_plugins = {}
     errors = []
     
-    for pluginPath in PluginManager.local_plugin_paths():
-        p = Plugin()
-        plugin_info: PluginInfo | Exception = p.fromLocal(pluginPath)
+    for plugin_dir_str in plugin_utils.get_local_plugin_list():
+        plugin_info: PluginInfo | FileNotFoundError = plugin_utils.get_plugin_info_from_filesystem(plugin_dir_str)
         if isinstance(plugin_info, FileNotFoundError):
             raise plugin_info
+        p = Plugin()
         p.plugin_info = plugin_info
         try:
             p.bind_menu_and_methods()
