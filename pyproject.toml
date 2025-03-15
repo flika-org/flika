@@ -7,7 +7,8 @@ requires = [
     "scipy", 
     "pytest", 
     "qtpy", 
-    "PySide6"
+    "PySide6",
+    "beartype"
 ]
 build-backend = "setuptools.build_meta"
 
@@ -80,7 +81,7 @@ packages = ["flika"]
 "images" = ["*.ico", "*.png", "*.txt", "*.tif"]
 
 [tool.setuptools.dynamic]
-version = {attr = "flika.__version__"} 
+version = {attr = "flika.__version__"}
 
 [tool.pytest.ini_options]
 testpaths = ["flika"]
