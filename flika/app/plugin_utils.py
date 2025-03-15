@@ -104,7 +104,7 @@ class PluginInfo:
     dependencies: list[str]  # The dependencies of the plugin
     description: str  # The description of the plugin
     directory: str  # The name of the module to import. This will be changed to 'module_name' eventually.
-    documentation: str  # The documentation of the plugin
+    documentation_url: str  # The url of the documentation of the plugin
     path_to_plugin: pathlib.Path  # The full path to the plugin directory    
     info_url: str  # The URL of the plugin info
     last_modified: float  # The last modified date of the plugin
@@ -173,7 +173,7 @@ class PluginInfo:
         
         # Providing default values for required fields not in the XML
         description = plugin_dict.get('description', '')
-        documentation = plugin_dict.get('documentation', '')
+        documentation_url = plugin_dict.get('documentation_url', "/".join(url.split("/")[:-2]))
         info_url = plugin_dict.get('info_url', '')
         last_modified = float(plugin_dict.get('last_modified', 0))
         latest_version = packaging.version.Version(plugin_dict.get('latest_version', version_str))
@@ -184,7 +184,7 @@ class PluginInfo:
             dependencies=dependencies_list,
             description=description,
             directory=directory,
-            documentation=documentation,
+            documentation_url=documentation_url,
             path_to_plugin=path_to_plugin,
             info_url=info_url,
             last_modified=last_modified,
@@ -217,8 +217,7 @@ def test_from_url():
     print(plugin_info)
 
 def test_from_filesystem():
-    path_to_plugin = _get_path_to_plugin('detect_puffs')
-    plugin_info = get_plugin_info_from_filesystem(path_to_plugin)
+    plugin_info = get_plugin_info_from_filesystem('path_to_plugin')
     print(plugin_info)
 
 if __name__ == '__main__':

@@ -121,20 +121,65 @@ def build_submenu(module_name: str, parent_menu: QtWidgets.QMenu, layout_data: d
 
 
 @beartype.beartype
-class Plugin():
-    def __init__(self, name=None, info_url=None):
-        self.name : str = name
-        self.info_url : str | None = info_url
-        self.plugin_info : PluginInfo | None = None
-        self.menu = None
+@dataclasses.dataclass
+class Plugin:
+    # Core attributes initialized by dataclass
+    name: str
+    info_url: str | None = None
+    
+    # Private attributes with property access
+    _plugin_info: PluginInfo | None = dataclasses.field(default=None, init=False)
+    # loaded indicates that the plugin info has been read from the info.xml file
+    _loaded: bool = dataclasses.field(default=False, init=False)
+    # installed indicates that the code is in the plugins directory
+    _installed: bool = dataclasses.field(default=False, init=False)
+    
+    # Non-property attributes
+    menu: QtWidgets.QMenu | None = dataclasses.field(default=None, init=False)
+    
+    # Post-init to set up UI components and non-property attributes
+    def __post_init__(self):
         self.listWidget = QtWidgets.QListWidgetItem(self.name)
-        self.loaded = False
-        self.installed = False
         
-        if info_url:
-            self.plugin_info = plugin_utils.get_plugin_info_from_url(info_url)
-            self.loaded = True
-
+        # If info_url is provided, load plugin_info from URL
+        if self.info_url:
+            self._plugin_info = plugin_utils.get_plugin_info_from_url(self.info_url)
+            self._loaded = True
+    
+    # Property for plugin_info
+    @property
+    def plugin_info(self) -> PluginInfo | None:
+        return self._plugin_info
+    
+    @plugin_info.setter
+    def plugin_info(self, value: PluginInfo | None):
+        self._plugin_info = value
+        # When plugin_info is set to a valid value, mark as loaded
+        if value is not None:
+            self._loaded = True
+    
+    # Property for loaded
+    @property
+    def loaded(self) -> bool:
+        return self._loaded
+    
+    @loaded.setter
+    def loaded(self, value: bool):
+        self._loaded = value
+    
+    # Property for installed
+    @property
+    def installed(self) -> bool:
+        return self._installed
+    
+    @installed.setter
+    def installed(self, value: bool):
+        self._installed = value
+        # When marking as installed, also mark as loaded
+        if value:
+            self._loaded = True
+            
+    # Methods remain the same with minor adjustments
     def lastModified(self) -> float:
         if self.plugin_info is None or not hasattr(self.plugin_info, 'directory'):
             return 0.0
@@ -142,7 +187,6 @@ class Plugin():
         if not file_path.exists():
             return 0.0
         return file_path.stat().st_mtime
-
 
     def bind_menu_and_methods(self):
         if self.plugin_info is not None:
@@ -381,8 +425,8 @@ class PluginManager(QtWidgets.QMainWindow):
     def documentationClicked(self):
         p = str(self.pluginList.currentItem().text())
         plugin = self.plugins[p]
-        if hasattr(plugin, 'documentation'):
-            QtGui.QDesktopServices.openUrl(QtCore.QUrl(plugin.documentation))
+        if plugin.plugin_info and plugin.plugin_info.documentation_url:
+            QtGui.QDesktopServices.openUrl(QtCore.QUrl(plugin.plugin_info.documentation_url))
 
     def updateClicked(self):
         p = str(self.pluginList.currentItem().text())
@@ -409,8 +453,11 @@ class PluginManager(QtWidgets.QMainWindow):
             msg = 'Loading information'
             self.downloadButton.setVisible(False)
             # Try to load the plugin info if it's not already being loaded
-            if info is None or info.info_url is None:
+            if plugin.name in plugin_utils.plugin_info_urls_by_name:
                 self.load_online_plugin(plugin.name)
+            else:
+                # This plugin doesn't have an online entry, mark it as loaded
+                plugin.loaded = True
         else:
             # If plugin is loaded, show its information and download button
             msg = ''
@@ -441,7 +488,7 @@ class PluginManager(QtWidgets.QMainWindow):
         
         # Set the download button text based on installation status
         self.downloadButton.setText('Install' if not plugin.installed else 'Uninstall')
-        self.documentationButton.setVisible(info is not None and info.documentation is not None)
+        self.documentationButton.setVisible(info is not None and info.documentation_url is not None)
         
         # Set the icon based on installation status
         if info is None or not plugin.installed:
@@ -612,6 +659,7 @@ Then try installing the plugin again.""")
         
         # Mark as installed and update the UI
         plugin.installed = True
+        plugin.loaded = True
         plugin.listWidget.setIcon(QtGui.QIcon(image_path("check.png")))
         PluginManager.gui.statusBar.showMessage(f'Successfully installed {plugin.name} and its dependencies')
         
@@ -625,7 +673,7 @@ Then try installing the plugin again.""")
 
 def load_local_plugins():
     logger.debug("Started 'app.plugin_manager.load_local_plugins'")
-    plugins = {n: Plugin(n) for n in plugin_info_urls_by_name}
+    plugins = {n: Plugin(name=n) for n in plugin_info_urls_by_name}
     installed_plugins = {}
     errors = []
     
@@ -633,11 +681,12 @@ def load_local_plugins():
         plugin_info: PluginInfo | FileNotFoundError = plugin_utils.get_plugin_info_from_filesystem(plugin_dir_str)
         if isinstance(plugin_info, FileNotFoundError):
             raise plugin_info
-        p = Plugin()
+        p = Plugin(name=plugin_info.name)
         p.plugin_info = plugin_info
         try:
             p.bind_menu_and_methods()
             p.installed = True  # Mark as installed since it was found locally
+            # No need to explicitly set p.loaded = True anymore since the property setter handles it
             if p.name not in plugins.keys() or p.name not in installed_plugins:
                 plugins[p.name] = p
                 installed_plugins[p.name] = p
@@ -645,8 +694,8 @@ def load_local_plugins():
                 error_msg = f'Could not load the plugin {p.name}. There is already a plugin with this same name. Change the plugin name in the info.xml file'
                 errors.append(error_msg)
                 g.alert(error_msg)
-        except Exception:
-            msg = f"Could not load plugin {pluginPath}"
+        except Exception as e:
+            msg = f"Could not load plugin {plugin_dir_str}"  # Fixed variable name from pluginPath to plugin_dir_str
             errors.append(msg)
             g.alert(msg)
             logger.error(msg)
