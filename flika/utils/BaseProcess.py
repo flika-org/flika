@@ -16,6 +16,13 @@ from flika.utils.custom_widgets import *  # pylint: disable=wildcard-import
 __all__ = ['BaseProcess', 'BaseProcess_noPriorWindow']
 
 
+# Type aliases for process items
+# A ProcessItem represents a single parameter for a process
+# with its name, display string, UI widget, and current value
+ProcessItem = dict[str, str | QtWidgets.QWidget | object]  # Keys include 'name', 'string', 'object', 'value'
+# ProcessItems is a collection of ProcessItem dictionaries
+ProcessItems = list[ProcessItem]
+
 
 def _convert_item_to_string(item):
     if isinstance(item, str):
@@ -29,14 +36,27 @@ class BaseProcess(object):
     Foundation for all flika processes. Subclass BaseProcess when writing your own process.
 
     Attributes:
-        items: list of significant values unique to each BaseProcess subclass
+        items: List of dictionaries that store process parameters and their metadata.
+            Each dictionary in this list represents a single parameter and contains:
+            - 'name': Identifier used to retrieve the parameter value
+            - 'string': Human-readable label shown in the UI
+            - 'object': Qt widget used for input in the GUI
+            - 'value': Current value of the parameter
+            
+            The items list serves multiple purposes:
+            1. Auto-generates UI forms through BaseDialog
+            2. Stores and retrieves parameter values during process execution
+            3. Enables parameter persistence between sessions
+            4. Provides a standardized parameter management system across all processes
+            
+            Process subclasses should populate this list in their gui() method
+            and access values via getValue().
     """
 
     def __init__(self):
         self.noPriorWindow: bool = False
         self.__name__: str = self.__class__.__name__.lower()
-        self.items: list[dict[str, str | QtWidgets.QWidget]] = []
-
+        self.items: ProcessItems = []
         self.newtif: np.ndarray | None = None
         self.newname: str = ""
         self.tif: np.ndarray | None = None
@@ -45,7 +65,7 @@ class BaseProcess(object):
         self.keepSourceWindow: bool = False
         self.command: str = ""
 
-    def getValue(self, name):
+    def getValue(self, name: str) -> object:
         '''getValue(self,name)
 
         Returns:
@@ -54,7 +74,7 @@ class BaseProcess(object):
         '''
         return [i['value'] for i in self.items if i['name'] == name][0]
 
-    def get_init_settings_dict(self):
+    def get_init_settings_dict(self) -> dict[str, object]:
         '''get_init_settings_dict(self)
         Function for storing the intial settings of any BaseProcess into self.items
 
@@ -123,7 +143,7 @@ class BaseProcess(object):
         return True
 
     def gui_reset(self):
-        self.items = []
+        self.items: ProcessItems = []
 
     def call_from_gui(self):
         varnames = [i for i in inspect.getfullargspec(
