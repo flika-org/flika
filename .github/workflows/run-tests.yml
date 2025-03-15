@@ -24,8 +24,30 @@ jobs:
     - name: Install system dependencies for PySide6
       run: |
         sudo apt-get update
-        # Install the minimal required dependencies for PySide6/Qt in headless mode
-        sudo apt-get install -y libegl1 libgl1-mesa-glx libxkbcommon-x11-0 libdbus-1-3
+        # Install Qt dependencies based on Qt X11 requirements documentation
+        # https://doc.qt.io/qt-6/linux-requirements.html
+        sudo apt-get install -y \
+          libegl1 \
+          libfontconfig1 \
+          libxcb1 \
+          libx11-6 \
+          libx11-xcb1 \
+          libxcb-glx0 \
+          libxcb-icccm4 \
+          libxcb-image0 \
+          libxcb-keysyms1 \
+          libxcb-randr0 \
+          libxcb-render0 \
+          libxcb-render-util0 \
+          libxcb-shape0 \
+          libxcb-shm0 \
+          libxcb-sync1 \
+          libxcb-util1 \
+          libxcb-xfixes0 \
+          libxcb-xkb1 \
+          libxkbcommon0 \
+          libxkbcommon-x11-0 \
+          libdbus-1-3
     
     - name: Install dependencies
       run: |
