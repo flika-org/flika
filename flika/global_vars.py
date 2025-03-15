@@ -16,15 +16,23 @@ import uuid
 import multiprocessing
 from collections.abc import MutableMapping
 import pathlib
+import os
+import importlib.resources
 
-# Third-party imports
+import beartype
 from qtpy import QtWidgets, QtGui, QtCore
 
 # Local application imports
 from flika.logger import logger
 import flika.utils.system_info
+import flika.images
 
 __all__ = ['m', 'Settings', 'menus', 'alert', 'windows', 'traceWindows', 'currentWindow', 'win', 'currentTrace', 'clipboard']
+
+def get_flika_icon() -> QtGui.QIcon:
+    with importlib.resources.path(flika.images, 'favicon.ico') as icon_path:
+        flika_icon = QtGui.QIcon(str(icon_path))
+    return flika_icon
 
 class Settings(MutableMapping): #http://stackoverflow.com/questions/3387691/python-how-to-perfectly-override-a-dict
     """
@@ -129,13 +137,37 @@ class Settings(MutableMapping): #http://stackoverflow.com/questions/3387691/pyth
         self['internal_data_type'] = dtype
         print('Changed data_type to {}'.format(dtype))
 
-
-def messageBox(title, text, buttons=QtWidgets.QMessageBox.Ok, icon=QtWidgets.QMessageBox.Information):
-    m.messagebox = QtWidgets.QMessageBox(icon, title, text, buttons)
-    m.messagebox.setWindowIcon(m.windowIcon())
-    m.messagebox.show()
-    while m.messagebox.isVisible(): QtWidgets.QApplication.instance().processEvents()
-    return m.messagebox.result()
+@beartype.beartype
+def messageBox(
+        title: str,
+        text: str,
+        buttons: QtWidgets.QMessageBox.StandardButton = QtWidgets.QMessageBox.Ok,
+        icon: QtWidgets.QMessageBox.Icon = QtWidgets.QMessageBox.Information,
+    ) ->  int:
+    """Display a message box to the user
+    
+    This function creates a modal dialog box that will block until the user responds.
+    
+    Args:
+        title: Title of the message box
+        text: Message to display
+        buttons: Which buttons to show (default: Ok)
+        icon: Icon to display (default: Information)
+        
+    Returns:
+        The exec() slot returns the StandardButtons value of the button that was clicked.
+    """
+    # Create a standalone message box with proper window flags to ensure modality
+    msgbox = QtWidgets.QMessageBox(icon, title, text, buttons)
+    icon_pixmap = get_flika_icon().pixmap(64, 64)
+    msgbox.setIconPixmap(icon_pixmap)
+    
+    # Set the message box to be application modal
+    msgbox.setModal(True)
+    standard_button_value = msgbox.exec()
+    
+    logger.debug(f"Message box result: {standard_button_value}")
+    return standard_button_value
     
 
 def setConsoleVisible(v):

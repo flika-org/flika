@@ -35,7 +35,7 @@ __all__ = ['save_file', 'save_points', 'save_rois', 'save_movie_gui', 'open_file
 
 
 
-def save_file(filename=None):
+def save_file(filename: str|None|bool = None) -> str|None:
     """save_file(filename=None)
     Save the image in the currentWindow to a .tif file.
 

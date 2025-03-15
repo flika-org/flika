@@ -239,7 +239,6 @@ class FlikaApplication(QtWidgets.QMainWindow):
         self.move(0, 0)
 
     def _make_menu(self):
-        logger.debug("Started 'app.application.FlikaApplication._make_menu()'")
         from flika.roi import open_rois
         from flika.process.file_ import open_file, open_file_from_gui, open_image_sequence_from_gui, open_points, save_file, save_movie_gui, save_points, save_rois
         fileMenu = self.menuBar().addMenu('File')
@@ -273,8 +272,14 @@ class FlikaApplication(QtWidgets.QMainWindow):
         helpMenu = self.menuBar().addMenu("Help")
         url = 'http://flika-org.github.io'
         helpMenu.addAction("Documentation", lambda: QDesktopServices.openUrl(QUrl(url)))
-        helpMenu.addAction("Check For Updates", checkUpdates)
-        logger.debug("Completed 'app.application.FlikaApplication._make_menu()'")
+        
+        # Define a wrapper function to help debug the issue
+        def run_check_updates():
+            print("Menu action triggered checkUpdates")
+            result = checkUpdates()
+            print(f"checkUpdates returned: {result}")
+            
+        helpMenu.addAction("Check For Updates", lambda: QtCore.QTimer.singleShot(100, checkUpdates))
 
     def __getattr__(self, item):
         if item in self.__dict__:
@@ -393,4 +398,3 @@ class SetCurrentWindowSignal(QtWidgets.QWidget):
     def __init__(self,parent):
         super(SetCurrentWindowSignal, self).__init__(parent)
         self.hide()
-logger.debug("Completed 'reading app/application.py'")

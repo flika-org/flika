@@ -702,9 +702,3 @@ def load_local_plugins():
     
     logger.debug("Completed 'app.plugin_manager.load_local_plugins'")
     return plugins, errors
-
-# from flika.app.plugin_manager import *
-
-
-logger.debug("Completed 'reading app/plugin_manager.py'")
-logger.debug("Completed 'reading app/plugin_manager.py'")

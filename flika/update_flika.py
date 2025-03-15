@@ -16,6 +16,7 @@ from qtpy import QtWidgets, QtGui, QtCore
 import json
 
 import flika.global_vars as g
+from flika.logger import logger
 from flika.version import __version__ as installed_flika_version
 
 
@@ -203,19 +204,21 @@ def checkUpdates() -> bool:
         
         if latest_version is None:
             # Error occurred during version check
-            g.messageBox("Update Check Failed", 
+            g.messageBox("Update Check Failed",
                         f"{message}\n\nPlease check your internet connection.")
             return False
             
         if update_available:
             # Prompt user to update
-            if g.messageBox("Update Recommended", 
+            result = g.messageBox("Update Recommended", 
                           f"{message}\n\nWould you like to update?",
                           QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
-                          QtWidgets.QMessageBox.Question) == QtWidgets.QMessageBox.Yes:
+                          QtWidgets.QMessageBox.Question)
+            
+            if result == QtWidgets.QMessageBox.Yes:
                 update_success = updateFlika()
                 if not update_success:
-                    g.messageBox("Update Failed", 
+                    g.messageBox("Update Failed",
                                "The update process could not be completed. Please try again later.")
                     return False
                 return True
