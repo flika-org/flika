@@ -201,4 +201,3 @@ class Measure(BaseProcess):
         g.m.statusBar().showMessage('Successfully saved {}'.format(os.path.basename(filename)))
     
 measure = Measure()
-logger.debug("Completed 'reading process/measure.py'")

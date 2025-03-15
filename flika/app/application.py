@@ -21,8 +21,6 @@ from flika.utils.misc import nonpartial, send_user_stats, load_ui, send_error_re
 from flika.utils.thread_manager import run_in_thread, cleanup_threads
 from flika.version import __version__
 
-logger.debug("Started 'reading app/application.py'")
-
 
 def status_pixmap(attention=False):
     """status_pixmap(attention=False)
@@ -152,18 +150,13 @@ class FlikaApplication(QtWidgets.QMainWindow):
     """The main window of flika, stored as g.m
     """
     def __init__(self):
-        logger.debug("Started 'creating app.application.FlikaApplication'")
         from flika.process.file_ import open_file, open_file_from_gui, open_image_sequence_from_gui, open_points, save_file, save_movie_gui, save_points, save_rois
         from flika.process import setup_menus
-        logger.debug("Started 'creating app.application.FlikaApplication.app'")
         self.app = get_qapp(image_path('favicon.png'))
-        logger.debug("Completed 'creating app.application.FlikaApplication.app'")
         super(FlikaApplication, self).__init__()
         self.app.setQuitOnLastWindowClosed(True)
         setup_menus()
-        logger.debug("Started 'loading main.ui'")
         load_ui('main.ui', self, directory=os.path.dirname(__file__))
-        logger.debug("Completed 'loading main.ui'")
 
         g.m = self
         # These are all added for backwards compatibility for plugins
@@ -219,28 +212,21 @@ class FlikaApplication(QtWidgets.QMainWindow):
         PluginManager.plugins = plugins
 
     def start(self):
-        logger.debug("Started 'app.application.FlikaApplication.start()'")
         self.show()
         self.raise_()
         QtWidgets.QApplication.processEvents()
-        logger.debug("Started 'app.application.FlikaApplication.send_user_stats()'")
         
         # Start the user stats thread using the new thread manager
         self.stats_thread_controller = run_in_thread(send_user_stats)
         
-        logger.debug("Completed 'app.application.FlikaApplication.send_user_stats()'")
-        logger.debug("Completed 'app.application.FlikaApplication.start()'")
         
     def cleanup_application(self):
         """
         Clean up application resources before exit.
         """
-        logger.debug("Started 'app.application.FlikaApplication.cleanup_application()'")
-        
         # Clean up threads
         cleanup_threads()
         
-        logger.debug("Completed 'app.application.FlikaApplication.cleanup_application()'")
 
     def setWindowSize(self):
         #desktop = QtWidgets.QApplication.desktop()
@@ -315,7 +301,6 @@ class FlikaApplication(QtWidgets.QMainWindow):
         self.rectangle.customContextMenuRequested.connect(rectSettings)
 
     def _make_script_menu(self):
-        logger.debug('Making script editor')
         self.scriptMenu.clear()
         self.scriptEditorAction = self.scriptMenu.addAction('Script Editor', ScriptEditor.show)
         self.scriptMenu.addSeparator()
@@ -323,14 +308,11 @@ class FlikaApplication(QtWidgets.QMainWindow):
             return lambda : ScriptEditor.importScript(script)
         for recent_script in g.settings['recent_scripts']:
             self.scriptMenu.addAction(recent_script, openScript(recent_script))
-        logger.debug('Script editor complete')
 
     def _make_plugin_menu(self):
-        logger.debug('Making Plugin Manager')
         self.pluginMenu.clear()
         self.pluginMenu.addAction('Plugin Manager', PluginManager.show)
         self.pluginMenu.addSeparator()
-        logger.debug('Plugin Manager complete')
 
         installedPlugins = [plugin for plugin in PluginManager.plugins.values() if plugin.installed]
         for plugin in sorted(installedPlugins, key=lambda a: -a.lastModified()):
@@ -338,7 +320,6 @@ class FlikaApplication(QtWidgets.QMainWindow):
                 self.pluginMenu.addMenu(plugin.menu)
 
     def _make_recents(self):
-        logger.debug('Making recent files')
         self.recentFileMenu.clear()
         g.settings['recent_files'] = [f for f in g.settings['recent_files'] if os.path.exists(f)]
         if len(g.settings['recent_files']) == 0:
@@ -349,7 +330,6 @@ class FlikaApplication(QtWidgets.QMainWindow):
             for name in g.settings['recent_files'][::-1]:
                 if isinstance(name, str) and os.path.exists(name):
                     self.recentFileMenu.addAction(name)
-        logger.debug('Recent files complete')
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls():

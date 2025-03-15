@@ -18,8 +18,6 @@ import flika.global_vars as g
 from flika.utils.misc import save_file_gui
 from flika.roi import ROI_Base
 
-logger.debug("Started 'reading tracefig.py'")
-
 class TraceFig(QtWidgets.QWidget):
     """Pyqtgraph PlotWidget with frame range selector. Display average trace of ROIs and updates in realtime.
     
@@ -449,4 +447,3 @@ class InvalidTraceException(Exception):
     pass
 
 
-logger.debug("Completed 'reading tracefig.py'")

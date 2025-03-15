@@ -1,8 +1,7 @@
-from ..logger import logger
-logger.debug("Started 'reading utils/system_info.py'")
-
 import uuid
 import platform
+
+from flika.logger import logger
 
 def get_location():
     '''
@@ -29,5 +28,3 @@ def get_system_info():
         'python_version': platform.python_version(),
         'architecture': platform.architecture()[0]
     }
-
-logger.debug("Completed 'reading utils/system_info.py'") 

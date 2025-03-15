@@ -21,7 +21,6 @@ from qtpy import QtGui, QtWidgets, QtCore
 from xml.etree import ElementTree
 
 from flika.logger import logger
-logger.debug("Started 'reading app/plugin_manager.py'")
 from flika import global_vars as g
 from flika.utils.misc import load_ui
 from flika.images import image_path
@@ -85,7 +84,6 @@ def str2func(plugin_name: str, file_location: str, function: str) -> callable:
 
 @beartype.beartype
 def build_submenu(module_name: str, parent_menu: QtWidgets.QMenu, layout_data: dict | list, installing: bool = False) -> None:
-    #logger.debug('Calling app.plugin_manager.build_submenu')
     
     # Convert list to appropriate dict format if needed
     if isinstance(layout_data, list):

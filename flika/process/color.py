@@ -41,5 +41,3 @@ class Split_channels(BaseProcess):
 
 
 split_channels = Split_channels()
-
-logger.debug("Completed 'reading process/color.py'")

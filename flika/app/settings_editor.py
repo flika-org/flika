@@ -10,8 +10,6 @@ from flika.utils.BaseProcess import BaseProcess
 from flika.utils.custom_widgets import ColorSelector, BaseDialog
 from flika.utils.misc import setConsoleVisible
 
-logger.debug("Started 'reading app/settings_editor.py'")
-
 
 __all__ = ['SettingsEditor', 'rectSettings', 'pointSettings', 'pencilSettings']
 
@@ -199,4 +197,3 @@ def rectSettings(rectButton):
     g.dialogs.append(dialog)
     dialog.show()
 
-logger.debug("Completed 'reading app/settings_editor.py'")

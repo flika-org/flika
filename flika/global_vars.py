@@ -24,8 +24,6 @@ from qtpy import QtWidgets, QtGui, QtCore
 from flika.logger import logger
 import flika.utils.system_info
 
-logger.debug("Started 'reading global_vars.py'")
-
 __all__ = ['m', 'Settings', 'menus', 'alert', 'windows', 'traceWindows', 'currentWindow', 'win', 'currentTrace', 'clipboard']
 
 class Settings(MutableMapping): #http://stackoverflow.com/questions/3387691/python-how-to-perfectly-override-a-dict
@@ -194,5 +192,3 @@ clipboard = None
 
 
 
-
-logger.debug("Completed 'reading global_vars.py'")

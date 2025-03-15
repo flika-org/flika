@@ -24,10 +24,6 @@ from flika.logger import logger
 from flika.version import __version__
 from flika.app.application import FlikaApplication
 
-logger.debug("Started 'reading flika.py'")
-logger.debug("Started 'reading flika.py, importing numpy'")
-logger.debug("Completed 'reading flika.py, importing numpy'")
-
 # Filter out known warnings
 warnings.filterwarnings("ignore", category=np.exceptions.VisibleDeprecationWarning)
 

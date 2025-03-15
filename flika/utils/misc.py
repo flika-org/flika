@@ -1,15 +1,16 @@
-from ..logger import logger
-logger.debug("Started 'reading utils/misc.py'")
 import os
 import sys
 import platform
 import uuid
 import stat
-from qtpy import QtWidgets, QtCore, QtGui
 import json
 import re
+
 import numpy as np
+from qtpy import QtWidgets, QtCore, QtGui
+
 import flika.global_vars as g
+from flika.logger import logger
 
 __all__ = ['nonpartial', 'setConsoleVisible', 'load_ui', 'random_color', 'save_file_gui', 'open_file_gui']
 
@@ -204,5 +205,3 @@ def convert_to_string(arg) -> str:
         return 'np.array(' + str(arg.tolist()) + ')'
     else:
         return str(arg)
-
-logger.debug("Completed 'reading utils/misc.py'")

@@ -23,7 +23,7 @@ import tornado.ioloop
 from zmq.eventloop.zmqstream import ZMQStream
 
 # Import version
-from ..version import __version__
+from flika.version import __version__
 
 # Import traitlets
 from traitlets import TraitError

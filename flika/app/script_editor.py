@@ -313,5 +313,3 @@ if __name__ == '__main__':
     ScriptEditor.show()
     app.exec_()
 
-
-logger.debug("Completed 'reading app/script_editor.py'")

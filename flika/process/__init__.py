@@ -3,10 +3,7 @@
 Process module for flika - provides image processing operations.
 """
 
-# Local application imports
 from flika.logger import logger
-logger.debug("Started 'reading process/__init__.py'")
-
 from flika.process.stacks import *
 from flika.process.math_ import *
 from flika.process.filters import *
@@ -19,7 +16,6 @@ from flika.process.file_ import *
 
 def setup_menus():
     """Set up the flika menu structure for process operations."""
-    logger.debug("Started 'process.__init__.setup_menus()'")
     import flika.global_vars as g
     if len(g.menus) > 0:
         print("flika menubar already initialized.")
@@ -94,6 +90,3 @@ def setup_menus():
 
     g.menus.append(imageMenu)
     g.menus.append(processMenu)
-    logger.debug("Completed 'process.__init__.setup_menus()'")
-
-logger.debug("Completed 'reading process/__init__.py'")

@@ -84,7 +84,6 @@ def parse_plugin_info_xml(xml_str: str) -> dict:
     """
     Parse an XML string into a dictionary.
     """
-    #logger.debug('Calling app.plugin_manager.parse')
     tree = ElementTree.fromstring(xml_str)
     def step(item: ElementTree.Element) -> dict:
         d = {}

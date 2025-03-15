@@ -7,8 +7,6 @@ from flika.utils.BaseProcess import BaseProcess
 from flika.utils.custom_widgets import CheckBox
 from flika.logger import logger
 
-logger.debug("Started 'reading process/roi.py'")
-
 __all__ = ['set_value']
 
 class Set_value(BaseProcess):
@@ -84,5 +82,3 @@ class Set_value(BaseProcess):
         self.newname=self.oldname+' - value set to '+str(value)
         return self.end()
 set_value=Set_value()
-
-logger.debug("Completed 'reading process/roi.py'")

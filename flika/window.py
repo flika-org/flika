@@ -16,8 +16,6 @@ from flika.roi import *
 from flika.utils.misc import save_file_gui
 from flika.utils.custom_widgets import WindowSelector, SliderLabel
 
-logger.debug("Started 'reading window.py'")
-
 pg.setConfigOptions()
 
 
@@ -848,4 +846,3 @@ def get_line(x1, y1, x2, y2):
         points.reverse()
     return np.array(points)
 
-logger.debug("Completed 'reading window.py'")

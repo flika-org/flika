@@ -538,4 +538,3 @@ class Change_datatype(BaseProcess):
 
 change_datatype = Change_datatype()
 
-logger.debug("Completed 'reading process/stacks.py'")

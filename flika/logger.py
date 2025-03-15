@@ -1,45 +1,38 @@
+"""
+This module provides a logger for flika that uses datetime-based naming for log files.
+
+The LEVEL variable can be set by the user below. Options are:
+
+- logging.DEBUG
+- logging.INFO
+- logging.WARNING
+- logging.ERROR
+- logging.CRITICAL
+
+"""
 import logging
 import sys
 import pathlib
 import beartype
 from types import TracebackType
+import datetime
+
 # Set the default logging level
 LEVEL = logging.WARNING
 
+
 @beartype.beartype
 def get_log_file() -> pathlib.Path:
-    """Get the path to the log file with simple rotation."""
+    """Get the path to the log file using datetime-based naming."""
     log_dir = pathlib.Path.home() / '.FLIKA' / 'log'
-    max_log_idx = 99
-
+    
     # Create log directory if it doesn't exist
     log_dir.mkdir(parents=True, exist_ok=True)
-
-    # Get existing log files
-    existing_files = list(log_dir.glob('*.log'))
-
-    # Find available log index
-    try:
-        existing_idxs = [int(f.stem) for f in existing_files if f.stem.isdigit()]
-    except ValueError:
-        print("Error with log folder. Delete all files in ~/.FLIKA/log/ and restart flika.")
-        existing_idxs = []
-
-    log_idx = 0
-    while log_idx in existing_idxs:
-        log_idx += 1
-    log_idx = log_idx % max_log_idx
-
-    # Delete next log in rotation if it exists
-    idx_to_delete = (log_idx + 1) % max_log_idx
-    log_file_to_delete = log_dir / f"{idx_to_delete:03d}.log"
-    if log_file_to_delete.exists():
-        try:
-            log_file_to_delete.unlink()
-        except Exception as e:
-            print(f"Could not delete log file: {e}")
-
-    return log_dir / f"{log_idx:03d}.log"
+    
+    # Generate timestamp for filename
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    
+    return log_dir / f"flika_{timestamp}.log"
 
 # Setup logging
 log_file = get_log_file()

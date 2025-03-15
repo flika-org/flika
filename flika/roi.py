@@ -34,7 +34,6 @@ from flika.logger import logger
 import flika.global_vars as g
 from flika.utils.misc import random_color, open_file_gui, nonpartial
 
-logger.debug("Started 'reading roi.py'")
 
 @beartype.beartype
 class ROI_Drawing(pg.GraphicsObject):
@@ -1261,4 +1260,3 @@ def open_rois(filename=None):
                 rois.append(roi)
     
     return rois
-logger.debug("Completed 'reading roi.py'")

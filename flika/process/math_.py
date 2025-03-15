@@ -370,5 +370,3 @@ class Absolute_value(BaseProcess):
         return self.end()
 absolute_value=Absolute_value()
 
-
-logger.debug("Completed 'reading process/math_.py'")

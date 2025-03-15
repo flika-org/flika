@@ -27,8 +27,6 @@ from flika.window import Window
 from flika.utils.misc import open_file_gui, save_file_gui
 from flika.utils.io import tifffile
 
-logger.debug("Started 'reading process/file_.py'")
-
 __all__ = ['save_file', 'save_points', 'save_rois', 'save_movie_gui', 'open_file', 'open_file_from_gui', 'open_image_sequence_from_gui', 'open_points', 'close']
 
 ########################################################################################################################
@@ -656,4 +654,3 @@ def make_recent_menu():
 
 """
 
-logger.debug("Completed 'reading process/file_.py'")

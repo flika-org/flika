@@ -290,7 +290,6 @@ scale_bar=Scale_Bar()
 
 
 
-logger.debug("Completed 'reading process/overlay.py'")
 
 
 

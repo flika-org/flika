@@ -12,8 +12,6 @@ import flika.global_vars as g
 from flika.logger import logger
 from flika.utils.custom_widgets import *  # pylint: disable=wildcard-import
 
-logger.debug("Started 'reading process/BaseProcess.py'")
-
 
 __all__ = ['BaseProcess', 'BaseProcess_noPriorWindow']
 
@@ -188,4 +186,3 @@ class BaseProcess_noPriorWindow(BaseProcess):
         return newWindow
 
 
-logger.debug("Completed 'reading process/BaseProcess.py'")
