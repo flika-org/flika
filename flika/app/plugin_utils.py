@@ -1,12 +1,28 @@
-import beartype
+"""
+This module contains utility functions for plugins.
+
+Importantly, it contains the list of plugins that show up in Flika, and the 
+PluginInfo class, which stores plugin metadata.
+"""
 import dataclasses
 import pathlib
-import packaging.version
 import urllib.parse
 import urllib.request
 import sys
 import glob
 import xml.etree.ElementTree as ElementTree
+import packaging.version
+import beartype
+
+
+plugin_info_urls_by_name = {
+    'Beam Splitter':    'https://raw.githubusercontent.com/BrettJSettle/BeamSplitter/master/',
+    'Detect Puffs':     'https://raw.githubusercontent.com/kyleellefsen/detect_puffs/master/',
+    'Global Analysis':  'https://raw.githubusercontent.com/BrettJSettle/GlobalAnalysisPlugin/master/',
+    'Pynsight':         'http://raw.githubusercontent.com/kyleellefsen/pynsight/master/',
+    'QuantiMus':        'http://raw.githubusercontent.com/Quantimus/quantimus/master/',
+    'Rodent Tracker':   'https://raw.githubusercontent.com/kyleellefsen/rodentTracker/master/'
+}
 
 
 @beartype.beartype
@@ -52,14 +68,6 @@ def get_local_plugin_list() -> list[str]:
     return paths
 
 
-plugin_info_urls_by_name = {
-    'Beam Splitter':    'https://raw.githubusercontent.com/BrettJSettle/BeamSplitter/master/',
-    'Detect Puffs':     'https://raw.githubusercontent.com/kyleellefsen/detect_puffs/master/',
-    'Global Analysis':  'https://raw.githubusercontent.com/BrettJSettle/GlobalAnalysisPlugin/master/',
-    'Pynsight':         'http://raw.githubusercontent.com/kyleellefsen/pynsight/master/',
-    'QuantiMus':        'http://raw.githubusercontent.com/Quantimus/quantimus/master/',
-    'Rodent Tracker':   'https://raw.githubusercontent.com/kyleellefsen/rodentTracker/master/'
-}
 
 @beartype.beartype
 def get_plugin_info_xml_from_url(info_url: str) -> str | urllib.error.HTTPError:
@@ -105,7 +113,7 @@ class PluginInfo:
     description: str  # The description of the plugin
     directory: str  # The name of the module to import. This will be changed to 'module_name' eventually.
     documentation_url: str  # The url of the documentation of the plugin
-    path_to_plugin: pathlib.Path  # The full path to the plugin directory    
+    path_to_plugin: pathlib.Path  # The full path to the plugin directory
     info_url: str  # The URL of the plugin info
     last_modified: float  # The last modified date of the plugin
     latest_version: packaging.version.Version  # The latest version of the plugin
@@ -133,17 +141,17 @@ class PluginInfo:
             plugin_dict = parse_plugin_info_xml(xml_str)
         except ElementTree.ParseError as e:
             raise e
-        
+
         # Extract plugin name from the 'name' attribute
         name = plugin_dict.get('@name', '')
-        
+
         # Extract other required fields, stripping whitespace
         directory = plugin_dict.get('directory', '').strip()
         path_to_plugin = _get_path_to_plugin(directory) if directory else pathlib.Path('.')
         version_str = plugin_dict.get('version', '0.0.0').strip()
         author = plugin_dict.get('author', '').strip()
         url = plugin_dict.get('url', '').strip()
-        
+
         # Parse dependencies - If dependencies is a dict with dependency elements
         dependencies_list = []
         dependencies = plugin_dict.get('dependencies', {})
@@ -158,7 +166,7 @@ class PluginInfo:
                     for dep in dependency:
                         if isinstance(dep, dict) and '@name' in dep:
                             dependencies_list.append(dep['@name'])
-        
+
         # Parse menu_layout - actions with their properties
         menu_layout_list = []
         menu_layout = plugin_dict.get('menu_layout', {})
@@ -170,14 +178,14 @@ class PluginInfo:
             elif isinstance(actions, list):
                 # Multiple actions
                 menu_layout_list.extend(actions)
-        
+
         # Providing default values for required fields not in the XML
         description = plugin_dict.get('description', '')
         documentation_url = plugin_dict.get('documentation_url', "/".join(url.split("/")[:-2]))
         info_url = plugin_dict.get('info_url', '')
         last_modified = float(plugin_dict.get('last_modified', 0))
         latest_version = packaging.version.Version(plugin_dict.get('latest_version', version_str))
-        
+
         # Create and return the PluginInfo object
         return cls(
             author=author,
@@ -208,17 +216,3 @@ def get_plugin_info_from_filesystem(plugin_dir_str: str) -> PluginInfo | FileNot
     with open(info_xml_fn, 'r', encoding='utf-8') as f:
         info_xml_str = f.read()
     return PluginInfo.from_xml_str(info_xml_str)
-
-def test_from_url():
-    info_url = plugin_info_urls_by_name['Pynsight']
-    info_xml_str = get_plugin_info_xml_from_url(info_url)
-    print(info_xml_str)
-    plugin_info = PluginInfo.from_xml_str(info_xml_str)
-    print(plugin_info)
-
-def test_from_filesystem():
-    plugin_info = get_plugin_info_from_filesystem('path_to_plugin')
-    print(plugin_info)
-
-if __name__ == '__main__':
-    main()
