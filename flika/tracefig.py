@@ -3,23 +3,35 @@
 Trace display module for flika - provides visualization of ROI traces.
 """
 
-# Standard library imports
 import os
 import time
+from typing import Any, TypedDict
 
-# Third-party imports
+import beartype
 import numpy as np
 import pyqtgraph as pg
-from pyqtgraph.dockarea import *
+from pyqtgraph.dockarea import Dock, DockArea
 from qtpy import QtCore, QtGui, QtWidgets
 from scipy.fftpack import fft, fftfreq
 
-# Local application imports
 import flika.global_vars as g
 from flika.roi import ROI_Base
 from flika.utils.misc import save_file_gui
 
 
+class ROIDict(TypedDict, total=False):
+    """TypedDict for ROI information stored in TraceFig"""
+
+    roi: ROI_Base
+    p1trace: pg.PlotDataItem
+    p2trace: pg.PlotDataItem
+    toBeRedrawn: bool
+    toBeRedrawnFull: bool
+    power_spectrum_x: np.ndarray
+    power_spectrum_y: np.ndarray
+
+
+@beartype.beartype
 class TraceFig(QtWidgets.QWidget):
     """Pyqtgraph PlotWidget with frame range selector. Display average trace of ROIs and updates in realtime.
 
@@ -37,12 +49,12 @@ class TraceFig(QtWidgets.QWidget):
 
     indexChanged = QtCore.Signal(int)
     finishedDrawingSignal = QtCore.Signal()
-    keyPressSignal = QtCore.Signal(QtCore.QEvent)
+    keyPressSignal = QtCore.Signal(object)  # Using object instead of QEvent
     partialThreadUpdatedSignal = QtCore.Signal()
-    name = "Trace Widget"
+    name: str = "Trace Widget"
 
-    def __init__(self):
-        super(TraceFig, self).__init__()
+    def __init__(self) -> None:
+        super().__init__()
         g.traceWindows.append(self)
         self.setCurrentTraceWindow()
         if (
@@ -76,17 +88,22 @@ class TraceFig(QtWidgets.QWidget):
         self.button_layout.setContentsMargins(0, 0, 0, 0)
         self.button_layout.addWidget(self.export_button, 0, 0)
         self.button_layout.addWidget(self.power_spectrum_button, 0, 1)
-        verticalSpacer = QtWidgets.QSpacerItem(
-            10, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum
-        )
+        # Using constants avoids linter warnings about missing attributes
+        expanding = QtWidgets.QSizePolicy.Policy.Expanding
+        minimum = QtWidgets.QSizePolicy.Policy.Minimum
+        verticalSpacer = QtWidgets.QSpacerItem(10, 10, expanding, minimum)
         self.button_layout.addItem(verticalSpacer, 0, 2)
 
-        self.region = pg.LinearRegionItem()  # Add the LinearRegionItem to the ViewBox, but tell the ViewBox to exclude this item when doing auto-range calculations.
+        # Add the LinearRegionItem to the ViewBox, but tell the ViewBox to exclude this item
+        # when doing auto-range calculations.
+        self.region = pg.LinearRegionItem()
         self.region.setZValue(10)
         self.p2.plotItem.addItem(self.region, ignoreBounds=True)
         self.p1.setAutoVisible(y=True)
-        self.rois = []  # roi in this list is a dict: {roi, p1trace,p2trace, sigproxy}
-        self.redrawPartialThread = None
+        self.rois: list[
+            ROIDict
+        ] = []  # roi in this list is a dict: {roi, p1trace, p2trace, sigproxy}
+        self.redrawPartialThread: "RedrawPartialThread | None" = None
         self.vb = self.p1.plotItem.getViewBox()
 
         self.proxy = pg.SignalProxy(
@@ -94,7 +111,7 @@ class TraceFig(QtWidgets.QWidget):
         )
         self.p2.plotItem.vb.mouseDragEvent = self.mouseDragEvent2
 
-        self.region.sigRegionChanged.connect(self.update)
+        self.region.sigRegionChanged.connect(self.update_region)
         self.p1.plotItem.sigRangeChanged.connect(self.updateRegion)
         self.region.setRegion([0, 200])
 
@@ -107,90 +124,136 @@ class TraceFig(QtWidgets.QWidget):
         self.measure = measure
         self.p1.scene().sigMouseClicked.connect(self.measure.pointclicked)
         self.p1.scene().sigMouseClicked.connect(self.setCurrentTraceWindow)
-        self.resizeEvent = self.onResize
-        self.moveEvent = self.onMove
+
+        # Override QWidget events with our custom handlers
+        self.original_resize_event = self.resizeEvent
+        self.original_move_event = self.moveEvent
+        self.resizeEvent = self.onResize  # type: ignore
+        self.moveEvent = self.onMove  # type: ignore
 
         if "tracefig_settings" not in g.settings:
             g.settings["tracefig_settings"] = dict()
             try:
                 g.settings["tracefig_settings"]["coords"] = self.geometry().getRect()
             except Exception as e:
-                g.alert(e)
+                if hasattr(g, "alert"):
+                    g.alert(e)
         self.show()
 
-    def onResize(self, event):
+    def onResize(self, event: QtGui.QResizeEvent) -> None:
+        """Handle resize events"""
         g.settings["tracefig_settings"]["coords"] = self.geometry().getRect()
+        # Call the original resize event handler
+        super().resizeEvent(event)
 
-    def onMove(self, event):
+    def onMove(self, event: QtGui.QMoveEvent) -> None:
+        """Handle move events"""
         g.settings["tracefig_settings"]["coords"] = self.geometry().getRect()
+        # Call the original move event handler
+        super().moveEvent(event)
 
-    def setCurrentTraceWindow(self):
+    def setCurrentTraceWindow(self, ev: None | Any = None) -> None:
+        pg.GraphicsScene.mousePressEvent
+        """Set this window as the current trace window
+
+        Args:
+            ev: pyqtgraph.GraphicsScene.mouseEvents.MouseClickEvent. For some reason I cannot import this type.
+                AttributeError: type object 'GraphicsScene' has no attribute 'MouseClickEvent'.
+                pyqtgraph v0.13.7.
+        """
         if g.currentTrace is not None:
             g.currentTrace.setStyleSheet("border:1px solid rgb(0, 0, 0); ")
         self.setStyleSheet("border:1px solid rgb(0, 255, 0); ")
-        g.currentTrace = self
+        g.currentTrace = self  # type: ignore
 
-    def mouseDragEvent2(self, ev):
+    def mouseDragEvent2(self, ev: Any) -> None:
+        """Prevent actions on mouse drag in plot2"""
         ev.ignore()  # prevent anything from happening
 
-    def mouseDragEvent1(self, ev):
+    def mouseDragEvent1(self, ev: Any) -> None:
+        """Prevent actions on mouse drag in plot1"""
         ev.ignore()  # prevent anything from happening
 
-    def keyPressEvent(self, ev):
+    def keyPressEvent(self, ev: QtGui.QKeyEvent) -> None:
+        """Emit signal when key is pressed"""
         self.keyPressSignal.emit(ev)
 
-    def closeEvent(self, event):
+    def closeEvent(self, event: QtGui.QCloseEvent) -> None:
+        """Handle cleanup when window is closed"""
         while len(self.rois) > 0:
             self.removeROI(0)
         try:
             self.p1.scene().sigMouseClicked.disconnect(self.measure.pointclicked)
             self.p1.scene().sigMouseClicked.disconnect(self.setCurrentTraceWindow)
-        except:
+        except Exception:
             pass
         if self in g.traceWindows:
             g.traceWindows.remove(self)
         g.currentTrace = None
         event.accept()  # let the window close
 
-    def update(self):
+    def update_region(
+        self, lri: pg.graphicsItems.LinearRegionItem.LinearRegionItem
+    ) -> None:
+        """Update the displayed region in the main plot
+
+        Renamed from update() to avoid conflict with QWidget's update method.
+        """
         self.region.setZValue(10)
         minX, maxX = self.region.getRegion()
         self.p1.plotItem.setXRange(minX, maxX, padding=0, update=False)
         self.p1.plotItem.axes["bottom"]["item"].setRange(minX, maxX)
 
-    def updateRegion(self, window, viewRange):
+    def updateRegion(
+        self, window: pg.ViewBox, viewRange: list[list[float | int]]
+    ) -> None:
+        """Update region selector based on view range changes"""
         rgn = viewRange[0]
         self.region.setRegion(rgn)
 
-    def getBounds(self):
+    def getBounds(self) -> list[int]:
+        """Get the integer bounds of the currently selected region"""
         bounds = self.region.getRegion()
         bounds = [int(np.floor(bounds[0])), int(np.ceil(bounds[1])) + 1]
         return bounds
 
-    def mouseMoved(self, evt):
+    def mouseMoved(self, evt: tuple[Any, ...]) -> None:
+        """Handle mouse movement over the plot"""
         modifiers = QtWidgets.QApplication.keyboardModifiers()
-        if modifiers == QtCore.Qt.ShiftModifier:
+        shift_modifier = (
+            QtCore.Qt.KeyboardModifier.ShiftModifier
+        )  # Use enum to avoid linter warning
+
+        if modifiers == shift_modifier:
             pass
         else:
-            pos = evt[0]  ## using signal proxy turns original arguments into a tuple
+            pos = evt[0]  # using signal proxy turns original arguments into a tuple
             if self.p1.plotItem.sceneBoundingRect().contains(pos):
                 mousePoint = self.vb.mapSceneToView(pos)
                 index = int(mousePoint.x())
                 if index >= 0:
                     # self.label.setText("<span style='font-size: 12pt'>frame={0}</span>".format(index))
                     self.indexChanged.emit(index)
-                    g.m.statusBar().showMessage(
-                        "frame {}    y={}".format(index, mousePoint.y())
-                    )
+                    if (
+                        hasattr(g, "m")
+                        and g.m is not None
+                        and hasattr(g.m, "statusBar")
+                    ):
+                        g.m.statusBar().showMessage(
+                            f"frame {index}    y={mousePoint.y()}"
+                        )
 
-    def get_roi_index(self, roi):
+    def get_roi_index(self, roi: ROI_Base) -> int:
+        """Get the index of an ROI in the rois list"""
         return [r["roi"] for r in self.rois].index(roi)
 
-    def alert(self, msg):
+    def alert(self, msg: str) -> None:
+        """Display an alert message (currently disabled)"""
         # print(msg)
         pass
 
-    def translated(self, roi):
+    def translated(self, roi: ROI_Base) -> None:
+        """Handle ROI translation and start redraw thread if needed"""
         index = self.get_roi_index(roi)
         self.rois[index]["toBeRedrawn"] = True
         if self.redrawPartialThread is None or self.redrawPartialThread.isFinished():
@@ -202,7 +265,8 @@ class TraceFig(QtWidgets.QWidget):
                 self.partialThreadUpdatedSignal.emit
             )
 
-    def translateFinished(self, roi):
+    def translateFinished(self, roi: ROI_Base) -> None:
+        """Handle completion of ROI translation"""
         roi_index = self.get_roi_index(roi)
         if (
             self.redrawPartialThread is not None
@@ -214,15 +278,18 @@ class TraceFig(QtWidgets.QWidget):
             # self.redrawPartialThread.finished.connect(loop.quit)
             # loop.exec_()# This blocks until the "finished" signal is emitted
         trace = roi.getTrace()
-        self.update_trace_full(roi_index, trace)
+        if trace is not None:
+            self.update_trace_full(roi_index, trace)
 
-    def update_trace_full(self, roi_index, trace):
+    def update_trace_full(self, roi_index: int, trace: np.ndarray) -> None:
+        """Update the complete trace display for an ROI"""
         pen = QtGui.QPen(self.rois[roi_index]["roi"].pen)
         self.rois[roi_index]["p1trace"].setData(trace, pen=pen)
         self.rois[roi_index]["p2trace"].setData(trace, pen=pen)
         self.finishedDrawingSignal.emit()
 
-    def addROI(self, roi):
+    def addROI(self, roi: ROI_Base) -> None:
+        """Add an ROI to the trace display"""
         if self.hasROI(roi):
             return
         trace = roi.getTrace()
@@ -237,52 +304,56 @@ class TraceFig(QtWidgets.QWidget):
             p1trace = self.p1.plot(trace, pen=pen)
             p2trace = self.p2.plot(trace, pen=pen)
 
-        roi.sigRegionChanged.connect(self.translated)
-        roi.sigRegionChangeFinished.connect(self.translateFinished)
+        # Check if methods exist before connecting signals
+        if hasattr(roi, "sigRegionChanged"):
+            roi.sigRegionChanged.connect(self.translated)
+        if hasattr(roi, "sigRegionChangeFinished"):
+            roi.sigRegionChangeFinished.connect(self.translateFinished)
 
         if len(self.rois) == 0:
             self.region.setRegion([0, len(trace) - 1])
-        self.rois.append(
-            dict(
-                {
-                    "roi": roi,
-                    "p1trace": p1trace,
-                    "p2trace": p2trace,
-                    "toBeRedrawn": False,
-                    "toBeRedrawnFull": False,
-                }
-            )
-        )
 
-    def removeROI(self, roi):
-        from .roi import ROI_Base
+        new_roi: ROIDict = {
+            "roi": roi,
+            "p1trace": p1trace,
+            "p2trace": p2trace,
+            "toBeRedrawn": False,
+            "toBeRedrawnFull": False,
+        }
+        self.rois.append(new_roi)
+
+    def removeROI(self, roi: ROI_Base | int) -> None:
+        """Remove an ROI from the trace display"""
 
         if isinstance(roi, ROI_Base):
-            index = [r["roi"] for r in self.rois].index(
-                roi
-            )  # this is the index of the roi in self.rois
+            # this is the index of the roi in self.rois
+            index = [r["roi"] for r in self.rois].index(roi)
         elif isinstance(roi, int):
             index = roi
         else:
-            g.alert("Failed to remove roi {}".format(roi))
+            if hasattr(g, "alert"):
+                g.alert(f"Failed to remove roi {roi}")
             return
+
         self.p1.removeItem(self.rois[index]["p1trace"])
         self.p2.removeItem(self.rois[index]["p2trace"])
         self.rois[index]["roi"].traceWindow = None
         try:
             self.rois[index]["roi"].resetSignals()
-        except:
+        except Exception:
             pass
         del self.rois[index]
         if len(self.rois) == 0:
             self.close()
 
-    def hasROI(self, roi):
+    def hasROI(self, roi: ROI_Base) -> bool:
+        """Check if the ROI is already in the trace display"""
         return roi in [r["roi"] for r in self.rois]  # return True if roi is plotted
 
-    def export_gui(self):
-        filename = g.settings["filename"]
-        directory = os.path.dirname(filename)
+    def export_gui(self) -> bool:
+        """Show GUI for exporting traces"""
+        filename = g.settings.get("filename")
+        directory = os.path.dirname(filename) if filename is not None else ""
         if filename is not None:
             filename = save_file_gui("Save Traces", directory, "*.txt")
         else:
@@ -291,35 +362,64 @@ class TraceFig(QtWidgets.QWidget):
             return False
         else:
             self.export(filename)
+            return True
 
-    def export(self, filename):
-        """This function saves out all the traces in the tracefig to a file specified by the argument 'filename'.
-        The output file is a tab seperated ascii file where each column is a trace.
+    def export(self, filename: str) -> None:
+        """Export traces to a file
+
+        This function saves all the traces in the tracefig to a file specified by the argument 'filename'.
+        The output file is a tab separated ascii file where each column is a trace.
         Traces are saved in the order they were added to the plot.
-
         """
-        g.m.statusBar().showMessage("Saving {}".format(os.path.basename(filename)))
+        if hasattr(g, "m") and g.m is not None and hasattr(g.m, "statusBar"):
+            g.m.statusBar().showMessage(f"Saving {os.path.basename(filename)}")
+
         traces = []
         for roi in self.rois:
-            traces.append(roi["roi"].getTrace())
-        traces.insert(0, np.arange(len(traces[0])))
-        traces = np.array(traces).T
-        np.savetxt(filename, traces, delimiter="\t", fmt="%10f")
-        g.m.statusBar().showMessage(
-            "Successfully saved {}".format(os.path.basename(filename))
-        )
+            trace = roi["roi"].getTrace()
+            if trace is not None:
+                traces.append(trace)
 
-    def generate_power_spectrum(self):
+        if not traces:
+            return
+
+        traces_array = [np.arange(len(traces[0]))]
+        traces_array.extend(traces)
+        np_traces = np.array(traces_array).T
+        np.savetxt(filename, np_traces, delimiter="\t", fmt="%10f")
+
+        if hasattr(g, "m") and g.m is not None and hasattr(g.m, "statusBar"):
+            g.m.statusBar().showMessage(
+                f"Successfully saved {os.path.basename(filename)}"
+            )
+
+    def generate_power_spectrum(self) -> None:
+        """Create and display power spectrum analysis of the traces"""
         sample_interval = 1
         self.fft_analyzer = FFT_Analyzer(self.rois, sample_interval, self)
 
 
+@beartype.beartype
 class FFT_Analyzer(QtWidgets.QWidget):
-    def __init__(self, rois, sample_interval, tracefig, parent=None):
-        QtWidgets.QWidget.__init__(self, parent)
+    """Widget for analyzing and displaying FFT power spectrum of traces"""
+
+    def __init__(
+        self,
+        rois: list[ROIDict],
+        sample_interval: float | int,
+        tracefig: TraceFig,
+        parent: QtWidgets.QWidget | None = None,
+    ) -> None:
         """
-        sample_interval is the sample_duration in seconds. If the sample is 1000 Hz, sample_interval = .001 (1 ms)
+        Initialize FFT analyzer
+
+        Args:
+            rois: List of ROI dictionaries to analyze
+            sample_interval: Sample duration in seconds. If sample is 1000 Hz, sample_interval = .001 (1 ms)
+            tracefig: Parent TraceFig widget
+            parent: Parent widget
         """
+        super().__init__(parent)
         self.tracefig = tracefig
         self.rois = rois
         geo = self.tracefig.geometry()
@@ -348,19 +448,28 @@ class FFT_Analyzer(QtWidgets.QWidget):
         self.d3.addWidget(self.export_button)
         self.show()
 
-    def set_data(self, rois, sample_interval):
+    def set_data(self, rois: list[ROIDict], sample_interval: float | int) -> None:
+        """Calculate and display power spectrum for each ROI trace"""
         traces = []
         pens = []
         for roi in rois:
-            traces.append(roi["roi"].getTrace())
-            pen = QtGui.QPen(roi["roi"].pen)
-            pen.setWidth(0)
-            pens.append(pen)
+            trace = roi["roi"].getTrace()
+            if trace is not None:
+                traces.append(trace)
+                pen = QtGui.QPen(roi["roi"].pen)
+                pen.setWidth(0)
+                pens.append(pen)
 
-        longest_trace_len = np.max([len(trace) for trace in traces])
+        if not traces:
+            return
+
+        longest_trace_len = max(len(trace) for trace in traces)
         N = int(2 ** np.floor(np.log2(longest_trace_len)))
         # x = np.linspace(0.0, N * sample_interval, N)
-        for i in np.arange(len(rois)):
+        for i in range(len(traces)):
+            if i >= len(rois):
+                break
+
             trace = traces[i]
             yf = fft(trace[-N:])
             xf = fftfreq(N, sample_interval)
@@ -370,9 +479,10 @@ class FFT_Analyzer(QtWidgets.QWidget):
             rois[i]["power_spectrum_y"] = yf
             self.fftplt.plot(xf, yf, pen=pens[i])
 
-    def export_gui(self):
-        filename = g.settings["filename"]
-        directory = os.path.dirname(filename)
+    def export_gui(self) -> bool:
+        """Show GUI for exporting power spectrum data"""
+        filename = g.settings.get("filename")
+        directory = os.path.dirname(filename) if filename is not None else ""
         if filename is not None:
             filename = save_file_gui("Save Power Spectrum", directory, "*.csv")
         else:
@@ -381,37 +491,54 @@ class FFT_Analyzer(QtWidgets.QWidget):
             return False
         else:
             self.export(filename)
+            return True
 
-    def export(self, filename):
-        """This function saves out all the traces in the 'Power Spectrum" to a file specified by the argument 'filename'.
-        The output file is a csv.
+    def export(self, filename: str) -> None:
+        """Export power spectrum data to a CSV file
+
+        This function saves all the traces in the 'Power Spectrum" to a file specified by the argument 'filename'.
+        The output file is a CSV.
         Traces are saved in the order they were added to the tracefig window.
-
         """
-        g.m.statusBar().showMessage("Saving {}".format(os.path.basename(filename)))
-        traces = []
+        if hasattr(g, "m") and g.m is not None and hasattr(g.m, "statusBar"):
+            g.m.statusBar().showMessage(f"Saving {os.path.basename(filename)}")
+
         headers = []
         cols = []
         for i, roi in enumerate(self.rois):
-            cols.append(roi["power_spectrum_x"])
-            cols.append(roi["power_spectrum_y"])
-            headers.append("X roi{}".format(i))
-            headers.append("Y roi{}".format(i))
+            if "power_spectrum_x" in roi and "power_spectrum_y" in roi:
+                cols.append(roi["power_spectrum_x"])
+                cols.append(roi["power_spectrum_y"])
+                headers.append(f"X roi{i}")
+                headers.append(f"Y roi{i}")
+
+        if not cols:
+            return
+
         header = ",".join(headers)
-        cols = np.array(cols).T
+        cols_array = np.array(
+            cols
+        ).T  # Create explicitly named variable for type clarity
         np.savetxt(
-            filename, cols, header=header, delimiter=",", comments="", fmt="%10f"
+            filename, cols_array, header=header, delimiter=",", comments="", fmt="%10f"
         )
-        g.m.statusBar().showMessage(
-            "Successfully saved {}".format(os.path.basename(filename))
-        )
+        if hasattr(g, "m") and g.m is not None and hasattr(g.m, "statusBar"):
+            g.m.statusBar().showMessage(
+                f"Successfully saved {os.path.basename(filename)}"
+            )
 
 
+@beartype.beartype
 def roiPlot(roi: ROI_Base) -> TraceFig | None:
+    """Plot an ROI in a trace window
+
+    Args:
+        roi: The ROI to plot
+
+    Returns:
+        The trace window used for plotting, or None if plotting failed
     """
-    returns tracefig that is used to plot roi
-    """
-    if g.settings["multipleTraceWindows"] or g.currentTrace is None:
+    if g.settings.get("multipleTraceWindows", False) or g.currentTrace is None:
         win = TraceFig()
     else:
         win = g.currentTrace
@@ -424,67 +551,89 @@ def roiPlot(roi: ROI_Base) -> TraceFig | None:
     return win
 
 
+@beartype.beartype
 class RedrawPartialThread(QtCore.QThread):
+    """Thread for redrawing traces in the background"""
+
     finished = QtCore.Signal()  # this announces that the thread has finished
     finished_sig = QtCore.Signal()  # This tells the thread to finish
     alert = QtCore.Signal(str)
     updated = QtCore.Signal()  # This signal is emitted after each redraw
 
-    def __init__(self, tracefig):
-        QtCore.QThread.__init__(self)
+    def __init__(self, tracefig: TraceFig) -> None:
+        """Initialize redraw thread for a trace window"""
+        super().__init__()
         self.tracefig = tracefig
         self.redrawCompleted = True
         self.quit_loop = False
 
-    def run(self):
+    def run(self) -> None:
+        """Main thread execution loop"""
         self.finished_sig.connect(self.request_quit_loop)
-        while self.quit_loop is False:
+        while not self.quit_loop:
             time.sleep(0.05)
             self.redraw()
             self.updated.emit()
         self.alert.emit("Finished Redraw")
         self.finished.emit()
 
-    def request_quit_loop(self):
+    def request_quit_loop(self) -> None:
+        """Signal thread to exit"""
         self.quit_loop = True
 
-    def redraw(self):
-        if self.redrawCompleted is False:
+    def redraw(self) -> None:
+        """Redraw ROI traces that need updating"""
+        if not self.redrawCompleted:
             self.alert.emit("Redraw hasn't finished")
-            pass
-        else:
-            self.alert.emit("Redrawing")
-            self.redrawCompleted = False
-            idxs = []
-            for i in np.arange(len(self.tracefig.rois)):
-                if self.tracefig.rois[i]["toBeRedrawn"]:
-                    self.tracefig.rois[i]["toBeRedrawn"] = False
-                    idxs.append(i)
-            traces = []
-            bounds = self.tracefig.getBounds()
-            bounds = [max(0, bounds[0]), bounds[1]]
-            for i in idxs:
-                roi = self.tracefig.rois[i]["roi"]
-                trace = roi.getTrace(bounds)
+            return
+
+        self.alert.emit("Redrawing")
+        self.redrawCompleted = False
+        idxs = []
+        for i in range(len(self.tracefig.rois)):
+            if self.tracefig.rois[i]["toBeRedrawn"]:
+                self.tracefig.rois[i]["toBeRedrawn"] = False
+                idxs.append(i)
+
+        traces = []
+        bounds = self.tracefig.getBounds()
+        bounds = [max(0, bounds[0]), bounds[1]]
+
+        for i in idxs:
+            roi = self.tracefig.rois[i]["roi"]
+            trace = roi.getTrace(bounds)
+            if trace is not None:
                 traces.append(trace)
-            for i, roi_index in enumerate(idxs):
-                trace = traces[i]  # This function can sometimes take a long time.
-                pen = QtGui.QPen(self.tracefig.rois[roi_index]["roi"].pen)
-                bb = self.tracefig.getBounds()
-                curve = self.tracefig.rois[roi_index]["p1trace"]
-                newtrace = curve.getData()[1]
-                if bb[0] < 0:
-                    bb[0] = 0
-                if bb[1] > len(newtrace):
-                    bb[1] = len(newtrace)
-                if bb[1] < 0 or bb[0] > len(newtrace):
-                    return
-                newtrace[bb[0] : bb[1]] = trace
-                curve.setData(newtrace, pen=pen)
-                self.alert.emit("CURVE {} redrawn".format(roi_index))
-                QtWidgets.QApplication.processEvents()
-            self.redrawCompleted = True
+            else:
+                # If trace is None, append an empty array as a placeholder
+                traces.append(np.array([]))
+
+        for i, roi_index in enumerate(idxs):
+            if len(traces[i]) == 0:
+                continue  # Skip empty traces
+
+            trace = traces[i]  # This function can sometimes take a long time.
+            pen = QtGui.QPen(self.tracefig.rois[roi_index]["roi"].pen)
+            bb = self.tracefig.getBounds()
+            curve = self.tracefig.rois[roi_index]["p1trace"]
+            newtrace = curve.getData()[1]
+
+            if bb[0] < 0:
+                bb[0] = 0
+            if bb[1] > len(newtrace):
+                bb[1] = len(newtrace)
+            if bb[1] < 0 or bb[0] > len(newtrace):
+                return
+
+            newtrace[bb[0] : bb[1]] = trace
+            curve.setData(newtrace, pen=pen)
+            self.alert.emit(f"CURVE {roi_index} redrawn")
+            QtWidgets.QApplication.processEvents()
+
+        self.redrawCompleted = True
 
 
 class InvalidTraceException(Exception):
+    """Exception raised when an ROI has no valid trace data"""
+
     pass
