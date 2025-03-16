@@ -397,8 +397,12 @@ class ROI_Base():
         self.menu.addAction(remAct)
         self.menu.aboutToShow.connect(updateMenu)
 
-    def delete(self) -> None:
-        """Remove the ROI from its window, unlink all ROIs and delete the object"""
+    def delete(self, optional_bool: bool | None = False) -> None:
+        """Remove the ROI from its window, unlink all ROIs and delete the object
+        
+        As of 2025-03-15, I don't know where this optional bool comes from or
+        what it's for, but I can see from beartype that it's coming in.
+        """
         self.unplot()
         for roi in self.linkedROIs:
             if self in roi.linkedROIs:

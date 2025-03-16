@@ -609,13 +609,13 @@ class Window(QtWidgets.QWidget):
                 pts.extend(self.scatterPoints[t])
             pointSizes = [pt[3] for pt in pts]
             brushes = [pg.mkBrush(*pt[2].getRgb()) for pt in pts]
-            self.scatterPlot.setPoints(pos=pts, size=pointSizes, brush=brushes)
+            self.scatterPlot.setData(pos=pts, size=pointSizes, brush=brushes)
         else:
             t = self.currentIndex
             self.scatterPoints[t] = [p for p in self.scatterPoints[t] if not (x == p[0] and y == p[1])]
             pointSizes = [pt[3] for pt in self.scatterPoints[t]]
             brushes = [pg.mkBrush(*pt[2].getRgb()) for pt in self.scatterPoints[t]]
-            self.scatterPlot.setPoints(pos=self.scatterPoints[t], size=pointSizes, brush=brushes)
+            self.scatterPlot.setData(pos=self.scatterPoints[t], size=pointSizes, brush=brushes)
 
     def getScatterPts(self):
         """getScatterPts(self)
@@ -702,6 +702,9 @@ class Window(QtWidgets.QWidget):
                     self.rois[i].delete()
                 else:
                     i += 1
+        # Add cmd+w (or ctrl+w on other platforms) to close window
+        elif ev.key() == QtCore.Qt.Key_W and ev.modifiers() & QtCore.Qt.ControlModifier:
+            self.close()
         self.keyPressSignal.emit(ev)
         
     def mouseMoved(self,point):
