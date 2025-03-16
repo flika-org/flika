@@ -1,4 +1,3 @@
-
 """
 Module providing the flika version, extracted from pyproject.toml.
 """
@@ -14,19 +13,19 @@ def _get_version() -> str:
     Returns:
         str: The version string of flika.
     """
-    # Find the pyproject.toml file - first check current directory, then parent directories
-    current_path = Path.cwd()
+    # Find the pyproject.toml file relative to this file (version.py)
+    module_path = Path(__file__).resolve()
     pyproject_path = None
     
-    # Look in current and parent directories for pyproject.toml
-    for path in [current_path, *current_path.parents]:
+    # Look in the parent directories of this file for pyproject.toml
+    for path in [module_path.parent, *module_path.parent.parents]:
         potential_path = path / "pyproject.toml"
         if potential_path.exists():
             pyproject_path = potential_path
             break
     
     if pyproject_path is None:
-        raise FileNotFoundError("Could not find pyproject.toml in current or parent directories")
+        raise FileNotFoundError("Could not find pyproject.toml in parent directories of the module")
     
     # Parse the TOML file
     with open(pyproject_path, "rb") as f:
