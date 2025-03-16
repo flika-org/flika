@@ -1,10 +1,11 @@
 name: Run Tests
 
 on:
+  # Only run on a branch that doesn't exist
   push:
-    branches: [ ]
+    branches: [ "branch-that-does-not-exist" ]
   pull_request:
-    branches: [ ]
+    branches: [ "branch-that-does-not-exist" ]
 
 jobs:
   test:
