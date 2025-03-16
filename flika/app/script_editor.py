@@ -19,16 +19,18 @@ except NameError:
 else:
     INSIDE_IPYTHON = True
 
+
 def qstr2str(string):
-    string=str(string)
-    return string.replace('\u2029','\n').strip()
+    string = str(string)
+    return string.replace("\u2029", "\n").strip()
+
 
 class Editor(QtWidgets.QPlainTextEdit):
-    def __init__(self, scriptfile = ''):
+    def __init__(self, scriptfile=""):
         super(Editor, self).__init__()
         self.highlight = PythonHighlighter(self.document())
-        self.scriptfile = ''
-        if scriptfile != '':
+        self.scriptfile = ""
+        if scriptfile != "":
             self.open_file(scriptfile)
         font = QtGui.QFont()
         font.setFamily("Courier")
@@ -39,31 +41,37 @@ class Editor(QtWidgets.QPlainTextEdit):
         self.setFont(font)
 
         metrics = QtGui.QFontMetrics(font)
-        self.setTabStopWidth(4 * metrics.width(' '))
+        self.setTabStopWidth(4 * metrics.width(" "))
 
     @staticmethod
     def fromWindow(window):
         if window is None:
-            g.alert("In order to load a script from a window, you need to have a window selected.")
+            g.alert(
+                "In order to load a script from a window, you need to have a window selected."
+            )
             return None
         editor = Editor()
-        editor.setPlainText('\n'.join(window.commands))
+        editor.setPlainText("\n".join(window.commands))
         return editor
-        
+
     def open_file(self, scriptfile):
         self.scriptfile = scriptfile
         try:
-            script = open(scriptfile, 'r', encoding='utf-8').read()
+            script = open(scriptfile, "r", encoding="utf-8").read()
         except FileNotFoundError as e:
             print("Failed to read %s: %s" % (scriptfile, e))
             return
         self.setPlainText(script)
-        ScriptEditor.gui.statusBar().showMessage(f'{os.path.basename(self.scriptfile)} opened.', MESSAGE_TIME)
+        ScriptEditor.gui.statusBar().showMessage(
+            f"{os.path.basename(self.scriptfile)} opened.", MESSAGE_TIME
+        )
 
     def save_as(self):
-        filename = save_file_gui('Save script', ScriptEditor.most_recent_script(), '*.py')
-        if filename == '':
-            ScriptEditor.gui.statusBar().showMessage('Save cancelled',  MESSAGE_TIME)
+        filename = save_file_gui(
+            "Save script", ScriptEditor.most_recent_script(), "*.py"
+        )
+        if filename == "":
+            ScriptEditor.gui.statusBar().showMessage("Save cancelled", MESSAGE_TIME)
             return False
         self.scriptfile = filename
         self.save()
@@ -72,24 +80,33 @@ class Editor(QtWidgets.QPlainTextEdit):
     def save(self):
         if not self.scriptfile:
             return self.save_as()
-        f = open(self.scriptfile, 'w')
-        command=qstr2str(self.toPlainText())
+        f = open(self.scriptfile, "w")
+        command = qstr2str(self.toPlainText())
         f.write(command)
         f.close()
         ScriptEditor.add_recent_file(self.scriptfile)
-        ScriptEditor.gui.statusBar().showMessage(f'{os.path.basename(self.scriptfile)} saved.', MESSAGE_TIME)
+        ScriptEditor.gui.statusBar().showMessage(
+            f"{os.path.basename(self.scriptfile)} saved.", MESSAGE_TIME
+        )
         return True
 
+
 class ScriptEditor(QtWidgets.QMainWindow):
-    '''
+    """
     QMainWindow for editing and running user scripts. Comprised of a tabbed text editor and console.
-    '''
+    """
+
     POINT_SIZE = 8
-    def __init__(self, parent=None, ):
+
+    def __init__(
+        self,
+        parent=None,
+    ):
         from .terminal import ipython_terminal
         from .script_namespace import getnamespace
+
         super(ScriptEditor, self).__init__(parent)
-        load_ui('ipythonWidget.ui', self, directory=os.path.dirname(__file__))
+        load_ui("ipythonWidget.ui", self, directory=os.path.dirname(__file__))
         text = """Predefined Libraries:
     scipy and numpy (np)
 Useful variables:
@@ -101,7 +118,9 @@ Useful variables:
     reset() to reset all global and local variables """
 
         self.terminal = ipython_terminal(banner=text, **getnamespace())
-        self.terminal.namespace.update({'clear': self.terminal.clear, 'reset': self.resetNamespace})
+        self.terminal.namespace.update(
+            {"clear": self.terminal.clear, "reset": self.resetNamespace}
+        )
         layout = QtWidgets.QGridLayout()
         self.terminalWidget.setLayout(layout)
         layout.addWidget(self.terminal)
@@ -111,26 +130,37 @@ Useful variables:
         self.runSelectedButton.clicked.connect(self.runSelected)
         self.actionNew_Script.triggered.connect(lambda f: self.addEditor())
         self.actionFrom_File.triggered.connect(lambda f: ScriptEditor.importScript())
-        self.actionFrom_Window.triggered.connect(lambda : self.addEditor(Editor.fromWindow(g.win)))
+        self.actionFrom_Window.triggered.connect(
+            lambda: self.addEditor(Editor.fromWindow(g.win))
+        )
         self.actionSave_Script.triggered.connect(self.saveCurrentScript)
         self.menuRecentScripts.aboutToShow.connect(self.open_scripts)
         self.actionChangeFontSize.triggered.connect(self.changeFontSize)
-        #self.eventeater = ScriptEventEater(self)
+        # self.eventeater = ScriptEventEater(self)
         self.setAcceptDrops(True)
-        #self.installEventFilter(self.eventeater)
+        # self.installEventFilter(self.eventeater)
         self.scriptTabs.tabCloseRequested.connect(self.closeTab)
-        self.setWindowTitle('Script Editor')
+        self.setWindowTitle("Script Editor")
 
-        
     def resetNamespace(self):
         from .script_namespace import getnamespace
+
         self.terminal.shell.reset()
         self.terminal.shell.user_ns.update(getnamespace())
-        self.terminal.namespace.update({'clear': self.terminal.clear, 'reset': self.resetNamespace})
+        self.terminal.namespace.update(
+            {"clear": self.terminal.clear, "reset": self.resetNamespace}
+        )
 
     def changeFontSize(self):
-        val, ok = QtWidgets.QInputDialog.getInt(self, "Change Font Size", "Font Size", \
-            value=ScriptEditor.POINT_SIZE, min = 6, max = 50, step = 1)
+        val, ok = QtWidgets.QInputDialog.getInt(
+            self,
+            "Change Font Size",
+            "Font Size",
+            value=ScriptEditor.POINT_SIZE,
+            min=6,
+            max=50,
+            step=1,
+        )
         if ok:
             self.setFontSize(val)
 
@@ -160,25 +190,27 @@ Useful variables:
 
     def dropEvent(self, event):
         for url in event.mimeData().urls():
-            filename=url.toString()
-            filename=filename.split('file:///')[1]
-            print('filename={}'.format(filename))
+            filename = url.toString()
+            filename = filename.split("file:///")[1]
+            print("filename={}".format(filename))
             ScriptEditor.importScript(filename)
 
         event.accept()
 
     def open_scripts(self):
         self.menuRecentScripts.clear()
+
         def makeFun(script):
             return lambda: ScriptEditor.importScript(script)
-        if len(g.settings['recent_scripts']) == 0:
+
+        if len(g.settings["recent_scripts"]) == 0:
             action = QtWidgets.QAction("No Recent Scripts", self)
             action.setEnabled(False)
             self.menuRecentScripts.addAction(action)
         else:
-            for filename in g.settings['recent_scripts']:
+            for filename in g.settings["recent_scripts"]:
                 if not os.path.exists(filename):
-                    g.settings['recent_scripts'].remove(filename)
+                    g.settings["recent_scripts"].remove(filename)
                     continue
                 action = QtWidgets.QAction(filename, self, triggered=makeFun(filename))
                 self.menuRecentScripts.addAction(action)
@@ -191,49 +223,55 @@ Useful variables:
         if cw == None:
             return
         if cw.save():
-            self.scriptTabs.setTabText(self.scriptTabs.currentIndex(), os.path.basename(cw.scriptfile))
+            self.scriptTabs.setTabText(
+                self.scriptTabs.currentIndex(), os.path.basename(cw.scriptfile)
+            )
 
     def currentTab(self):
         return self.scriptTabs.currentWidget()
 
     @staticmethod
     def most_recent_script():
-        return g.settings['recent_scripts'][-1] if len(g.settings['recent_scripts']) > 0 else ''
+        return (
+            g.settings["recent_scripts"][-1]
+            if len(g.settings["recent_scripts"]) > 0
+            else ""
+        )
 
     @staticmethod
     def add_recent_file(filename):
         filename = os.path.abspath(filename)
         if not os.path.exists(filename):
             return
-        if filename in g.settings['recent_scripts']:
-            g.settings['recent_scripts'].remove(filename)
-        g.settings['recent_scripts'].insert(0, filename)
-        if len(g.settings['recent_scripts']) > 8:
-            g.settings['recent_scripts'] = g.settings['recent_scripts'][:-1]
+        if filename in g.settings["recent_scripts"]:
+            g.settings["recent_scripts"].remove(filename)
+        g.settings["recent_scripts"].insert(0, filename)
+        if len(g.settings["recent_scripts"]) > 8:
+            g.settings["recent_scripts"] = g.settings["recent_scripts"][:-1]
         g.settings.save()
 
     @staticmethod
-    def importScript(scriptfile = ''):
-        if not hasattr(ScriptEditor, 'gui') or not ScriptEditor.gui.isVisible():
+    def importScript(scriptfile=""):
+        if not hasattr(ScriptEditor, "gui") or not ScriptEditor.gui.isVisible():
             ScriptEditor.show()
-        if scriptfile == '':
+        if scriptfile == "":
             prompt = "Open script"
             directory = os.path.dirname(ScriptEditor.most_recent_script())
-            filetypes = '*.py'
+            filetypes = "*.py"
             scriptfile = open_file_gui(prompt, directory, filetypes)
             if scriptfile is None:
                 return None
-        if hasattr(ScriptEditor, 'gui'):
+        if hasattr(ScriptEditor, "gui"):
             editor = Editor(scriptfile)
             ScriptEditor.add_recent_file(scriptfile)
             ScriptEditor.gui.addEditor(editor)
-    
+
     def addEditor(self, editor=None):
         self.setUpdatesEnabled(False)
         if editor is None:
             editor = Editor()
-        if editor.scriptfile == '':
-            name = 'New Script'
+        if editor.scriptfile == "":
+            name = "New Script"
         else:
             name = editor.scriptfile
         editor.keyPressEvent = lambda ev: self.editorKeyPressEvent(editor, ev)
@@ -261,28 +299,30 @@ Useful variables:
     def runScript(self):
         if self.currentTab() == None:
             return
-        command=qstr2str(self.currentTab().toPlainText())
+        command = qstr2str(self.currentTab().toPlainText())
         if command:
             self.terminal.execute(command)
 
     def runSelected(self):
         if self.currentTab() == None:
             return
-        cursor=self.currentTab().textCursor()
-        command=cursor.selectedText()
-        self.command=command
-        command=qstr2str(command)
+        cursor = self.currentTab().textCursor()
+        command = cursor.selectedText()
+        self.command = command
+        command = qstr2str(command)
         if command:
             self.terminal.execute(command)
 
     @staticmethod
     def show():
-        if 'PYCHARM_HOSTED' in os.environ:
-            g.alert('You cannot run the script editor from within PyCharm.')
+        if "PYCHARM_HOSTED" in os.environ:
+            g.alert("You cannot run the script editor from within PyCharm.")
         elif INSIDE_IPYTHON:
-            g.alert('You cannot run the script editor because flika is already running inside IPython.')
+            g.alert(
+                "You cannot run the script editor because flika is already running inside IPython."
+            )
         else:
-            if not hasattr(ScriptEditor, 'gui'):
+            if not hasattr(ScriptEditor, "gui"):
                 ScriptEditor.gui = ScriptEditor()
             elif ScriptEditor.gui.isVisible():
                 return
@@ -291,25 +331,27 @@ Useful variables:
             ui = ScriptEditor.gui
             geom = ui.geometry()
             geom = (geom.x(), geom.y(), geom.width(), geom.height())
-            settings = {'geometry': geom, 'sizes': ui.splitter.sizes()}
-            if 'script_editor_settings' in g.settings:
-                settings.update(g.settings['script_editor_settings'])
-            ui.setGeometry(*settings['geometry'])
-            ui.splitter.setSizes(settings['sizes'])
+            settings = {"geometry": geom, "sizes": ui.splitter.sizes()}
+            if "script_editor_settings" in g.settings:
+                settings.update(g.settings["script_editor_settings"])
+            ui.setGeometry(*settings["geometry"])
+            ui.splitter.setSizes(settings["sizes"])
 
     def closeEvent(self, ev):
         geom = self.geometry()
         geom = (geom.x(), geom.y(), geom.width(), geom.height())
-        g.settings['script_editor_settings'] = {'geometry': geom, 'sizes': self.splitter.sizes()}
+        g.settings["script_editor_settings"] = {
+            "geometry": geom,
+            "sizes": self.splitter.sizes(),
+        }
 
     @staticmethod
     def close():
-        if hasattr(ScriptEditor, 'gui'):
+        if hasattr(ScriptEditor, "gui"):
             QtWidgets.QMainWindow.close(ScriptEditor.gui)
 
-    
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     app = QtWidgets.QApplication([])
     ScriptEditor.show()
     app.exec_()
-

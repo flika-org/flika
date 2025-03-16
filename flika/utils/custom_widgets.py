@@ -6,7 +6,18 @@ from qtpy import QtCore, QtWidgets, QtGui
 import flika.global_vars as g
 from flika.utils.misc import save_file_gui
 
-__all__ = ['MissingWindowError', 'WindowSelector', 'SliderLabel', 'SliderLabelOdd', 'FileSelector', 'ColorSelector', 'CheckBox', 'ComboBox', 'BaseDialog']
+__all__ = [
+    "MissingWindowError",
+    "WindowSelector",
+    "SliderLabel",
+    "SliderLabelOdd",
+    "FileSelector",
+    "ColorSelector",
+    "CheckBox",
+    "ComboBox",
+    "BaseDialog",
+]
+
 
 class MissingWindowError(Exception):
     def __init__(self, value):
@@ -16,17 +27,19 @@ class MissingWindowError(Exception):
     def __str__(self):
         return repr(self.value)
 
+
 class WindowSelector(QtWidgets.QWidget):
     """
     This widget is a button with a label.  Once you click the button, the widget waits for you to click a Window object.  Once you do, it sets self.window to be the window, and it sets the label to be the widget name.
     """
+
     valueChanged = QtCore.Signal()
 
     def __init__(self):
         QtWidgets.QWidget.__init__(self)
-        self.button = QtWidgets.QPushButton('Select Window')
+        self.button = QtWidgets.QPushButton("Select Window")
         self.button.setCheckable(True)
-        self.label = QtWidgets.QLabel('None')
+        self.label = QtWidgets.QLabel("None")
         self.window = None
         self.layout = QtWidgets.QHBoxLayout()
         self.layout.addWidget(self.button)
@@ -50,7 +63,7 @@ class WindowSelector(QtWidgets.QWidget):
         else:
             self.window = window
         self.button.setChecked(False)
-        self.label.setText('...' + pathlib.Path(self.window.name).name[-20:])
+        self.label.setText("..." + pathlib.Path(self.window.name).name[-20:])
         self.valueChanged.emit()
         self.parent().raise_()
 
@@ -58,9 +71,8 @@ class WindowSelector(QtWidgets.QWidget):
         return self.window
 
     def setValue(self, window):
-        ''' This function is written to satify the requirement that all items have a setValue function to recall from settings the last set value. '''
+        """This function is written to satify the requirement that all items have a setValue function to recall from settings the last set value."""
         self.setWindow(window)
-
 
 
 class SliderLabel(QtWidgets.QWidget):
@@ -69,7 +81,7 @@ class SliderLabel(QtWidgets.QWidget):
     def __init__(self, decimals: int = 0):
         """
         Args:
-          decimals: the resolution of the slider. 0 means only integers,  1 
+          decimals: the resolution of the slider. 0 means only integers,  1
           means the tens place, etc.
         """
         # decimals specifies the resolution of the slider.
@@ -88,14 +100,15 @@ class SliderLabel(QtWidgets.QWidget):
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.layout)
         self.slider.valueChanged.connect(
-            lambda slider_value: self.updateLabel(self.slider_2_spinbox(slider_value)))
+            lambda slider_value: self.updateLabel(self.slider_2_spinbox(slider_value))
+        )
         self.label.valueChanged.connect(self.updateSlider)
         self.valueChanged = self.label.valueChanged
 
     def spinbox_2_slider(self, spinbox_value: float | int) -> int:
         """Takes a spinbox value and converts it to a slider value."""
         return int(spinbox_value * 10**self.decimals)
-    
+
     def slider_2_spinbox(self, slider_value: int) -> int | float:
         """Takes a slider value and converts it to a spinbox value."""
         spinbox_value = slider_value / 10**self.decimals
@@ -145,8 +158,9 @@ class SliderLabel(QtWidgets.QWidget):
         self.label.setEnabled(enabled)
         self.slider.setEnabled(enabled)
 
+
 class SliderLabelOdd(SliderLabel):
-    '''This is a modified SliderLabel class that forces the user to only choose odd numbers.'''
+    """This is a modified SliderLabel class that forces the user to only choose odd numbers."""
 
     def __init__(self):
         SliderLabel.__init__(self, decimals=0)
@@ -164,16 +178,18 @@ class SliderLabelOdd(SliderLabel):
             spinbox_value += 1
         self.label.setValue(spinbox_value)
 
+
 class FileSelector(QtWidgets.QWidget):
     """
     This widget is a button with a label.  Once you click the button, the widget waits for you to select a file to save.  Once you do, it sets self.filename and it sets the label.
     """
+
     valueChanged = QtCore.Signal()
 
-    def __init__(self, filetypes='*.*'):
+    def __init__(self, filetypes="*.*"):
         QtWidgets.QWidget.__init__(self)
-        self.button = QtWidgets.QPushButton('Select Filename')
-        self.label = QtWidgets.QLabel('None')
+        self.button = QtWidgets.QPushButton("Select Filename")
+        self.label = QtWidgets.QLabel("None")
         self.window = None
         self.layout = QtWidgets.QHBoxLayout()
         self.layout.addWidget(self.button)
@@ -181,12 +197,12 @@ class FileSelector(QtWidgets.QWidget):
         self.setLayout(self.layout)
         self.button.clicked.connect(self.buttonclicked)
         self.filetypes = filetypes
-        self.filename = ''
+        self.filename = ""
 
     def buttonclicked(self):
-        prompt = 'testing fileSelector'
+        prompt = "testing fileSelector"
         self.filename = save_file_gui(prompt, filetypes=self.filetypes)
-        self.label.setText('...' + pathlib.Path(self.filename).name[-20:])
+        self.label.setText("..." + pathlib.Path(self.filename).name[-20:])
         self.valueChanged.emit()
 
     def value(self):
@@ -194,7 +210,7 @@ class FileSelector(QtWidgets.QWidget):
 
     def setValue(self, filename):
         self.filename = str(filename)
-        self.label.setText('...' + pathlib.Path(self.filename).name[-20:])
+        self.label.setText("..." + pathlib.Path(self.filename).name[-20:])
 
 
 def color_pixmap(color):
@@ -209,19 +225,20 @@ class ColorSelector(QtWidgets.QWidget):
     """
     This widget is a button with a label.  Once you click the button, the widget waits for you to select a color.  Once you do, it sets self.color and it sets the label.
     """
+
     valueChanged = QtCore.Signal()
 
     def __init__(self):
         QtWidgets.QWidget.__init__(self)
-        self.button = QtWidgets.QPushButton('Select Color')
-        self.label = QtWidgets.QLabel('None')
+        self.button = QtWidgets.QPushButton("Select Color")
+        self.label = QtWidgets.QLabel("None")
         self.window = None
         self.layout = QtWidgets.QHBoxLayout()
         self.layout.addWidget(self.button)
         self.layout.addWidget(self.label)
         self.setLayout(self.layout)
         self.button.clicked.connect(self.buttonclicked)
-        self._color = ''
+        self._color = ""
         self.colorDialog = QtWidgets.QColorDialog()
         self.colorDialog.colorSelected.connect(self.colorSelected)
 
@@ -247,12 +264,8 @@ class ColorSelector(QtWidgets.QWidget):
             self.valueChanged.emit()
 
 
-
-
-
 class CheckBox(QtWidgets.QCheckBox):
-    '''Overwrote the QCheckBox class so that every graphical element has the method 'setValue'
-    '''
+    """Overwrote the QCheckBox class so that every graphical element has the method 'setValue'"""
 
     def __init__(self, parent=None):
         QtWidgets.QCheckBox.__init__(self, parent)
@@ -262,8 +275,7 @@ class CheckBox(QtWidgets.QCheckBox):
 
 
 class ComboBox(QtWidgets.QComboBox):
-    '''Overwrote the QComboBox class so that every graphical element has the method 'setValue'
-    '''
+    """Overwrote the QComboBox class so that every graphical element has the method 'setValue'"""
 
     def __init__(self, parent=None):
         QtWidgets.QComboBox.__init__(self, parent)
@@ -292,7 +304,8 @@ class BaseDialog(QtWidgets.QDialog):
         self.setupitems()
         self.connectToChangeSignal()
         self.bbox = QtWidgets.QDialogButtonBox(
-            QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+            QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel
+        )
         self.bbox.accepted.connect(self.accept)
         self.bbox.rejected.connect(self.reject)
         self._init_docstring(docstring)
@@ -318,45 +331,50 @@ class BaseDialog(QtWidgets.QDialog):
 
     def setupitems(self):
         for item in self.items:
-            self.formlayout.addRow(item['string'], item['object'])
+            self.formlayout.addRow(item["string"], item["object"])
         # Get the old vals from settings
         if self.parent is not None:
             name = self.parent.__name__
-            if g.settings['baseprocesses'] is None:
-                g.settings['baseprocesses'] = dict()
-            if name not in g.settings['baseprocesses']:
+            if g.settings["baseprocesses"] is None:
+                g.settings["baseprocesses"] = dict()
+            if name not in g.settings["baseprocesses"]:
                 settings = self.parent.get_init_settings_dict()
-                g.settings['baseprocesses'][name] = settings
+                g.settings["baseprocesses"][name] = settings
             else:
-                settings = g.settings['baseprocesses'][name]
+                settings = g.settings["baseprocesses"][name]
             for item in self.items:
-                if item['name'] in settings and not isinstance(item['object'], WindowSelector):
-                    item['object'].setValue(settings[item['name']])
+                if item["name"] in settings and not isinstance(
+                    item["object"], WindowSelector
+                ):
+                    item["object"].setValue(settings[item["name"]])
 
     def connectToChangeSignal(self):
         for item in self.items:
-            methods = [method for method in dir(item['object']) if callable(
-                getattr(item['object'], method))]
-            if 'valueChanged' in methods:
-                item['object'].valueChanged.connect(self.changeSignal)
-            elif 'stateChanged' in methods:
-                item['object'].stateChanged.connect(self.changeSignal)
-            elif 'currentIndexChanged' in methods:
-                item['object'].currentIndexChanged.connect(self.changeSignal)
+            methods = [
+                method
+                for method in dir(item["object"])
+                if callable(getattr(item["object"], method))
+            ]
+            if "valueChanged" in methods:
+                item["object"].valueChanged.connect(self.changeSignal)
+            elif "stateChanged" in methods:
+                item["object"].stateChanged.connect(self.changeSignal)
+            elif "currentIndexChanged" in methods:
+                item["object"].currentIndexChanged.connect(self.changeSignal)
 
     def updateValues(self):  # copy values from gui into the 'item' dictionary
         for item in self.items:
-            methods = [method for method in dir(item['object']) if callable(
-                getattr(item['object'], method))]
-            if 'value' in methods:
-                item['value'] = item['object'].value()
-            elif 'currentText' in methods:
-                item['value'] = item['object'].currentText()
-            elif 'isChecked' in methods:
-                item['value'] = item['object'].isChecked()
+            methods = [
+                method
+                for method in dir(item["object"])
+                if callable(getattr(item["object"], method))
+            ]
+            if "value" in methods:
+                item["value"] = item["object"].value()
+            elif "currentText" in methods:
+                item["value"] = item["object"].currentText()
+            elif "isChecked" in methods:
+                item["value"] = item["object"].isChecked()
 
     def closeEvent(self, ev):
         self.closeSignal.emit()
-
-
-

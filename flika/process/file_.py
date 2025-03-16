@@ -27,15 +27,24 @@ from flika.window import Window
 from flika.utils.misc import open_file_gui, save_file_gui
 from flika.utils.io import tifffile
 
-__all__ = ['save_file', 'save_points', 'save_rois', 'save_movie_gui', 'open_file', 'open_file_from_gui', 'open_image_sequence_from_gui', 'open_points', 'close']
+__all__ = [
+    "save_file",
+    "save_points",
+    "save_rois",
+    "save_movie_gui",
+    "open_file",
+    "open_file_from_gui",
+    "open_image_sequence_from_gui",
+    "open_points",
+    "close",
+]
 
 ########################################################################################################################
 ######################                  SAVING FILES                                         ###########################
 ########################################################################################################################
 
 
-
-def save_file(filename: str|None|bool = None) -> str|None:
+def save_file(filename: str | None | bool = None) -> str | None:
     """save_file(filename=None)
     Save the image in the currentWindow to a .tif file.
 
@@ -44,15 +53,15 @@ def save_file(filename: str|None|bool = None) -> str|None:
 
     """
     if filename is None or filename is False:
-        filetypes = '*.tif'
-        prompt = 'Save File As Tif'
+        filetypes = "*.tif"
+        prompt = "Save File As Tif"
         filename = save_file_gui(prompt, filetypes=filetypes)
         if filename is None:
             return None
-    if os.path.dirname(filename) == '':  # if the user didn't specify a directory
-        directory = os.path.normpath(os.path.dirname(g.settings['filename']))
+    if os.path.dirname(filename) == "":  # if the user didn't specify a directory
+        directory = os.path.normpath(os.path.dirname(g.settings["filename"]))
         filename = os.path.join(directory, filename)
-    g.m.statusBar().showMessage(f'Saving {os.path.basename(filename)}')
+    g.m.statusBar().showMessage(f"Saving {os.path.basename(filename)}")
     A = g.win.image
     if A.dtype == bool:
         A = A.astype(np.uint8)
@@ -66,10 +75,12 @@ def save_file(filename: str|None|bool = None) -> str|None:
         A = np.transpose(A, (0, 2, 1))  # This keeps the x and the y the same as in FIJI
     elif len(A.shape) == 2:
         A = np.transpose(A, (1, 0))
-    tifffile.imsave(filename, A,
-                    description=metadata)  # http://stackoverflow.com/questions/20529187/what-is-the-best-way-to-save-image-metadata-alongside-a-tif-with-python
-    g.m.statusBar().showMessage(f'Successfully saved {os.path.basename(filename)}')
+    tifffile.imsave(
+        filename, A, description=metadata
+    )  # http://stackoverflow.com/questions/20529187/what-is-the-best-way-to-save-image-metadata-alongside-a-tif-with-python
+    g.m.statusBar().showMessage(f"Successfully saved {os.path.basename(filename)}")
     return filename
+
 
 def save_points(filename=None):
     """save_points(filename=None)
@@ -82,12 +93,12 @@ def save_points(filename=None):
     """
 
     if filename is None:
-        filetypes = '*.txt'
-        prompt = 'Save Points'
+        filetypes = "*.txt"
+        prompt = "Save Points"
         filename = save_file_gui(prompt, filetypes=filetypes)
         if filename is None:
             return None
-    g.m.statusBar().showMessage(f'Saving Points in {os.path.basename(filename)}')
+    g.m.statusBar().showMessage(f"Saving Points in {os.path.basename(filename)}")
     p_out = []
     p_in = g.win.scatterPoints
     for t in np.arange(len(p_in)):
@@ -95,18 +106,21 @@ def save_points(filename=None):
             p_out.append(np.array([t, p[0], p[1]]))
     p_out = np.array(p_out)
     np.savetxt(filename, p_out)
-    g.m.statusBar().showMessage(f'Successfully saved {os.path.basename(filename)}')
+    g.m.statusBar().showMessage(f"Successfully saved {os.path.basename(filename)}")
     return filename
 
 
 def save_movie_gui():
-    rateSpin = pg.SpinBox(value=50, bounds=[1, 1000], suffix='fps', int=True, step=1)
-    rateDialog = BaseDialog([{'string': 'Framerate', 'object': rateSpin}], 'Save Movie', 'Set the framerate')
+    rateSpin = pg.SpinBox(value=50, bounds=[1, 1000], suffix="fps", int=True, step=1)
+    rateDialog = BaseDialog(
+        [{"string": "Framerate", "object": rateSpin}], "Save Movie", "Set the framerate"
+    )
     rateDialog.accepted.connect(lambda: save_movie(rateSpin.value()))
     g.dialogs.append(rateDialog)
     rateDialog.show()
 
-def save_rois( filename=None):
+
+def save_rois(filename=None):
     g.currentWindow.save_rois(filename)
 
 
@@ -127,17 +141,18 @@ def save_movie(rate, filename=None):
 
     """
 
-
     ## Check if ffmpeg is installed
-    if os.name == 'nt':  # If we are running windows
+    if os.name == "nt":  # If we are running windows
         try:
             subprocess.call(["ffmpeg"])
         except FileNotFoundError as e:
             if e.errno == os.errno.ENOENT:
                 # handle file not found error.
                 # I used http://ffmpeg.org/releases/ffmpeg-2.8.4.tar.bz2 originally
-                g.alert("The program FFmpeg is required to export movies. \
-                \n\nFor instructions on how to install, go here: http://www.wikihow.com/Install-FFmpeg-on-Windows")
+                g.alert(
+                    "The program FFmpeg is required to export movies. \
+                \n\nFor instructions on how to install, go here: http://www.wikihow.com/Install-FFmpeg-on-Windows"
+                )
                 return None
             else:
                 # Something else went wrong while trying to run `wget`
@@ -152,7 +167,7 @@ def save_movie(rate, filename=None):
     win = g.win
     A = win.image
     if len(A.shape) < 3:
-        g.alert('Movie not the right shape for saving.')
+        g.alert("Movie not the right shape for saving.")
         return None
     try:
         exporter = pg.exporters.ImageExporter(win.imageview.view)
@@ -160,46 +175,52 @@ def save_movie(rate, filename=None):
         exporter = pg.exporters.ImageExporter.ImageExporter(win.imageview.view)
 
     nFrames = len(A)
-    tmpdir = os.path.join(os.path.dirname(g.settings.settings_file), 'tmp')
+    tmpdir = os.path.join(os.path.dirname(g.settings.settings_file), "tmp")
     if os.path.isdir(tmpdir):
         shutil.rmtree(tmpdir)
     os.mkdir(tmpdir)
     win.top_left_label.hide()
     for i in np.arange(0, nFrames):
         win.setIndex(i)
-        exporter.export(os.path.join(tmpdir, f'{i:03}.jpg'))
+        exporter.export(os.path.join(tmpdir, f"{i:03}.jpg"))
         QtWidgets.QApplication.processEvents()
     win.top_left_label.show()
     olddir = os.getcwd()
     os.chdir(tmpdir)
     subprocess.call(
-        ['ffmpeg', '-r', '%d' % rate, '-i', '%03d.jpg', '-vf', 'scale=trunc(iw/2)*2:trunc(ih/2)*2', 'output.mp4'])
-    os.rename('output.mp4', filename)
+        [
+            "ffmpeg",
+            "-r",
+            "%d" % rate,
+            "-i",
+            "%03d.jpg",
+            "-vf",
+            "scale=trunc(iw/2)*2:trunc(ih/2)*2",
+            "output.mp4",
+        ]
+    )
+    os.rename("output.mp4", filename)
     os.chdir(olddir)
-    g.m.statusBar().showMessage(f'Successfully saved movie as {os.path.basename(filename)}.')
-
-
-
-
-
-
-
-
+    g.m.statusBar().showMessage(
+        f"Successfully saved movie as {os.path.basename(filename)}."
+    )
 
 
 ########################################################################################################################
 ######################                         OPENING FILES                                 ###########################
 ########################################################################################################################
 
+
 def open_image_sequence_from_gui():
     open_image_sequence(None, True)
+
 
 def open_file_from_gui():
     open_file(None, True)
 
 
 def open_image_sequence(filename=None, from_gui=False):
-    """ open_image_sequencefilename(filename=None)
+    """open_image_sequencefilename(filename=None)
     Opens an image sequence (.tif, .png) into a new_window.
 
     Parameters:
@@ -211,18 +232,18 @@ def open_image_sequence(filename=None, from_gui=False):
     """
     if filename is None:
         if from_gui:
-            filetypes = 'Image Files (*.tif *.tiff *.png);;All Files (*.*)'
-            prompt = 'Open File'
+            filetypes = "Image Files (*.tif *.tiff *.png);;All Files (*.*)"
+            prompt = "Open File"
             filename = open_file_gui(prompt, filetypes=filetypes)
             if filename is None:
                 return None
         else:
-            filename = g.settings['filename']
+            filename = g.settings["filename"]
             if filename is None:
-                g.alert('No filename selected')
+                g.alert("No filename selected")
                 return None
     print(f"Filename: {filename}")
-    g.m.statusBar().showMessage(f'Loading {os.path.basename(filename)}')
+    g.m.statusBar().showMessage(f"Loading {os.path.basename(filename)}")
     t = time.time()
     metadata = dict()
 
@@ -233,7 +254,7 @@ def open_image_sequence(filename=None, from_gui=False):
     all_image_filenames = [p for p in directory.iterdir() if p.suffix == ext]
 
     all_images = []
-    if ext in ['.tif', '.stk', '.tiff', '.ome']:
+    if ext in [".tif", ".stk", ".tiff", ".ome"]:
         for f in all_image_filenames:
             results = open_tiff(f, metadata)
             if results is None:
@@ -242,20 +263,22 @@ def open_image_sequence(filename=None, from_gui=False):
                 A, metadata = results
                 all_images.append(A)
         all_images = np.array(all_images)
-    elif ext in ['.png']:
+    elif ext in [".png"]:
         pass
 
     append_recent_file(str(filename))  # make first in recent file menu
-    msg = f'{filename.parts[-1]} successfully loaded ({time.time() - t} s)'
+    msg = f"{filename.parts[-1]} successfully loaded ({time.time() - t} s)"
     g.m.statusBar().showMessage(msg)
-    g.settings['filename'] = str(filename)
+    g.settings["filename"] = str(filename)
     commands = [f"open_image_sequence('{str(filename)}')"]
-    new_window = Window(all_images, filename.parts[-1], str(filename), commands, metadata)
+    new_window = Window(
+        all_images, filename.parts[-1], str(filename), commands, metadata
+    )
     return new_window
 
 
-def open_file(filename: str|None =None, from_gui: bool =False):
-    """ open_file(filename=None)
+def open_file(filename: str | None = None, from_gui: bool = False):
+    """open_file(filename=None)
     Opens an image or movie file (.tif, .stk, .nd2) into a new_window.
 
     Parameters:
@@ -266,84 +289,92 @@ def open_file(filename: str|None =None, from_gui: bool =False):
     """
     if filename is None:
         if from_gui:
-            filetypes = 'Image Files (*.tif *.stk *.tiff *.nd2);;All Files (*.*)'
-            prompt = 'Open File'
+            filetypes = "Image Files (*.tif *.stk *.tiff *.nd2);;All Files (*.*)"
+            prompt = "Open File"
             filename = open_file_gui(prompt, filetypes=filetypes)
             if filename is None:
                 return None
         else:
-            filename = g.settings['filename']
+            filename = g.settings["filename"]
             if filename is None:
-                g.alert('No filename selected')
+                g.alert("No filename selected")
                 return None
     print(f"Filename: {filename}")
-    g.m.statusBar().showMessage(f'Loading {os.path.basename(str(filename))}')
+    g.m.statusBar().showMessage(f"Loading {os.path.basename(str(filename))}")
     t = time.time()
     metadata: dict = {}
     ext = os.path.splitext(str(filename))[1]
-    if ext in ['.tif', '.stk', '.tiff', '.ome']:
+    if ext in [".tif", ".stk", ".tiff", ".ome"]:
         results = open_tiff(str(filename), metadata)
         if results is None:
             return None
         else:
             A, metadata = results
-    elif ext == '.nd2':
+    elif ext == ".nd2":
         import nd2reader
+
         nd2 = nd2reader.ND2Reader(str(filename))
         axes = nd2.axes
-        mx = nd2.metadata['width']
-        my = nd2.metadata['height']
-        mt = nd2.metadata['total_images_per_channel']
+        mx = nd2.metadata["width"]
+        my = nd2.metadata["height"]
+        mt = nd2.metadata["total_images_per_channel"]
         A = np.zeros((mt, mx, my))
         percent = 0
         for frame in range(mt):
             A[frame] = nd2[frame].T
             if percent < int(100 * float(frame) / mt):
                 percent = int(100 * float(frame) / mt)
-                g.m.statusBar().showMessage(f'Loading file {percent}%')
+                g.m.statusBar().showMessage(f"Loading file {percent}%")
                 QtWidgets.QApplication.processEvents()
         metadata = nd2.metadata
-    elif ext == '.py':
+    elif ext == ".py":
         from ..app.script_editor import ScriptEditor
+
         ScriptEditor.importScript(filename)
         return
-    elif ext == '.whl':
+    elif ext == ".whl":
         # first, remove trailing (1) or (2)
-        newfilename = re.sub(r' \([^)]*\)', '', filename)
+        newfilename = re.sub(r" \([^)]*\)", "", filename)
         try:
             os.rename(filename, newfilename)
         except FileExistsError:
             pass
         filename = newfilename
-        result = subprocess.call([sys.executable, '-m', 'pip', 'install', f'{filename}'])
+        result = subprocess.call(
+            [sys.executable, "-m", "pip", "install", f"{filename}"]
+        )
         if result == 0:
-            g.alert(f'Successfully installed {filename}')
+            g.alert(f"Successfully installed {filename}")
         else:
-            g.alert(f'Install of {filename} failed')
+            g.alert(f"Install of {filename} failed")
         return
-    elif ext == '.jpg' or ext == '.png':
+    elif ext == ".jpg" or ext == ".png":
         import skimage.io
+
         A = skimage.io.imread(filename)
         if len(A.shape) == 3:
-            perm = get_permutation_tuple(['y', 'x', 'c'], ['x', 'y', 'c'])
+            perm = get_permutation_tuple(["y", "x", "c"], ["x", "y", "c"])
             A = np.transpose(A, perm)
-            metadata['is_rgb'] = True
+            metadata["is_rgb"] = True
 
     else:
         msg = f"Could not open.  Filetype for '{filename}' not recognized"
         g.alert(msg)
-        if filename in g.settings['recent_files']:
-            g.settings['recent_files'].remove(filename)
+        if filename in g.settings["recent_files"]:
+            g.settings["recent_files"].remove(filename)
         # make_recent_menu()
         return
 
     append_recent_file(str(filename))  # make first in recent file menu
-    msg = f'{os.path.basename(str(filename))} successfully loaded ({time.time() - t} s)'
+    msg = f"{os.path.basename(str(filename))} successfully loaded ({time.time() - t} s)"
     g.m.statusBar().showMessage(msg)
-    g.settings['filename'] = str(filename)
+    g.settings["filename"] = str(filename)
     commands = [f"open_file('{filename}')"]
-    new_window = Window(A, os.path.basename(str(filename)), filename, commands, metadata)
+    new_window = Window(
+        A, os.path.basename(str(filename)), filename, commands, metadata
+    )
     return new_window
+
 
 def open_tiff(filename, metadata):
     try:
@@ -359,41 +390,43 @@ def open_tiff(filename, metadata):
     try:
         assert len(axes) == len(A.shape)
     except AssertionError:
-        msg = 'Tiff could not be loaded because the number of axes in the array does not match the number of axes found by tifffile.py\n'
+        msg = "Tiff could not be loaded because the number of axes in the array does not match the number of axes found by tifffile.py\n"
         msg += f"Shape of array: {A.shape}\n"
         msg += f"Axes found by tifffile.py: {axes}\n"
         g.alert(msg)
         return None
-    if set(axes) == set(['height', 'width']):  # still image in black and white.
-        target_axes = ['width', 'height']
-    elif set(axes) == set(['height', 'width', 'channel']):  # still image in color.
-        target_axes = ['width', 'height', 'channel']
-        metadata['is_rgb'] = True
-    elif set(axes) == set(['height', 'width', 'sample']):  # still image in color.
-        target_axes = ['width', 'height', 'sample']
-        metadata['is_rgb'] = True
-    elif set(axes) == set(['height', 'width', 'series']):  # movie in black and white
-        target_axes = ['series', 'width', 'height']
-    elif set(axes) == set(['height', 'width', 'time']):  # movie in black and white
-        target_axes = ['time', 'width', 'height']
-    elif set(axes) == set(['height', 'width', 'depth']):  # movie in black and white
-        target_axes = ['depth', 'width', 'height']
-    elif set(axes) == set(['channel', 'time', 'height', 'width']):  # movie in color
-        target_axes = ['time', 'width', 'height', 'channel']
-        metadata['is_rgb'] = True
-    elif set(axes) == set(['sample', 'time', 'height', 'width']):  # movie in color
-        target_axes = ['time', 'width', 'height', 'sample']
-        metadata['is_rgb'] = True
-    elif set(axes) == set(['other', 'height', 'width']):
-        target_axes = ['other', 'height', 'width']
-        metadata['is_rgb'] = False
+    if set(axes) == set(["height", "width"]):  # still image in black and white.
+        target_axes = ["width", "height"]
+    elif set(axes) == set(["height", "width", "channel"]):  # still image in color.
+        target_axes = ["width", "height", "channel"]
+        metadata["is_rgb"] = True
+    elif set(axes) == set(["height", "width", "sample"]):  # still image in color.
+        target_axes = ["width", "height", "sample"]
+        metadata["is_rgb"] = True
+    elif set(axes) == set(["height", "width", "series"]):  # movie in black and white
+        target_axes = ["series", "width", "height"]
+    elif set(axes) == set(["height", "width", "time"]):  # movie in black and white
+        target_axes = ["time", "width", "height"]
+    elif set(axes) == set(["height", "width", "depth"]):  # movie in black and white
+        target_axes = ["depth", "width", "height"]
+    elif set(axes) == set(["channel", "time", "height", "width"]):  # movie in color
+        target_axes = ["time", "width", "height", "channel"]
+        metadata["is_rgb"] = True
+    elif set(axes) == set(["sample", "time", "height", "width"]):  # movie in color
+        target_axes = ["time", "width", "height", "sample"]
+        metadata["is_rgb"] = True
+    elif set(axes) == set(["other", "height", "width"]):
+        target_axes = ["other", "height", "width"]
+        metadata["is_rgb"] = False
 
     perm = get_permutation_tuple(axes, target_axes)
     A = np.transpose(A, perm)
-    if target_axes[-1] in ['channel', 'sample', 'series'] and A.shape[-1] == 2:
+    if target_axes[-1] in ["channel", "sample", "series"] and A.shape[-1] == 2:
         B = np.zeros(A.shape[:-1])
         B = np.expand_dims(B, len(B.shape))
-        A = np.append(A, B, len(A.shape) - 1)  # add a column of zeros to the last dimension.
+        A = np.append(
+            A, B, len(A.shape) - 1
+        )  # add a column of zeros to the last dimension.
         # if A.ndim == 4 and axes[3] == 'sample' and A.shape[3] == 1:
         #    A = np.squeeze(A)  # this gets rid of the meaningless 4th dimention in .stk files
     return [A, metadata]
@@ -411,34 +444,36 @@ def open_points(filename=None):
 
     """
     if g.win is None:
-        g.alert('Points cannot be loaded if no window is selected. Open a file and click on a window.')
+        g.alert(
+            "Points cannot be loaded if no window is selected. Open a file and click on a window."
+        )
         return None
     if filename is None:
-        filetypes = '*.txt'
-        prompt = 'Load Points'
+        filetypes = "*.txt"
+        prompt = "Load Points"
         filename = open_file_gui(prompt, filetypes=filetypes)
         if filename is None:
             return None
-    msg = f'Loading points from {os.path.basename(filename)}'
+    msg = f"Loading points from {os.path.basename(filename)}"
     g.m.statusBar().showMessage(msg)
     try:
         pts = np.loadtxt(filename)
     except UnicodeDecodeError:
-        g.alert('This points file contains text that cannot be read. No points loaded.')
+        g.alert("This points file contains text that cannot be read. No points loaded.")
         return None
     if len(pts) == 0:
-        g.alert('This points file is empty. No points loaded.')
+        g.alert("This points file is empty. No points loaded.")
         return None
     nCols = pts.shape[1]
-    pointSize = g.settings['point_size']
-    pointColor = QtGui.QColor(g.settings['point_color'])
+    pointSize = g.settings["point_size"]
+    pointColor = QtGui.QColor(g.settings["point_color"])
     if nCols == 3:
         for pt in pts:
             t = int(pt[0])
             if g.win.mt == 1:
                 t = 0
-            g.win.scatterPoints[t].append([pt[1],pt[2], pointColor, pointSize])
-        if g.settings['show_all_points']:
+            g.win.scatterPoints[t].append([pt[1], pt[2], pointColor, pointSize])
+        if g.settings["show_all_points"]:
             pts = []
             for t in np.arange(g.win.mt):
                 pts.extend(g.win.scatterPoints[t])
@@ -457,10 +492,7 @@ def open_points(filename=None):
         t = g.win.currentIndex
         g.win.scatterPlot.setData(pos=g.win.scatterPoints[t])
 
-    g.m.statusBar().showMessage(f'Successfully loaded {os.path.basename(filename)}')
-
-
-
+    g.m.statusBar().showMessage(f"Successfully loaded {os.path.basename(filename)}")
 
 
 ########################################################################################################################
@@ -482,32 +514,35 @@ def get_permutation_tuple(src, dst):
     result = tuple(result)
     return result
 
+
 def append_recent_file(fname):
     fname = os.path.abspath(fname)
-    if fname in g.settings['recent_files']:
-        g.settings['recent_files'].remove(fname)
+    if fname in g.settings["recent_files"]:
+        g.settings["recent_files"].remove(fname)
     if os.path.exists(fname):
-        g.settings['recent_files'].append(fname)
-        if len(g.settings['recent_files']) > 8:
-            g.settings['recent_files'] = g.settings['recent_files'][-8:]
+        g.settings["recent_files"].append(fname)
+        if len(g.settings["recent_files"]) > 8:
+            g.settings["recent_files"] = g.settings["recent_files"][-8:]
     return fname
 
 
 def get_metadata_tiff(Tiff):
     metadata = {}
-    if hasattr(Tiff[0], 'is_micromanager') and Tiff[0].is_micromanager:
+    if hasattr(Tiff[0], "is_micromanager") and Tiff[0].is_micromanager:
         imagej_tags_unpacked = {}
-        if hasattr(Tiff[0],'imagej_tags'):
+        if hasattr(Tiff[0], "imagej_tags"):
             imagej_tags = Tiff[0].imagej_tags
-            imagej_tags['info']
-            imagej_tags_unpacked = json.loads(imagej_tags['info'])
-        micromanager_metadata = Tiff[0].tags['micromanager_metadata']
+            imagej_tags["info"]
+            imagej_tags_unpacked = json.loads(imagej_tags["info"])
+        micromanager_metadata = Tiff[0].tags["micromanager_metadata"]
         metadata = {**micromanager_metadata.value, **imagej_tags_unpacked}
-        if 'Frames' in metadata and metadata['Frames'] > 1:
-            timestamps = [c.tags['micromanager_metadata'].value['ElapsedTime-ms'] for c in Tiff]
-            metadata['timestamps'] = timestamps
-            metadata['timestamp_units'] = 'ms'
-        keys_to_remove = ['NextFrame', 'ImageNumber', 'Frame', 'FrameIndex']
+        if "Frames" in metadata and metadata["Frames"] > 1:
+            timestamps = [
+                c.tags["micromanager_metadata"].value["ElapsedTime-ms"] for c in Tiff
+            ]
+            metadata["timestamps"] = timestamps
+            metadata["timestamp_units"] = "ms"
+        keys_to_remove = ["NextFrame", "ImageNumber", "Frame", "FrameIndex"]
         for key in keys_to_remove:
             metadata.pop(key, None)
     else:
@@ -516,22 +551,21 @@ def get_metadata_tiff(Tiff):
             metadata = txt2dict(metadata)
         except AttributeError:
             metadata = dict()
-    metadata['is_rgb'] = Tiff[0].is_rgb
+    metadata["is_rgb"] = Tiff[0].is_rgb
     return metadata
-
 
 
 def txt2dict(metadata):
     meta = dict()
     try:
-        metadata = json.loads(metadata.decode('utf-8'))
+        metadata = json.loads(metadata.decode("utf-8"))
         return metadata
     except ValueError:  # if the metadata isn't in JSON
         pass
     for line in metadata.splitlines():
-        line = re.split('[:=]', line.decode())
+        line = re.split("[:=]", line.decode())
         if len(line) == 1:
-            meta[line[0]] = ''
+            meta[line[0]] = ""
         else:
             meta[line[0].lstrip().rstrip()] = line[1].lstrip().rstrip()
     return meta
@@ -556,15 +590,15 @@ def close(windows=None):
 
     """
     if isinstance(windows, str):
-        if windows == 'all':
+        if windows == "all":
             windows = [window for window in g.windows]
             for window in windows:
                 window.close()
-    elif isinstance(windows,list):
+    elif isinstance(windows, list):
         for window in windows:
-            if isinstance(window,Window):
+            if isinstance(window, Window):
                 window.close()
-    elif isinstance(windows,Window):
+    elif isinstance(windows, Window):
         windows.close()
     elif windows is None:
         if g.win is not None:
@@ -653,4 +687,3 @@ def make_recent_menu():
             g.m.menuRecent_Files.addAction(QtWidgets.QAction(fname, g.m, triggered=openFun(fname)))
 
 """
-

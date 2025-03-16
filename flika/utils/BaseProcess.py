@@ -13,13 +13,15 @@ from flika.logger import logger
 from flika.utils.custom_widgets import *  # pylint: disable=wildcard-import
 
 
-__all__ = ['BaseProcess', 'BaseProcess_noPriorWindow']
+__all__ = ["BaseProcess", "BaseProcess_noPriorWindow"]
 
 
 # Type aliases for process items
 # A ProcessItem represents a single parameter for a process
 # with its name, display string, UI widget, and current value
-ProcessItem = dict[str, str | QtWidgets.QWidget | object]  # Keys include 'name', 'string', 'object', 'value'
+ProcessItem = dict[
+    str, str | QtWidgets.QWidget | object
+]  # Keys include 'name', 'string', 'object', 'value'
 # ProcessItems is a collection of ProcessItem dictionaries
 ProcessItems = list[ProcessItem]
 
@@ -42,13 +44,13 @@ class BaseProcess(object):
             - 'string': Human-readable label shown in the UI
             - 'object': Qt widget used for input in the GUI
             - 'value': Current value of the parameter
-            
+
             The items list serves multiple purposes:
             1. Auto-generates UI forms through BaseDialog
             2. Stores and retrieves parameter values during process execution
             3. Enables parameter persistence between sessions
             4. Provides a standardized parameter management system across all processes
-            
+
             Process subclasses should populate this list in their gui() method
             and access values via getValue().
     """
@@ -66,16 +68,16 @@ class BaseProcess(object):
         self.command: str = ""
 
     def getValue(self, name: str) -> object:
-        '''getValue(self,name)
+        """getValue(self,name)
 
         Returns:
             The value of a the name stored in self.items
 
-        '''
-        return [i['value'] for i in self.items if i['name'] == name][0]
+        """
+        return [i["value"] for i in self.items if i["name"] == name][0]
 
     def get_init_settings_dict(self) -> dict[str, object]:
-        '''get_init_settings_dict(self)
+        """get_init_settings_dict(self)
         Function for storing the intial settings of any BaseProcess into self.items
 
         Note:
@@ -84,55 +86,78 @@ class BaseProcess(object):
         Returns:
             A dictionary containing the initial settings and their values
 
-                '''
+        """
         return dict()  # this function needs to be overwritten by every subclass
 
     def start(self, keepSourceWindow):
         frame = inspect.getouterframes(inspect.currentframe())[1][0]
         args, _, _, values = inspect.getargvalues(frame)
         funcname = self.__name__
-        self.command = funcname + \
-            '('+', '.join([i+'='+_convert_item_to_string(values[i])
-                           for i in args if i != 'self'])+')'
-        g.m.statusBar().showMessage('Running function {}...'.format(self.__name__))
+        self.command = (
+            funcname
+            + "("
+            + ", ".join(
+                [
+                    i + "=" + _convert_item_to_string(values[i])
+                    for i in args
+                    if i != "self"
+                ]
+            )
+            + ")"
+        )
+        g.m.statusBar().showMessage("Running function {}...".format(self.__name__))
         self.keepSourceWindow = keepSourceWindow
         self.oldwindow = g.win
         if self.oldwindow is None:
-            raise (MissingWindowError(
-                "You cannot execute '{}' without selecting a window first.".format(self.__name__)))
+            raise (
+                MissingWindowError(
+                    "You cannot execute '{}' without selecting a window first.".format(
+                        self.__name__
+                    )
+                )
+            )
         self.tif = self.oldwindow.image
         self.oldname = self.oldwindow.name
 
     def end(self) -> flika.window.Window | None:
         from flika import window
-        if not hasattr(self, 'newtif') or self.newtif is None:
+
+        if not hasattr(self, "newtif") or self.newtif is None:
             self.oldwindow.reset()
             return
         commands = self.oldwindow.commands[:]
-        if hasattr(self, 'command'):
+        if hasattr(self, "command"):
             commands.append(self.command)
-        newWindow = window.Window(self.newtif, str(
-            self.newname), self.oldwindow.filename, commands, self.oldwindow.metadata)
+        newWindow = window.Window(
+            self.newtif,
+            str(self.newname),
+            self.oldwindow.filename,
+            commands,
+            self.oldwindow.metadata,
+        )
         if self.keepSourceWindow is False:
             self.oldwindow.close()
         else:
             self.oldwindow.reset()
-        if np.max(self.newtif) == 1 and np.min(self.newtif) == 0:  # if the array is boolean
-            newWindow.imageview.setLevels(-.1, 1.1)
-        g.m.statusBar().showMessage('Finished with {}.'.format(self.__name__))
+        if (
+            np.max(self.newtif) == 1 and np.min(self.newtif) == 0
+        ):  # if the array is boolean
+            newWindow.imageview.setLevels(-0.1, 1.1)
+        g.m.statusBar().showMessage("Finished with {}.".format(self.__name__))
         del self.tif
         del self.newtif
         return newWindow
 
     def gui(self):
         from pyqtgraph import SignalProxy
+
         self.ui = BaseDialog(self.items, self.__name__, self.__doc__, self)
-        if hasattr(self, '__url__'):
+        if hasattr(self, "__url__"):
             self.ui.bbox.addButton(QtWidgets.QDialogButtonBox.Help)
             self.ui.bbox.helpRequested.connect(
-                lambda: QtWidgets.QDesktopServices.openUrl(QtCore.QUrl(self.__url__)))
-        self.proxy = SignalProxy(self.ui.changeSignal,
-                                 rateLimit=60, slot=self.preview)
+                lambda: QtWidgets.QDesktopServices.openUrl(QtCore.QUrl(self.__url__))
+            )
+        self.proxy = SignalProxy(self.ui.changeSignal, rateLimit=60, slot=self.preview)
         if g.win is not None:
             self.ui.rejected.connect(g.win.reset)
         self.ui.closeSignal.connect(self.ui.rejected.emit)
@@ -146,8 +171,11 @@ class BaseProcess(object):
         self.items: ProcessItems = []
 
     def call_from_gui(self):
-        varnames = [i for i in inspect.getfullargspec(
-            self.__call__)[0] if i != 'self' and i != 'keepSourceWindow']
+        varnames = [
+            i
+            for i in inspect.getfullargspec(self.__call__)[0]
+            if i != "self" and i != "keepSourceWindow"
+        ]
         try:
             args = [self.getValue(name) for name in varnames]
         except IndexError as err:
@@ -160,7 +188,7 @@ class BaseProcess(object):
             # cannot save window objects using pickle
             if not isinstance(value, flika.window.Window):
                 newsettings[name] = value
-        g.settings['baseprocesses'][self.__name__] = newsettings
+        g.settings["baseprocesses"][self.__name__] = newsettings
         g.settings.save()
         try:
             if self.noPriorWindow:
@@ -168,8 +196,9 @@ class BaseProcess(object):
             else:
                 self.__call__(*args, keepSourceWindow=True)
         except MemoryError as err:
-            msg = 'There was a memory error in {}. Close other programs and try again.'.format(
-                self.__name__)
+            msg = "There was a memory error in {}. Close other programs and try again.".format(
+                self.__name__
+            )
             msg += str(err)
             g.alert(msg)
 
@@ -189,20 +218,29 @@ class BaseProcess_noPriorWindow(BaseProcess):
         frame = inspect.getouterframes(inspect.currentframe())[1][0]
         args, _, _, values = inspect.getargvalues(frame)
         funcname = self.__name__
-        self.command = funcname + \
-            '('+', '.join([i+'='+_convert_item_to_string(values[i])
-                           for i in args if i != 'self'])+')'
-        g.m.statusBar().showMessage('Performing {}...'.format(self.__name__))
+        self.command = (
+            funcname
+            + "("
+            + ", ".join(
+                [
+                    i + "=" + _convert_item_to_string(values[i])
+                    for i in args
+                    if i != "self"
+                ]
+            )
+            + ")"
+        )
+        g.m.statusBar().showMessage("Performing {}...".format(self.__name__))
 
     def end(self):
         from flika import window
+
         commands = [self.command]
-        newWindow = window.Window(self.newtif, str(
-            self.newname), commands=commands)
-        if np.max(self.newtif) == 1 and np.min(self.newtif) == 0:  # if the array is boolean
-            newWindow.imageview.setLevels(-.1, 1.1)
-        g.m.statusBar().showMessage('Finished with {}.'.format(self.__name__))
+        newWindow = window.Window(self.newtif, str(self.newname), commands=commands)
+        if (
+            np.max(self.newtif) == 1 and np.min(self.newtif) == 0
+        ):  # if the array is boolean
+            newWindow.imageview.setLevels(-0.1, 1.1)
+        g.m.statusBar().showMessage("Finished with {}.".format(self.__name__))
         del self.newtif
         return newWindow
-
-

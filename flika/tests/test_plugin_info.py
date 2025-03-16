@@ -37,18 +37,21 @@ def test_plugin_info_from_xml_str():
         </menu_layout>
     </plugin>
     """
-    
+
     # Now we expect the method to work and not raise NotImplementedError
     plugin_info = PluginInfo.from_xml_str(xml_str)
-    
+
     # Verify the basic attributes
     assert plugin_info.name == "Detect Puffs"
     assert plugin_info.directory == "detect_puffs"
     assert isinstance(plugin_info.version, packaging.version.Version)
     assert plugin_info.version == packaging.version.Version("2024.03.11")
     assert plugin_info.author == "Kyle Ellefsen"
-    assert plugin_info.url == "https://github.com/kyleellefsen/detect_puffs/archive/master.zip"
-    
+    assert (
+        plugin_info.url
+        == "https://github.com/kyleellefsen/detect_puffs/archive/master.zip"
+    )
+
     # Check dependencies
     assert isinstance(plugin_info.dependencies, list)
     assert len(plugin_info.dependencies) == 4
@@ -56,7 +59,7 @@ def test_plugin_info_from_xml_str():
     assert "matplotlib" in plugin_info.dependencies
     assert "PyOpenGL" in plugin_info.dependencies
     assert "openpyxl" in plugin_info.dependencies
-    
+
     # Check menu_layout
     assert isinstance(plugin_info.menu_layout, list)
     assert len(plugin_info.menu_layout) == 5
@@ -65,10 +68,10 @@ def test_plugin_info_from_xml_str():
 def test_plugin_info_incomplete_xml():
     """Test that from_xml_str handles incomplete XML gracefully."""
     incomplete_xml = "<plugin name='Test'></plugin>"
-    
+
     # This should still work with minimal information
     plugin_info = PluginInfo.from_xml_str(incomplete_xml)
-    
+
     # Verify default values are used when not provided
     assert plugin_info.name == "Test"
     assert plugin_info.directory == ""
@@ -83,7 +86,7 @@ def test_plugin_info_incomplete_xml():
 def test_plugin_info_malformed_xml():
     """Test that from_xml_str handles malformed XML gracefully."""
     malformed_xml = "<plugin name='Test'><unclosed_tag>"
-    
+
     # With the implemented method, it should raise an XML parsing error
     with pytest.raises(ElementTree.ParseError):
-        plugin_info = PluginInfo.from_xml_str(malformed_xml) 
+        plugin_info = PluginInfo.from_xml_str(malformed_xml)

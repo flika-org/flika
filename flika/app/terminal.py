@@ -15,10 +15,12 @@ from IPython import get_ipython
 
 # ZMQ imports
 from zmq import ZMQError
+
 # Remove deprecated zmq.eventloop.ioloop import
 # from zmq.eventloop import ioloop
 # Import tornado's ioloop directly instead (if needed)
 import tornado.ioloop
+
 # Use current import location for ZMQStream
 from zmq.eventloop.zmqstream import ZMQStream
 
@@ -43,7 +45,9 @@ from qtconsole.inprocess import QtInProcessKernelManager
 from qtconsole.rich_jupyter_widget import RichJupyterWidget as RichIPythonWidget
 
 
-def in_process_console(console_class: Type[RichIPythonWidget] = RichIPythonWidget, **kwargs: Any) -> RichIPythonWidget:
+def in_process_console(
+    console_class: Type[RichIPythonWidget] = RichIPythonWidget, **kwargs: Any
+) -> RichIPythonWidget:
     """Create a console widget, connected to an in-process Kernel
 
     Parameters:
@@ -54,7 +58,7 @@ def in_process_console(console_class: Type[RichIPythonWidget] = RichIPythonWidge
     km.start_kernel()
 
     kernel = km.kernel
-    kernel.gui = 'qt'
+    kernel.gui = "qt"
 
     client = km.client()
     client.start_channels()
@@ -67,7 +71,9 @@ def in_process_console(console_class: Type[RichIPythonWidget] = RichIPythonWidge
     return control
 
 
-def connected_console(console_class: Type[RichIPythonWidget] = RichIPythonWidget, **kwargs: Any) -> RichIPythonWidget:
+def connected_console(
+    console_class: Type[RichIPythonWidget] = RichIPythonWidget, **kwargs: Any
+) -> RichIPythonWidget:
     """Create a console widget, connected to another kernel running in
        the current process
 
@@ -92,7 +98,7 @@ def connected_console(console_class: Type[RichIPythonWidget] = RichIPythonWidget
 
 class Terminal(RichIPythonWidget):
     """IPython terminal widget for embedding in the application."""
-    
+
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(**kwargs)
         self.setAcceptDrops(True)
@@ -112,8 +118,8 @@ class Terminal(RichIPythonWidget):
 @contextmanager
 def redirect_output(session: Any, pub_socket: Any) -> None:
     """Prevent any of the widgets from permanently hijacking stdout or stderr"""
-    sys.stdout = OutStream(session, pub_socket, u'stdout')
-    sys.stderr = OutStream(session, pub_socket, u'stderr')
+    sys.stdout = OutStream(session, pub_socket, "stdout")
+    sys.stderr = OutStream(session, pub_socket, "stderr")
     try:
         yield
     finally:
@@ -150,7 +156,7 @@ class EmbeddedQtKernelApp(IPKernelApp):
     def init_kernel(self) -> None:
         shell_stream = ZMQStream(self.shell_socket)
         kernel = EmbeddedQtKernel(
-            config=self.config, 
+            config=self.config,
             session=self.session,
             shell_streams=[shell_stream],
             iopub_socket=self.iopub_socket,
@@ -175,8 +181,8 @@ class EmbeddedQtKernelApp(IPKernelApp):
 
 class EmbeddedIPythonWidget(Terminal):
     """Modern embedded IPython widget."""
-    
-    gui_completion = 'droplist'
+
+    gui_completion = "droplist"
 
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(**kwargs)
@@ -209,7 +215,7 @@ class EmbeddedIPythonWidget(Terminal):
         self.app.shell.user_ns.update(ns)
 
 
-def ipython_terminal(banner: str = '', **kwargs: Any) -> Terminal:
+def ipython_terminal(banner: str = "", **kwargs: Any) -> Terminal:
     """Return a qt widget which embeds an IPython interpreter.
 
     Extra keywords will be added to the namespace of the shell.
@@ -235,7 +241,7 @@ def ipython_terminal(banner: str = '', **kwargs: Any) -> Terminal:
     return connected_console(console_class=Terminal, **kwargs)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app = QtWidgets.QApplication([])
     new_widget = ipython_terminal()
     new_widget.show()

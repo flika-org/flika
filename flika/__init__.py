@@ -1,6 +1,7 @@
 """
 Flika: An interactive image processing program for biologists written in Python.
 """
+
 from flika.version import __version__
 from flika.logger import logger
 from flika.flika import start_flika
