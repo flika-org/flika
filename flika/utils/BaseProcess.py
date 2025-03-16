@@ -7,11 +7,9 @@ import inspect
 import numpy as np
 from qtpy import QtCore, QtWidgets
 
-import flika.window
 import flika.global_vars as g
-from flika.logger import logger
+import flika.window
 from flika.utils.custom_widgets import *  # pylint: disable=wildcard-import
-
 
 __all__ = ["BaseProcess", "BaseProcess_noPriorWindow"]
 

@@ -2,13 +2,12 @@ import os
 
 import numpy as np
 import pyqtgraph as pg
-from qtpy import QtWidgets, QtCore, QtGui
+from qtpy import QtCore, QtGui, QtWidgets
 
 import flika.global_vars as g
+from flika.roi import ROI_Base
 from flika.utils.BaseProcess import BaseProcess
 from flika.utils.misc import save_file_gui
-from flika.logger import logger
-from flika.roi import ROI_Base
 
 __all__ = ["measure"]
 
@@ -120,7 +119,6 @@ class Measure(BaseProcess):
         self.update(pos)
 
     def update(self, point):
-
         modifiers = QtWidgets.QApplication.keyboardModifiers()
         if modifiers == QtCore.Qt.ShiftModifier:
             point = self.getNearestPoint(point)

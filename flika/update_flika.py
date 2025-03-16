@@ -1,24 +1,24 @@
-import os
-import sys
-import tomllib
-import sysconfig
-from urllib.request import urlopen, Request
-from urllib.error import HTTPError, URLError
-import packaging.version
-from io import StringIO, BytesIO
 import contextlib
-import pathlib
-import tempfile
-from zipfile import ZipFile
-import shutil
-from subprocess import check_output
-from qtpy import QtWidgets, QtGui, QtCore
 import json
+import os
+import pathlib
+import shutil
+import sys
+import sysconfig
+import tempfile
+import tomllib
+from io import BytesIO, StringIO
+from subprocess import check_output
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
+from zipfile import ZipFile
+
+import packaging.version
+from qtpy import QtWidgets
 
 import flika.global_vars as g
 from flika.logger import logger
 from flika.version import __version__ as installed_flika_version
-
 
 __all__ = [
     "checkUpdates",
@@ -264,7 +264,7 @@ def checkUpdates() -> bool:
                 return True
         else:
             # Inform user they are up to date
-            logger.debug(f"checkUpdates(): ")
+            logger.debug("checkUpdates(): ")
             g.messageBox("Up to date", message)
             return True
 

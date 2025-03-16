@@ -2,29 +2,28 @@
 Binary image processing functions for the flika package.
 """
 
+import beartype
+import jaxtyping
 import numpy as np
 import scipy
 import scipy.ndimage
-import skimage
+from qtpy import QtWidgets
 from skimage import feature, measure
 from skimage.filters.thresholding import threshold_local
 from skimage.morphology import remove_small_objects
-from qtpy import QtCore, QtGui, QtWidgets
-import beartype
-import jaxtyping
 
 # Local application imports
 import flika.window
 from flika import global_vars as g
+from flika.roi import ROI_Drawing, makeROI
 from flika.utils.BaseProcess import BaseProcess
 from flika.utils.custom_widgets import (
-    SliderLabel,
-    WindowSelector,
-    MissingWindowError,
     CheckBox,
     ComboBox,
+    MissingWindowError,
+    SliderLabel,
+    WindowSelector,
 )
-from flika.roi import makeROI, ROI_Drawing
 
 __all__ = [
     "threshold",

@@ -1,8 +1,8 @@
 import pathlib
+
 import markdown
+from qtpy import QtCore, QtGui, QtWidgets
 
-
-from qtpy import QtCore, QtWidgets, QtGui
 import flika.global_vars as g
 from flika.utils.misc import save_file_gui
 

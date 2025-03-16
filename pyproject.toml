@@ -71,6 +71,8 @@ dev = [
     "sphinx>=4.0.0",
     "sphinxcontrib-napoleon>=0.7",
     "mypy",
+    "scipy-stubs",
+
 ]
 
 [tool.setuptools]
@@ -85,3 +87,10 @@ testpaths = ["flika"]
 python_files = "test_*.py"
 python_classes = "Test*"
 python_functions = "test_*"
+
+
+[tool.ruff]
+line-length = 88  
+
+[tool.mypy]
+python_version = "3.13"

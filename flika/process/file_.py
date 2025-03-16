@@ -4,15 +4,15 @@ File-related operations for flika - opening, saving, and closing files.
 """
 
 # Standard library imports
-import time
-import os.path
-import sys
-import shutil
-import subprocess
 import datetime
 import json
-import re
+import os.path
 import pathlib
+import re
+import shutil
+import subprocess
+import sys
+import time
 
 # Third-party imports
 import numpy as np
@@ -20,12 +20,11 @@ import pyqtgraph as pg
 from qtpy import QtGui, QtWidgets
 
 # Local application imports
-from flika.logger import logger
 import flika.global_vars as g
 from flika.utils.custom_widgets import BaseDialog
-from flika.window import Window
-from flika.utils.misc import open_file_gui, save_file_gui
 from flika.utils.io import tifffile
+from flika.utils.misc import open_file_gui, save_file_gui
+from flika.window import Window
 
 __all__ = [
     "save_file",

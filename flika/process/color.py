@@ -1,7 +1,6 @@
 import flika.global_vars as g
-from flika.window import Window
 from flika.utils.BaseProcess import BaseProcess
-from flika.logger import logger
+from flika.window import Window
 
 __all__ = ["split_channels", "Split_channels"]
 

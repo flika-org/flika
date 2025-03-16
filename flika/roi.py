@@ -21,18 +21,16 @@ Todo:
 # Standard library imports
 import os
 
-import numpy as np
-import jaxtyping
 import beartype
-from qtpy import QtGui, QtCore, QtWidgets
+import jaxtyping
+import numpy as np
 import pyqtgraph as pg
 import skimage.draw
 from pyqtgraph.graphicsItems.ROI import Handle
+from qtpy import QtCore, QtGui, QtWidgets
 
-# Local application imports
-from flika.logger import logger
 import flika.global_vars as g
-from flika.utils.misc import random_color, open_file_gui, nonpartial
+from flika.utils.misc import nonpartial, open_file_gui, random_color
 
 
 @beartype.beartype
@@ -197,7 +195,7 @@ class ROI_Base:
                     signal.disconnect(slot)
                 else:
                     signal.disconnect()
-            except (TypeError, RuntimeError, AttributeError) as e:
+            except (TypeError, RuntimeError, AttributeError):
                 # Silently ignore all exceptions
                 pass
 
@@ -340,7 +338,7 @@ class ROI_Base:
         from .tracefig import roiPlot
 
         self.traceWindow = roiPlot(self)
-        if self.traceWindow == None:
+        if self.traceWindow is None:
             return
         self.traceWindow.indexChanged.connect(self.window.setIndex)
         self._trace_signal_connected = True  # Track that we connected this signal
@@ -409,7 +407,7 @@ class ROI_Base:
 
         def updateMenu() -> None:
             # plotAct.setEnabled(self.window.image.ndim > 2)
-            plotAct.setText("&Plot" if self.traceWindow == None else "&Unplot")
+            plotAct.setText("&Plot" if self.traceWindow is None else "&Unplot")
             self.window.menu.aboutToShow.emit()
 
         self.menu.addAction(plotAct)
@@ -1117,9 +1115,7 @@ class ROI_rect_line(ROI_Base, QtWidgets.QGraphicsObject):
 
     def extendFinished(self):
         self.extendHandle = None
-        for (
-            l
-        ) in (
+        for l in (
             self.lines
         ):  # fix resizing handles. First link Viewbox was set to something different
             l._updateView()
@@ -1138,7 +1134,6 @@ class ROI_rect_line(ROI_Base, QtWidgets.QGraphicsObject):
             l.mouseHovering = False
 
     def getMask(self):
-
         xxs = []
         yys = []
         for i in range(len(self.pts) - 1):
@@ -1348,7 +1343,6 @@ def open_rois(filename=None):
             "freehand",
             "rect_line",
         ]:
-
             # Handle both bracketed and non-bracketed formats
             if line.startswith("["):
                 kinds.append(line.strip("[], "))

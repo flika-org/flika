@@ -4,25 +4,26 @@ Main module for the flika application.
 """
 
 # Standard library imports
-import os
-import sys
-import platform
 import optparse
-import warnings
+import os
 import pathlib
+import platform
+import sys
+import warnings
 from typing import Any
 
 # Set Jupyter to use platformdirs (fixes deprecation warning)
 os.environ["JUPYTER_PLATFORM_DIRS"] = "1"
 
 # Third-party imports
-import numpy as np
 import beartype
+import numpy as np
+
+from flika.app.application import FlikaApplication
 
 # Local application imports
 from flika.logger import logger
 from flika.version import __version__
-from flika.app.application import FlikaApplication
 
 # Filter out known warnings
 warnings.filterwarnings("ignore", category=np.exceptions.VisibleDeprecationWarning)
@@ -170,8 +171,10 @@ def post_install() -> None:
     if platform.system() == "Windows":
         print("Creating start menu shortcut...")
         try:
-            import winshell
             import importlib.resources as pkg_resources
+
+            import winshell
+
             from flika import images
 
             # Use importlib.resources instead of os.path

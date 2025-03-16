@@ -1,15 +1,12 @@
-import numpy as np
 from multiprocessing import cpu_count
 
-from qtpy import QtWidgets, QtGui
+import numpy as np
 from pyqtgraph import ComboBox, mkBrush
+from qtpy import QtGui, QtWidgets
 
 from flika import global_vars as g
-from flika.logger import logger
-from flika.utils.BaseProcess import BaseProcess
-from flika.utils.custom_widgets import ColorSelector, BaseDialog
+from flika.utils.custom_widgets import BaseDialog, ColorSelector
 from flika.utils.misc import setConsoleVisible
-
 
 __all__ = ["SettingsEditor", "rectSettings", "pointSettings", "pencilSettings"]
 
@@ -134,7 +131,7 @@ class SettingsEditor(BaseDialog):
 
     @staticmethod
     def show():
-        if SettingsEditor.gui == None:
+        if SettingsEditor.gui is None:
             SettingsEditor.gui = SettingsEditor()
         BaseDialog.show(SettingsEditor.gui)
 

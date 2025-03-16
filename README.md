@@ -50,3 +50,9 @@ rm -r ~/venvs/flika
 - [Kevin Tarhan](https://github.com/KevinTarhan)
 
 
+## Development
+
+- Ruff is used for linting/formatting
+- VSCode/Cursor is the usually IDE
+- Python 3.13 is the (current) development version
+- PySide6 is used for the GUI

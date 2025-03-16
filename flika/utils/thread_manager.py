@@ -15,8 +15,8 @@ It includes:
 
 import logging
 import threading
-import time
-from typing import Callable, Dict, List, Optional, Any, Union
+from typing import Callable, List, Optional
+
 from qtpy import QtCore
 
 logger = logging.getLogger(__name__)

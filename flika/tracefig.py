@@ -9,16 +9,15 @@ import time
 
 # Third-party imports
 import numpy as np
-from qtpy import QtCore, QtGui, QtWidgets
-from scipy.fftpack import fft, fftfreq, fftshift
 import pyqtgraph as pg
 from pyqtgraph.dockarea import *
+from qtpy import QtCore, QtGui, QtWidgets
+from scipy.fftpack import fft, fftfreq
 
 # Local application imports
-from flika.logger import logger
 import flika.global_vars as g
-from flika.utils.misc import save_file_gui
 from flika.roi import ROI_Base
+from flika.utils.misc import save_file_gui
 
 
 class TraceFig(QtWidgets.QWidget):
@@ -82,9 +81,7 @@ class TraceFig(QtWidgets.QWidget):
         )
         self.button_layout.addItem(verticalSpacer, 0, 2)
 
-        self.region = (
-            pg.LinearRegionItem()
-        )  # Add the LinearRegionItem to the ViewBox, but tell the ViewBox to exclude this item when doing auto-range calculations.
+        self.region = pg.LinearRegionItem()  # Add the LinearRegionItem to the ViewBox, but tell the ViewBox to exclude this item when doing auto-range calculations.
         self.region.setZValue(10)
         self.p2.plotItem.addItem(self.region, ignoreBounds=True)
         self.p1.setAutoVisible(y=True)

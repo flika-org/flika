@@ -1,18 +1,16 @@
 import numpy as np
 from qtpy import QtWidgets
 
-from flika.window import Window
 import flika.global_vars as g
 from flika.utils.BaseProcess import BaseProcess, BaseProcess_noPriorWindow
 from flika.utils.custom_widgets import (
-    WindowSelector,
-    MissingWindowError,
     CheckBox,
-    SliderLabel,
     ComboBox,
+    MissingWindowError,
+    SliderLabel,
+    WindowSelector,
 )
-from flika.logger import logger
-
+from flika.window import Window
 
 __all__ = [
     "deinterleave",

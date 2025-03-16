@@ -3,18 +3,16 @@ Window module for flika - provides the main UI window component.
 """
 
 import os
-import time
 
 import numpy as np
 import pyqtgraph as pg
 from qtpy import QtCore, QtGui, QtWidgets
-import beartype
 
-from flika.logger import logger
 import flika.global_vars as g
+from flika.logger import logger
 from flika.roi import *
+from flika.utils.custom_widgets import SliderLabel, WindowSelector
 from flika.utils.misc import save_file_gui
-from flika.utils.custom_widgets import WindowSelector, SliderLabel
 
 pg.setConfigOptions()
 
@@ -156,9 +154,7 @@ class Window(QtWidgets.QWidget):
             tif.dtype
         )  #: dtype: The datatype of the stored image, e.g. ``uint8``.
         self.top_left_label = None
-        self.rois = (
-            []
-        )  #: list of ROIs: a list of all the :class:`ROIs <flika.roi.ROI_Base>` inside this window.
+        self.rois = []  #: list of ROIs: a list of all the :class:`ROIs <flika.roi.ROI_Base>` inside this window.
         self.currentROI = None  #: :class:`ROI <flika.roi.ROI_Base>`: When an ROI is clicked, it becomes the currentROI of that window and can be accessed via this variable.
         self.creatingROI = False
         self.imageview = None
@@ -698,7 +694,7 @@ class Window(QtWidgets.QWidget):
 
     def plotAllROIs(self):
         for roi in self.rois:
-            if roi.traceWindow == None:
+            if roi.traceWindow is None:
                 roi.plot()
 
     def removeAllROIs(self):
@@ -857,9 +853,7 @@ class Window(QtWidgets.QWidget):
                     pt = self.imageview.getImageItem().mapFromScene(
                         ev.buttonDownScenePos()
                     )
-                    self.x = (
-                        pt.x()
-                    )  # This sets x and y to the button down position, not the current position.
+                    self.x = pt.x()  # This sets x and y to the button down position, not the current position.
                     self.y = pt.y()
                     self.creatingROI = True
                     self.currentROI = ROI_Drawing(self, self.x, self.y, mm)

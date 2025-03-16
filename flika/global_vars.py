@@ -4,28 +4,28 @@ If flika is loaded using::
 
     from flika import *
 
-then all of the variables inside global_vars can be accessed as ``g.*``. For instance, to access the 
+then all of the variables inside global_vars can be accessed as ``g.*``. For instance, to access the
 image inside current window, simply run::
 
     I = g.win.image
 
 """
 
-import json
-import uuid
-import multiprocessing
-from collections.abc import MutableMapping
-import pathlib
-import os
 import importlib.resources
+import json
+import multiprocessing
+import pathlib
+import uuid
+from collections.abc import MutableMapping
 
 import beartype
-from qtpy import QtWidgets, QtGui, QtCore
+from qtpy import QtCore, QtGui, QtWidgets
+
+import flika.images
+import flika.utils.system_info
 
 # Local application imports
 from flika.logger import logger
-import flika.utils.system_info
-import flika.images
 
 __all__ = [
     "m",
@@ -164,9 +164,9 @@ class Settings(
             "location" not in self.d["user_information"]
             or self.d["user_information"]["location"] is None
         ):
-            self.d["user_information"][
-                "location"
-            ] = flika.utils.system_info.get_location()
+            self.d["user_information"]["location"] = (
+                flika.utils.system_info.get_location()
+            )
 
     def setmousemode(self, mode):
         self["mousemode"] = mode
@@ -300,12 +300,8 @@ def alert(msg, title="flika - Alert"):
 settings = Settings()
 m = None  #: The main window.
 menus = []
-windows = (
-    []
-)  #: list of :class:`windows<flika.window.Window>`: All of the windows that have been created and have not yet been closed.
-traceWindows = (
-    []
-)  #: list of :class:`TraceFigs<flika.tracefig.TraceFig>`: All of the TraceFigs that are open.
+windows = []  #: list of :class:`windows<flika.window.Window>`: All of the windows that have been created and have not yet been closed.
+traceWindows = []  #: list of :class:`TraceFigs<flika.tracefig.TraceFig>`: All of the TraceFigs that are open.
 dialogs = []
 currentWindow = None  #: :class:`window <flika.window.Window>`: The window that is currently selected
 win = None  #: :class:`window <flika.window.Window>`: The window that is currently selected

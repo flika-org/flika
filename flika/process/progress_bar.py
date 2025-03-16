@@ -1,9 +1,9 @@
 import sys
 import time
-from multiprocessing import Process, Queue, cpu_count, Pipe
+from multiprocessing import Pipe, Process, Queue, cpu_count
 
 import numpy as np
-from qtpy import QtCore, QtGui, QtWidgets
+from qtpy import QtCore, QtWidgets
 
 __all__ = []
 

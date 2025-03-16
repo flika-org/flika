@@ -1,4 +1,4 @@
-from qtpy import QtCore, QtGui, QtWidgets, PYQT5
+from qtpy import PYQT5, QtCore, QtGui, QtWidgets
 
 __all__ = ["get_qapp"]
 

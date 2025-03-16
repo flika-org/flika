@@ -4,12 +4,11 @@ Script editor for flika.
 
 import os
 
-from qtpy import QtGui, QtCore, QtWidgets
+from qtpy import QtCore, QtGui, QtWidgets
 
-from flika.logger import logger
 from flika import global_vars as g
 from flika.app.syntax import PythonHighlighter
-from flika.utils.misc import save_file_gui, open_file_gui, load_ui
+from flika.utils.misc import load_ui, open_file_gui, save_file_gui
 
 MESSAGE_TIME = 2000
 try:
@@ -102,8 +101,8 @@ class ScriptEditor(QtWidgets.QMainWindow):
         self,
         parent=None,
     ):
-        from .terminal import ipython_terminal
         from .script_namespace import getnamespace
+        from .terminal import ipython_terminal
 
         super(ScriptEditor, self).__init__(parent)
         load_ui("ipythonWidget.ui", self, directory=os.path.dirname(__file__))
@@ -220,7 +219,7 @@ Useful variables:
 
     def saveCurrentScript(self):
         cw = self.currentTab()
-        if cw == None:
+        if cw is None:
             return
         if cw.save():
             self.scriptTabs.setTabText(
@@ -297,14 +296,14 @@ Useful variables:
             Editor.keyPressEvent(editor, ev)
 
     def runScript(self):
-        if self.currentTab() == None:
+        if self.currentTab() is None:
             return
         command = qstr2str(self.currentTab().toPlainText())
         if command:
             self.terminal.execute(command)
 
     def runSelected(self):
-        if self.currentTab() == None:
+        if self.currentTab() is None:
             return
         cursor = self.currentTab().textCursor()
         command = cursor.selectedText()

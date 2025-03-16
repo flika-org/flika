@@ -1,16 +1,16 @@
-import sys, os
 import contextlib
-import pytest
+import os
+
 import numpy as np
 import pyqtgraph as pg
+import pytest
 from qtpy import QtGui, QtWidgets
-from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QApplication
 
 from .. import global_vars as g
-from ..window import Window
-from ..roi import makeROI
 from ..app import application
+from ..roi import makeROI
+from ..window import Window
 
 # Create test images for various test cases
 STANDARD_2D_IMAGE = np.random.random([20, 20])
@@ -151,9 +151,14 @@ class ROITest:
         roi.sigRegionChangeFinished.connect(on_change_finished)
 
         # Return all the objects needed for testing
-        yield win, roi, lambda: changed, lambda: changeFinished, lambda: (
-            changed := False
-        ), lambda: (changeFinished := False)
+        yield (
+            win,
+            roi,
+            lambda: changed,
+            lambda: changeFinished,
+            lambda: (changed := False),
+            lambda: (changeFinished := False),
+        )
 
         # Cleanup
         for r in win.rois:
@@ -173,29 +178,29 @@ class ROITest:
         if points is None:
             points = self.POINTS
 
-        assert np.array_equal(
-            roi.getMask(), mask
-        ), f"Mask differs on creation. {roi.getMask()} != {mask}"
-        assert np.array_equal(
-            roi.pts, points
-        ), f"pts differs on creation. {roi.pts} != {points}"
-        assert np.array_equal(
-            roi.getPoints(), points
-        ), f"getPoints differs on creation. {roi.getPoints()} != {points}"
+        assert np.array_equal(roi.getMask(), mask), (
+            f"Mask differs on creation. {roi.getMask()} != {mask}"
+        )
+        assert np.array_equal(roi.pts, points), (
+            f"pts differs on creation. {roi.pts} != {points}"
+        )
+        assert np.array_equal(roi.getPoints(), points), (
+            f"getPoints differs on creation. {roi.getPoints()} != {points}"
+        )
 
     def check_similar(self, roi1, roi2):
         """Verify two ROIs have similar properties"""
         mask1 = roi1.getMask()
         mask2 = roi2.getMask()
-        assert np.array_equal(
-            mask1, mask2
-        ), f"Mask differs between ROIs. {mask1} != {mask2}"
-        assert np.array_equal(
-            roi1.pts, roi2.pts
-        ), f"pts differs between ROIs. {roi1.pts} != {roi2.pts}"
-        assert np.array_equal(
-            roi1.getPoints(), roi2.getPoints()
-        ), f"getPoints differs between ROIs. {roi1.getPoints()} != {roi2.getPoints()}"
+        assert np.array_equal(mask1, mask2), (
+            f"Mask differs between ROIs. {mask1} != {mask2}"
+        )
+        assert np.array_equal(roi1.pts, roi2.pts), (
+            f"pts differs between ROIs. {roi1.pts} != {roi2.pts}"
+        )
+        assert np.array_equal(roi1.getPoints(), roi2.getPoints()), (
+            f"getPoints differs between ROIs. {roi1.getPoints()} != {roi2.getPoints()}"
+        )
 
     def test_roi_creation(self, roi_setup):
         """Test basic ROI creation and properties"""
@@ -207,14 +212,14 @@ class ROITest:
 
         roi.copy()
         roi1 = win.paste()
-        assert roi1 == None and len(win.rois) == 1, "Copying ROI to same window"
+        assert roi1 is None and len(win.rois) == 1, "Copying ROI to same window"
 
         w2 = Window(self.img)
         try:
             roi2 = w2.paste()
-            assert (
-                roi in roi2.linkedROIs and roi2 in roi.linkedROIs
-            ), "Linked ROI on paste"
+            assert roi in roi2.linkedROIs and roi2 in roi.linkedROIs, (
+                "Linked ROI on paste"
+            )
             self.check_similar(roi, roi2)
 
             roi.translate([1, 2])
@@ -260,11 +265,13 @@ class ROITest:
             assert (
                 trace.rois[ind]["p1trace"].opts["pen"].color().name()
                 == roi.pen.color().name()
-            ), f"Color not changed. {trace.rois[ind]['p1trace'].opts['pen'].color().name()} != {roi.pen.color().name()}"
+            ), (
+                f"Color not changed. {trace.rois[ind]['p1trace'].opts['pen'].color().name()} != {roi.pen.color().name()}"
+            )
 
         roi.unplot()
-        assert roi.traceWindow == None, "ROI unplotted, roi traceWindow cleared"
-        assert g.currentTrace == None, "ROI unplotted, currentTrace cleared"
+        assert roi.traceWindow is None, "ROI unplotted, roi traceWindow cleared"
+        assert g.currentTrace is None, "ROI unplotted, currentTrace cleared"
         g.settings["multipleTraceWindows"] = False
 
     def test_translate(self, roi_setup, mock_message_box):
@@ -292,19 +299,19 @@ class ROITest:
 
         # For rectangle ROIs, only the position (first point) should change, size (second point) stays the same
         if roi.kind == "rectangle":
-            assert np.array_equal(
-                roi.pts[0], path[0] + [2, 1]
-            ), "Position not translated correctly"
-            assert np.array_equal(
-                roi.pts[1], path[1]
-            ), "Size should not change during translation"
+            assert np.array_equal(roi.pts[0], path[0] + [2, 1]), (
+                "Position not translated correctly"
+            )
+            assert np.array_equal(roi.pts[1], path[1]), (
+                "Size should not change during translation"
+            )
         else:
             # For other ROI types, all points should be translated
             for i in roi.pts:
                 print(f"Checking point {i} against originals + [2,1]")
-                assert any(
-                    np.array_equal(i, p + [2, 1]) for p in path
-                ), "translation not applied correctly to points"
+                assert any(np.array_equal(i, p + [2, 1]) for p in path), (
+                    "translation not applied correctly to points"
+                )
 
     def test_plot_translate(self, roi_setup, mock_message_box):
         (
@@ -321,21 +328,21 @@ class ROITest:
             assert win.image.ndim == 4, "Trace failed on non-4D image"
             return
 
-        assert (
-            roi.traceWindow != None
-        ), f"ROI plotted, roi traceWindow set. {roi.traceWindow} should not be None"
-        assert (
-            g.currentTrace == roi.traceWindow
-        ), f"ROI plotted, currentTrace not set. {g.currentTrace} != {roi.traceWindow}"
+        assert roi.traceWindow != None, (
+            f"ROI plotted, roi traceWindow set. {roi.traceWindow} should not be None"
+        )
+        assert g.currentTrace == roi.traceWindow, (
+            f"ROI plotted, currentTrace not set. {g.currentTrace} != {roi.traceWindow}"
+        )
 
         ind = trace.get_roi_index(roi)
         traceItem = trace.rois[ind]["p1trace"]
         yData = traceItem.yData.copy()
 
         roi.translate(2, 1)
-        assert not np.array_equal(
-            yData, traceItem.yData
-        ), f"Translated ROI yData compare {yData} != {traceItem.yData}"
+        assert not np.array_equal(yData, traceItem.yData), (
+            f"Translated ROI yData compare {yData} != {traceItem.yData}"
+        )
 
         assert get_changed(), "Change signal was not sent"
         assert get_change_finished(), "ChangeFinished signal was not sent"
@@ -343,9 +350,9 @@ class ROITest:
         reset_change_finished()
 
         roi.translate(-2, -1)
-        assert np.array_equal(
-            yData, traceItem.yData
-        ), f"Translated back ROI yData compare {yData} != {traceItem.yData}"
+        assert np.array_equal(yData, traceItem.yData), (
+            f"Translated back ROI yData compare {yData} != {traceItem.yData}"
+        )
 
         assert get_changed(), "Change signal was not sent"
         assert get_change_finished(), "ChangeFinished signal was not sent"
@@ -370,9 +377,9 @@ class ROITest:
         assert get_change_finished(), "ChangeFinished signal was not sent"
         reset_change_finished()
 
-        assert (
-            roi.pen.color().name() == color.name()
-        ), f"Color not changed. {roi.pen.color().name()} != {color.name()}"
+        assert roi.pen.color().name() == color.name(), (
+            f"Color not changed. {roi.pen.color().name()} != {color.name()}"
+        )
         roi.unplot()
 
     def test_translate_multiple(self, roi_setup, mock_message_box):
@@ -473,9 +480,9 @@ class ROI_Rectangle(ROITest):
             mask = roi.getMask()
             w, h = np.ptp(mask, 1) + [1, 1]
 
-            assert (
-                w == bound.width() and h == bound.height()
-            ), f"Croppped image different size ({bound.width()}, {bound.height()}) != ({w}, {h})"
+            assert w == bound.width() and h == bound.height(), (
+                f"Croppped image different size ({bound.width()}, {bound.height()}) != ({w}, {h})"
+            )
         finally:
             if w2 is not None:
                 w2.close()
@@ -635,14 +642,14 @@ class ROI_Rect_Line(ROITest):
 
         roi.copy()
         roi1 = win.paste()
-        assert roi1 == None and len(win.rois) == 1, "Copying ROI to same window"
+        assert roi1 is None and len(win.rois) == 1, "Copying ROI to same window"
 
         w2 = Window(self.img)
         try:
             roi2 = w2.paste()
-            assert (
-                roi in roi2.linkedROIs and roi2 in roi.linkedROIs
-            ), "Linked ROI on paste"
+            assert roi in roi2.linkedROIs and roi2 in roi.linkedROIs, (
+                "Linked ROI on paste"
+            )
             self.check_similar(roi, roi2)
 
             roi.lines[0].movePoint(0, [1, 2])
@@ -726,4 +733,6 @@ class TestTracefig:
             assert t == "rectangle\n3 2\n4 5\n"
         finally:
             if os.path.exists("tempROI.txt"):
+                os.remove("tempROI.txt")
+                os.remove("tempROI.txt")
                 os.remove("tempROI.txt")

@@ -1,11 +1,9 @@
-import numpy as np
 import pyqtgraph as pg
-from qtpy import QtWidgets, QtCore, QtGui
+from qtpy import QtCore, QtWidgets
 
 import flika.global_vars as g
-from flika.logger import logger
 from flika.utils.BaseProcess import BaseProcess
-from flika.utils.custom_widgets import SliderLabel, WindowSelector, CheckBox, ComboBox
+from flika.utils.custom_widgets import CheckBox, ComboBox, SliderLabel, WindowSelector
 
 __all__ = ["time_stamp", "background", "scale_bar"]
 
@@ -71,7 +69,6 @@ time_stamp = Time_Stamp()
 
 
 class ShowCheckbox(CheckBox):
-
     def __init__(self, opacity_slider, parent=None):
         super().__init__(parent)
         self.stateChanged.connect(self.changed)

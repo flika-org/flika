@@ -1,13 +1,8 @@
 import os
-import sys
 import platform
-import uuid
-import stat
-import json
-import re
 
 import numpy as np
-from qtpy import QtWidgets, QtCore, QtGui
+from qtpy import QtCore, QtGui, QtWidgets
 
 import flika.global_vars as g
 from flika.logger import logger
@@ -181,6 +176,7 @@ def send_error_report(email, report):
         Request Response if the API was reached, or None if connection failed. Use response.status==200 to check success
     """
     import requests
+
     from .. import global_vars as g
 
     address = g.settings["user_information"]["UUID"]
@@ -204,6 +200,7 @@ def send_user_stats():
     run in a thread using the thread_manager module.
     """
     import requests
+
     from .. import global_vars as g
 
     address = g.settings["user_information"]["UUID"]

@@ -5,7 +5,6 @@ from qtpy import QtWidgets
 import flika.global_vars as g
 from flika.utils.BaseProcess import BaseProcess
 from flika.utils.custom_widgets import CheckBox
-from flika.logger import logger
 
 __all__ = ["set_value"]
 

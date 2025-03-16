@@ -11,12 +11,13 @@ The LEVEL variable can be set by the user below. Options are:
 
 """
 
-import logging
-import sys
-import pathlib
-import beartype
-from types import TracebackType
 import datetime
+import logging
+import pathlib
+import sys
+from types import TracebackType
+
+import beartype
 import colorama
 from colorama import Fore, Style
 

@@ -1,12 +1,13 @@
 import numpy as np
 import skimage
 import skimage.filters
-from qtpy import QtWidgets, QtGui, QtCore
-from flika.logger import logger
+from qtpy import QtWidgets
+
 import flika.global_vars as g
-from flika.utils.BaseProcess import BaseProcess
-from flika.utils.custom_widgets import SliderLabel, CheckBox
+from flika.logger import logger
 from flika.process.progress_bar import ProgressBar
+from flika.utils.BaseProcess import BaseProcess
+from flika.utils.custom_widgets import CheckBox, SliderLabel
 
 __all__ = [
     "gaussian_blur",
@@ -636,7 +637,7 @@ class Median_filter(BaseProcess):
 median_filter = Median_filter()
 
 
-from scipy.fftpack import fft, ifft, fftfreq
+from scipy.fftpack import fft, fftfreq, ifft
 
 
 class Fourier_filter(BaseProcess):
@@ -1044,7 +1045,6 @@ class Bilateral_filter(BaseProcess):
             preview.setEnabled(False)
 
     def __call__(self, soft, beta, width, stoptol, maxiter, keepSourceWindow=False):
-
         self.start(keepSourceWindow)
         if self.tif.ndim != 3:
             g.alert("Bilateral filter requires 3-dimensional image.")
@@ -1167,7 +1167,6 @@ def bilateral_smooth(soft, beta, width, stoptol, maxiter, y):
     gap = np.inf
 
     while iterate < maxiter:
-
         if display:
             print("%d %f" % (iterate, gap))
 

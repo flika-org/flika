@@ -4,23 +4,26 @@ Process module for flika - provides image processing operations.
 """
 
 from flika.logger import logger
-from flika.process.stacks import *
-from flika.process.math_ import *
-from flika.process.filters import *
 from flika.process.binary import *
-from flika.process.roi import *
-from flika.process.measure import *
 from flika.process.color import *
-from flika.process.overlay import *
 from flika.process.file_ import *
+from flika.process.filters import *
+from flika.process.math_ import *
+from flika.process.measure import *
+from flika.process.overlay import *
+from flika.process.roi import *
+from flika.process.stacks import *
+
 
 def setup_menus():
     """Set up the flika menu structure for process operations."""
     import flika.global_vars as g
+
     if len(g.menus) > 0:
         print("flika menubar already initialized.")
         return
     from qtpy import QtGui, QtWidgets
+
     imageMenu = QtWidgets.QMenu("Image")
     processMenu = QtWidgets.QMenu("Process")
 
@@ -53,7 +56,11 @@ def setup_menus():
     binaryMenu = processMenu.addMenu("Binary")
     mathMenu = processMenu.addMenu("Math")
     filtersMenu = processMenu.addMenu("Filters")
-    processMenu.addAction(QtWidgets.QAction("Image Calculator", processMenu, triggered=image_calculator.gui))
+    processMenu.addAction(
+        QtWidgets.QAction(
+            "Image Calculator", processMenu, triggered=image_calculator.gui
+        )
+    )
 
     addAction(binaryMenu, "Threshold", threshold.gui)
     addAction(binaryMenu, "Adaptive Threshold", adaptive_threshold.gui)

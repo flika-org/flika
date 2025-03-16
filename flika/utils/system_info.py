@@ -1,4 +1,3 @@
-import uuid
 import platform
 
 from flika.logger import logger

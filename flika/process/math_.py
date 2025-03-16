@@ -1,10 +1,9 @@
 import numpy as np
 from qtpy import QtWidgets
+
 import flika.global_vars as g
 from flika.utils.BaseProcess import BaseProcess
 from flika.utils.custom_widgets import CheckBox, ComboBox
-from flika.window import Window
-from flika.logger import logger
 
 __all__ = [
     "subtract",
