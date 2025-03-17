@@ -17,6 +17,10 @@ from scipy.fftpack import fft, fftfreq
 import flika.global_vars as g
 from flika.roi import ROI_Base
 from flika.utils.misc import save_file_gui
+from flika.utils.pyqtgraph_patch import apply_pyqtgraph_patches, safe_disconnect
+
+# Apply PyQtGraph patches to prevent errors during cleanup
+apply_pyqtgraph_patches()
 
 
 class ROIDict(TypedDict, total=False):
@@ -180,17 +184,37 @@ class TraceFig(QtWidgets.QWidget):
 
     def closeEvent(self, event: QtGui.QCloseEvent) -> None:
         """Handle cleanup when window is closed"""
+        # Import utility for safe disconnection
+
+        # Clean up signals
+        if hasattr(self, "proxy") and self.p1 is not None:
+            safe_disconnect(self.p1.scene().sigMouseMoved)
+            self.proxy = None
+
+        # Disconnect the region signal and remove it from plot
+        if hasattr(self, "region") and self.region is not None:
+            safe_disconnect(self.region.sigRegionChanged)
+            if self.p2 and self.p2.plotItem:
+                try:
+                    self.p2.plotItem.removeItem(self.region)
+                except:
+                    pass
+
+        # Clean up ROIs
         while len(self.rois) > 0:
             self.removeROI(0)
-        try:
-            self.p1.scene().sigMouseClicked.disconnect(self.measure.pointclicked)
-            self.p1.scene().sigMouseClicked.disconnect(self.setCurrentTraceWindow)
-        except Exception:
-            pass
+
+        # Stop timer
+        if hasattr(self, "timer") and self.timer is not None:
+            self.timer.stop()
+            safe_disconnect(self.timer.timeout)
+
+        # Remove from global trackers
         if self in g.traceWindows:
             g.traceWindows.remove(self)
         g.currentTrace = None
-        event.accept()  # let the window close
+
+        event.accept()
 
     def update_region(
         self, lri: pg.graphicsItems.LinearRegionItem.LinearRegionItem

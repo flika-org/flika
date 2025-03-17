@@ -16,8 +16,12 @@ from flika.logger import logger
 from flika.roi import ROI_Drawing, makeROI
 from flika.utils.custom_widgets import SliderLabel, WindowSelector
 from flika.utils.misc import save_file_gui
+from flika.utils.pyqtgraph_patch import apply_pyqtgraph_patches, safe_disconnect
 
 pg.setConfigOptions()
+
+# Apply PyQtGraph patches to prevent errors during cleanup
+apply_pyqtgraph_patches()
 
 
 @beartype.beartype
@@ -581,15 +585,44 @@ class Window(QtWidgets.QWidget):
             self.closeSignal.emit()
             for win in list(self.linkedWindows):
                 self.unlink(win)
+
+            # Basic cleanup of the imageview
+            if self.imageview is not None:
+                try:
+                    # Disconnect essential signals
+                    if (
+                        hasattr(self.imageview, "scene")
+                        and self.imageview.scene is not None
+                    ):
+                        safe_disconnect(self.imageview.scene.sigMouseClicked)
+                        safe_disconnect(self.imageview.scene.sigMouseMoved)
+
+                    if (
+                        hasattr(self.imageview, "timeLine")
+                        and self.imageview.timeLine is not None
+                    ):
+                        safe_disconnect(self.imageview.timeLine.sigPositionChanged)
+
+                    # Clean up the image data before deleting
+                    self.imageview.setImage(np.zeros((2, 2)))
+                except Exception as e:
+                    # Log but continue with cleanup
+                    print(f"Error during imageview cleanup: {e}")
+
+                # Delete the imageview
+                del self.imageview
+
+            # Clean up image data
             if hasattr(self, "image"):
                 del self.image
-            if self.imageview is not None:
-                self.imageview.setImage(np.zeros((2, 2)))  # clear the memory
-                del self.imageview
+
+            # Update global references
             if g.win == self:
                 g.win = None
+
             if self in g.windows:
                 g.windows.remove(self)
+
             self.closed = True
             event.accept()  # let the window close
 
