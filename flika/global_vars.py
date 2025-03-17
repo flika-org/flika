@@ -16,6 +16,7 @@ import multiprocessing
 import pathlib
 import uuid
 from collections.abc import MutableMapping
+from typing import Any
 
 import beartype
 from qtpy import QtCore, QtGui, QtWidgets
@@ -53,7 +54,7 @@ class Settings(
 
     """
 
-    initial_settings = {
+    initial_settings: dict[str, Any] = {
         "filename": None,
         "internal_data_type": "float64",
         "multiprocessing": True,
@@ -222,7 +223,7 @@ def messageBox(
             # Normal operation for non-IPython environments
             # Create a standalone message box with proper window flags to ensure modality
             msgbox = QtWidgets.QMessageBox(icon, title, text, buttons)
-            icon_pixmap = get_flika_icon().pixmap(64, 64)
+            icon_pixmap = flika.utils.misc.get_flika_icon().pixmap(64, 64)
             msgbox.setIconPixmap(icon_pixmap)
             msgbox.setModal(True)
 
