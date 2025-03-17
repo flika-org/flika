@@ -3,63 +3,70 @@ Window module for flika - provides the main UI window component.
 """
 
 import os
+from collections.abc import Callable
+from typing import Any, Optional
 
+import beartype
 import numpy as np
 import pyqtgraph as pg
 from qtpy import QtCore, QtGui, QtWidgets
 
 import flika.global_vars as g
 from flika.logger import logger
-from flika.roi import *
+from flika.roi import ROI_Drawing, makeROI
 from flika.utils.custom_widgets import SliderLabel, WindowSelector
 from flika.utils.misc import save_file_gui
 
 pg.setConfigOptions()
 
 
+@beartype.beartype
 class Bg_im_dialog(QtWidgets.QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, parent: Optional["Window"] = None) -> None:
         QtWidgets.QDialog.__init__(self)
-        self.parent = parent
+        self.parent: Optional["Window"] = parent
         self.setWindowTitle("Select background image")
-        self.window_selector = WindowSelector()
+        self.window_selector: WindowSelector = WindowSelector()
         self.window_selector.valueChanged.connect(self.bg_win_changed)
-        self.alpha_slider = SliderLabel(3)
+        self.alpha_slider: SliderLabel = SliderLabel(3)
         self.alpha_slider.setRange(0, 1)
         self.alpha_slider.setValue(0.5)
         self.alpha_slider.valueChanged.connect(self.alpha_changed)
-        self.formlayout = QtWidgets.QFormLayout()
+        self.formlayout: QtWidgets.QFormLayout = QtWidgets.QFormLayout()
         self.formlayout.setLabelAlignment(QtCore.Qt.AlignRight)
         self.formlayout.addRow(
             "Select window with background image", self.window_selector
         )
         self.formlayout.addRow("Set background opacity", self.alpha_slider)
-        self.layout = QtWidgets.QVBoxLayout()
+        self.layout: QtWidgets.QVBoxLayout = QtWidgets.QVBoxLayout()
         self.layout.addLayout(self.formlayout)
         self.setLayout(self.layout)
+        self.bg_im: pg.ImageItem | None = None
 
-    def alpha_changed(self, value):
-        if self.parent.bg_im is not None:
+    def alpha_changed(self, value: float) -> None:
+        if self.parent and self.parent.bg_im is not None:
             self.parent.bg_im.setOpacity(value)
 
-    def bg_win_changed(self):
-        if self.parent.bg_im is not None:
+    def bg_win_changed(self) -> None:
+        if self.parent and self.parent.bg_im is not None:
             self.parent.imageview.view.removeItem(self.parent.bg_im)
             self.bg_im = None
-        self.parent.bg_im = pg.ImageItem(
-            self.window_selector.window.imageview.imageItem.image
-        )
-        self.parent.bg_im.setOpacity(self.alpha_slider.value())
-        self.parent.imageview.view.addItem(self.parent.bg_im)
+        if self.parent:
+            self.parent.bg_im = pg.ImageItem(
+                self.window_selector.window.imageview.imageItem.image
+            )
+            self.parent.bg_im.setOpacity(self.alpha_slider.value())
+            self.parent.imageview.view.addItem(self.parent.bg_im)
 
-    def closeEvent(self, ev):
-        if self.parent.bg_im is not None:
+    def closeEvent(self, ev: QtGui.QCloseEvent) -> None:
+        if self.parent and self.parent.bg_im is not None:
             self.parent.imageview.view.removeItem(self.parent.bg_im)
             self.bg_im = None
 
 
+@beartype.beartype
 class ImageView(pg.ImageView):
-    def __init__(self, *args, **kargs):
+    def __init__(self, *args, **kargs) -> None:
         pg.ImageView.__init__(self, *args, **kargs)
         self.view.unregister()
         self.view.removeItem(self.roi)
@@ -84,12 +91,12 @@ class ImageView(pg.ImageView):
         self.ui.roiPlot.getPlotItem().getViewBox().setMouseEnabled(False)
         self.ui.roiPlot.getPlotItem().hideButtons()
 
-    def hasTimeAxis(self):
+    def hasTimeAxis(self) -> bool:
         return "t" in self.axes and not (
             self.axes["t"] is None or self.image.shape[self.axes["t"]] == 1
         )
 
-    def roiClicked(self):
+    def roiClicked(self) -> None:
         showRoiPlot = False
         if self.hasTimeAxis():
             showRoiPlot = True
@@ -108,6 +115,7 @@ class ImageView(pg.ImageView):
         self.ui.roiPlot.setVisible(showRoiPlot)
 
 
+@beartype.beartype
 class Window(QtWidgets.QWidget):
     """
     Window objects are the central objects in flika. Almost all functions in the
@@ -130,37 +138,50 @@ class Window(QtWidgets.QWidget):
     gainedFocusSignal = QtCore.Signal()
     lostFocusSignal = QtCore.Signal()
 
-    def __init__(self, tif, name="flika", filename="", commands=[], metadata=dict()):
+    def __init__(
+        self,
+        tif: np.ndarray,
+        name: str = "flika",
+        filename: str = "",
+        commands: list[str] = [],
+        metadata: dict = {},
+    ) -> None:
         from .process.measure import measure
 
         QtWidgets.QWidget.__init__(self)
-        self.name = name  #: str: The name of the window.
-        self.filename = filename  #: str: The filename (including full path) of file this window's image orinated from.
-        self.commands = commands  #: list of str: a list of the commands used to create this window, starting with loading the file.
-        self.metadata = (
+        self.name: str = name  #: str: The name of the window.
+        self.filename: str = filename  #: str: The filename (including full path) of file this window's image orinated from.
+        self.commands: list[str] = (
+            commands  #: list of str: a list of the commands used to create this window, starting with loading the file.
+        )
+        self.metadata: dict = (
             metadata  #: dict: a dictionary containing the original file's metadata.
         )
-        self.volume = None  # When attaching a 4D array to this Window object, where self.image is a 3D slice of this volume, attach it here. This will remain None for all 3D Windows
-        self.scatterPlot = None
-        self.closed = (
+        self.volume: np.ndarray | None = (
+            None  # When attaching a 4D array to this Window object, where self.image is a 3D slice of this volume, attach it here. This will remain None for all 3D Windows
+        )
+        self.scatterPlot: pg.ScatterPlotItem | None = None
+        self.closed: bool = (
             False  #: bool: True if the window has been closed, False otherwise.
         )
-        self.mx = 0  #: int: The number of pixels wide the image is in the x (left to right) dimension.
-        self.my = 0  #: int: The number of pixels heigh the image is in the y (up to down) dimension.
-        self.mt = 0  #: int: The number of frames in the image stack.
-        self.framerate = None  #: float: The number of frames per second (Hz).
-        self.image = tif
+        self.mx: int = 0  #: int: The number of pixels wide the image is in the x (left to right) dimension.
+        self.my: int = 0  #: int: The number of pixels heigh the image is in the y (up to down) dimension.
+        self.mt: int = 0  #: int: The number of frames in the image stack.
+        self.framerate: float | None = (
+            None  #: float: The number of frames per second (Hz).
+        )
+        self.image: np.ndarray = tif
         self.dtype = (
             tif.dtype
         )  #: dtype: The datatype of the stored image, e.g. ``uint8``.
-        self.top_left_label = None
-        self.rois = []  #: list of ROIs: a list of all the :class:`ROIs <flika.roi.ROI_Base>` inside this window.
+        self.top_left_label: pg.LabelItem | None = None
+        self.rois: list = []  #: list of ROIs: a list of all the :class:`ROIs <flika.roi.ROI_Base>` inside this window.
         self.currentROI = None  #: :class:`ROI <flika.roi.ROI_Base>`: When an ROI is clicked, it becomes the currentROI of that window and can be accessed via this variable.
-        self.creatingROI = False
-        self.imageview = None
-        self.bg_im = None
-        self.currentIndex = 0
-        self.linkedWindows = set()
+        self.creatingROI: bool = False
+        self.imageview: ImageView | None = None
+        self.bg_im: pg.ImageItem | None = None
+        self.currentIndex: int = 0
+        self.linkedWindows: set["Window"] = set()
         self.measure = measure
         self.resizeEvent = self.onResize
         self.moveEvent = self.onMove
@@ -175,6 +196,10 @@ class Window(QtWidgets.QWidget):
         self._init_menu()
         self._init_geometry()
         self.setAsCurrentWindow()
+        self.x: float | None = None
+        self.y: float | None = None
+        self.last_x: int | None = None
+        self.last_y: int | None = None
 
     def _init_geometry(self):
         assert (
@@ -212,7 +237,7 @@ class Window(QtWidgets.QWidget):
             self.raise_()
             QtWidgets.QApplication.processEvents()
 
-    def _check_for_infinities(self, tif):
+    def _check_for_infinities(self, tif: np.ndarray) -> None:
         try:
             if np.any(np.isinf(tif)):
                 tif[np.isinf(tif)] = 0
@@ -220,7 +245,7 @@ class Window(QtWidgets.QWidget):
         except MemoryError:
             pass
 
-    def _init_imageview(self, tif):
+    def _init_imageview(self, tif: np.ndarray) -> None:
         self.imageview = ImageView(self)
         self.imageview.setMouseTracking(True)
         self.imageview.installEventFilter(self)
@@ -232,7 +257,7 @@ class Window(QtWidgets.QWidget):
         self.linkMenu.aboutToShow.connect(self.make_link_menu)
         self.imageview.setImage(tif)
 
-        def clicked(evt):
+        def clicked(evt) -> None:
             self.measure.pointclicked(evt, window=self)
 
         self.imageview.scene.sigMouseClicked.connect(clicked)
@@ -290,7 +315,7 @@ class Window(QtWidgets.QWidget):
             self.imageview.ui.graphicsView.removeItem(self.scatterPlot)
         pointSize = g.settings["point_size"]
         pointColor = QtGui.QColor(g.settings["point_color"])
-        self.scatterPlot = pg.ScatterPlotItem(
+        self.scatterPlot: pg.ScatterPlotItem = pg.ScatterPlotItem(
             size=pointSize,
             pen=pg.mkPen([0, 0, 0, 255]),
             brush=pg.mkBrush(*pointColor.getRgb()),
@@ -325,13 +350,14 @@ class Window(QtWidgets.QWidget):
         self.menu.addAction(removeAll)
         self.menu.aboutToShow.connect(updateMenu)
 
-    def onResize(self, event):
+    def onResize(self, event: QtGui.QResizeEvent) -> None:
+        event.accept()
         g.settings["window_settings"]["coords"] = self.geometry().getRect()
 
-    def onMove(self, event):
+    def onMove(self, event: QtGui.QMoveEvent) -> None:
         g.settings["window_settings"]["coords"] = self.geometry().getRect()
 
-    def save(self, filename):
+    def save(self, filename: str) -> None:
         """save(self, filename)
         Saves the current window to a specificed directory as a (.tif) file
 
@@ -346,7 +372,7 @@ class Window(QtWidgets.QWidget):
         save_file(filename)
         old_curr_win.setAsCurrentWindow()
 
-    def normLUT(self, tif):
+    def normLUT(self, tif: np.ndarray) -> None:
         """Set the display levels for the image based on its content and type.
 
         Handles boolean, integer, and float arrays properly by ensuring appropriate
@@ -419,11 +445,11 @@ class Window(QtWidgets.QWidget):
                 # For binary volumes, set levels slightly outside 0-1 range
                 self.imageview.setLevels(-0.01, 1.01)
 
-    def set_bg_im(self):
+    def set_bg_im(self) -> None:
         self.bg_im_dialog = Bg_im_dialog(self)
         self.bg_im_dialog.show()
 
-    def link(self, win):
+    def link(self, win: "Window") -> None:
         """link(self, win)
         Linking a window to another means when the current index of one changes, the index of the other will automatically change.
 
@@ -435,7 +461,7 @@ class Window(QtWidgets.QWidget):
             self.linkedWindows.add(win)
             win.link(self)
 
-    def unlink(self, win):
+    def unlink(self, win: "Window") -> None:
         """unlink(self, win)
         This unlinks a window from this one.
 
@@ -447,22 +473,22 @@ class Window(QtWidgets.QWidget):
             self.sigTimeChanged.disconnect(win.imageview.setCurrentIndex)
             win.unlink(self)
 
-    def link_toggled(self, win):
+    def link_toggled(self, win: "Window") -> Callable[[bool], None]:
         return lambda b: self.link(win) if b else self.unlink(win)
 
-    def make_link_menu(self):
+    def make_link_menu(self) -> None:
         self.linkMenu.clear()
         for win in g.windows:
             if win == self or not win.isVisible():
                 continue
-            win_action = QtWidgets.QAction(
-                "%s" % win.name, self.linkMenu, checkable=True
-            )
+            win_action = QtWidgets.QAction(f"{win.name}", self.linkMenu, checkable=True)
             win_action.setChecked(win in self.linkedWindows)
             win_action.toggled.connect(self.link_toggled(win))
             self.linkMenu.addAction(win_action)
 
-    def updateindex(self):
+    def updateindex(
+        self, idx_line: pg.graphicsItems.InfiniteLine.InfiniteLine | None = None
+    ) -> None:
         if self.mt == 1:
             t = 0
         else:
@@ -478,7 +504,7 @@ class Window(QtWidgets.QWidget):
                 )
             self.sigTimeChanged.emit(t)
 
-    def setIndex(self, index: int):
+    def setIndex(self, index: int) -> None:
         """setIndex(self, index)
         This sets the index (frame) of this window.
 
@@ -499,33 +525,33 @@ class Window(QtWidgets.QWidget):
                     f"Attempt to set invalid index {index}, image has shape {self.image.shape}"
                 )
 
-    def showFrame(self, index):
+    def showFrame(self, index: int) -> None:
         if index >= 0 and index < self.mt:
-            msg = "frame {}".format(index)
+            msg = f"frame {index}"
             if (
                 "timestamps" in self.metadata
                 and self.metadata["timestamp_units"] == "ms"
             ):
                 ttime = self.metadata["timestamps"][index]
                 if ttime < 1 * 1000:
-                    msg += "; {:.4f} ms".format(ttime)
+                    msg += f"; {ttime:.4f} ms"
                 elif ttime < 60 * 1000:
                     seconds = ttime / 1000
-                    msg += "; {:.4f} s".format(seconds)
+                    msg += f"; {seconds:.4f} s"
                 elif ttime < 3600 * 1000:
                     minutes = int(np.floor(ttime / (60 * 1000)))
                     seconds = (ttime / 1000) % 60
-                    msg += "; {} m {:.4f} s".format(minutes, seconds)
+                    msg += f"; {minutes} m {seconds:.4f} s"
                 else:
                     seconds = ttime / 1000
                     hours = int(np.floor(seconds / 3600))
                     mminutes = seconds - hours * 3600
                     minutes = int(np.floor(mminutes / 60))
                     seconds = mminutes - minutes * 60
-                    msg += "; {} h {} m {:.4f} s".format(hours, minutes, seconds)
+                    msg += f"; {hours} h {minutes} m {seconds:.4f} s"
             g.m.statusBar().showMessage(msg)
 
-    def setName(self, name):
+    def setName(self, name: str) -> None:
         """setName(self,name)
         Set the name of this window.
 
@@ -536,19 +562,20 @@ class Window(QtWidgets.QWidget):
         self.name = name
         self.setWindowTitle(name)
 
-    def reset(self):
+    def reset(self) -> None:
         if not self.closed:
             currentIndex = int(self.currentIndex)
-            self.imageview.setImage(
-                self.image, autoLevels=True
-            )  # I had autoLevels=False before.  I changed it to adjust after boolean previews.
-            if self.imageview.axes["t"] is not None:
-                self.imageview.setCurrentIndex(currentIndex)
+            if self.imageview is not None:
+                self.imageview.setImage(
+                    self.image, autoLevels=True
+                )  # I had autoLevels=False before.  I changed it to adjust after boolean previews.
+                if self.imageview.axes["t"] is not None:
+                    self.imageview.setCurrentIndex(currentIndex)
             g.m.statusBar().showMessage("")
 
-    def closeEvent(self, event):
+    def closeEvent(self, event: QtGui.QCloseEvent) -> None:
         if self.closed:
-            print("Attempt to close window {} that was already closed".format(self))
+            print(f"Attempt to close window {self} that was already closed")
             event.accept()
         else:
             self.closeSignal.emit()
@@ -556,9 +583,9 @@ class Window(QtWidgets.QWidget):
                 self.unlink(win)
             if hasattr(self, "image"):
                 del self.image
-            self.imageview.setImage(np.zeros((2, 2)))  # clear the memory
-            self.imageview.close()
-            del self.imageview
+            if self.imageview is not None:
+                self.imageview.setImage(np.zeros((2, 2)))  # clear the memory
+                del self.imageview
             if g.win == self:
                 g.win = None
             if self in g.windows:
@@ -566,7 +593,7 @@ class Window(QtWidgets.QWidget):
             self.closed = True
             event.accept()  # let the window close
 
-    def imageArray(self):
+    def imageArray(self) -> np.ndarray:
         """imageArray(self)
 
         Returns:
@@ -589,7 +616,7 @@ class Window(QtWidgets.QWidget):
             tif = tif[np.newaxis]
         return tif
 
-    def imageDimensions(self):
+    def imageDimensions(self) -> tuple[int, int]:
         nDims = self.image.shape
         if len(nDims) == 4:  # if this is an RGB image stack
             return nDims[1:3]
@@ -602,9 +629,10 @@ class Window(QtWidgets.QWidget):
             return nDims
         return nDims
 
-    def resizeEvent(self, event):
+    def resizeEvent(self, event: QtGui.QResizeEvent) -> None:
         event.accept()
-        self.imageview.resize(self.size())
+        if self.imageview is not None:
+            self.imageview.resize(self.size())
 
     def paste(self):
         """paste(self)
@@ -612,7 +640,7 @@ class Window(QtWidgets.QWidget):
         The ROIs will be automatically linked using the link() fucntion so that when you alter one of them, the other will be altered in the same way.
         """
 
-        def pasteROI(roi):
+        def pasteROI(roi) -> None | object:
             if roi in self.rois:
                 return None
             if roi.kind == "rect_line":
@@ -623,7 +651,7 @@ class Window(QtWidgets.QWidget):
                 self.currentROI.link(roi)
             return self.currentROI
 
-        if type(g.clipboard) == list:
+        if isinstance(g.clipboard, list):
             rois = []
             for roi in g.clipboard:
                 rois.append(pasteROI(roi))
@@ -717,7 +745,7 @@ class Window(QtWidgets.QWidget):
             pos=[[x, y]], size=pointSize, brush=pg.mkBrush(*pointColor.getRgb())
         )
 
-    def mouseClickEvent(self, ev):
+    def mouseClickEvent(self, ev: Any) -> None:
         """'mouseClickevent(self, ev)
         Event handler for when the mouse is pressed in a flika window.
         """
@@ -803,7 +831,7 @@ class Window(QtWidgets.QWidget):
                 "x={}, y={}, z={}, value={}".format(int(self.x), int(self.y), z, value)
             )
 
-    def mouseDragEvent(self, ev):
+    def mouseDragEvent(self, ev: Any) -> None:
         modifiers = QtWidgets.QApplication.keyboardModifiers()
         if modifiers == QtCore.Qt.ShiftModifier:
             pass  # This is how I detect that the shift key is held down.
@@ -827,7 +855,6 @@ class Window(QtWidgets.QWidget):
                         y = int(self.y)
                         if self.last_x == x and self.last_y == y:
                             pass
-                        z = self.imageview.currentIndex
                         image = self.imageview.getImageItem().image
                         v = g.settings["pencil_value"]
                         if self.last_x is None:
@@ -869,7 +896,7 @@ class Window(QtWidgets.QWidget):
                     if self.creatingROI:
                         self.currentROI.extend(self.x, self.y)
 
-    def updateTimeStampLabel(self, frame):
+    def updateTimeStampLabel(self, frame: int) -> None:
         label = self.timeStampLabel
         if self.framerate == 0:
             label.setHtml(
@@ -912,7 +939,8 @@ class Window(QtWidgets.QWidget):
             )
 
 
-def get_line(x1, y1, x2, y2):
+@beartype.beartype
+def get_line(x1: int, y1: int, x2: int, y2: int) -> np.ndarray:
     """Bresenham's Line Algorithm
     Produces a list of tuples"""
     # Setup initial conditions
