@@ -19,6 +19,7 @@ os.environ["JUPYTER_PLATFORM_DIRS"] = "1"
 import beartype
 import numpy as np
 
+import flika.utils.misc
 from flika.app.application import FlikaApplication
 
 # Local application imports
@@ -117,11 +118,7 @@ def verify(parser: optparse.OptionParser, argv: list[str]) -> str | None:
 @beartype.beartype
 def ipython_qt_event_loop_setup() -> None:
     """Set up the IPython Qt event loop if running inside IPython."""
-    try:
-        __IPYTHON__
-    except NameError:
-        return  #  If __IPYTHON__ is not defined, we are not in ipython
-    else:
+    if flika.utils.misc.inside_ipython():
         print("Starting flika inside IPython")
         from IPython import get_ipython
 

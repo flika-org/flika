@@ -6,17 +6,12 @@ import os
 
 from qtpy import QtCore, QtGui, QtWidgets
 
+import flika.utils.misc
 from flika import global_vars as g
 from flika.app.syntax import PythonHighlighter
 from flika.utils.misc import load_ui, open_file_gui, save_file_gui
 
 MESSAGE_TIME = 2000
-try:
-    __IPYTHON__
-except NameError:
-    INSIDE_IPYTHON = False
-else:
-    INSIDE_IPYTHON = True
 
 
 def qstr2str(string):
@@ -316,7 +311,7 @@ Useful variables:
     def show():
         if "PYCHARM_HOSTED" in os.environ:
             g.alert("You cannot run the script editor from within PyCharm.")
-        elif INSIDE_IPYTHON:
+        elif flika.utils.misc.inside_ipython():
             g.alert(
                 "You cannot run the script editor because flika is already running inside IPython."
             )

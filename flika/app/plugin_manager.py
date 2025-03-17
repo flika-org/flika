@@ -2,36 +2,32 @@
 Plugin manager for flika.
 """
 
-import os
-import sys
+import dataclasses
 import difflib
-import zipfile
-import shutil
-import subprocess
-import urllib
+import importlib.metadata
+import os
 import pathlib
 import platform
-import packaging.version
-import importlib.metadata
-import threading
+import shutil
+import subprocess
+import sys
 import tempfile
-import dataclasses
-import beartype
-from qtpy import QtGui, QtWidgets, QtCore
-from xml.etree import ElementTree
+import urllib
+import zipfile
 
-from flika.logger import logger
+import beartype
+from qtpy import QtCore, QtGui, QtWidgets
+
+import flika.app.plugin_utils as plugin_utils
 from flika import global_vars as g
-from flika.utils.misc import load_ui
-from flika.images import image_path
-from flika.utils.thread_manager import run_in_thread, ThreadController
 from flika.app.plugin_utils import (
     PluginInfo,
     plugin_info_urls_by_name,
-    get_plugin_info_xml_from_url,
 )
-import flika.app.plugin_utils as plugin_utils
-
+from flika.images import image_path
+from flika.logger import logger
+from flika.utils.misc import load_ui
+from flika.utils.thread_manager import ThreadController, run_in_thread
 
 helpHTML = """
 <h1 style="width:100%; text-align:center">Welcome to the flika Plugin Manager</h1>
@@ -96,7 +92,6 @@ def build_submenu(
     layout_data: dict | list,
     installing: bool = False,
 ) -> None:
-
     # Convert list to appropriate dict format if needed
     if isinstance(layout_data, list):
         # Convert list of actions to dict with 'action' key
@@ -110,7 +105,7 @@ def build_submenu(
         )
 
     for key, value in layout_dict.items():
-        if type(value) != list:
+        if not isinstance(value, list):
             value = [value]
         if key == "menu":
             for v in value:
@@ -727,7 +722,7 @@ Then try installing the plugin again."""
         # Download the plugin zip file
         try:
             plugin_zip_bytes: bytes = urllib.request.urlopen(plugin_url).read()
-        except Exception as e:
+        except Exception:
             g.alert(
                 f"Failed to connect to {plugin.plugin_info.url} to install the {plugin.name} flika Plugin. Check your internet connection and try again, or download the plugin manually.",
                 title="Download Error",
@@ -823,7 +818,7 @@ def load_local_plugins():
                 error_msg = f"Could not load the plugin {p.name}. There is already a plugin with this same name. Change the plugin name in the info.xml file"
                 errors.append(error_msg)
                 g.alert(error_msg)
-        except Exception as e:
+        except Exception:
             msg = f"Could not load plugin {plugin_dir_str}"  # Fixed variable name from pluginPath to plugin_dir_str
             errors.append(msg)
             g.alert(msg)

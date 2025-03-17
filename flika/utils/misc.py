@@ -1,3 +1,4 @@
+import importlib.resources
 import os
 import platform
 
@@ -5,6 +6,7 @@ import numpy as np
 from qtpy import QtCore, QtGui, QtWidgets
 
 import flika.global_vars as g
+import flika.images
 from flika.logger import logger
 
 __all__ = [
@@ -14,7 +16,23 @@ __all__ = [
     "random_color",
     "save_file_gui",
     "open_file_gui",
+    "inside_ipython",
+    "get_flika_icon",
 ]
+
+
+def inside_ipython() -> bool:
+    try:
+        __IPYTHON__  # type: ignore
+        return True
+    except NameError:
+        return False
+
+
+def get_flika_icon() -> QtGui.QIcon:
+    with importlib.resources.path(flika.images, "favicon.ico") as icon_path:
+        flika_icon = QtGui.QIcon(str(icon_path))
+    return flika_icon
 
 
 def nonpartial(func, *args, **kwargs):

@@ -11,7 +11,6 @@ image inside current window, simply run::
 
 """
 
-import importlib.resources
 import json
 import multiprocessing
 import pathlib
@@ -22,6 +21,7 @@ import beartype
 from qtpy import QtCore, QtGui, QtWidgets
 
 import flika.images
+import flika.utils.misc
 import flika.utils.system_info
 
 # Local application imports
@@ -39,20 +39,6 @@ __all__ = [
     "currentTrace",
     "clipboard",
 ]
-
-
-def get_flika_icon() -> QtGui.QIcon:
-    with importlib.resources.path(flika.images, "favicon.ico") as icon_path:
-        flika_icon = QtGui.QIcon(str(icon_path))
-    return flika_icon
-
-
-def inside_ipython() -> bool:
-    try:
-        __IPYTHON__
-        return True
-    except NameError:
-        return False
 
 
 class Settings(
@@ -213,14 +199,14 @@ def messageBox(
 
     try:
         # For IPython, we need a different approach since we can't block without freezing
-        if inside_ipython():
+        if flika.utils.misc.inside_ipython():
             logger.warning(
                 "In IPython environment, message boxes are non-blocking. Using default response."
             )
 
             # Create a non-modal dialog on the main thread
             msgbox = QtWidgets.QMessageBox(icon, title, text, buttons)
-            icon_pixmap = get_flika_icon().pixmap(64, 64)
+            icon_pixmap = flika.utils.misc.get_flika_icon().pixmap(64, 64)
             msgbox.setIconPixmap(icon_pixmap)
 
             # Add the dialog to our tracking list to prevent garbage collection
