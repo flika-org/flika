@@ -219,7 +219,6 @@ class Frame_binning(BaseProcess):
     def __call__(self, nFrames, keepSourceWindow=False):
         self.start(keepSourceWindow)
         tif = self.tif
-        nDim = len(tif.shape)
         self.newtif = np.array(
             [np.mean(tif[i : i + nFrames], 0) for i in np.arange(0, len(tif), nFrames)]
         )

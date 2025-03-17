@@ -94,3 +94,7 @@ line-length = 88
 
 [tool.mypy]
 python_version = "3.13"
+
+[[tool.mypy.overrides]]
+module = ["pyqtgraph.*"]
+ignore_missing_imports = true

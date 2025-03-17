@@ -1,18 +1,120 @@
-# -*- coding: utf-8 -*-
 """
 Process module for flika - provides image processing operations.
 """
 
-from flika.logger import logger
-from flika.process.binary import *
-from flika.process.color import *
-from flika.process.file_ import *
-from flika.process.filters import *
-from flika.process.math_ import *
-from flika.process.measure import *
-from flika.process.overlay import *
-from flika.process.roi import *
-from flika.process.stacks import *
+# Import specific functions/classes from each module
+from flika.process.binary import (
+    adaptive_threshold,
+    binary_dilation,
+    binary_erosion,
+    canny_edge_detector,
+    generate_rois,
+    logically_combine,
+    remove_small_blobs,
+    threshold,
+)
+from flika.process.color import split_channels
+from flika.process.file_ import close, open_file
+from flika.process.filters import (
+    bilateral_filter,
+    boxcar_differential_filter,
+    butterworth_filter,
+    difference_filter,
+    difference_of_gaussians,
+    fourier_filter,
+    gaussian_blur,
+    mean_filter,
+    median_filter,
+    variance_filter,
+    wavelet_filter,
+)
+from flika.process.math_ import (
+    absolute_value,
+    divide,
+    divide_trace,
+    multiply,
+    power,
+    ratio,
+    sqrt,
+    subtract,
+    subtract_trace,
+)
+from flika.process.measure import measure
+from flika.process.overlay import background, scale_bar, time_stamp
+from flika.process.roi import set_value
+from flika.process.stacks import (
+    change_datatype,
+    concatenate_stacks,
+    deinterleave,
+    duplicate,
+    frame_binning,
+    generate_random_image,
+    image_calculator,
+    pixel_binning,
+    resize,
+    trim,
+    zproject,
+)
+
+# Define what's available when using `from flika.process import *`
+__all__ = [
+    # binary module
+    "threshold",
+    "remove_small_blobs",
+    "adaptive_threshold",
+    "logically_combine",
+    "binary_dilation",
+    "binary_erosion",
+    "generate_rois",
+    "canny_edge_detector",
+    # color module
+    "split_channels",
+    # file_ module
+    "open_file",
+    "close",
+    # filters module
+    "gaussian_blur",
+    "difference_of_gaussians",
+    "mean_filter",
+    "variance_filter",
+    "median_filter",
+    "butterworth_filter",
+    "boxcar_differential_filter",
+    "wavelet_filter",
+    "difference_filter",
+    "fourier_filter",
+    "bilateral_filter",
+    # math_ module
+    "subtract",
+    "multiply",
+    "divide",
+    "power",
+    "sqrt",
+    "ratio",
+    "absolute_value",
+    "subtract_trace",
+    "divide_trace",
+    # measure module
+    "measure",
+    # overlay module
+    "time_stamp",
+    "background",
+    "scale_bar",
+    # roi module
+    "set_value",
+    # stacks module
+    "deinterleave",
+    "trim",
+    "zproject",
+    "image_calculator",
+    "pixel_binning",
+    "frame_binning",
+    "resize",
+    "concatenate_stacks",
+    "duplicate",
+    "generate_random_image",
+    "change_datatype",
+]
 
 
 def setup_menus():
@@ -22,7 +124,7 @@ def setup_menus():
     if len(g.menus) > 0:
         print("flika menubar already initialized.")
         return
-    from qtpy import QtGui, QtWidgets
+    from qtpy import QtWidgets
 
     imageMenu = QtWidgets.QMenu("Image")
     processMenu = QtWidgets.QMenu("Process")

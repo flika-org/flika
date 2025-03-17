@@ -1,4 +1,3 @@
-import sys
 from qtpy import QtCore, QtGui
 
 

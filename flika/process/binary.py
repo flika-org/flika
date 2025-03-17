@@ -38,7 +38,9 @@ __all__ = [
 
 
 @beartype.beartype
-def convert2uint8(tif: np.ndarray) -> jaxtyping.Num[np.ndarray, "... uint8"]:
+def convert2uint8(
+    tif: jaxtyping.Num[np.ndarray, "..."],
+) -> jaxtyping.UInt8[np.ndarray, "..."]:
     """Convert any array to uint8 format with proper scaling.
 
     Args:

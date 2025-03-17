@@ -1,48 +1,43 @@
 # -*- coding: utf-8 -*-
-import sys
-import os
 import atexit
+import sys
 from contextlib import contextmanager
-from typing import Any, Dict, Optional, Type, Union
-
-# Import Qt functionality through qtpy for abstraction
-from qtpy import QtCore, QtWidgets
-
-# IPython imports
-import IPython
-from IPython.core.usage import default_banner
-from IPython import get_ipython
-
-# ZMQ imports
-from zmq import ZMQError
+from typing import Any, Dict, Optional, Type
 
 # Remove deprecated zmq.eventloop.ioloop import
 # from zmq.eventloop import ioloop
 # Import tornado's ioloop directly instead (if needed)
 import tornado.ioloop
 
+# Import traitlets
+# Import ipykernel components
+from ipykernel.connect import _find_connection_file as find_connection_file
+from ipykernel.connect import get_connection_file
+from ipykernel.inprocess.ipkernel import InProcessInteractiveShell
+from ipykernel.iostream import OutStream
+from ipykernel.kernelapp import IPKernelApp
+from ipykernel.kernelbase import Kernel
+
+# IPython imports
+from IPython import get_ipython
+
+# Import qtconsole components
+from qtconsole.client import QtKernelClient
+from qtconsole.inprocess import QtInProcessKernelManager
+from qtconsole.manager import QtKernelManager
+from qtconsole.rich_jupyter_widget import RichJupyterWidget as RichIPythonWidget
+
+# Import Qt functionality through qtpy for abstraction
+from qtpy import QtCore, QtWidgets
+
+# ZMQ imports
+from zmq import ZMQError
+
 # Use current import location for ZMQStream
 from zmq.eventloop.zmqstream import ZMQStream
 
 # Import version
 from flika.version import __version__
-
-# Import traitlets
-from traitlets import TraitError
-
-# Import ipykernel components
-from ipykernel.connect import _find_connection_file as find_connection_file
-from ipykernel.kernelbase import Kernel
-from ipykernel.kernelapp import IPKernelApp
-from ipykernel.iostream import OutStream
-from ipykernel.inprocess.ipkernel import InProcessInteractiveShell
-from ipykernel.connect import get_connection_file
-
-# Import qtconsole components
-from qtconsole.client import QtKernelClient
-from qtconsole.manager import QtKernelManager
-from qtconsole.inprocess import QtInProcessKernelManager
-from qtconsole.rich_jupyter_widget import RichJupyterWidget as RichIPythonWidget
 
 
 def in_process_console(

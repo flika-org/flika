@@ -2,10 +2,9 @@ import ctypes
 import os
 import platform
 import sys
-import time
 import traceback
 
-from qtpy import QtCore, QtWidgets, QtGui
+from qtpy import QtCore, QtGui, QtWidgets
 from qtpy.QtCore import QUrl
 from qtpy.QtGui import QDesktopServices
 
@@ -14,16 +13,16 @@ from flika.app.plugin_manager import PluginManager, load_local_plugins
 from flika.app.script_editor import ScriptEditor
 from flika.app.settings_editor import (
     SettingsEditor,
-    rectSettings,
-    pointSettings,
     pencilSettings,
+    pointSettings,
+    rectSettings,
 )
 from flika.images import image_path
-from flika.logger import logger, handle_exception
+from flika.logger import handle_exception, logger
 from flika.update_flika import checkUpdates
 from flika.utils.app import get_qapp
-from flika.utils.misc import nonpartial, send_user_stats, load_ui, send_error_report
-from flika.utils.thread_manager import run_in_thread, cleanup_threads
+from flika.utils.misc import load_ui, nonpartial, send_error_report, send_user_stats
+from flika.utils.thread_manager import cleanup_threads, run_in_thread
 from flika.version import __version__
 
 
@@ -72,19 +71,19 @@ class Logger(QtWidgets.QWidget):
         self._status.setPixmap(status_pixmap())
         self._status.setContentsMargins(0, 0, 0, 0)
 
-        l = QtWidgets.QVBoxLayout()
+        vlayout = QtWidgets.QVBoxLayout()
         h = QtWidgets.QHBoxLayout()
-        l.setContentsMargins(2, 2, 2, 2)
-        l.setSpacing(2)
+        vlayout.setContentsMargins(2, 2, 2, 2)
+        vlayout.setSpacing(2)
         h.setContentsMargins(0, 0, 0, 0)
 
-        l.addWidget(self._text)
+        vlayout.addWidget(self._text)
         h.insertStretch(0)
         h.addWidget(report)
         h.addWidget(clear)
-        l.addLayout(h)
+        vlayout.addLayout(h)
 
-        self.setLayout(l)
+        self.setLayout(vlayout)
 
     @property
     def status_light(self):
@@ -161,16 +160,6 @@ class FlikaApplication(QtWidgets.QMainWindow):
     """The main window of flika, stored as g.m"""
 
     def __init__(self):
-        from flika.process.file_ import (
-            open_file,
-            open_file_from_gui,
-            open_image_sequence_from_gui,
-            open_points,
-            save_file,
-            save_movie_gui,
-            save_points,
-            save_rois,
-        )
         from flika.process import setup_menus
 
         self.app = get_qapp(image_path("favicon.png"))
@@ -260,7 +249,6 @@ class FlikaApplication(QtWidgets.QMainWindow):
         self.move(0, 0)
 
     def _make_menu(self):
-        from flika.roi import open_rois
         from flika.process.file_ import (
             open_file,
             open_file_from_gui,
@@ -271,6 +259,7 @@ class FlikaApplication(QtWidgets.QMainWindow):
             save_points,
             save_rois,
         )
+        from flika.roi import open_rois
 
         fileMenu = self.menuBar().addMenu("File")
         openMenu = fileMenu.addMenu("Open")

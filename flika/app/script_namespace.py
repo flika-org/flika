@@ -3,13 +3,13 @@ Script namespace for flika.
 """
 
 from inspect import getmembers, ismodule
-import numpy as np
-import scipy
-import pyqtgraph as pg
 
-from flika import process
+import numpy as np
+import pyqtgraph as pg
+import scipy
+
 from flika import global_vars as g
-from flika import window
+from flika import process, window
 from flika.roi import open_rois
 
 

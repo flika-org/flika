@@ -1,20 +1,20 @@
 """
 This module contains utility functions for plugins.
 
-Importantly, it contains the list of plugins that show up in Flika, and the 
+Importantly, it contains the list of plugins that show up in Flika, and the
 PluginInfo class, which stores plugin metadata.
 """
 
 import dataclasses
+import glob
 import pathlib
+import sys
 import urllib.parse
 import urllib.request
-import sys
-import glob
 import xml.etree.ElementTree as ElementTree
-import packaging.version
-import beartype
 
+import beartype
+import packaging.version
 
 plugin_info_urls_by_name = {
     "Beam Splitter": "https://raw.githubusercontent.com/BrettJSettle/BeamSplitter/master/",
