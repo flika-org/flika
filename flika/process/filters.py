@@ -718,8 +718,8 @@ class Fourier_filter(BaseProcess):
         )
         self.items.append({"name": "preview", "string": "Preview", "object": preview})
         super().gui()
-        self.roi = g.win.currentROI
-        if self.roi is not None:
+        if g.win is not None and g.win.currentROI is not None:
+            self.roi = g.win.currentROI
             self.ui.rejected.connect(self.roi.redraw_trace)
             self.ui.accepted.connect(self.roi.redraw_trace)
         else:
@@ -729,7 +729,7 @@ class Fourier_filter(BaseProcess):
 
     def __call__(
         self,
-        frame_rate: float,
+        frame_rate: int,
         low: float,
         high: float,
         loglogPreview: bool,

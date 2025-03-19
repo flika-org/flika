@@ -734,5 +734,3 @@ class TestTracefig:
         finally:
             if os.path.exists("tempROI.txt"):
                 os.remove("tempROI.txt")
-                os.remove("tempROI.txt")
-                os.remove("tempROI.txt")

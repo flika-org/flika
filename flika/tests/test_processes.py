@@ -1,17 +1,14 @@
 # pylint: disable=missing-function-docstring,missing-class-docstring,missing-module-docstring
-import sys, os
-import optparse
 import contextlib
-
-from ..process import *
-from .. import global_vars as g
-from ..window import Window
-from ..roi import makeROI
-import numpy as np
-import time
-import pytest
 import warnings
+
+import numpy as np
+import pytest
 from qtpy import QtWidgets
+
+from .. import global_vars as g
+from ..process import *
+from ..window import Window
 
 warnings.filterwarnings("ignore")
 
@@ -82,7 +79,6 @@ class ProcessTest:
 
 
 class TestBinary(ProcessTest):
-
     def test_threshold(self, test_image, mock_message_box):
         # Skip for color images - threshold may not support color
         if self.is_color_image(test_image):
@@ -249,10 +245,10 @@ class TestFilters(ProcessTest):
             pytest.skip("Bilateral filter only works on 3D grayscale movies")
 
         w1 = Window(test_image)
-        w = bilateral_filter(True, 30, 10, 0.05, 100)  # soft filter
+        w = bilateral_filter(True, 30.0, 10.0, 0.05, 100)  # soft filter
         assert w is not None, "Bilateral filter (soft) should return a window"
 
-        w2 = bilateral_filter(False, 30, 10, 0.05, 100)  # hard filter
+        w2 = bilateral_filter(False, 30.0, 10.0, 0.05, 100)  # hard filter
         assert w2 is not None, "Bilateral filter (hard) should return a window"
 
 
