@@ -380,7 +380,7 @@ class ROI_Base:
             self.traceWindow.removeROI(self)
             self.traceWindow = None
 
-    def copy(self) -> None:
+    def copy(self, optional_arg: bool | None = None) -> None:
         """Store this ROI in the clipboard"""
         g.clipboard = self
 

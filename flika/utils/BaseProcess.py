@@ -9,6 +9,7 @@ from qtpy import QtCore, QtWidgets
 
 import flika.global_vars as g
 import flika.window
+from flika.logger import logger
 from flika.utils.custom_widgets import *  # pylint: disable=wildcard-import
 
 __all__ = ["BaseProcess", "BaseProcess_noPriorWindow"]
@@ -169,15 +170,22 @@ class BaseProcess(object):
         self.items: ProcessItems = []
 
     def call_from_gui(self):
+        # Get the original function from a potentially decorated function
+        original_func = self.__call__
+        # Check if this is a decorated function and try to unwrap it
+        if hasattr(original_func, "__wrapped__"):
+            original_func = original_func.__wrapped__
+
         varnames = [
             i
-            for i in inspect.getfullargspec(self.__call__)[0]
+            for i in inspect.getfullargspec(original_func)[0]
             if i != "self" and i != "keepSourceWindow"
         ]
         try:
             args = [self.getValue(name) for name in varnames]
         except IndexError as err:
             msg = "IndexError in {}: {}".format(self.__name__, varnames)
+            logger.error(msg)
             msg += str(err)
             g.alert(msg)
         newsettings = dict()

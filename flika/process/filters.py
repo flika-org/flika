@@ -13,6 +13,7 @@ from scipy.signal import butter, filtfilt, medfilt
 import flika.global_vars as g
 from flika.logger import logger
 from flika.process.progress_bar import ProgressBar
+from flika.roi import ROI_Base
 from flika.utils.BaseProcess import BaseProcess
 from flika.utils.custom_widgets import CheckBox, SliderLabel, SliderLabelOdd
 
@@ -52,9 +53,8 @@ class Gaussian_blur(BaseProcess):
     def __init__(self) -> None:
         super().__init__()
 
-    def gui(self, keepSourceWindow: bool) -> None:
-        logger.debug(f"keepSourceWindow: {keepSourceWindow}")
-        logger.debug(f"keepSourceWindow type: {type(keepSourceWindow)}")
+    def gui(self, *args, **kwargs) -> None:
+        # Ignore any additional arguments that might be passed by the framework
         logger.debug("Started 'running process.filters.gaussian_blur.gui()'")
         self.gui_reset()
         sigma = SliderLabel(2)
@@ -100,10 +100,8 @@ class Gaussian_blur(BaseProcess):
         self.newname = self.oldname + " - Gaussian Blur sigma=" + str(sigma)
         return self.end()
 
-    def preview(self, mysterious_arg: tuple | None = None) -> None:
+    def preview(self, *args, **kwargs) -> None:
         logger.debug("Started 'running process.filters.gaussian_blur.preview()'")
-        logger.debug(f"mysterious_arg: {mysterious_arg}")
-        logger.debug(f"mysterious_arg type: {type(mysterious_arg)}")
         norm_edges = self.getValue("norm_edges")
         if norm_edges:
             mode = "constant"
@@ -145,7 +143,7 @@ class Difference_of_Gaussians(BaseProcess):
     def __init__(self) -> None:
         super().__init__()
 
-    def gui(self) -> None:
+    def gui(self, *args, **kwargs) -> None:
         self.gui_reset()
         sigma1 = SliderLabel(2)
         sigma1.setRange(0, 100)
@@ -190,7 +188,7 @@ class Difference_of_Gaussians(BaseProcess):
         )
         return self.end()
 
-    def preview(self) -> None:
+    def preview(self, *args, **kwargs) -> None:
         sigma1 = self.getValue("sigma1")
         sigma2 = self.getValue("sigma2")
         preview = self.getValue("preview")
@@ -239,7 +237,7 @@ class Butterworth_filter(BaseProcess):
             rate = 2
         high["object"].setMaximum(rate / 2)
 
-    def gui(self) -> None:
+    def gui(self, *args, **kwargs) -> None:
         self.gui_reset()
         filter_order = QtWidgets.QSpinBox()
         filter_order.setRange(1, 10)
@@ -317,7 +315,7 @@ class Butterworth_filter(BaseProcess):
         self.newname = self.oldname + " - Butter Filtered"
         return self.end()
 
-    def preview(self) -> None:
+    def preview(self, *args, **kwargs) -> None:
         if g.currentTrace is not None:
             framerate = self.getValue("framerate")
             if framerate == 0:
@@ -456,8 +454,9 @@ class Mean_filter(BaseProcess):
 
     def __init__(self) -> None:
         super().__init__()
+        self.roi: ROI_Base | None = None
 
-    def gui(self) -> None:
+    def gui(self, *args, **kwargs) -> None:
         self.gui_reset()
         nFrames = SliderLabel(0)
         nFrames.setRange(1, 100)
@@ -466,8 +465,8 @@ class Mean_filter(BaseProcess):
         self.items.append({"name": "nFrames", "string": "nFrames", "object": nFrames})
         self.items.append({"name": "preview", "string": "Preview", "object": preview})
         super().gui()
-        self.roi = g.win.currentROI
-        if self.roi is not None:
+        if g.win is not None and g.win.currentROI is not None:
+            self.roi = g.win.currentROI
             self.ui.rejected.connect(self.roi.redraw_trace)
             self.ui.accepted.connect(self.roi.redraw_trace)
         else:
@@ -488,7 +487,7 @@ class Mean_filter(BaseProcess):
         self.newname = self.oldname + " - Mean Filtered"
         return self.end()
 
-    def preview(self) -> None:
+    def preview(self, *args, **kwargs) -> None:
         nFrames = self.getValue("nFrames")
         preview = self.getValue("preview")
         if self.roi is not None:
@@ -539,7 +538,7 @@ class Variance_filter(BaseProcess):
     def __init__(self) -> None:
         super().__init__()
 
-    def gui(self) -> None:
+    def gui(self, *args, **kwargs) -> None:
         self.gui_reset()
         nFrames = SliderLabel(0)
         nFrames.setRange(1, 100)
@@ -572,7 +571,7 @@ class Variance_filter(BaseProcess):
         self.newname = self.oldname + " - Variance Filtered"
         return self.end()
 
-    def preview(self) -> None:
+    def preview(self, *args, **kwargs) -> None:
         nFrames = self.getValue("nFrames")
         preview = self.getValue("preview")
         if self.roi is not None:
@@ -608,7 +607,7 @@ class Median_filter(BaseProcess):
     def __init__(self) -> None:
         super().__init__()
 
-    def gui(self) -> None:
+    def gui(self, *args, **kwargs) -> None:
         self.gui_reset()
         nFrames = SliderLabelOdd()
         nFrames.setRange(1, 100)
@@ -644,7 +643,7 @@ class Median_filter(BaseProcess):
         self.newname = self.oldname + " - Median Filtered"
         return self.end()
 
-    def preview(self) -> None:
+    def preview(self, *args, **kwargs) -> None:
         nFrames = self.getValue("nFrames")
         preview = self.getValue("preview")
         if self.roi is not None:
@@ -684,7 +683,7 @@ class Fourier_filter(BaseProcess):
     def __init__(self) -> None:
         super().__init__()
 
-    def gui(self) -> None:
+    def gui(self, *args, **kwargs) -> None:
         self.gui_reset()
         frame_rate = QtWidgets.QDoubleSpinBox()
         frame_rate.setRange(0.01, 1000)
@@ -762,7 +761,7 @@ class Fourier_filter(BaseProcess):
         self.newname = self.oldname + " - Fourier Filtered"
         return self.end()
 
-    def preview(self) -> None:
+    def preview(self, *args, **kwargs) -> None:
         frame_rate = self.getValue("frame_rate")
         low = self.getValue("low")
         high = self.getValue("high")
@@ -837,7 +836,7 @@ class Difference_filter(BaseProcess):
     def __init__(self) -> None:
         super().__init__()
 
-    def gui(self) -> bool:
+    def gui(self, *args, **kwargs) -> bool:
         self.gui_reset()
         if super().gui() == False:
             return False
@@ -871,7 +870,7 @@ class Boxcar_differential_filter(BaseProcess):
     def __init__(self) -> None:
         super().__init__()
 
-    def gui(self) -> bool:
+    def gui(self, *args, **kwargs) -> bool:
         self.gui_reset()
         minNframes = SliderLabel(0)
         minNframes.setRange(1, 100)
@@ -919,7 +918,7 @@ class Boxcar_differential_filter(BaseProcess):
         self.newname = self.oldname + " - Boxcar Differential Filtered"
         return self.end()
 
-    def preview(self) -> None:
+    def preview(self, *args, **kwargs) -> None:
         minNframes = self.getValue("minNframes")
         maxNframes = self.getValue("maxNframes")
         preview = self.getValue("preview")
@@ -966,7 +965,7 @@ class Wavelet_filter(BaseProcess):
     def __init__(self) -> None:
         super().__init__()
 
-    def gui(self) -> None:
+    def gui(self, *args, **kwargs) -> None:
         self.gui_reset()
         low = SliderLabel(0)
         low.setRange(1, 50)
@@ -1010,7 +1009,7 @@ class Wavelet_filter(BaseProcess):
         self.newname = self.oldname + " - Wavelet Filtered"
         return self.end()
 
-    def preview(self) -> None:
+    def preview(self, *args, **kwargs) -> None:
         low = self.getValue("low")
         high = self.getValue("high")
         preview = self.getValue("preview")
@@ -1049,7 +1048,7 @@ class Bilateral_filter(BaseProcess):
     def __init__(self) -> None:
         super().__init__()
 
-    def gui(self) -> None:
+    def gui(self, *args, **kwargs) -> None:
         self.gui_reset()
 
         soft = CheckBox()
@@ -1115,7 +1114,7 @@ class Bilateral_filter(BaseProcess):
         self.newname = self.oldname + " - Bilateral Filtered"
         return self.end()
 
-    def preview(self) -> None:
+    def preview(self, *args, **kwargs) -> None:
         soft = self.getValue("soft")
         beta = self.getValue("beta")
         width = self.getValue("width")
