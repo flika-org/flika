@@ -15,6 +15,7 @@ from qtpy import QtCore, QtGui, QtWidgets
 from scipy.fftpack import fft, fftfreq
 
 import flika.global_vars as g
+from flika.logger import logger
 from flika.roi import ROI_Base
 from flika.utils.misc import save_file_gui
 from flika.utils.pyqtgraph_patch import apply_pyqtgraph_patches, safe_disconnect
@@ -197,7 +198,8 @@ class TraceFig(QtWidgets.QWidget):
             if self.p2 and self.p2.plotItem:
                 try:
                     self.p2.plotItem.removeItem(self.region)
-                except:
+                except Exception as e:
+                    logger.error(e)
                     pass
 
         # Clean up ROIs

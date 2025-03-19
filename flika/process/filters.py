@@ -1,13 +1,20 @@
+import multiprocessing
+
+import beartype
 import numpy as np
 import skimage
 import skimage.filters
 from qtpy import QtWidgets
+from scipy import signal
+from scipy.fftpack import fft, fftfreq, ifft
+from scipy.ndimage import convolve
+from scipy.signal import butter, filtfilt, medfilt
 
 import flika.global_vars as g
 from flika.logger import logger
 from flika.process.progress_bar import ProgressBar
 from flika.utils.BaseProcess import BaseProcess
-from flika.utils.custom_widgets import CheckBox, SliderLabel
+from flika.utils.custom_widgets import CheckBox, SliderLabel, SliderLabelOdd
 
 __all__ = [
     "gaussian_blur",
@@ -27,6 +34,7 @@ __all__ = [
 ###############################################################################
 
 
+@beartype.beartype
 class Gaussian_blur(BaseProcess):
     """gaussian_blur(sigma, norm_edges=False, keepSourceWindow=False)
 
@@ -41,10 +49,12 @@ class Gaussian_blur(BaseProcess):
 
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
-    def gui(self):
+    def gui(self, keepSourceWindow: bool) -> None:
+        logger.debug(f"keepSourceWindow: {keepSourceWindow}")
+        logger.debug(f"keepSourceWindow type: {type(keepSourceWindow)}")
         logger.debug("Started 'running process.filters.gaussian_blur.gui()'")
         self.gui_reset()
         sigma = SliderLabel(2)
@@ -65,9 +75,11 @@ class Gaussian_blur(BaseProcess):
         self.preview()
         logger.debug("Completed 'running process.filters.gaussian_blur.gui()'")
 
-    def __call__(self, sigma, norm_edges=False, keepSourceWindow=False):
+    def __call__(
+        self, sigma: float, norm_edges: bool = False, keepSourceWindow: bool = False
+    ):
         self.start(keepSourceWindow)
-        if norm_edges == True:
+        if norm_edges:
             mode = "constant"
         else:
             mode = "nearest"
@@ -88,8 +100,10 @@ class Gaussian_blur(BaseProcess):
         self.newname = self.oldname + " - Gaussian Blur sigma=" + str(sigma)
         return self.end()
 
-    def preview(self):
+    def preview(self, mysterious_arg: tuple | None = None) -> None:
         logger.debug("Started 'running process.filters.gaussian_blur.preview()'")
+        logger.debug(f"mysterious_arg: {mysterious_arg}")
+        logger.debug(f"mysterious_arg type: {type(mysterious_arg)}")
         norm_edges = self.getValue("norm_edges")
         if norm_edges:
             mode = "constant"
@@ -113,6 +127,7 @@ class Gaussian_blur(BaseProcess):
 gaussian_blur = Gaussian_blur()
 
 
+@beartype.beartype
 class Difference_of_Gaussians(BaseProcess):
     """gaussian_blur(sigma1, sigma2, keepSourceWindow=False)
 
@@ -127,10 +142,10 @@ class Difference_of_Gaussians(BaseProcess):
 
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
-    def gui(self):
+    def gui(self) -> None:
         self.gui_reset()
         sigma1 = SliderLabel(2)
         sigma1.setRange(0, 100)
@@ -150,7 +165,7 @@ class Difference_of_Gaussians(BaseProcess):
         super().gui()
         self.preview()
 
-    def __call__(self, sigma1, sigma2, keepSourceWindow=False):
+    def __call__(self, sigma1: float, sigma2: float, keepSourceWindow: bool = False):
         self.start(keepSourceWindow)
         if sigma1 > 0 and sigma2 > 0:
             self.newtif = np.zeros(self.tif.shape)
@@ -175,7 +190,7 @@ class Difference_of_Gaussians(BaseProcess):
         )
         return self.end()
 
-    def preview(self):
+    def preview(self) -> None:
         sigma1 = self.getValue("sigma1")
         sigma2 = self.getValue("sigma2")
         preview = self.getValue("preview")
@@ -197,9 +212,9 @@ difference_of_gaussians = Difference_of_Gaussians()
 ###############################################################################
 ##################   TEMPORAL FILTERS       ###################################
 ###############################################################################
-from scipy.signal import butter, filtfilt
 
 
+@beartype.beartype
 class Butterworth_filter(BaseProcess):
     """butterworth_filter(filter_order, low, high, framerate, keepSourceWindow=False)
 
@@ -214,17 +229,17 @@ class Butterworth_filter(BaseProcess):
         newWindow
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
-    def framerate_adjusted(self, rate):
+    def framerate_adjusted(self, rate: float) -> None:
         high = self.items[2]
         assert high["name"] == "high"
         if rate == 0:
             rate = 2
         high["object"].setMaximum(rate / 2)
 
-    def gui(self):
+    def gui(self) -> None:
         self.gui_reset()
         filter_order = QtWidgets.QSpinBox()
         filter_order.setRange(1, 10)
@@ -266,7 +281,14 @@ class Butterworth_filter(BaseProcess):
             preview.setChecked(False)
             preview.setEnabled(False)
 
-    def __call__(self, filter_order, low, high, framerate=0, keepSourceWindow=False):
+    def __call__(
+        self,
+        filter_order: int,
+        low: float,
+        high: float,
+        framerate: float = 0,
+        keepSourceWindow: bool = False,
+    ):
         if framerate == 0:
             framerate = 2
         if low == 0 and high == framerate / 2:
@@ -295,7 +317,7 @@ class Butterworth_filter(BaseProcess):
         self.newname = self.oldname + " - Butter Filtered"
         return self.end()
 
-    def preview(self):
+    def preview(self) -> None:
         if g.currentTrace is not None:
             framerate = self.getValue("framerate")
             if framerate == 0:
@@ -321,7 +343,7 @@ class Butterworth_filter(BaseProcess):
                 else:
                     self.roi.redraw_trace()
 
-    def makeButterFilter(self, filter_order, low, high):
+    def makeButterFilter(self, filter_order: int, low: float, high: float) -> tuple:
         padlen = 0
         if high == 1:
             if low == 0:  # if there is no temporal filter at all,
@@ -341,10 +363,13 @@ class Butterworth_filter(BaseProcess):
 butterworth_filter = Butterworth_filter()
 
 
-def butterworth_filter_multi(filter_order, low, high, tif):
+@beartype.beartype
+def butterworth_filter_multi(
+    filter_order: int, low: float, high: float, tif: np.ndarray
+) -> np.ndarray | None:
     nThreads = g.settings["nCores"]
     mt, mx, my = tif.shape
-    block_ends = np.linspace(0, mx, nThreads + 1).astype(np.int)
+    block_ends = np.linspace(0, mx, nThreads + 1).astype(int)
     data = [
         tif[:, block_ends[i] : block_ends[i + 1], :] for i in np.arange(nThreads)
     ]  # split up data along x axis. each thread will get one.
@@ -359,13 +384,20 @@ def butterworth_filter_multi(filter_order, low, high, tif):
     if progress.results is None or any(r is None for r in progress.results):
         result = None
     else:
-        result = np.concatenate(progress.results, axis=1).astype(
+        result: np.ndarray = np.concatenate(progress.results, axis=1).astype(
             g.settings["internal_data_type"]
         )
     return result
 
 
-def butterworth_filter_multi_inner(q_results, q_progress, q_status, child_conn, args):
+@beartype.beartype
+def butterworth_filter_multi_inner(
+    q_results,
+    q_progress,
+    q_status,
+    child_conn: multiprocessing.connection.Connection,
+    args: tuple,
+) -> None:
     data = child_conn.recv()
     status = q_status.get(
         True
@@ -373,7 +405,7 @@ def butterworth_filter_multi_inner(q_results, q_progress, q_status, child_conn, 
     if status == "Stop":
         q_results.put(None)
 
-    def makeButterFilter(filter_order, low, high):
+    def makeButterFilter(filter_order: int, low: float, high: float) -> tuple:
         padlen = 0
         if high == 1:
             if low == 0:  # if there is no temporal filter at all,
@@ -410,9 +442,7 @@ def butterworth_filter_multi_inner(q_results, q_progress, q_status, child_conn, 
     q_results.put(result)
 
 
-from scipy.ndimage import convolve
-
-
+@beartype.beartype
 class Mean_filter(BaseProcess):
     """mean_filter(nFrames, keepSourceWindow=False)
 
@@ -424,10 +454,10 @@ class Mean_filter(BaseProcess):
         newWindow
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
-    def gui(self):
+    def gui(self) -> None:
         self.gui_reset()
         nFrames = SliderLabel(0)
         nFrames.setRange(1, 100)
@@ -444,7 +474,7 @@ class Mean_filter(BaseProcess):
             preview.setChecked(False)
             preview.setEnabled(False)
 
-    def __call__(self, nFrames, keepSourceWindow=False):
+    def __call__(self, nFrames: int, keepSourceWindow: bool = False):
         self.start(keepSourceWindow)
         if self.tif.dtype == np.float16:
             g.alert("Mean Filter does not support float16 type arrays")
@@ -458,7 +488,7 @@ class Mean_filter(BaseProcess):
         self.newname = self.oldname + " - Mean Filtered"
         return self.end()
 
-    def preview(self):
+    def preview(self) -> None:
         nFrames = self.getValue("nFrames")
         preview = self.getValue("preview")
         if self.roi is not None:
@@ -479,7 +509,8 @@ class Mean_filter(BaseProcess):
 mean_filter = Mean_filter()
 
 
-def varfilt(trace, nFrames):
+@beartype.beartype
+def varfilt(trace: np.ndarray, nFrames: int) -> np.ndarray:
     result = np.zeros_like(trace)
     mt = len(trace)
     for i in np.arange(mt):
@@ -493,6 +524,7 @@ def varfilt(trace, nFrames):
     return result
 
 
+@beartype.beartype
 class Variance_filter(BaseProcess):
     """variance_filter(nFrames, keepSourceWindow=False)
 
@@ -504,10 +536,10 @@ class Variance_filter(BaseProcess):
         newWindow
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
-    def gui(self):
+    def gui(self) -> None:
         self.gui_reset()
         nFrames = SliderLabel(0)
         nFrames.setRange(1, 100)
@@ -524,7 +556,7 @@ class Variance_filter(BaseProcess):
             preview.setChecked(False)
             preview.setEnabled(False)
 
-    def __call__(self, nFrames, keepSourceWindow=False):
+    def __call__(self, nFrames: int, keepSourceWindow: bool = False):
         self.start(keepSourceWindow)
         if self.tif.dtype == np.float16:
             g.alert("Variance filter does not support float16 type arrays")
@@ -540,7 +572,7 @@ class Variance_filter(BaseProcess):
         self.newname = self.oldname + " - Variance Filtered"
         return self.end()
 
-    def preview(self):
+    def preview(self) -> None:
         nFrames = self.getValue("nFrames")
         preview = self.getValue("preview")
         if self.roi is not None:
@@ -560,9 +592,8 @@ class Variance_filter(BaseProcess):
 
 variance_filter = Variance_filter()
 
-from scipy.signal import medfilt
 
-
+@beartype.beartype
 class Median_filter(BaseProcess):
     """median_filter(nFrames, keepSourceWindow=False)
 
@@ -574,10 +605,10 @@ class Median_filter(BaseProcess):
         newWindow
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
-    def gui(self):
+    def gui(self) -> None:
         self.gui_reset()
         nFrames = SliderLabelOdd()
         nFrames.setRange(1, 100)
@@ -594,7 +625,7 @@ class Median_filter(BaseProcess):
             preview.setChecked(False)
             preview.setEnabled(False)
 
-    def __call__(self, nFrames, keepSourceWindow=False):
+    def __call__(self, nFrames: int, keepSourceWindow: bool = False):
         if nFrames % 2 == 0:  # if value is even:
             g.alert("median_filter only takes odd numbers.  Operation cancelled")
             return None
@@ -613,7 +644,7 @@ class Median_filter(BaseProcess):
         self.newname = self.oldname + " - Median Filtered"
         return self.end()
 
-    def preview(self):
+    def preview(self) -> None:
         nFrames = self.getValue("nFrames")
         preview = self.getValue("preview")
         if self.roi is not None:
@@ -637,9 +668,7 @@ class Median_filter(BaseProcess):
 median_filter = Median_filter()
 
 
-from scipy.fftpack import fft, fftfreq, ifft
-
-
+@beartype.beartype
 class Fourier_filter(BaseProcess):
     """fourier_filter(frame_rate, low, high, loglogPreview, keepSourceWindow=False)
 
@@ -652,10 +681,10 @@ class Fourier_filter(BaseProcess):
         loglogPreview (boolean): whether or not to plot frequency spectrum on log log axes
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
-    def gui(self):
+    def gui(self) -> None:
         self.gui_reset()
         frame_rate = QtWidgets.QDoubleSpinBox()
         frame_rate.setRange(0.01, 1000)
@@ -699,8 +728,18 @@ class Fourier_filter(BaseProcess):
             preview.setEnabled(False)
             loglogPreview.setEnabled(False)
 
-    def __call__(self, frame_rate, low, high, loglogPreview, keepSourceWindow=False):
+    def __call__(
+        self,
+        frame_rate: float,
+        low: float,
+        high: float,
+        loglogPreview: bool,
+        keepSourceWindow: bool = False,
+    ):
         self.start(keepSourceWindow)
+        if self.tif is None:
+            g.alert("No image loaded.")
+            return
         if self.tif.dtype == np.float16:
             g.alert("Fourier transform does not support float16 movies.")
             return
@@ -723,7 +762,7 @@ class Fourier_filter(BaseProcess):
         self.newname = self.oldname + " - Fourier Filtered"
         return self.end()
 
-    def preview(self):
+    def preview(self) -> None:
         frame_rate = self.getValue("frame_rate")
         low = self.getValue("low")
         high = self.getValue("high")
@@ -747,7 +786,7 @@ class Fourier_filter(BaseProcess):
             else:
                 self.roi.redraw_trace()
 
-    def frame_rate_changed(self):
+    def frame_rate_changed(self) -> None:
         low = [item for item in self.items if item["name"] == "low"][0]["object"]
         high = [item for item in self.items if item["name"] == "high"][0]["object"]
         frame_rate = [item for item in self.items if item["name"] == "frame_rate"][0][
@@ -785,6 +824,7 @@ def plotSpectrum(y,Fs):
 fourier_filter = Fourier_filter()
 
 
+@beartype.beartype
 class Difference_filter(BaseProcess):
     """difference_filter(keepSourceWindow=False)
 
@@ -794,15 +834,16 @@ class Difference_filter(BaseProcess):
         newWindow
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
-    def gui(self):
+    def gui(self) -> bool:
         self.gui_reset()
         if super().gui() == False:
             return False
+        return True
 
-    def __call__(self, keepSourceWindow=False):
+    def __call__(self, keepSourceWindow: bool = False):
         self.start(keepSourceWindow)
         self.newtif = np.zeros(self.tif.shape)
         for i in np.arange(1, len(self.newtif)):
@@ -814,6 +855,7 @@ class Difference_filter(BaseProcess):
 difference_filter = Difference_filter()
 
 
+@beartype.beartype
 class Boxcar_differential_filter(BaseProcess):
     """boxcar_differential_filter(minNframes, maxNframes, keepSourceWindow=False)
 
@@ -826,10 +868,10 @@ class Boxcar_differential_filter(BaseProcess):
         newWindow
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
-    def gui(self):
+    def gui(self) -> bool:
         self.gui_reset()
         minNframes = SliderLabel(0)
         minNframes.setRange(1, 100)
@@ -863,8 +905,11 @@ class Boxcar_differential_filter(BaseProcess):
         else:
             preview.setChecked(False)
             preview.setEnabled(False)
+        return True
 
-    def __call__(self, minNframes, maxNframes, keepSourceWindow=False):
+    def __call__(
+        self, minNframes: int, maxNframes: int, keepSourceWindow: bool = False
+    ):
         self.start(keepSourceWindow)
         self.newtif = np.zeros(self.tif.shape)
         for i in np.arange(maxNframes, len(self.newtif)):
@@ -874,7 +919,7 @@ class Boxcar_differential_filter(BaseProcess):
         self.newname = self.oldname + " - Boxcar Differential Filtered"
         return self.end()
 
-    def preview(self):
+    def preview(self) -> None:
         minNframes = self.getValue("minNframes")
         maxNframes = self.getValue("maxNframes")
         preview = self.getValue("preview")
@@ -906,9 +951,6 @@ class Boxcar_differential_filter(BaseProcess):
 boxcar_differential_filter = Boxcar_differential_filter()
 
 
-from scipy import signal
-
-
 class Wavelet_filter(BaseProcess):
     """wavelet_filter(low, high, keepSourceWindow=False)
 
@@ -921,10 +963,10 @@ class Wavelet_filter(BaseProcess):
         newWindow
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
-    def gui(self):
+    def gui(self) -> None:
         self.gui_reset()
         low = SliderLabel(0)
         low.setRange(1, 50)
@@ -950,7 +992,7 @@ class Wavelet_filter(BaseProcess):
             preview.setChecked(False)
             preview.setEnabled(False)
 
-    def __call__(self, low, high, keepSourceWindow=False):
+    def __call__(self, low: int, high: int, keepSourceWindow: bool = False):
         self.start(keepSourceWindow)
         if self.tif.ndim != 3:
             g.alert("Wavelet filter only works on 3 dimensional movies")
@@ -968,7 +1010,7 @@ class Wavelet_filter(BaseProcess):
         self.newname = self.oldname + " - Wavelet Filtered"
         return self.end()
 
-    def preview(self):
+    def preview(self) -> None:
         low = self.getValue("low")
         high = self.getValue("high")
         preview = self.getValue("preview")
@@ -990,6 +1032,7 @@ class Wavelet_filter(BaseProcess):
 wavelet_filter = Wavelet_filter()
 
 
+@beartype.beartype
 class Bilateral_filter(BaseProcess):
     """bilateral_filter( keepSourceWindow=False)
 
@@ -1003,10 +1046,10 @@ class Bilateral_filter(BaseProcess):
         newWindow
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
-    def gui(self):
+    def gui(self) -> None:
         self.gui_reset()
 
         soft = CheckBox()
@@ -1044,7 +1087,15 @@ class Bilateral_filter(BaseProcess):
             preview.setChecked(False)
             preview.setEnabled(False)
 
-    def __call__(self, soft, beta, width, stoptol, maxiter, keepSourceWindow=False):
+    def __call__(
+        self,
+        soft: bool,
+        beta: float,
+        width: float,
+        stoptol: float,
+        maxiter: int,
+        keepSourceWindow: bool = False,
+    ):
         self.start(keepSourceWindow)
         if self.tif.ndim != 3:
             g.alert("Bilateral filter requires 3-dimensional image.")
@@ -1064,7 +1115,7 @@ class Bilateral_filter(BaseProcess):
         self.newname = self.oldname + " - Bilateral Filtered"
         return self.end()
 
-    def preview(self):
+    def preview(self) -> None:
         soft = self.getValue("soft")
         beta = self.getValue("beta")
         width = self.getValue("width")
@@ -1084,10 +1135,13 @@ class Bilateral_filter(BaseProcess):
                 self.roi.redraw_trace()
 
 
-def bilateral_filter_multi(soft, beta, width, stoptol, maxiter, tif):
+@beartype.beartype
+def bilateral_filter_multi(
+    soft: bool, beta: float, width: float, stoptol: float, maxiter: int, tif: np.ndarray
+) -> np.ndarray:
     nThreads = g.settings["nCores"]
     mt, mx, my = tif.shape
-    block_ends = np.linspace(0, mx, nThreads + 1).astype(np.int)
+    block_ends = np.linspace(0, mx, nThreads + 1).astype(int)
     data = [
         tif[:, block_ends[i] : block_ends[i + 1], :] for i in np.arange(nThreads)
     ]  # split up data along x axis. each thread will get one.
@@ -1102,7 +1156,14 @@ def bilateral_filter_multi(soft, beta, width, stoptol, maxiter, tif):
     return result
 
 
-def bilateral_filter_inner(q_results, q_progress, q_status, child_conn, args):
+@beartype.beartype
+def bilateral_filter_inner(
+    q_results,
+    q_progress,
+    q_status,
+    child_conn: multiprocessing.connection.Connection,
+    args: tuple,
+) -> None:
     data = child_conn.recv()  # unfortunately this step takes a long time
     percent = 0  # This is the variable we send back which displays our progress
     status = q_status.get(
@@ -1134,7 +1195,10 @@ def bilateral_filter_inner(q_results, q_progress, q_status, child_conn, args):
     q_results.put(result)
 
 
-def bilateral_smooth(soft, beta, width, stoptol, maxiter, y):
+@beartype.beartype
+def bilateral_smooth(
+    soft: bool, beta: float, width: float, stoptol: float, maxiter: int, y: np.ndarray
+) -> np.ndarray:
     display = False  # 1 to report iteration values
 
     y = np.array(y[:])
