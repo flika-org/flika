@@ -13,7 +13,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "flika"
-version = "0.3.2"  # Static version
+version = "0.3.3"
 description = "An interactive image processing program for biologists written in Python."
 readme = "README.md"
 authors = [
@@ -74,8 +74,8 @@ dev = [
 ]
 
 [tool.setuptools]
-packages = ["flika"]
-package-dir = {"" = "."}
+packages = ["flika", "flika.images", "flika.utils", "flika.process", "flika.app", "flika.ui"]
+include-package-data = true
 
 [tool.setuptools.package-data]
 "flika" = ["*.ui", "*.ico", "*.png", "*.txt", "*.tif"]
