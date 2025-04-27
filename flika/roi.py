@@ -21,7 +21,6 @@ Todo:
 # Standard library imports
 import os
 
-import beartype
 import jaxtyping
 import numpy as np
 import pyqtgraph as pg
@@ -33,7 +32,6 @@ import flika.global_vars as g
 from flika.utils.misc import nonpartial, open_file_gui, random_color
 
 
-@beartype.beartype
 class ROI_Drawing(pg.GraphicsObject):
     """Graphics Object for ROIs while initially being drawn. Extends pyqtrgaph.GraphicsObject
 
@@ -121,7 +119,6 @@ class ROI_Drawing(pg.GraphicsObject):
         return QtCore.QRectF(pos_x, pos_y, size_x, size_y)
 
 
-@beartype.beartype
 class ROI_Base:
     """ROI_Base interface for all ROI types
 
@@ -345,7 +342,7 @@ class ROI_Base:
         self.plotSignal.emit()
         return self.traceWindow
 
-    def changeColor(self) -> None:
+    def changeColor(self, unused_flag: bool) -> None:
         self.colorDialog.open()
 
     def colorSelected(self, color: QtGui.QColor) -> None:
@@ -417,11 +414,7 @@ class ROI_Base:
         self.menu.aboutToShow.connect(updateMenu)
 
     def delete(self, optional_bool: bool | None = False) -> None:
-        """Remove the ROI from its window, unlink all ROIs and delete the object
-
-        As of 2025-03-15, I don't know where this optional bool comes from or
-        what it's for, but I can see from beartype that it's coming in.
-        """
+        """Remove the ROI from its window, unlink all ROIs and delete the object"""
         self.unplot()
         for roi in self.linkedROIs:
             if self in roi.linkedROIs:
@@ -467,7 +460,6 @@ class ROI_Base:
         return w
 
 
-@beartype.beartype
 class ROI_line(ROI_Base, pg.LineSegmentROI):
     """ROI Line class for selecting a straight line of pixels between two points.
 
@@ -594,7 +586,6 @@ class ROI_line(ROI_Base, pg.LineSegmentROI):
         self.kymograph = None
 
 
-@beartype.beartype
 class ROI_rectangle(ROI_Base, pg.ROI):
     """ROI rectangle class for selecting a set width and height group of pixels on an image.
 
@@ -728,7 +719,6 @@ class ROI_rectangle(ROI_Base, pg.ROI):
         return w
 
 
-@beartype.beartype
 class ROI_freehand(ROI_Base, pg.ROI):
     """ROI freehand class for selecting a polygon from the original image.
 
@@ -819,7 +809,6 @@ class ROI_freehand(ROI_Base, pg.ROI):
         return xx, yy
 
 
-@beartype.beartype
 class ROI_rect_line(ROI_Base, QtWidgets.QGraphicsObject):
     """Collection of linked line segments with adjustable width.
 
@@ -1251,7 +1240,6 @@ class ROI_rect_line(ROI_Base, QtWidgets.QGraphicsObject):
         self.kymograph = None
 
 
-@beartype.beartype
 def makeROI(kind, pts, window=None, color=None, **kargs):
     """Create an ROI object in window with the given points
 

@@ -18,7 +18,6 @@ import uuid
 from collections.abc import MutableMapping
 from typing import Any
 
-import beartype
 from qtpy import QtCore, QtGui, QtWidgets
 
 import flika.images
@@ -166,7 +165,6 @@ class Settings(
         print("Changed data_type to {}".format(dtype))
 
 
-@beartype.beartype
 def messageBox(
     title: str,
     text: str,

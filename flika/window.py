@@ -6,7 +6,6 @@ import os
 from collections.abc import Callable
 from typing import Any, Optional
 
-import beartype
 import numpy as np
 import pyqtgraph as pg
 from qtpy import QtCore, QtGui, QtWidgets
@@ -24,7 +23,6 @@ pg.setConfigOptions()
 apply_pyqtgraph_patches()
 
 
-@beartype.beartype
 class Bg_im_dialog(QtWidgets.QDialog):
     def __init__(self, parent: Optional["Window"] = None) -> None:
         QtWidgets.QDialog.__init__(self)
@@ -68,7 +66,6 @@ class Bg_im_dialog(QtWidgets.QDialog):
             self.bg_im = None
 
 
-@beartype.beartype
 class ImageView(pg.ImageView):
     def __init__(self, *args, **kargs) -> None:
         pg.ImageView.__init__(self, *args, **kargs)
@@ -119,7 +116,6 @@ class ImageView(pg.ImageView):
         self.ui.roiPlot.setVisible(showRoiPlot)
 
 
-@beartype.beartype
 class Window(QtWidgets.QWidget):
     """
     Window objects are the central objects in flika. Almost all functions in the
@@ -972,7 +968,6 @@ class Window(QtWidgets.QWidget):
             )
 
 
-@beartype.beartype
 def get_line(x1: int, y1: int, x2: int, y2: int) -> np.ndarray:
     """Bresenham's Line Algorithm
     Produces a list of tuples"""

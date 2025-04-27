@@ -16,7 +16,6 @@ from typing import Any
 os.environ["JUPYTER_PLATFORM_DIRS"] = "1"
 
 # Third-party imports
-import beartype
 import numpy as np
 
 import flika.utils.misc
@@ -30,7 +29,6 @@ from flika.version import __version__
 warnings.filterwarnings("ignore", category=np.exceptions.VisibleDeprecationWarning)
 
 
-@beartype.beartype
 def parse_arguments(argv: list[str]) -> tuple[Any, list[str]]:
     """Parses command line arguments for valid flika args
 
@@ -96,7 +94,6 @@ def parse_arguments(argv: list[str]) -> tuple[Any, list[str]]:
     return parser.parse_args(argv)
 
 
-@beartype.beartype
 def verify(parser: optparse.OptionParser, argv: list[str]) -> str | None:
     """Check for input errors
 
@@ -115,7 +112,6 @@ def verify(parser: optparse.OptionParser, argv: list[str]) -> str | None:
     return err_msg
 
 
-@beartype.beartype
 def ipython_qt_event_loop_setup() -> None:
     """Set up the IPython Qt event loop if running inside IPython."""
     if flika.utils.misc.inside_ipython():
@@ -126,7 +122,6 @@ def ipython_qt_event_loop_setup() -> None:
         ipython.run_line_magic("gui", "qt")
 
 
-@beartype.beartype
 def load_files(files: list[str]) -> None:
     from flika.process.file_ import open_file
 
@@ -134,7 +129,6 @@ def load_files(files: list[str]) -> None:
         open_file(f)
 
 
-@beartype.beartype
 def start_flika(files: list[str] | None = None) -> FlikaApplication:
     """Run a flika session and exit, beginning the event loop
 
@@ -156,14 +150,12 @@ def start_flika(files: list[str] | None = None) -> FlikaApplication:
     return fa
 
 
-@beartype.beartype
 def exec_() -> int:
     """Execute the flika application."""
     fa = start_flika(sys.argv[1:])
     return fa.app.exec_()
 
 
-@beartype.beartype
 def post_install() -> None:
     if platform.system() == "Windows":
         print("Creating start menu shortcut...")

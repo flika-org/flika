@@ -15,7 +15,6 @@ import tempfile
 import urllib
 import zipfile
 
-import beartype
 from qtpy import QtCore, QtGui, QtWidgets
 
 import flika.app.plugin_utils as plugin_utils
@@ -85,7 +84,6 @@ def str2func(plugin_name: str, file_location: str, function: str) -> callable:
             return None
 
 
-@beartype.beartype
 def build_submenu(
     module_name: str,
     parent_menu: QtWidgets.QMenu,
@@ -124,7 +122,6 @@ def build_submenu(
                 parent_menu.addAction(action)
 
 
-@beartype.beartype
 @dataclasses.dataclass
 class Plugin:
     # Core attributes initialized by dataclass
@@ -266,7 +263,6 @@ class Plugin:
         return False
 
 
-@beartype.beartype
 class PluginManager(QtWidgets.QMainWindow):
     plugins: dict[str, Plugin] = {}
     thread_controllers: dict[str, ThreadController] = {}

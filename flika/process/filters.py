@@ -1,6 +1,5 @@
 import multiprocessing
 
-import beartype
 import numpy as np
 import skimage
 import skimage.filters
@@ -35,7 +34,6 @@ __all__ = [
 ###############################################################################
 
 
-@beartype.beartype
 class Gaussian_blur(BaseProcess):
     """gaussian_blur(sigma, norm_edges=False, keepSourceWindow=False)
 
@@ -125,7 +123,6 @@ class Gaussian_blur(BaseProcess):
 gaussian_blur = Gaussian_blur()
 
 
-@beartype.beartype
 class Difference_of_Gaussians(BaseProcess):
     """gaussian_blur(sigma1, sigma2, keepSourceWindow=False)
 
@@ -212,7 +209,6 @@ difference_of_gaussians = Difference_of_Gaussians()
 ###############################################################################
 
 
-@beartype.beartype
 class Butterworth_filter(BaseProcess):
     """butterworth_filter(filter_order, low, high, framerate, keepSourceWindow=False)
 
@@ -361,7 +357,6 @@ class Butterworth_filter(BaseProcess):
 butterworth_filter = Butterworth_filter()
 
 
-@beartype.beartype
 def butterworth_filter_multi(
     filter_order: int, low: float, high: float, tif: np.ndarray
 ) -> np.ndarray | None:
@@ -388,7 +383,6 @@ def butterworth_filter_multi(
     return result
 
 
-@beartype.beartype
 def butterworth_filter_multi_inner(
     q_results,
     q_progress,
@@ -440,7 +434,6 @@ def butterworth_filter_multi_inner(
     q_results.put(result)
 
 
-@beartype.beartype
 class Mean_filter(BaseProcess):
     """mean_filter(nFrames, keepSourceWindow=False)
 
@@ -508,7 +501,6 @@ class Mean_filter(BaseProcess):
 mean_filter = Mean_filter()
 
 
-@beartype.beartype
 def varfilt(trace: np.ndarray, nFrames: int) -> np.ndarray:
     result = np.zeros_like(trace)
     mt = len(trace)
@@ -523,7 +515,6 @@ def varfilt(trace: np.ndarray, nFrames: int) -> np.ndarray:
     return result
 
 
-@beartype.beartype
 class Variance_filter(BaseProcess):
     """variance_filter(nFrames, keepSourceWindow=False)
 
@@ -592,7 +583,6 @@ class Variance_filter(BaseProcess):
 variance_filter = Variance_filter()
 
 
-@beartype.beartype
 class Median_filter(BaseProcess):
     """median_filter(nFrames, keepSourceWindow=False)
 
@@ -667,7 +657,6 @@ class Median_filter(BaseProcess):
 median_filter = Median_filter()
 
 
-@beartype.beartype
 class Fourier_filter(BaseProcess):
     """fourier_filter(frame_rate, low, high, loglogPreview, keepSourceWindow=False)
 
@@ -823,7 +812,6 @@ def plotSpectrum(y,Fs):
 fourier_filter = Fourier_filter()
 
 
-@beartype.beartype
 class Difference_filter(BaseProcess):
     """difference_filter(keepSourceWindow=False)
 
@@ -854,7 +842,6 @@ class Difference_filter(BaseProcess):
 difference_filter = Difference_filter()
 
 
-@beartype.beartype
 class Boxcar_differential_filter(BaseProcess):
     """boxcar_differential_filter(minNframes, maxNframes, keepSourceWindow=False)
 
@@ -1031,7 +1018,6 @@ class Wavelet_filter(BaseProcess):
 wavelet_filter = Wavelet_filter()
 
 
-@beartype.beartype
 class Bilateral_filter(BaseProcess):
     """bilateral_filter( keepSourceWindow=False)
 
@@ -1134,7 +1120,6 @@ class Bilateral_filter(BaseProcess):
                 self.roi.redraw_trace()
 
 
-@beartype.beartype
 def bilateral_filter_multi(
     soft: bool, beta: float, width: float, stoptol: float, maxiter: int, tif: np.ndarray
 ) -> np.ndarray:
@@ -1155,7 +1140,6 @@ def bilateral_filter_multi(
     return result
 
 
-@beartype.beartype
 def bilateral_filter_inner(
     q_results,
     q_progress,
@@ -1194,7 +1178,6 @@ def bilateral_filter_inner(
     q_results.put(result)
 
 
-@beartype.beartype
 def bilateral_smooth(
     soft: bool, beta: float, width: float, stoptol: float, maxiter: int, y: np.ndarray
 ) -> np.ndarray:

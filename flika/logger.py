@@ -17,7 +17,6 @@ import pathlib
 import sys
 from types import TracebackType
 
-import beartype
 import colorama
 from colorama import Fore, Style
 
@@ -69,7 +68,6 @@ class ColoredFormatter(logging.Formatter):
         return result
 
 
-@beartype.beartype
 def get_log_file() -> pathlib.Path:
     """Get the path to the log file using datetime-based naming."""
     log_dir = pathlib.Path.home() / ".FLIKA" / "log"
@@ -100,7 +98,6 @@ logger.setLevel(LEVEL)
 logger.addHandler(handler)
 
 
-@beartype.beartype
 def handle_exception(
     exc_type: type[BaseException],
     exc_value: BaseException,

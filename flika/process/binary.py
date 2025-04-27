@@ -2,7 +2,6 @@
 Binary image processing functions for the flika package.
 """
 
-import beartype
 import jaxtyping
 import numpy as np
 import scipy
@@ -37,7 +36,6 @@ __all__ = [
 ]
 
 
-@beartype.beartype
 def convert2uint8(
     tif: jaxtyping.Num[np.ndarray, "..."],
 ) -> jaxtyping.UInt8[np.ndarray, "..."]:

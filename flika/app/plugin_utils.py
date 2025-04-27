@@ -13,7 +13,6 @@ import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ElementTree
 
-import beartype
 import packaging.version
 
 plugin_info_urls_by_name = {
@@ -26,7 +25,6 @@ plugin_info_urls_by_name = {
 }
 
 
-@beartype.beartype
 def get_plugin_directory() -> pathlib.Path:
     """
     Get the plugin directory path, creating it if it doesn't exist.
@@ -53,13 +51,11 @@ def get_plugin_directory() -> pathlib.Path:
     return plugin_directory
 
 
-@beartype.beartype
 def _get_path_to_plugin(directory: str) -> pathlib.Path:
     """A simple map from the plugin directory name to the full path."""
     return get_plugin_directory() / directory
 
 
-@beartype.beartype
 def get_local_plugin_list() -> list[str]:
     """Returns the (directory) names of all local plugins"""
     paths: list[str] = []
@@ -70,7 +66,6 @@ def get_local_plugin_list() -> list[str]:
     return paths
 
 
-@beartype.beartype
 def get_plugin_info_xml_from_url(info_url: str) -> str | urllib.error.HTTPError:
     info_url_xml: str = urllib.parse.urljoin(info_url, "info.xml")
     try:
@@ -81,7 +76,6 @@ def get_plugin_info_xml_from_url(info_url: str) -> str | urllib.error.HTTPError:
     return info_xml_str
 
 
-@beartype.beartype
 def parse_plugin_info_xml(xml_str: str) -> dict:
     """
     Parse an XML string into a dictionary.
@@ -108,7 +102,6 @@ def parse_plugin_info_xml(xml_str: str) -> dict:
     return step(tree)
 
 
-@beartype.beartype
 @dataclasses.dataclass(frozen=True)
 class PluginInfo:
     author: str  # The author of the plugin

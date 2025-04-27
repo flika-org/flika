@@ -7,7 +7,6 @@ import os
 import time
 from typing import Any, TypedDict
 
-import beartype
 import numpy as np
 import pyqtgraph as pg
 from pyqtgraph.dockarea import Dock, DockArea
@@ -36,7 +35,6 @@ class ROIDict(TypedDict, total=False):
     power_spectrum_y: np.ndarray
 
 
-@beartype.beartype
 class TraceFig(QtWidgets.QWidget):
     """Pyqtgraph PlotWidget with frame range selector. Display average trace of ROIs and updates in realtime.
 
@@ -425,7 +423,6 @@ class TraceFig(QtWidgets.QWidget):
         self.fft_analyzer = FFT_Analyzer(self.rois, sample_interval, self)
 
 
-@beartype.beartype
 class FFT_Analyzer(QtWidgets.QWidget):
     """Widget for analyzing and displaying FFT power spectrum of traces"""
 
@@ -554,7 +551,6 @@ class FFT_Analyzer(QtWidgets.QWidget):
             )
 
 
-@beartype.beartype
 def roiPlot(roi: ROI_Base) -> TraceFig | None:
     """Plot an ROI in a trace window
 
@@ -577,7 +573,6 @@ def roiPlot(roi: ROI_Base) -> TraceFig | None:
     return win
 
 
-@beartype.beartype
 class RedrawPartialThread(QtCore.QThread):
     """Thread for redrawing traces in the background"""
 
