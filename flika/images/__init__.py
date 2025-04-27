@@ -1,9 +1,14 @@
-# -*- coding: utf-8 -*-
-import os
+"""
+Images for flika
+"""
 
-__all__ = ['image_path']
+import pathlib
+from importlib import resources
 
-def image_path(image_name):
+__all__ = ["image_path"]
+
+
+def image_path(image_name: str) -> str:
     """
     Return the absolute path to an image
 
@@ -17,13 +22,19 @@ def image_path(image_name):
     path : str
       Full path to image
     """
-    import pkg_resources
     try:
-        if pkg_resources.resource_exists('flika.images', image_name):
-            return pkg_resources.resource_filename('flika.images', image_name)
+        path = resources.files("flika.images").joinpath(image_name)
+        # Traversable objects have is_file() method to check existence
+        if path.is_file():
+            return str(path)
         else:
-            raise RuntimeError("image does not exist: %s" % image_name)
+            raise RuntimeError(f"image does not exist: {image_name}")
     except NotImplementedError:  # workaround for mac app
-        result = os.path.dirname(__file__)
-        return os.path.join(result.replace('site-packages.zip', 'flika'),
-                            image_name)
+        result = pathlib.Path(__file__).parent
+        # Use string replacement on the string representation of the path
+        base_dir = str(result).replace("site-packages.zip", "flika")
+        full_path = pathlib.Path(base_dir) / image_name
+        if full_path.exists():
+            return str(full_path)  # Return full path as string, not just name
+        else:
+            raise RuntimeError(f"image does not exist: {image_name}")

@@ -1,33 +1,43 @@
 # -*- coding: utf-8 -*-
-from .logger import logger
-logger.debug("Started 'reading flika.py'")
-import sys, os
-import platform
+"""
+Main module for the flika application.
+"""
+
+# Standard library imports
 import optparse
+import os
+import pathlib
+import platform
+import sys
 import warnings
-logger.debug("Started 'reading flika.py, importing numpy'")
+from typing import Any
+
+# Set Jupyter to use platformdirs (fixes deprecation warning)
+os.environ["JUPYTER_PLATFORM_DIRS"] = "1"
+
+# Third-party imports
 import numpy as np
-logger.debug("Completed 'reading flika.py, importing numpy'")
-from .version import __version__
-from .app.application import FlikaApplication
+
+import flika.utils.misc
+from flika.app.application import FlikaApplication
+
+# Local application imports
+from flika.logger import logger
+from flika.version import __version__
+
+# Filter out known warnings
+warnings.filterwarnings("ignore", category=np.exceptions.VisibleDeprecationWarning)
 
 
-# for development purposes, add this if flika is not in your site-packages
-# sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-
-
-
-warnings.filterwarnings("ignore", category=np.VisibleDeprecationWarning)
-
-def parse_arguments(argv):
-    ''' Parses command line arguments for valid flika args
+def parse_arguments(argv: list[str]) -> tuple[Any, list[str]]:
+    """Parses command line arguments for valid flika args
 
     Arguments:
         argv: Arguments passed to program
 
     Returns:
         A tuple of options, position arguments
-    '''
+    """
     usage = """usage: %prog [FILE FILE...]
 
     # start a new session
@@ -51,28 +61,45 @@ def parse_arguments(argv):
     """
     parser = optparse.OptionParser(usage=usage, version=str(__version__))
 
-    parser.add_option('-x', '--execute', action='store_true', dest='script',
-                      help="Open file in script editor and run", default=False)
-    parser.add_option('-t', '--test', action='store_true', dest='test',
-                      help="Run test suite", default=False)
-    parser.add_option('-v', '--verbose', action='store_true',
-                      help="Increase the vebosity level", default=False)
+    parser.add_option(
+        "-x",
+        "--execute",
+        action="store_true",
+        dest="script",
+        help="Open file in script editor and run",
+        default=False,
+    )
+    parser.add_option(
+        "-t",
+        "--test",
+        action="store_true",
+        dest="test",
+        help="Run test suite",
+        default=False,
+    )
+    parser.add_option(
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="Increase the vebosity level",
+        default=False,
+    )
 
     err_msg = verify(parser, argv)
     if err_msg:
-        sys.stderr.write('\n%s\n' % err_msg)
+        sys.stderr.write(f"\n{err_msg}\n")
         parser.print_help()
         sys.exit(1)
 
     return parser.parse_args(argv)
 
-def verify(parser, argv):
-    """verify(parser, argv)
-    Check for input errors
+
+def verify(parser: optparse.OptionParser, argv: list[str]) -> str | None:
+    """Check for input errors
 
     Arguments:
         parser: OptionParser instance
-        argv (list): Argument list
+        argv: Argument list
 
     Returns:
         An error message in the event of an input error, or None
@@ -84,34 +111,37 @@ def verify(parser, argv):
 
     return err_msg
 
-def ipython_qt_event_loop_setup():
-    try:
-        __IPYTHON__
-    except NameError:
-        return #  If __IPYTHON__ is not defined, we are not in ipython
-    else:
+
+def ipython_qt_event_loop_setup() -> None:
+    """Set up the IPython Qt event loop if running inside IPython."""
+    if flika.utils.misc.inside_ipython():
         print("Starting flika inside IPython")
         from IPython import get_ipython
-        ipython = get_ipython()
-        ipython.magic("gui qt")
 
-def load_files(files):
-    from .process.file_ import open_file
+        ipython = get_ipython()
+        ipython.run_line_magic("gui", "qt")
+
+
+def load_files(files: list[str]) -> None:
+    from flika.process.file_ import open_file
+
     for f in files:
         open_file(f)
 
-def start_flika(files=[]):
+
+def start_flika(files: list[str] | None = None) -> FlikaApplication:
     """Run a flika session and exit, beginning the event loop
 
     Parameters:
-        files (list): An optional list of data files to load.
+        files: An optional list of data files to load.
 
     Returns:
         A flika application object with optional files loaded
- 
     """
+    if files is None:
+        files = []
     logger.debug("Started 'flika.start_flika()'")
-    print('Starting flika')
+    print("Starting flika")
     fa = FlikaApplication()
     load_files(files)
     fa.start()
@@ -119,57 +149,40 @@ def start_flika(files=[]):
     logger.debug("Completed 'flika.start_flika()'")
     return fa
 
-def exec_():
+
+def exec_() -> int:
+    """Execute the flika application."""
     fa = start_flika(sys.argv[1:])
     return fa.app.exec_()
 
-def post_install():
-    if platform.system() == 'Windows':
+
+def post_install() -> None:
+    if platform.system() == "Windows":
         print("Creating start menu shortcut...")
-        import winshell
-        icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'images', 'favicon.ico')
-        flika_exe = os.path.join(sys.exec_prefix, 'Scripts', 'flika.exe')
-        link_path = os.path.join(winshell.programs(), "flika.lnk")
-        with winshell.shortcut(link_path) as link:
-            link.path = flika_exe
-            link.description = "flika"
-            link.icon_location = (icon_path, 0)
-        link_path = os.path.join(winshell.desktop(), "flika.lnk")
-        with winshell.shortcut(link_path) as link:
-            link.path = flika_exe
-            link.description = "flika"
-            link.icon_location = (icon_path, 0)
+        try:
+            import importlib.resources as pkg_resources
 
-if __name__ == '__main__':
+            import winshell
+
+            from flika import images
+
+            # Use importlib.resources instead of os.path
+            with pkg_resources.path(images, "favicon.ico") as icon_path:
+                # Use Path for path manipulation
+                flika_exe = pathlib.Path(sys.exec_prefix) / "Scripts" / "flika.exe"
+                link_path = pathlib.Path(winshell.programs()) / "flika.lnk"
+                with winshell.shortcut(str(link_path)) as link:
+                    link.path = str(flika_exe)
+                    link.description = "flika"
+                    link.icon_location = (str(icon_path), 0)
+                link_path = pathlib.Path(winshell.desktop()) / "flika.lnk"
+                with winshell.shortcut(str(link_path)) as link:
+                    link.path = str(flika_exe)
+                    link.description = "flika"
+                    link.icon_location = (str(icon_path), 0)
+        except ImportError:
+            print("winshell package not found. Shortcuts not created.")
+
+
+if __name__ == "__main__":
     start_flika(sys.argv[1:])
-
-logger.debug("Completed 'reading flika.py'")
-"""
-def exec_(args=sys.argv):
-    opt, args = parse_arguments(args[1:])
-
-    if opt.verbose:
-        logger.setLevel("INFO")
-
-    logger.info("Input arguments: %s", sys.argv)
-
-    start_flika(files=args)
-
-
-def run(args=sys.argv):
-    ''' open flika without running exec_. For debugging purposes
-    '''
-    opt, args = parse_arguments(args[1:])
-
-    if opt.verbose:
-        logger.setLevel("INFO")
-
-    fa = FlikaApplication()
-    fa.show()
-
-    load_files(files=args)
-
-    if 'PYCHARM_HOSTED' not in os.environ and 'SPYDER_SHELL_ID' not in os.environ:
-        return fa.app.exec_()
-"""
-

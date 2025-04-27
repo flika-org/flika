@@ -4,64 +4,91 @@ If flika is loaded using::
 
     from flika import *
 
-then all of the variables inside global_vars can be accessed as ``g.*``. For instance, to access the 
+then all of the variables inside global_vars can be accessed as ``g.*``. For instance, to access the
 image inside current window, simply run::
 
     I = g.win.image
 
-
-
 """
-from .logger import logger
-logger.debug("Started 'reading global_vars.py'")
-import os
-from multiprocessing import cpu_count
-from os.path import expanduser
-from qtpy import QtWidgets, QtGui, QtCore
-from collections.abc import MutableMapping
+
 import json
-from uuid import getnode
-from .utils.misc import get_location
+import multiprocessing
+import pathlib
+import uuid
+from collections.abc import MutableMapping
+from typing import Any
 
-__all__ = ['m', 'Settings', 'menus', 'alert', 'windows', 'traceWindows', 'currentWindow', 'win', 'currentTrace', 'clipboard']
+from qtpy import QtCore, QtGui, QtWidgets
 
-class Settings(MutableMapping): #http://stackoverflow.com/questions/3387691/python-how-to-perfectly-override-a-dict
+import flika.images
+import flika.utils.misc
+import flika.utils.system_info
+
+# Local application imports
+from flika.logger import logger
+
+__all__ = [
+    "m",
+    "Settings",
+    "menus",
+    "alert",
+    "windows",
+    "traceWindows",
+    "currentWindow",
+    "win",
+    "currentTrace",
+    "clipboard",
+]
+
+
+class Settings(
+    MutableMapping
+):  # http://stackoverflow.com/questions/3387691/python-how-to-perfectly-override-a-dict
     """
     All of flika's settings are stored in this object, which is designed to act like a dictionary. When any value in
     this object is changed, this object is converted to json and saved in ``~/.FLIKA/settings.json``. When flika is
-    restarted, this settings object is populated with values from this file. Settings can be accessed using 
-    `g.settings`. 
+    restarted, this settings object is populated with values from this file. Settings can be accessed using
+    `g.settings`.
 
 
     """
-    initial_settings = {'filename': None, 
-                        'internal_data_type': 'float64',
-                        'multiprocessing': True, 
-                        'multipleTraceWindows': False, 
-                        'mousemode': 'rectangle', 
-                        'show_windows': True, 
-                        'recent_scripts': [],
-                        'recent_files': [],
-                        'nCores':cpu_count(),
-                        'debug_mode': False,
-                        'point_color': '#ff0000',
-                        'point_size': 5,
-                        'roi_color': '#ffff00',
-                        'rect_width': 5,
-                        'rect_height': 5,
-                        'show_all_points': False,
-                        'default_roi_on_click': False}
+
+    initial_settings: dict[str, Any] = {
+        "filename": None,
+        "internal_data_type": "float64",
+        "multiprocessing": True,
+        "multipleTraceWindows": False,
+        "mousemode": "rectangle",
+        "show_windows": True,
+        "recent_scripts": [],
+        "recent_files": [],
+        "nCores": multiprocessing.cpu_count(),
+        "debug_mode": False,
+        "point_color": "#ff0000",
+        "point_size": 5,
+        "roi_color": "#ffff00",
+        "rect_width": 5,
+        "rect_height": 5,
+        "show_all_points": False,
+        "default_roi_on_click": False,
+    }
 
     def __init__(self):
-        self.settings_file = os.path.join(expanduser("~"), '.FLIKA', 'settings.json' )
-        self.d = Settings.initial_settings
+        self.settings_file = pathlib.Path(
+            pathlib.Path("~").expanduser() / ".FLIKA" / "settings.json"
+        )
+        self.d = Settings.initial_settings.copy()
         self.load()
 
     def __getitem__(self, item):
         try:
             self.d[item]
         except KeyError:
-            self.d[item] = Settings.initial_settings[item] if item in Settings.initial_settings else None
+            self.d[item] = (
+                Settings.initial_settings[item]
+                if item in Settings.initial_settings
+                else None
+            )
         return self.d[item]
 
     def __setitem__(self, key, item):
@@ -82,64 +109,142 @@ class Settings(MutableMapping): #http://stackoverflow.com/questions/3387691/pyth
 
     def save(self):
         """save(self)
-                 Save settings file. The file is stored in ``~/.FLIKA/settings.json`` """
-        if not os.path.exists(os.path.dirname(self.settings_file)):
-            os.makedirs(os.path.dirname(self.settings_file))
-        with open(self.settings_file, 'w') as fp:
+        Save settings file. The file is stored in ``~/.FLIKA/settings.json``"""
+        self.settings_file.parent.mkdir(parents=True, exist_ok=True)
+        with open(self.settings_file, "w") as fp:
             json.dump(self.d, fp, indent=4)
 
     def load(self):
         """load(self)
-        Load settings file. The file is stored in ``~/.FLIKA/settings.json`` """
-        if not os.path.exists(self.settings_file):
-            print('No settings file found. Creating settings file.')
+        Load settings file. The file is stored in ``~/.FLIKA/settings.json``"""
+        if not self.settings_file.exists():
+            print("No settings file found. Creating settings file.")
             self.save()
         try:
-            with open(self.settings_file, 'r') as fp:
+            with open(self.settings_file, "r") as fp:
                 d = json.load(fp)
             d = {k: d[k] for k in d if d[k] is not None}
             self.d.update(d)
         except Exception as e:
-            msg = "Failed to load settings file. {}\nDefault settings restored.".format(e)
+            msg = "Failed to load settings file. {}\nDefault settings restored.".format(
+                e
+            )
             logger.info(msg)
             print(msg)
             self.save()
-        self.d['mousemode'] = 'rectangle'  # don't change initial mousemode
+        self.d["mousemode"] = "rectangle"  # don't change initial mousemode
         self._load_user_information()
 
     def _load_user_information(self):
-        '''_load_user_information(self)
+        """_load_user_information(self)
         Loads user information if present. If not, the new user information is stored in self.d
-        '''
-        if 'user_information' not in self.d:
-            self.d['user_information'] = {}
-        if 'UUID' not in self.d['user_information'] or self.d['user_information']['UUID'] is None:
-            self.d['user_information']['UUID'] = getnode()
-        if 'location' not in self.d['user_information'] or self.d['user_information']['location'] is None:
-            self.d['user_information']['location'] = get_location()
-
+        """
+        if "user_information" not in self.d:
+            self.d["user_information"] = {}
+        if (
+            "UUID" not in self.d["user_information"]
+            or self.d["user_information"]["UUID"] is None
+        ):
+            self.d["user_information"]["UUID"] = uuid.getnode()
+        if (
+            "location" not in self.d["user_information"]
+            or self.d["user_information"]["location"] is None
+        ):
+            self.d["user_information"]["location"] = (
+                flika.utils.system_info.get_location()
+            )
 
     def setmousemode(self, mode):
-        self['mousemode']=mode
+        self["mousemode"] = mode
 
     def setMultipleTraceWindows(self, f):
-        self['multipleTraceWindows'] = f
+        self["multipleTraceWindows"] = f
 
     def setInternalDataType(self, dtype):
-        self['internal_data_type'] = dtype
-        print('Changed data_type to {}'.format(dtype))
+        self["internal_data_type"] = dtype
+        print("Changed data_type to {}".format(dtype))
 
 
-def messageBox(title, text, buttons=QtWidgets.QMessageBox.Ok, icon=QtWidgets.QMessageBox.Information):
-    m.messagebox = QtWidgets.QMessageBox(icon, title, text, buttons)
-    m.messagebox.setWindowIcon(m.windowIcon())
-    m.messagebox.show()
-    while m.messagebox.isVisible(): QtWidgets.QApplication.instance().processEvents()
-    return m.messagebox.result()
-    
+def messageBox(
+    title: str,
+    text: str,
+    buttons=None,  # Will be set inside the function
+    icon=None,  # Will be set inside the function
+) -> int:
+    """Display a message box to the user
+
+    This function creates a modal dialog box that will block until the user responds.
+
+    This doesn't work in IPython.
+
+    Args:
+        title: Title of the message box
+        text: Message to display
+        buttons: Which buttons to show (default: Ok)
+        icon: Icon to display (default: Information)
+        timeout_seconds: Maximum time to wait for user input (default: 30 seconds)
+
+    Returns:
+        The exec() slot returns the StandardButtons value of the button that was clicked.
+    """
+    # Set default values for buttons and icon (Qt6 style only)
+    if buttons is None:
+        buttons = QtWidgets.QMessageBox.StandardButton.Ok
+    if icon is None:
+        icon = QtWidgets.QMessageBox.Icon.Information
+
+    # Default return value in case of unexpected errors
+    default_return_value = 0
+
+    try:
+        # For IPython, we need a different approach since we can't block without freezing
+        if flika.utils.misc.inside_ipython():
+            logger.warning(
+                "In IPython environment, message boxes are non-blocking. Using default response."
+            )
+
+            # Create a non-modal dialog on the main thread
+            msgbox = QtWidgets.QMessageBox(icon, title, text, buttons)
+            icon_pixmap = flika.utils.misc.get_flika_icon().pixmap(64, 64)
+            msgbox.setIconPixmap(icon_pixmap)
+
+            # Add the dialog to our tracking list to prevent garbage collection
+            dialogs.append(msgbox)
+
+            # Show non-modally
+            msgbox.show()
+
+            # For IPython, we immediately return with the default value (usually Ok)
+            # This avoids blocking IPython and also avoids thread-related UI crashes
+            return QtWidgets.QMessageBox.StandardButton.Ok
+        else:
+            # Normal operation for non-IPython environments
+            # Create a standalone message box with proper window flags to ensure modality
+            msgbox = QtWidgets.QMessageBox(icon, title, text, buttons)
+            icon_pixmap = flika.utils.misc.get_flika_icon().pixmap(64, 64)
+            msgbox.setIconPixmap(icon_pixmap)
+            msgbox.setModal(True)
+
+            # Use the standard exec() method which will block until user response
+            result = msgbox.exec()
+
+            # Make sure we return an integer
+            if isinstance(result, int):
+                logger.debug(f"Message box result: {result}")
+                return result
+            else:
+                logger.warning(
+                    f"Expected int result from exec(), got {type(result)}. Defaulting to {default_return_value}."
+                )
+                return default_return_value
+    except Exception as e:
+        logger.error(f"Error in messageBox: {e}")
+        return default_return_value
+
 
 def setConsoleVisible(v):
     from ctypes import windll
+
     GetConsoleWindow = windll.kernel32.GetConsoleWindow
     console_window_handle = GetConsoleWindow()
     ShowWindow = windll.user32.ShowWindow
@@ -149,8 +254,8 @@ def setConsoleVisible(v):
 class SetCurrentWindowSignal(QtWidgets.QWidget):
     sig = QtCore.Signal()
 
-    def __init__(self,parent):
-        QtWidgets.QWidget.__init__(self,parent)
+    def __init__(self, parent):
+        QtWidgets.QWidget.__init__(self, parent)
         self.hide()
 
 
@@ -163,7 +268,7 @@ def alert(msg, title="flika - Alert"):
         title (str): Title of the alert message popup
     """
 
-    print('\nAlert: ' + msg)
+    print("\nAlert: " + msg)
     msgbx = QtWidgets.QMessageBox(m)
     msgbx.setIcon(QtWidgets.QMessageBox.Information)
     msgbx.setText(msg)
@@ -180,17 +285,10 @@ def alert(msg, title="flika - Alert"):
 settings = Settings()
 m = None  #: The main window.
 menus = []
-windows = [] #: list of :class:`windows<flika.window.Window>`: All of the windows that have been created and have not yet been closed.
-traceWindows = [] #: list of :class:`TraceFigs<flika.tracefig.TraceFig>`: All of the TraceFigs that are open.
+windows = []  #: list of :class:`windows<flika.window.Window>`: All of the windows that have been created and have not yet been closed.
+traceWindows = []  #: list of :class:`TraceFigs<flika.tracefig.TraceFig>`: All of the TraceFigs that are open.
 dialogs = []
-currentWindow = None #: :class:`window <flika.window.Window>`: The window that is currently selected
-win = None #: :class:`window <flika.window.Window>`: The window that is currently selected
-currentTrace = None #: :class:`tracefigs<flika.tracefig.TraceFig>`: The tracefig that is currently selected
+currentWindow = None  #: :class:`window <flika.window.Window>`: The window that is currently selected
+win = None  #: :class:`window <flika.window.Window>`: The window that is currently selected
+currentTrace = None  #: :class:`tracefigs<flika.tracefig.TraceFig>`: The tracefig that is currently selected
 clipboard = None
-
-
-
-
-
-
-logger.debug("Completed 'reading global_vars.py'")

@@ -1,61 +1,115 @@
-from logging import *
-import os, sys
+"""
+This module provides a logger for flika that uses datetime-based naming for log files.
+
+The LEVEL variable can be set by the user below. Options are:
+
+- logging.DEBUG
+- logging.INFO
+- logging.WARNING
+- logging.ERROR
+- logging.CRITICAL
+
+"""
+
+import datetime
+import logging
+import pathlib
+import sys
+from types import TracebackType
+
+import colorama
+from colorama import Fore, Style
+
+# Set the default logging level
+LEVEL = logging.INFO
+
+colorama.init()
 
 
-#LEVEL = DEBUG
-LEVEL = WARNING
+class ColoredFormatter(logging.Formatter):
+    COLORS = {
+        "DEBUG": Fore.CYAN,
+        "INFO": Fore.GREEN,
+        "WARNING": Fore.YELLOW,
+        "ERROR": Fore.RED,
+        "CRITICAL": Fore.RED + Style.BRIGHT,
+    }
+
+    def format(self, record):
+        # Color the level name
+        levelname = record.levelname
+        if levelname in self.COLORS:
+            colored_levelname = f"{self.COLORS[levelname]}{levelname}{Style.RESET_ALL}"
+            record.levelname = colored_levelname
+
+        # Color the clickable link part
+        filename = record.filename
+        lineno = record.lineno
+        funcName = record.funcName
+
+        # Use a distinct color for the clickable link
+        colored_link = f"{Fore.BLUE}{filename}:{lineno}:{funcName}{Style.RESET_ALL}"
+
+        # Temporarily replace the values with our colored version
+        record.filename = ""
+        record.lineno = ""
+        record.funcName = colored_link
+
+        # Format with a simplified format string
+        result = logging.Formatter("%(levelname)s %(funcName)s - %(message)s").format(
+            record
+        )
+
+        # Restore the original values
+        record.filename = filename
+        record.lineno = lineno
+        record.funcName = funcName
+
+        return result
 
 
-def get_log_file():
-    LOG_DIR = os.path.join(os.path.expanduser("~"), '.FLIKA', 'log')
-    MAX_LOG_IDX = 99
-    if not os.path.exists(LOG_DIR):
-        os.makedirs(LOG_DIR)
-    existing_files = os.listdir(LOG_DIR)
-    existing_files = [f for f in existing_files if os.path.splitext(f)[1] == '.log']
-    if 'FLIKALOG.log' in existing_files: # This was the name of the log file before version 0.2.23
-        try:
-            os.remove(os.path.join(LOG_DIR, 'FLIKALOG.log'))
-        except Exception:
-            print("Cannot remove FLIKALOG.log file")
-            existing_files.remove('FLIKALOG.log')
-        else:
-            existing_files = os.listdir(LOG_DIR)
-            existing_files = [f for f in existing_files if os.path.splitext(f)[1] == '.log']
+def get_log_file() -> pathlib.Path:
+    """Get the path to the log file using datetime-based naming."""
+    log_dir = pathlib.Path.home() / ".FLIKA" / "log"
 
-    try:
-        existing_idxs = [int(f.split('.')[0]) for f in existing_files]
-    except ValueError:
-        print("There is an error with your log folder. Delete all files inside ~/.FLIKA/log/ and restart flika.")
-    log_idx = 0
-    while log_idx in existing_idxs:
-        log_idx += 1
-    log_idx = log_idx % MAX_LOG_IDX
-    idx_to_delete = (int(log_idx) + 1) % MAX_LOG_IDX
-    LOG_FILE_TO_DELETE = os.path.join(LOG_DIR, '{0:0>3}.log'.format(idx_to_delete))
-    if os.path.exists(LOG_FILE_TO_DELETE):
-        try:
-            os.remove(LOG_FILE_TO_DELETE)
-        except Exception as e:
-            print(e)
-    LOG_FILE = os.path.join(LOG_DIR, '{0:0>3}.log'.format(log_idx))
-    return LOG_FILE
+    # Create log directory if it doesn't exist
+    log_dir.mkdir(parents=True, exist_ok=True)
 
-LOG_FILE = get_log_file()
-FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
-basicConfig(filename=LOG_FILE, format=FORMAT)
-logger = getLogger("flika")
-logger.setLevel(LEVEL)
-handler = StreamHandler()
-handler.setLevel(LEVEL)
-formatter = Formatter(FORMAT)
+    # Generate timestamp for filename
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    return log_dir / f"flika_{timestamp}.log"
+
+
+# Setup logging
+log_format = "%(levelname)s %(filename)s:%(lineno)d - %(message)s"
+log_format = "%(levelname)s %(filename)s:%(lineno)d:%(funcName)s - %(message)s"
+log_file = get_log_file()
+formatter = ColoredFormatter(log_format)
+handler = logging.StreamHandler()
 handler.setFormatter(formatter)
+
+
+logging.basicConfig(filename=str(log_file), format=log_format)
+
+# Create logger
+logger = logging.getLogger(__name__)
+logger.setLevel(LEVEL)
 logger.addHandler(handler)
 
 
-def handle_exception(exc_type, exc_value, exc_traceback):
+def handle_exception(
+    exc_type: type[BaseException],
+    exc_value: BaseException,
+    exc_traceback: TracebackType | None,
+) -> None:
+    """Handle uncaught exceptions by logging them."""
     if issubclass(exc_type, KeyboardInterrupt):
         sys.__excepthook__(exc_type, exc_value, exc_traceback)
         return
-    logger.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
+    # Use True to tell logger to use the current exception info
+    logger.error("Uncaught exception", exc_info=True)
+
+
+# Register exception handler
 sys.excepthook = handle_exception

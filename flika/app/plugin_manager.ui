@@ -46,7 +46,7 @@
           </property>
           <property name="icon">
            <iconset>
-            <normaloff>../images/refresh.png</normaloff>../images/refresh.png</iconset>
+            <normaloff>:/images/refresh.png</normaloff>:/images/refresh.png</iconset>
           </property>
          </widget>
         </item>
@@ -64,7 +64,7 @@
           </property>
           <property name="icon">
            <iconset>
-            <normaloff>../images/search.png</normaloff>../images/search.png</iconset>
+            <normaloff>:/images/search.png</normaloff>:/images/search.png</iconset>
           </property>
          </widget>
         </item>
