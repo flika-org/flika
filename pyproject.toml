@@ -71,22 +71,20 @@ dev = [
     "sphinxcontrib-napoleon>=0.7",
     "mypy",
     "scipy-stubs",
-
 ]
 
 [tool.setuptools]
 packages = ["flika"]
+package-dir = {"" = "."}
 
 [tool.setuptools.package-data]
-"gui" = ["*.ui"]
-"images" = ["*.ico", "*.png", "*.txt", "*.tif"]
+"flika" = ["*.ui", "*.ico", "*.png", "*.txt", "*.tif"]
 
 [tool.pytest.ini_options]
 testpaths = ["flika"]
 python_files = "test_*.py"
 python_classes = "Test*"
 python_functions = "test_*"
-
 
 [tool.ruff]
 line-length = 88  

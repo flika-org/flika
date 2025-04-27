@@ -7,6 +7,9 @@ jobs:
   publish: 
     name: publish
     runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/flika
     permissions:
       id-token: write
     steps:
@@ -21,4 +24,4 @@ jobs:
           python -m pip install -U pip build
           python -m build
       - name : Publish Flika to PyPI
-        uses: pypa/gh-action-pypi-publish@v1.8.11
+        uses: pypa/gh-action-pypi-publish@v1.12.4

@@ -1,4 +1,7 @@
-recursive-include flika *.ui *.png *.ico
+recursive-include flika *.ui *.png *.ico *.tif *.txt *.py
 include README.md
+include LICENSE
+include pyproject.toml
+include py.typed
 include flika.desktop
 recursive-include examples *.py
