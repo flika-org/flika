@@ -21,7 +21,7 @@ import colorama
 from colorama import Fore, Style
 
 # Set the default logging level
-LEVEL = logging.DEBUG
+LEVEL = logging.INFO
 
 colorama.init()
 
