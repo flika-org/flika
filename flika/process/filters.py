@@ -16,8 +16,8 @@ __all__ = ['gaussian_blur', 'difference_of_gaussians', 'mean_filter', 'variance_
 class Gaussian_blur(BaseProcess):
     """ gaussian_blur(sigma, norm_edges=False, keepSourceWindow=False)
 
-    This applies a spatial gaussian_blur to every frame of your stack.  
-    
+    This applies a spatial gaussian_blur to every frame of your stack.
+
     Args:
         sigma (float): The width of the gaussian
         norm_edges (bool): If true, this reduces the values of the pixels near the edges so they have the same standard deviation as the rest of the image
@@ -158,13 +158,13 @@ difference_of_gaussians = Difference_of_Gaussians()
 ##################   TEMPORAL FILTERS       ###################################
 ###############################################################################
 from scipy.signal import butter, filtfilt
-    
+
 
 class Butterworth_filter(BaseProcess):
     """ butterworth_filter(filter_order, low, high, framerate, keepSourceWindow=False)
 
     This filters a stack in time.
-    
+
     Parameters:
         filter_order (int): The order of the butterworth filter (higher order -> steeper cutoff).
         low (float): The low frequency cutoff.  Must be between 0 and 1 and must be below high.
@@ -205,7 +205,7 @@ class Butterworth_filter(BaseProcess):
         self.items.append({'name':'low','string':'Low Cutoff Frequency','object':low})
         self.items.append({'name':'high','string':'High Cutoff Frequency','object':high})
         self.items.append({'name': 'framerate', 'string': 'Frame rate (Hz)', 'object': framerate})
-        self.items.append({'name':'preview','string':'Preview','object':preview})        
+        self.items.append({'name':'preview','string':'Preview','object':preview})
         super().gui()
         if g.win is None:
             self.roi = None
@@ -217,7 +217,7 @@ class Butterworth_filter(BaseProcess):
         if self.roi is None or g.currentTrace is None:
             preview.setChecked(False)
             preview.setEnabled(False)
-        
+
     def __call__(self, filter_order, low, high, framerate=0, keepSourceWindow=False):
         if framerate == 0:
             framerate = 2
@@ -238,7 +238,7 @@ class Butterworth_filter(BaseProcess):
                     self.newtif[:, i, j] = filtfilt(b, a, self.tif[:, i, j], padlen=padlen)
         self.newname = self.oldname+' - Butter Filtered'
         return self.end()
-        
+
     def preview(self):
         if g.currentTrace is not None:
             framerate = self.getValue('framerate')
@@ -275,14 +275,14 @@ class Butterworth_filter(BaseProcess):
                 [b,a] = butter(filter_order, [low, high], btype='bandpass')
             padlen = 6
         return b, a, padlen
-        
+
 butterworth_filter=Butterworth_filter()
 
-        
+
 def butterworth_filter_multi(filter_order, low, high, tif):
     nThreads = g.settings['nCores']
     mt, mx, my = tif.shape
-    block_ends = np.linspace(0, mx, nThreads+1).astype(np.int)
+    block_ends = np.linspace(0, mx, nThreads+1).astype(int)
     data = [tif[:, block_ends[i]:block_ends[i+1], :] for i in np.arange(nThreads)] #split up data along x axis. each thread will get one.
     args = (filter_order, low, high)
     progress = ProgressBar(butterworth_filter_multi_inner, data, args, nThreads, msg='Performing Butterworth Filter')
@@ -291,14 +291,14 @@ def butterworth_filter_multi(filter_order, low, high, tif):
     else:
         result = np.concatenate(progress.results,axis=1).astype(g.settings['internal_data_type'])
     return result
-    
+
 
 def butterworth_filter_multi_inner(q_results, q_progress, q_status, child_conn, args):
     data = child_conn.recv()
     status = q_status.get(True) #this blocks the process from running until all processes are launched
     if status == 'Stop':
         q_results.put(None)
-    
+
     def makeButterFilter(filter_order, low, high):
         padlen = 0
         if high == 1:
@@ -314,7 +314,7 @@ def butterworth_filter_multi_inner(q_results, q_progress, q_status, child_conn, 
                 [b,a]=butter(filter_order, [low,high], btype='bandpass')
             padlen = 6
         return b, a, padlen
-        
+
     filter_order,low,high = args
     b, a, padlen = makeButterFilter(filter_order,low,high)
     mt, mx, my = data.shape
@@ -340,7 +340,7 @@ class Mean_filter(BaseProcess):
     """ mean_filter(nFrames, keepSourceWindow=False)
 
     This filters a stack in time.
-    
+
     Parameters:
         nFrames (int): Number of frames to average
     Returns:
@@ -355,7 +355,7 @@ class Mean_filter(BaseProcess):
         preview=CheckBox()
         preview.setChecked(True)
         self.items.append({'name':'nFrames','string':'nFrames','object':nFrames})
-        self.items.append({'name':'preview','string':'Preview','object':preview})        
+        self.items.append({'name':'preview','string':'Preview','object':preview})
         super().gui()
         self.roi=g.win.currentROI
         if self.roi is not None:
@@ -364,7 +364,7 @@ class Mean_filter(BaseProcess):
         else:
             preview.setChecked(False)
             preview.setEnabled(False)
-            
+
     def __call__(self,nFrames,keepSourceWindow=False):
         self.start(keepSourceWindow)
         if self.tif.dtype == np.float16:
@@ -373,7 +373,7 @@ class Mean_filter(BaseProcess):
         if self.tif.ndim != 3:
             g.alert("Mean Filter only supports 3-dimensional movies.")
             return
-        self.newtif=convolve(self.tif,weights=np.full((nFrames,1,1),1.0/nFrames))        
+        self.newtif=convolve(self.tif,weights=np.full((nFrames,1,1),1.0/nFrames))
         self.newname=self.oldname+' - Mean Filtered'
         return self.end()
     def preview(self):
@@ -385,7 +385,7 @@ class Mean_filter(BaseProcess):
                     self.roi.redraw_trace() #redraw roi without filter
                 else:
                     trace=self.roi.getTrace()
-                    trace=convolve(trace,weights=np.full((nFrames),1.0/nFrames))        
+                    trace=convolve(trace,weights=np.full((nFrames),1.0/nFrames))
                     roi_index=g.currentTrace.get_roi_index(self.roi)
                     g.currentTrace.update_trace_full(roi_index,trace) #update_trace_partial may speed it up
             else:
@@ -475,7 +475,7 @@ class Median_filter(BaseProcess):
     """ median_filter(nFrames, keepSourceWindow=False)
 
     This filters a stack in time.
-    
+
     Parameters:
         nFrames (int): Number of frames to average.  This must be an odd number
     Returns:
@@ -490,7 +490,7 @@ class Median_filter(BaseProcess):
         preview=CheckBox()
         preview.setChecked(True)
         self.items.append({'name':'nFrames','string':'nFrames','object':nFrames})
-        self.items.append({'name':'preview','string':'Preview','object':preview})        
+        self.items.append({'name':'preview','string':'Preview','object':preview})
         super().gui()
         self.roi=g.win.currentROI
         if self.roi is not None:
@@ -499,7 +499,7 @@ class Median_filter(BaseProcess):
         else:
             preview.setChecked(False)
             preview.setEnabled(False)
-            
+
     def __call__(self, nFrames, keepSourceWindow=False):
         if nFrames%2 == 0: #if value is even:
             g.alert('median_filter only takes odd numbers.  Operation cancelled')
@@ -513,7 +513,7 @@ class Median_filter(BaseProcess):
         self.newtif = np.zeros(self.tif.shape)
         for i in np.arange(my):
             for j in np.arange(mx):
-                self.newtif[:, i, j]=medfilt(self.tif[:, i, j], kernel_size=nFrames)      
+                self.newtif[:, i, j]=medfilt(self.tif[:, i, j], kernel_size=nFrames)
         self.newname=self.oldname+' - Median Filtered'
         return self.end()
     def preview(self):
@@ -533,7 +533,7 @@ class Median_filter(BaseProcess):
                     g.currentTrace.update_trace_full(roi_index,trace) #update_trace_partial may speed it up
             else:
                 self.roi.redraw_trace()
-                
+
 median_filter=Median_filter()
 
 
@@ -573,8 +573,8 @@ class Fourier_filter(BaseProcess):
         self.items.append({'name':'frame_rate','string':'Frame Rate (Hz)','object':frame_rate})
         self.items.append({'name':'low','string':'Low Cutoff Frequency','object':low})
         self.items.append({'name':'high','string':'High Cutoff Frequency','object':high})
-        self.items.append({'name':'loglogPreview','string':'Plot frequency spectrum on log log axes','object':loglogPreview})    
-        self.items.append({'name':'preview','string':'Preview','object':preview})        
+        self.items.append({'name':'loglogPreview','string':'Plot frequency spectrum on log log axes','object':loglogPreview})
+        self.items.append({'name':'preview','string':'Preview','object':preview})
         super().gui()
         self.roi=g.win.currentROI
         if self.roi is not None:
@@ -629,7 +629,7 @@ class Fourier_filter(BaseProcess):
                     g.currentTrace.update_trace_full(roi_index,cut_signal) #update_trace_partial may speed it up
             else:
                 self.roi.redraw_trace()
-                
+
     def frame_rate_changed(self):
         low=[item for item in self.items if item['name']=='low'][0]['object']
         high=[item for item in self.items if item['name']=='high'][0]['object']
@@ -656,11 +656,11 @@ def plotSpectrum(y,Fs):
     cut_signal=np.real(ifft(f_signal))
     p=plot(trace)
     p.plot(cut_signal,pen=pg.mkPen('r'))
-    
+
     plot(frq,abs(f_signal),'r') # plotting the spectrum
     xlabel('Freq (Hz)')
     ylabel('|Y(freq)|')"""
-        
+
 fourier_filter=Fourier_filter()
 
 
@@ -688,7 +688,7 @@ class Difference_filter(BaseProcess):
         return self.end()
 difference_filter=Difference_filter()
 
-    
+
 class Boxcar_differential_filter(BaseProcess):
     """ boxcar_differential_filter(minNframes, maxNframes, keepSourceWindow=False)
 
@@ -714,7 +714,7 @@ class Boxcar_differential_filter(BaseProcess):
         preview.setChecked(True)
         self.items.append({'name':'minNframes','string':'Minimum Number of Frames','object':minNframes})
         self.items.append({'name':'maxNframes','string':'Maximum Number of Frames','object':maxNframes})
-        self.items.append({'name':'preview','string':'Preview','object':preview})  
+        self.items.append({'name':'preview','string':'Preview','object':preview})
         if super().gui()==False:
             return False
         self.roi=g.win.currentROI
@@ -753,14 +753,14 @@ class Boxcar_differential_filter(BaseProcess):
             else:
                 self.roi.redraw_trace()
 boxcar_differential_filter=Boxcar_differential_filter()
-    
-    
+
+
 from scipy import signal
 class Wavelet_filter(BaseProcess):
     ''' wavelet_filter(low, high, keepSourceWindow=False)
 
     ***Warning!! This function is extremely slow.***
-    
+
     Parameters:
         low (int): The starting point of your boxcar window.
         high (int): The ending point of your boxcar window.
@@ -781,7 +781,7 @@ class Wavelet_filter(BaseProcess):
         preview.setChecked(True)
         self.items.append({'name':'low','string':'Low Frequency Threshold','object':low})
         self.items.append({'name':'high','string':'High Frequency Threshold','object':high})
-        self.items.append({'name':'preview','string':'Preview','object':preview})  
+        self.items.append({'name':'preview','string':'Preview','object':preview})
         super().gui()
         self.roi=g.win.currentROI
         if self.roi is not None:
@@ -827,7 +827,7 @@ wavelet_filter=Wavelet_filter()
 
 class Bilateral_filter(BaseProcess):
     """bilateral_filter( keepSourceWindow=False)
-    
+
     Parameters:
         soft (bool): True for guassian, False for hard filter
         beta (float): beta of kernel
@@ -841,7 +841,7 @@ class Bilateral_filter(BaseProcess):
         super().__init__()
     def gui(self):
         self.gui_reset()
-        
+
         soft=CheckBox()
         soft.setChecked(True)
         beta=SliderLabel(2)
@@ -858,12 +858,12 @@ class Bilateral_filter(BaseProcess):
         maxiter.setValue(10)
         preview=CheckBox()
         preview.setChecked(True)
-        self.items.append({'name':'soft','string':'soft','object':soft})  
-        self.items.append({'name':'beta','string':'beta','object':beta})  
-        self.items.append({'name':'width','string':'width','object':width})  
-        self.items.append({'name':'stoptol','string':'stop tolerance','object':stoptol})  
-        self.items.append({'name':'maxiter','string':'Maximum Iterations','object':maxiter})  
-        self.items.append({'name':'preview','string':'Preview','object':preview})  
+        self.items.append({'name':'soft','string':'soft','object':soft})
+        self.items.append({'name':'beta','string':'beta','object':beta})
+        self.items.append({'name':'width','string':'width','object':width})
+        self.items.append({'name':'stoptol','string':'stop tolerance','object':stoptol})
+        self.items.append({'name':'maxiter','string':'Maximum Iterations','object':maxiter})
+        self.items.append({'name':'preview','string':'Preview','object':preview})
         super().gui()
         self.roi=g.win.currentROI
         if self.roi is not None:
@@ -872,9 +872,9 @@ class Bilateral_filter(BaseProcess):
         else:
             preview.setChecked(False)
             preview.setEnabled(False)
-        
+
     def __call__(self,soft, beta, width, stoptol, maxiter, keepSourceWindow=False):
-        
+
         self.start(keepSourceWindow)
         if self.tif.ndim != 3:
             g.alert("Bilateral filter requires 3-dimensional image.")
@@ -897,7 +897,7 @@ class Bilateral_filter(BaseProcess):
         stoptol=self.getValue('stoptol')
         maxiter=self.getValue('maxiter')
         preview=self.getValue('preview')
-        
+
         if self.roi is not None:
             if preview:
                 trace=self.roi.getTrace()
@@ -906,12 +906,12 @@ class Bilateral_filter(BaseProcess):
                 g.currentTrace.update_trace_full(roi_index,trace) #update_trace_partial may speed it up
             else:
                 self.roi.redraw_trace()
-        
+
 
 def bilateral_filter_multi(soft,beta,width,stoptol,maxiter,tif):
     nThreads= g.settings['nCores']
     mt,mx,my=tif.shape
-    block_ends=np.linspace(0,mx,nThreads+1).astype(np.int)
+    block_ends=np.linspace(0,mx,nThreads+1).astype(int)
     data=[tif[:, block_ends[i]:block_ends[i+1],:] for i in np.arange(nThreads)] #split up data along x axis. each thread will get one.
     args=(soft,beta,width,stoptol,maxiter)
     progress = ProgressBar(bilateral_filter_inner, data, args, nThreads, msg='Performing Bilateral Filter')
@@ -920,16 +920,16 @@ def bilateral_filter_multi(soft,beta,width,stoptol,maxiter,tif):
     else:
         result=np.concatenate(progress.results,axis=1)
     return result
-    
-    
+
+
 def bilateral_filter_inner(q_results, q_progress, q_status, child_conn, args):
     data=child_conn.recv() # unfortunately this step takes a long time
     percent=0  # This is the variable we send back which displays our progress
     status=q_status.get(True) #this blocks the process from running until all processes are launched
     if status=='Stop':
         q_results.put(None) # if the user presses stop, return None
-    
-    
+
+
     # Here is the meat of the inner_func.
     soft,beta,width,stoptol,maxiter=args #unpack all the variables inside the args tuple
     result=np.zeros(data.shape)
@@ -944,30 +944,30 @@ def bilateral_filter_inner(q_results, q_progress, q_status, child_conn, args):
         if percent<int(100*x/xx):
             percent=int(100*x/xx)
             q_progress.put(percent)
-                    
+
     # finally, when we've finished with our calculation, we send back the result
     q_results.put(result)
-    
+
 def bilateral_smooth(soft,beta,width,stoptol,maxiter,y):
     display=False       # 1 to report iteration values
-    
+
     y=np.array(y[:])
     N=np.size(y,0)
     w=np.zeros((N,N))
     j=np.arange(0,N)
-    
+
     #construct initial bilateral kernel
     for i in np.arange(0,N):
         w[i,np.arange(0,N)]=(abs(i-j) <= width)
-    
+
     #initial guess from input signal
     xold=np.copy(y)
-    
+
     #new matrix for storing distances
     d=np.zeros((N,N))
-    
+
     #fig1 = plt.plot(y)
-    
+
     if (display):
         if (soft):
             print('Soft kernel')
@@ -975,46 +975,46 @@ def bilateral_smooth(soft,beta,width,stoptol,maxiter,y):
             print('Hard kernel')
         print('Kernel parameters beta= %d, W= %d' % (beta,width))
         print('Iter# Change')
-    
+
     #start iteration
     iterate=1
     gap=np.inf
-    
+
     while (iterate < maxiter):
-    
+
         if (display):
             print('%d %f'% (iterate,gap))
-    
+
         # calculate paiwise distances for all points
         for i in np.arange(0,N):
             d[:,i] = (0.5 * (xold - xold[i]) ** 2)
-        
+
         #create kernel
         if (soft):
             W=np.multiply(np.exp(-beta*d),w)
-    
+
         else:
             W=np.multiply((d <= beta ** 2),w)
-        
-        #apply kernel to get weighted mean shift   
+
+        #apply kernel to get weighted mean shift
         xnew1=np.sum(np.multiply(np.transpose(W),xold), axis=1)
         xnew2=np.sum(W, axis=1)
         xnew=np.divide(xnew1,xnew2)
-       
-        #plt.plot(xnew)   
-        
+
+        #plt.plot(xnew)
+
         #check for convergence
         gap=np.sum(np.square(xold-xnew))
-    
+
         if (gap < stoptol):
             if (display):
                 print('Converged in %d iterations' % iterate)
             break
-    
+
         xold=np.copy(xnew)
         iterate+=1
     return xold
-    
+
 bilateral_filter=Bilateral_filter()
 
 
